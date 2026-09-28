@@ -95,11 +95,11 @@ def process_data():
         if not correct_tool:
             continue
             
-        # Ensure we do not exceed 25 tools (A-Y)
-        if len(tools) > 25:
+        # Ensure we do not exceed 10 tools to keep prompt length manageable
+        if len(tools) > 10:
             tools_without_correct = [t for t in tools if t["name"] != correct_tool]
             random.shuffle(tools_without_correct)
-            tools = [t for t in tools if t["name"] == correct_tool] + tools_without_correct[:24]
+            tools = [t for t in tools if t["name"] == correct_tool] + tools_without_correct[:9]
             
         # Inject distractors if tools are less than 4
         current_tool_names = {t["name"] for t in tools}
@@ -140,9 +140,9 @@ def process_data():
         question = item["question"][0][0]["content"] if isinstance(item["question"][0], list) else item["question"][0]["content"]
         tools = item["function"]
         
-        if len(tools) > 25:
+        if len(tools) > 10:
             random.shuffle(tools)
-            tools = tools[:25]
+            tools = tools[:10]
             
         current_tool_names = {t["name"] for t in tools}
         while len(tools) < 4:

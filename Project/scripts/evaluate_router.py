@@ -1,5 +1,6 @@
 import json
 import time
+# pyrefly: ignore [missing-import]
 from mlx_lm import load, generate
 
 def run_evaluation(model, tokenizer, test_data, model_name):
