@@ -5,9 +5,9 @@ import random
 import os
 
 BASE_URL = "https://huggingface.co/datasets/gorilla-llm/Berkeley-Function-Calling-Leaderboard/resolve/main"
-DATASETS = ["BFCL_v3_simple.json", "BFCL_v3_multiple.json"]
-ANSWERS = ["possible_answer/BFCL_v3_simple.json", "possible_answer/BFCL_v3_multiple.json"]
-IRRELEVANCE_FILE = "BFCL_v3_irrelevance.json" 
+DATASETS = ["BFCL_v3_simple.json", "BFCL_v3_multiple.json", "BFCL_v3_live_simple.json", "BFCL_v3_live_multiple.json"]
+ANSWERS = ["possible_answer/BFCL_v3_simple.json", "possible_answer/BFCL_v3_multiple.json", "possible_answer/BFCL_v3_live_simple.json", "possible_answer/BFCL_v3_live_multiple.json"]
+IRRELEVANCE_FILES = ["BFCL_v3_irrelevance.json", "BFCL_v3_live_irrelevance.json"]
 
 # System template for Jev-like
 SYSTEM_PROMPT = """You are an intelligent router. Your task is to analyze the user's request and choose the SINGLE correct tool from the available options.
@@ -95,6 +95,12 @@ def process_data():
         if not correct_tool:
             continue
             
+        # Ensure we do not exceed 25 tools (A-Y)
+        if len(tools) > 25:
+            tools_without_correct = [t for t in tools if t["name"] != correct_tool]
+            random.shuffle(tools_without_correct)
+            tools = [t for t in tools if t["name"] == correct_tool] + tools_without_correct[:24]
+            
         # Inject distractors if tools are less than 4
         current_tool_names = {t["name"] for t in tools}
         while len(tools) < 4:
@@ -125,13 +131,19 @@ def process_data():
 
     # Abstain data
     print("\nDownloading Irrelevance (Abstain/Z) examples...")
-    irrelevance_data = fetch_jsonl(f"{BASE_URL}/{IRRELEVANCE_FILE}")
+    irrelevance_data = []
+    for irr_file in IRRELEVANCE_FILES:
+        irrelevance_data.extend(fetch_jsonl(f"{BASE_URL}/{irr_file}"))
     
     print(f"Processing {len(irrelevance_data)} Abstain examples...")
     for item in irrelevance_data:
         question = item["question"][0][0]["content"] if isinstance(item["question"][0], list) else item["question"][0]["content"]
         tools = item["function"]
         
+        if len(tools) > 25:
+            random.shuffle(tools)
+            tools = tools[:25]
+            
         current_tool_names = {t["name"] for t in tools}
         while len(tools) < 4:
             random_tool = random.choice(global_tools_pool)
