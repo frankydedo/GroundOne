@@ -1,0 +1,42 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# Environment variables
+.env
+.env.local
+
+# Media / Data
+*.mp3
+*.wav
+*.mp4
+*.mov
+
+# IDEs / Environments
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Obsidian
+Vault/.obsidian/workspace.json
+Vault/.obsidian/workspace-mobile.json
+Vault/.obsidian/core-plugins.json
+
+# Model Weights (if downloaded locally)
+*.safetensors
+*.gguf
+*.bin
+
+
+# Jevlike repos
+Jevlike_repos/

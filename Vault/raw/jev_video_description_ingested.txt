@@ -1,0 +1,30 @@
+JEV non è un LLM e non è un chatbot.
+
+È il primo modello pubblico di una nuova classe di modelli che TypeSafe AI definisce “System One Models”: sistemi progettati non per generare testo, ma per prendere decisioni strutturate che il software può utilizzare direttamente.
+
+In questo video andiamo molto nel tecnico.
+
+Vediamo:
+
+cos'è JEV e quale problema cerca di risolvere
+perché è diverso da un normale Large Language Model
+come vengono rappresentate le decisioni e le probabilità
+come può essere utilizzato all'interno di workflow e automazioni
+casi d'uso reali
+cosa sappiamo della sua architettura
+come costruire un modello Jev-like
+come potrebbe essere organizzato il training
+RLCD, Reinforcement Learning for Calibrated Decisions
+progetti open source che stanno cercando di esplorare questo nuovo paradigma
+
+TypeSafe AI:
+https://typesafe.ai/
+
+Approfondimento sull'architettura:
+https://archerhume.com/posts/jevs-arc...
+
+Jevlike:
+https://github.com/vinnylarouge/jevlike
+
+SemIf:
+https://github.com/TheoLeeCJ/SemIf
