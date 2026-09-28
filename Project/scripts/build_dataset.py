@@ -10,10 +10,10 @@ DATASET_FILE = "BFCL_v3_simple.json"
 ANSWER_FILE = "possible_answer/BFCL_v3_simple.json"
 IRRELEVANCE_FILE = "BFCL_v3_irrelevance.json" # Per gli Abstain
 
-# Template di sistema per Jev-like
-SYSTEM_PROMPT = """Sei un router intelligente. Il tuo compito è analizzare la richiesta dell'utente e scegliere l'UNICO strumento (tool) corretto tra quelli disponibili.
-Devi rispondere ESCLUSIVAMENTE con la lettera associata al tool scelto (es. A, B, C...).
-Se la richiesta dell'utente NON può essere soddisfatta da nessuno dei tool elencati, devi rispondere con la lettera Z (Abstain)."""
+# System template for Jev-like
+SYSTEM_PROMPT = """You are an intelligent router. Your task is to analyze the user's request and choose the SINGLE correct tool from the available options.
+You must reply EXCLUSIVELY with the letter associated with the chosen tool (e.g., A, B, C...).
+If the user's request CANNOT be satisfied by any of the listed tools, you must reply with the letter Z (Abstain)."""
 
 def fetch_jsonl(url):
     print(f"Scaricando: {url}")
@@ -30,7 +30,7 @@ def fetch_jsonl(url):
 def build_prompt(question, tools, letter_mapping):
     prompt = f"<|im_start|>system\n{SYSTEM_PROMPT}\n<|im_end|>\n"
     prompt += "<|im_start|>user\n"
-    prompt += f"RICHIESTA:\n{question}\n\nTOOLS DISPONIBILI:\n"
+    prompt += f"REQUEST:\n{question}\n\nAVAILABLE TOOLS:\n"
     
     for letter, tool in letter_mapping.items():
         if letter == 'Z':
