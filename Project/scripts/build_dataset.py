@@ -4,11 +4,10 @@ import string
 import random
 import os
 
-# Endpoint Hugging Face per il dataset BFCL
 BASE_URL = "https://huggingface.co/datasets/gorilla-llm/Berkeley-Function-Calling-Leaderboard/resolve/main"
-DATASET_FILE = "BFCL_v3_simple.json"
-ANSWER_FILE = "possible_answer/BFCL_v3_simple.json"
-IRRELEVANCE_FILE = "BFCL_v3_irrelevance.json" # Per gli Abstain
+DATASETS = ["BFCL_v3_simple.json", "BFCL_v3_multiple.json"]
+ANSWERS = ["possible_answer/BFCL_v3_simple.json", "possible_answer/BFCL_v3_multiple.json"]
+IRRELEVANCE_FILE = "BFCL_v3_irrelevance.json" 
 
 # System template for Jev-like
 SYSTEM_PROMPT = """You are an intelligent router. Your task is to analyze the user's request and choose the SINGLE correct tool from the available options.
@@ -16,7 +15,7 @@ You must reply EXCLUSIVELY with the letter associated with the chosen tool (e.g.
 If the user's request CANNOT be satisfied by any of the listed tools, you must reply with the letter Z (Abstain)."""
 
 def fetch_jsonl(url):
-    print(f"Scaricando: {url}")
+    print(f"Downloading: {url}")
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     with urllib.request.urlopen(req) as response:
         content = response.read().decode('utf-8')
@@ -34,52 +33,59 @@ def build_prompt(question, tools, letter_mapping):
     
     for letter, tool in letter_mapping.items():
         if letter == 'Z':
-            continue # Non printiamo Z come tool testuale, è implicito nelle regole.
+            continue 
         prompt += f"[{letter}] {tool['name']}: {tool['description']}\n"
     
     prompt += "<|im_end|>\n<|im_start|>assistant\n"
     return prompt
 
+def get_tool_name_from_answer(ground_truth_tool_name):
+    if isinstance(ground_truth_tool_name, list):
+        if len(ground_truth_tool_name) > 0 and type(ground_truth_tool_name[0]) == str:
+            pass
+        elif len(ground_truth_tool_name) > 0 and type(ground_truth_tool_name[0]) == dict:
+            ground_truth_tool_name = list(ground_truth_tool_name[0].keys())[0]
+    return ground_truth_tool_name
+
 def process_data():
-    print("Iniziando la Fase 1: Creazione del Dataset 'Typed Decisions'...\n")
+    print("Starting Phase 1 (v2): Creating Robust 'Typed Decisions' Dataset...\n")
     
-    # 1. Scarichiamo i dati positivi (c'è una risposta)
-    prompts_data = fetch_jsonl(f"{BASE_URL}/{DATASET_FILE}")
-    answers_data = fetch_jsonl(f"{BASE_URL}/{ANSWER_FILE}")
+    all_positive_prompts = []
+    all_positive_answers = []
     
-    # Mappiamo le risposte per ID
+    for ds, ans in zip(DATASETS, ANSWERS):
+        all_positive_prompts.extend(fetch_jsonl(f"{BASE_URL}/{ds}"))
+        all_positive_answers.extend(fetch_jsonl(f"{BASE_URL}/{ans}"))
+        
     answers_map = {}
-    for item in answers_data:
+    for item in all_positive_answers:
         if "id" in item and "ground_truth" in item:
             answers_map[item["id"]] = item["ground_truth"]
 
+    # Extract all unique tools globally for distractors
+    global_tools_pool = []
+    global_tools_names = set()
+    for item in all_positive_prompts:
+        for t in item.get("function", []):
+            if t["name"] not in global_tools_names:
+                global_tools_names.add(t["name"])
+                global_tools_pool.append(t)
+                
     dataset_mlx = []
-
-    print(f"Processando {len(prompts_data)} esempi positivi...")
-    for item in prompts_data:
+    print(f"Processing {len(all_positive_prompts)} positive examples...")
+    
+    for item in all_positive_prompts:
         item_id = item["id"]
-        # In BFCL le question sono array di messaggi
         question = item["question"][0][0]["content"] if isinstance(item["question"][0], list) else item["question"][0]["content"]
         tools = item["function"]
         
-        # Se non c'è la risposta saltiamo
         if item_id not in answers_map:
             continue
             
-        ground_truth_tool_name = answers_map[item_id]
-        if isinstance(ground_truth_tool_name, list):
-            # In BFCL_simple a volte l'answer è la stringa intera della funzione
-            if len(ground_truth_tool_name) > 0 and type(ground_truth_tool_name[0]) == str:
-                 pass
-            elif len(ground_truth_tool_name) > 0:
-                 ground_truth_tool_name = list(ground_truth_tool_name[0].keys())[0]
-
-        # Evitiamo parsing troppo complessi se l'answer non è pulita
+        ground_truth_tool_name = get_tool_name_from_answer(answers_map[item_id])
         if not isinstance(ground_truth_tool_name, str):
             continue
             
-        # Troviamo quale tool corrisponde al ground truth
-        # Per semplicità, cerchiamo il nome del tool dentro la stringa di answer
         correct_tool = None
         for t in tools:
             if t["name"] in ground_truth_tool_name:
@@ -89,10 +95,16 @@ def process_data():
         if not correct_tool:
             continue
             
-        # Mischiamo i tool per non far imparare la posizione
+        # Inject distractors if tools are less than 4
+        current_tool_names = {t["name"] for t in tools}
+        while len(tools) < 4:
+            random_tool = random.choice(global_tools_pool)
+            if random_tool["name"] not in current_tool_names:
+                tools.append(random_tool)
+                current_tool_names.add(random_tool["name"])
+            
         random.shuffle(tools)
         
-        # Mappiamo i tool alle lettere
         alphabet = string.ascii_uppercase
         letter_mapping = {}
         target_letter = None
@@ -111,14 +123,23 @@ def process_data():
             "text": final_prompt + target_letter
         })
 
-    # 2. Scarichiamo i dati negativi (Irrelevance -> Abstain)
-    print("\nScaricando esempi di Irrelevance (Abstain/Z)...")
+    # Abstain data
+    print("\nDownloading Irrelevance (Abstain/Z) examples...")
     irrelevance_data = fetch_jsonl(f"{BASE_URL}/{IRRELEVANCE_FILE}")
     
-    print(f"Processando {len(irrelevance_data)} esempi di Abstain...")
+    print(f"Processing {len(irrelevance_data)} Abstain examples...")
     for item in irrelevance_data:
         question = item["question"][0][0]["content"] if isinstance(item["question"][0], list) else item["question"][0]["content"]
         tools = item["function"]
+        
+        current_tool_names = {t["name"] for t in tools}
+        while len(tools) < 4:
+            random_tool = random.choice(global_tools_pool)
+            if random_tool["name"] not in current_tool_names:
+                tools.append(random_tool)
+                current_tool_names.add(random_tool["name"])
+                
+        random.shuffle(tools)
         
         alphabet = string.ascii_uppercase
         letter_mapping = {}
@@ -133,10 +154,8 @@ def process_data():
             "text": final_prompt + "Z"
         })
 
-    # Mischiamo il dataset finale
     random.shuffle(dataset_mlx)
     
-    # Dividiamo in Train (80%), Val (10%), Test (10%)
     n = len(dataset_mlx)
     train_end = int(n * 0.8)
     val_end = int(n * 0.9)
@@ -145,7 +164,7 @@ def process_data():
     val_data = dataset_mlx[train_end:val_end]
     test_data = dataset_mlx[val_end:]
     
-    print(f"\nSalvataggio file JSONL completato!")
+    print(f"\nJSONL Save Complete!")
     print(f"Train: {len(train_data)} | Val: {len(val_data)} | Test: {len(test_data)}")
     
     def save_jsonl(data, filename):
@@ -156,7 +175,7 @@ def process_data():
     save_jsonl(train_data, "data/processed/train.jsonl")
     save_jsonl(val_data, "data/processed/valid.jsonl")
     save_jsonl(test_data, "data/processed/test.jsonl")
-    print("File salvati in data/processed/")
+    print("Files saved to data/processed/")
 
 if __name__ == "__main__":
     process_data()

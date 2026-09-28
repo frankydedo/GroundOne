@@ -26,3 +26,9 @@
 - Created concept page: `LangChain`.
 - Updated concept pages: `Jev`, `TypeSafe AI`.
 - Updated `index.md`.
+
+## [2026-09-28] ingest | BFCL files
+- Ingested Berkeley Function Calling Leaderboard V4 and Datasets at Hugging Face.
+- Created source pages: `Berkeley Function Calling Leaderboard V4`, `Hugging Face Datasets BFCL`.
+- Created concept pages: `Function Calling`, `Berkeley Function Calling Leaderboard`.
+- Updated `index.md`.

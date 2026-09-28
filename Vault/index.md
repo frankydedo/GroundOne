@@ -12,6 +12,8 @@ Welcome to the knowledge base.
 - [[Mixture of Experts]]
 - [[KV Cache]]
 - [[LangChain]]
+- [[Function Calling]]
+- [[Berkeley Function Calling Leaderboard]]
 
 ## Sources
 - [[jev_simone_rizzo]]
@@ -20,3 +22,5 @@ Welcome to the knowledge base.
 - [[Che cos'e Jev Spiegazione]]
 - [[Introducing System One Models and Jev]]
 - [[What Is Jev A Guide to TypeSafe AI]]
+- [[Berkeley Function Calling Leaderboard V4]]
+- [[Hugging Face Datasets BFCL]]
