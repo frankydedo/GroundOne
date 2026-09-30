@@ -1,0 +1,51 @@
+{
+    "adapter_path": "training_results/0.5B_model/adapters",
+    "batch_size": 1,
+    "config": "lora_config_0.5B.yaml",
+    "data": "data/processed",
+    "fine_tune_type": "lora",
+    "grad_accumulation_steps": 4,
+    "grad_checkpoint": false,
+    "iters": 3000,
+    "learning_rate": 1e-05,
+    "lora_layers": 16,
+    "lora_parameters": {
+        "rank": 16,
+        "alpha": 16,
+        "dropout": 0.05,
+        "scale": 10.0
+    },
+    "lr_schedule": {
+        "name": "cosine_decay",
+        "arguments": [
+            0.0001,
+            3000
+        ],
+        "warmup": 300,
+        "warmup_init": 1e-06
+    },
+    "mask_prompt": false,
+    "max_seq_length": 1536,
+    "model": "lmstudio-community/Qwen2.5-0.5B-Instruct-MLX-8bit",
+    "num_layers": 16,
+    "optimizer": "adam",
+    "optimizer_config": {
+        "adam": {},
+        "adamw": {},
+        "muon": {},
+        "sgd": {},
+        "adafactor": {}
+    },
+    "project_name": null,
+    "report_to": null,
+    "resume_adapter_file": null,
+    "save_every": 100,
+    "seed": 0,
+    "steps_per_eval": 200,
+    "steps_per_report": 10,
+    "test": false,
+    "test_batches": 20,
+    "test_every": 100,
+    "train": true,
+    "val_batches": 25
+}
