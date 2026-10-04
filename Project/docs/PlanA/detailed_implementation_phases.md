@@ -80,9 +80,9 @@ Sfruttando il dataset `v3_test.jsonl` (che raggruppa le query in bucket omogenei
    - Un LLM monolitico (es. Qwen 7B) riceve la query e il contesto completo di *tutti* i tool disponibili. Genera direttamente il JSON finale (Tool Selection + Argument Extraction).
    - *Ipotesi:* Latenza costantemente elevata a causa della decodifica token per token ($\mathcal{O}(L)$), e crollo dell'accuratezza semantica all'aumentare delle opzioni dovuta alla confusione nel contesto.
 
-2. **Pipeline Baseline System One, es. Rizzo-Flow (Complessità $\mathcal{O}(N)$):**
-   - Un modello valuta la probabilità della sequenza per *ogni singola opzione* in modo indipendente.
-   - *Ipotesi:* Mentre a bassi numeri di tool (es. 4) può competere, la sua latenza esplode in modo lineare ($\mathcal{O}(N)$) all'aumentare dei tool, rendendolo inadatto a scenari complessi.
+2. **Pipeline Baseline System One, es. Rizzo-Flow (Complessità $\mathcal{O}(1)$):**
+   - Sfruttando la primitiva `choice`, il modello compila dinamicamente le opzioni in un singolo prompt a risposta multipla e ne estrae i logit in un singolo forward pass.
+   - *Ipotesi:* Latenza costante e piatta ($\mathcal{O}(1)$) identica a LightningRoute, fornendo un paragone diretto a parità di architettura ma con un overhead leggermente superiore dovuto al parsing del framework general-purpose.
 
 3. **Pipeline LightningRoute Cascade (Complessità $\mathcal{O}(1)$):**
    - **Gatekeeper (Selezione):** LightningRoute (0.5B fine-tuned) riceve tutte le descrizioni dei tool ed esegue un singolo forward pass, restituendo istantaneamente il tool corretto o 'Z' (Abstain) con latenza assolutamente piatta ($\mathcal{O}(1)$).
@@ -92,7 +92,7 @@ Sfruttando il dataset `v3_test.jsonl` (che raggruppa le query in bucket omogenei
 ### Output e Visualizzazione Dati (Matplotlib)
 I risultati dell'esperimento verranno distillati nei seguenti grafici e metriche per l'elaborato di tesi:
 - **Metriche di Latenza Rigorose:** Per ogni pipeline e per ogni bucket di tool, calcoleremo esattamente la latenza `p50` (mediana), `p90` e `p99`, così da documentare la stabilità del sistema anche nei casi peggiori (tail latency).
-- **Scalabilità della Latenza (Curve):** Grafico a linee (Asse X: Numero di Tool; Asse Y: Latenza ms) che evidenzia la curva piatta di LightningRoute $\mathcal{O}(1)$ contro la crescita lineare $\mathcal{O}(N)$ di Rizzo-Flow e la linea alta $\mathcal{O}(L)$ del generativo.
+- **Scalabilità della Latenza (Curve):** Grafico a linee (Asse X: Numero di Tool; Asse Y: Latenza ms) che evidenzia la curva piatta ($\mathcal{O}(1)$) di LightningRoute e Rizzo-Flow contro la latenza crescente e penalizzata ($\mathcal{O}(L)$) del router generativo.
 - **Efficacia End-to-End (Scatter Plot):** Grafico a dispersione (Asse X: Latenza Totale Pipeline; Asse Y: Accuratezza %) per dimostrare che LightningRoute Cascade domina su entrambi i fronti rispetto ai classici Router LLM monolitici.
 
 While **LightningRoute** shares the same foundational "System One" philosophy (no text generation, instant classification) as Jev and Rizzo-Flow, it is vastly more specialized and efficient for the specific task of **Tool Routing** due to three massive architectural advantages:

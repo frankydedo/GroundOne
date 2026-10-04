@@ -8,10 +8,6 @@ dependencies = [
     "fastapi>=0.110.0,<1",
     "uvicorn>=0.29.0,<1",
     "pydantic>=2.6.0,<3",
-]
-
-[project.optional-dependencies]
-mlx = [
     "mlx>=0.17.0",
     "mlx-lm>=0.17.0",
 ]

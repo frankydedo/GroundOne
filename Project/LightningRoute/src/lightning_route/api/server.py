@@ -4,8 +4,8 @@ import time
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 
-from .schemas.models import RouterRequest, RouterResponse, HealthResponse
-from .engine.extractor import LogitExtractor
+from ..schemas.models import RouterRequest, RouterResponse, HealthResponse
+from ..engine.extractor import LogitExtractor
 
 
 def create_app(extractor: LogitExtractor) -> FastAPI:

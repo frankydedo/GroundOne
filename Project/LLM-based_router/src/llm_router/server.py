@@ -12,11 +12,13 @@ engine = None
 async def lifespan(app: FastAPI):
     global engine
     model_id = os.environ.get("ROUTER_MODEL_ID", "mlx-community/Qwen2.5-7B-Instruct-8bit")
+    adapter_path = os.environ.get("ROUTER_ADAPTER_PATH")
     
     print("🤖 Booting up LLM Based Router (O(L))...")
     print(f"📦 Model: {model_id}")
+    print(f"🧩 Adapter: {adapter_path}")
     
-    engine = LLMEngine(model_id=model_id)
+    engine = LLMEngine(model_id=model_id, adapter_path=adapter_path)
     print("✅ Model loaded!")
     yield
     print("Shutting down...")
