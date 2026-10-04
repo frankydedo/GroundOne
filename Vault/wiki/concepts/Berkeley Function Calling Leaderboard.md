@@ -6,6 +6,9 @@ tags:
 ---
 # Berkeley Function Calling Leaderboard (BFCL)
 
+> **Status (lint 2026-10-05):** archived context. BFCL was the dataset of the earlier tool-routing experiment (LightningRoute, now in `Project_old/`), which was abandoned. The current thesis is [[GroundOne]].
+
+
 The Berkeley Function Calling Leaderboard (BFCL) is a benchmark designed to evaluate Large Language Models' ability to accurately call functions and tools in real-world use cases. 
 
 ## Evolution

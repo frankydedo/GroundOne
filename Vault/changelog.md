@@ -39,3 +39,22 @@
 - Created concept page: `LLM-as-a-Judge`.
 - Updated concept page: `Jev`.
 - Updated `index.md`.
+
+## [2026-10-04] query | Quando un System One è vantaggioso rispetto a un LLM?
+- Synthesized wiki concepts plus project material (SemIf RESULTS, LoRA v1 results, expected_results) into a new page.
+- Created concept page: `When System One Beats an LLM`.
+- Updated concept pages: `System One Models`, `Jev`.
+- Updated `index.md`.
+
+## [2026-10-05] ingest | 25 sources for the GroundOne thesis (papers, model cards, System One repos)
+- Downloaded and verified 21 papers and 4 web/repo documents into `raw/` (citations checked against arXiv / ACL Anthology / AAAI).
+- Created 37 source pages: RAG and verification (Lewis, RAGTruth, MiniCheck, LLM-AggreFact leaderboard, AlignScore, HHEM card, Lynx, RAGAS, ARES, Self-RAG, Zheng LLM-as-a-Judge, ANLI, MNLI), calibration (Naeini, Guo, Kadavath, Tian, Geifman), models/inference (LoRA, QLoRA, Qwen2.5, Pope, PagedAttention), System One (CLM blog + README, Rizzo-Flow README + training, SemIf README + RESULTS).
+- Created concept pages: `GroundOne`, `Retrieval-Augmented Generation`, `RAG Evaluation Frameworks`, `Hallucination Detection`, `Groundedness Verification`, `Natural Language Inference`, `LLM-AggreFact`, `RAGTruth`, `MiniCheck`, `HHEM`, `AlignScore`, `Calibration`, `Expected Calibration Error`, `Selective Prediction`, `LoRA`, `Qwen2.5`, `Prefill and Decode`, `CLM`, `Rizzo-Flow`.
+- Updated: `LLM-as-a-Judge`, `KV Cache`, `SemIf` (OpenJav → OpenJev), `System One Models` (taxonomy), `When System One Beats an LLM` (GroundOne hypotheses replace routing ones; paths fixed).
+- Renamed processed raw files with `_ingested` and updated references.
+
+## [2026-10-05] lint | vendor claims, archived routing context
+- `Jev`, `Jev Input and Output Format`: speed/cost/calibration figures marked as vendor claims; architecture marked as third-party inference.
+- `Mixture of Experts`: MoE in Jev marked as Archer Hume's inference.
+- `Function Calling`, `Berkeley Function Calling Leaderboard`: marked as archived context of the abandoned tool-routing experiment.
+- `index.md` reorganised around the thesis.

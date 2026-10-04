@@ -51,7 +51,7 @@ Jev **does not generate text**. It skips autoregressive token-by-token generatio
 3. **Score (Numerical)**: Grades the input against an ordered numerical rubric.
 
 ### Calibrated Probabilities
-Alongside every output, Jev provides a **calibrated probability** score (thanks to [[Reinforcement Learning with Calibrated Decisions]]). This means if Jev outputs `True` with a 90% probability, it is genuinely correct 90% of the time, allowing developers to set strict confidence thresholds.
+Alongside every output, Jev provides a probability score that TypeSafe describes as **calibrated** (via [[Reinforcement Learning with Calibrated Decisions]]). The *intended* meaning is that a `True` at 90% is correct about 90% of the time, which would allow confidence thresholds. **This is a vendor claim**: no public calibration measurement exists (see [[Calibration]], [[Expected Calibration Error]]).
 
 ### Zero Schema Hallucinations
-Because Jev is forced to output one of the predefined types (Noul, Choice, or Score) rather than generating a sequence of text, it cannot hallucinate invalid schemas or formatting.
+Because Jev is forced to output one of the predefined types (Noul, Choice, or Score) rather than generating a sequence of text, it cannot produce invalid schemas or formatting. This is a property of the output interface, not of correctness: it can still pick the wrong valid option.

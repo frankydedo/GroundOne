@@ -13,8 +13,10 @@ Given a "State" (unstructured text data) and "Instructions" (natural language), 
 - **Categorical choices** (selecting an option from a predefined list)
 
 ## Advantages
-- **Extremely Fast and Cheap**: Because it doesn't autoregressively generate output tokens, it provides instant answers. It boasts response times of 70-500ms and costs $0.042 / MTok input, making it up to 193x faster and 444x cheaper than traditional LLMs.
-- **Calibrated Confidence**: Through RL with Calibrated Decisions, Jev's output probabilities genuinely reflect its confidence, allowing developers to set thresholds for when to rely on the model vs. falling back to human intervention.
+> **Evidence note (lint 2026-10-05):** the speed, cost and calibration figures below are **vendor claims** (TypeSafe, launch material and videos). The only independent measurement in this wiki is the 30-example MLflow test ([[Jev vs LLMs Cost Comparison]]). Treat them as claims, not results.
+
+- **Fast and cheap (claimed)**: Because it doesn't autoregressively generate output tokens, TypeSafe reports response times of 70–500 ms and a price of $0.042 / MTok input, marketed as "up to 193x faster and 444x cheaper" than traditional LLMs. The comparison baseline behind these ratios is not specified.
+- **Calibrated confidence (claimed)**: TypeSafe states that RL with Calibrated Decisions makes the probabilities reflect true confidence, enabling thresholds. No public calibration measurement (e.g. [[Expected Calibration Error]]) is available; open reproductions did not reproduce RLCD ([[SemIf]], [[Rizzo-Flow]]).
 - **Zero Schema Hallucinations**: Since outputs are type-safe by design, Jev cannot generate an invalid type (though it can still make incorrect decisions).
 
 ## Use Cases & Integrations
@@ -24,6 +26,7 @@ Given a "State" (unstructured text data) and "Instructions" (natural language), 
 - **LLM-as-a-Judge / Evaluation**: Used in pipelines like MLflow to evaluate factual correctness of answers at scale. It offers extremely low cost and latency with high accuracy, though it lacks the ability to generate textual rationale.
 
 ## Architecture & Training
+Jev is closed: everything below except the team is **inferred** by third parties (black-box probing in [[Jevs Architecture Unmasked]], commentary in [[jev_simone_rizzo]]) or stated by the vendor without technical detail.
 - Created by a team including Diogo Almeida (co-inventor of RLHF).
 - **Backbone**: Inferred to use a sparse **[[Mixture of Experts]]** (MoE) transformer to maintain high capacity with low latency.
 - **Shared State**: The input state is processed once and stored in the **[[KV Cache]]**. Multiple question branches can then attend to this state in parallel without recomputing it.
@@ -33,6 +36,9 @@ Given a "State" (unstructured text data) and "Instructions" (natural language), 
 - Trained using Supervised Fine-Tuning (SFT) followed by [[Reinforcement Learning with Calibrated Decisions]].
 
 ## Related Concepts
+- [[When System One Beats an LLM]]
+- Open alternatives: [[SemIf]], [[Rizzo-Flow]], [[CLM]], [[Jevlike]]
+- [[Groundedness Verification]] (the thesis task; the MLflow test used Jev for a similar factual-correctness judgement)
 - [[System One Models]]
 - [[Reinforcement Learning with Calibrated Decisions]]
 - [[TypeSafe AI]]

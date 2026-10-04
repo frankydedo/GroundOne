@@ -6,6 +6,9 @@ tags:
 ---
 # Function Calling
 
+> **Status (lint 2026-10-05):** archived context. BFCL was the dataset of the earlier tool-routing experiment (LightningRoute, now in `Project_old/`), which was abandoned. The current thesis is [[GroundOne]].
+
+
 Function Calling (or Tool Use) refers to the capability of a Large Language Model (LLM) to interact with external systems, APIs, or structured functions. Rather than just generating text, the model formulates a structured request (often in JSON) that matches a predefined function signature.
 
 ## Modalities
