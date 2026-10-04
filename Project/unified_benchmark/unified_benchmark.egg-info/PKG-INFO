@@ -1,9 +1,0 @@
-Metadata-Version: 2.4
-Name: unified-benchmark
-Version: 0.1.0
-Summary: Unified benchmark runner and dashboard for tool routing architectures
-Requires-Python: >=3.9
-Requires-Dist: requests
-Requires-Dist: streamlit
-Requires-Dist: pandas
-Requires-Dist: plotly

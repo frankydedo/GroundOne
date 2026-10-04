@@ -38,7 +38,11 @@ Vault/.obsidian/core-plugins.json
 *.bin
 
 
-# Jevlike repos
+# Old tool-routing project (kept locally, not versioned)
+Project_old/
+
+# Cloned third-party System One repos
+SystemOne_repos/
 Jevlike_repos/
 
 # Preprocessing
@@ -58,3 +62,7 @@ training_results/
 # Benchmarks & Logs
 benchmark_results.txt
 *log.txt
+
+# GroundOne local data and run outputs
+Project/data/
+Project/phase0/data/

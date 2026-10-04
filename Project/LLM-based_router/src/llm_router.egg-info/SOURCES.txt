@@ -1,9 +1,0 @@
-pyproject.toml
-src/llm_router/engine.py
-src/llm_router/schemas.py
-src/llm_router/server.py
-src/llm_router.egg-info/PKG-INFO
-src/llm_router.egg-info/SOURCES.txt
-src/llm_router.egg-info/dependency_links.txt
-src/llm_router.egg-info/requires.txt
-src/llm_router.egg-info/top_level.txt
