@@ -1,16 +1,23 @@
 [project]
 name = "lightning-route"
 version = "0.1.0"
-description = "A blazing-fast System One Router powered by MLX"
+description = "O(1) tool routing via logit extraction — a single forward pass, no text generation"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 dependencies = [
-    "fastapi>=0.110.0",
-    "uvicorn>=0.29.0",
-    "pydantic>=2.6.0",
+    "fastapi>=0.110.0,<1",
+    "uvicorn>=0.29.0,<1",
+    "pydantic>=2.6.0,<3",
+]
+
+[project.optional-dependencies]
+mlx = [
     "mlx>=0.17.0",
     "mlx-lm>=0.17.0",
 ]
+
+[project.scripts]
+lightning-route = "lightning_route.cli:main"
 
 [build-system]
 requires = ["hatchling"]

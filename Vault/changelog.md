@@ -32,3 +32,10 @@
 - Created source pages: `Berkeley Function Calling Leaderboard V4`, `Hugging Face Datasets BFCL`.
 - Created concept pages: `Function Calling`, `Berkeley Function Calling Leaderboard`.
 - Updated `index.md`.
+
+## [2026-10-01] ingest | Can Jev replace your LLM judge? Evaluating quality, cost, and latency.md
+- Ingested MLflow blog post by Yuki Watanabe.
+- Created source page: `Can Jev replace your LLM judge`.
+- Created concept page: `LLM-as-a-Judge`.
+- Updated concept page: `Jev`.
+- Updated `index.md`.

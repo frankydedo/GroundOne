@@ -14,6 +14,9 @@ Welcome to the knowledge base.
 - [[LangChain]]
 - [[Function Calling]]
 - [[Berkeley Function Calling Leaderboard]]
+- [[LLM-as-a-Judge]]
+- [[Jev vs LLMs Cost Comparison]]
+- [[Jev Input and Output Format]]
 
 ## Sources
 - [[jev_simone_rizzo]]
@@ -24,3 +27,4 @@ Welcome to the knowledge base.
 - [[What Is Jev A Guide to TypeSafe AI]]
 - [[Berkeley Function Calling Leaderboard V4]]
 - [[Hugging Face Datasets BFCL]]
+- [[Can Jev replace your LLM judge]]

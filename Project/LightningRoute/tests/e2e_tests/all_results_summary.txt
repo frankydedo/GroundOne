@@ -1,0 +1,126 @@
+=====================================
+Testing 0.5B Model
+=====================================
+Results for 0.5B Model:
+[
+    {
+        "test_name": "TEST 1: Flight Query",
+        "query": "I need to fly from Rome to London next Friday.",
+        "status": "success",
+        "response": {
+            "chosen_tool": "Abstain",
+            "confidence": 0.8980728983879089,
+            "latency_ms": 99.40600395202637,
+            "logits": {
+                "FlightBooker": 0.09766091406345367,
+                "HotelFinder": 0.0033943981397897005,
+                "WeatherAPI": 0.0008717535529285669,
+                "Abstain": 0.8980728983879089
+            }
+        },
+        "http_latency_ms": 104.05206680297852
+    },
+    {
+        "test_name": "TEST 2: General Knowledge (Epistemic Honesty)",
+        "query": "What is the capital of France?",
+        "status": "success",
+        "response": {
+            "chosen_tool": "Abstain",
+            "confidence": 0.9984122514724731,
+            "latency_ms": 84.37585830688477,
+            "logits": {
+                "FlightBooker": 0.0004506975528784096,
+                "HotelFinder": 0.0004168272716924548,
+                "WeatherAPI": 0.000720212934538722,
+                "Abstain": 0.9984122514724731
+            }
+        },
+        "http_latency_ms": 86.23719215393066
+    }
+]
+
+
+=====================================
+Testing 3B Model
+=====================================
+Results for 3B Model:
+[
+    {
+        "test_name": "TEST 1: Flight Query",
+        "query": "I need to fly from Rome to London next Friday.",
+        "status": "success",
+        "response": {
+            "chosen_tool": "Abstain",
+            "confidence": 0.9455245733261108,
+            "latency_ms": 489.6969795227051,
+            "logits": {
+                "FlightBooker": 0.054182879626750946,
+                "HotelFinder": 0.0002357142948312685,
+                "WeatherAPI": 5.6868699175538495e-05,
+                "Abstain": 0.9455245733261108
+            }
+        },
+        "http_latency_ms": 495.39995193481445
+    },
+    {
+        "test_name": "TEST 2: General Knowledge (Epistemic Honesty)",
+        "query": "What is the capital of France?",
+        "status": "success",
+        "response": {
+            "chosen_tool": "Abstain",
+            "confidence": 0.9998643398284912,
+            "latency_ms": 454.3108940124512,
+            "logits": {
+                "FlightBooker": 0.0001055436659953557,
+                "HotelFinder": 1.750085903040599e-05,
+                "WeatherAPI": 1.2605391020770185e-05,
+                "Abstain": 0.9998643398284912
+            }
+        },
+        "http_latency_ms": 456.33792877197266
+    }
+]
+
+
+=====================================
+Testing 7B Model
+=====================================
+Results for 7B Model:
+[
+    {
+        "test_name": "TEST 1: Flight Query",
+        "query": "I need to fly from Rome to London next Friday.",
+        "status": "success",
+        "response": {
+            "chosen_tool": "Abstain",
+            "confidence": 0.5997326374053955,
+            "latency_ms": 1115.9791946411133,
+            "logits": {
+                "FlightBooker": 0.3995080888271332,
+                "HotelFinder": 9.959525777958333e-05,
+                "WeatherAPI": 0.0006596698658540845,
+                "Abstain": 0.5997326374053955
+            }
+        },
+        "http_latency_ms": 1123.021125793457
+    },
+    {
+        "test_name": "TEST 2: General Knowledge (Epistemic Honesty)",
+        "query": "What is the capital of France?",
+        "status": "success",
+        "response": {
+            "chosen_tool": "Abstain",
+            "confidence": 0.9980295300483704,
+            "latency_ms": 1019.6218490600586,
+            "logits": {
+                "FlightBooker": 0.0016739030834287405,
+                "HotelFinder": 2.7482201403472573e-05,
+                "WeatherAPI": 0.00026902061654254794,
+                "Abstain": 0.9980295300483704
+            }
+        },
+        "http_latency_ms": 1022.0518112182617
+    }
+]
+
+

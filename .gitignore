@@ -43,3 +43,18 @@ Jevlike_repos/
 
 # Preprocessing
 Preprocessing/
+
+# Agent
+.agents/
+
+# MLX & Model Weights
+*.safetensors
+*.gguf
+*.bin
+*.npz
+adapters/
+training_results/
+
+# Benchmarks & Logs
+benchmark_results.txt
+*log.txt

@@ -1,0 +1,36 @@
+[
+    {
+        "test_name": "TEST 1: Flight Query",
+        "query": "I need to fly from Rome to London next Friday.",
+        "status": "success",
+        "response": {
+            "chosen_tool": "Abstain",
+            "confidence": 0.5997326374053955,
+            "latency_ms": 1115.9791946411133,
+            "logits": {
+                "FlightBooker": 0.3995080888271332,
+                "HotelFinder": 9.959525777958333e-05,
+                "WeatherAPI": 0.0006596698658540845,
+                "Abstain": 0.5997326374053955
+            }
+        },
+        "http_latency_ms": 1123.021125793457
+    },
+    {
+        "test_name": "TEST 2: General Knowledge (Epistemic Honesty)",
+        "query": "What is the capital of France?",
+        "status": "success",
+        "response": {
+            "chosen_tool": "Abstain",
+            "confidence": 0.9980295300483704,
+            "latency_ms": 1019.6218490600586,
+            "logits": {
+                "FlightBooker": 0.0016739030834287405,
+                "HotelFinder": 2.7482201403472573e-05,
+                "WeatherAPI": 0.00026902061654254794,
+                "Abstain": 0.9980295300483704
+            }
+        },
+        "http_latency_ms": 1022.0518112182617
+    }
+]

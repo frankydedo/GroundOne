@@ -37,10 +37,12 @@ Questo documento espande la "Metodologia Operativa" del piano principale, dettag
    - Fermare l'esecuzione *prima* del campionamento del nuovo token.
    - Estrarre i logit grezzi unicamente per gli ID dei token target e applicare la funzione `Softmax` per normalizzarli in percentuali (0.0 -> 1.0).
 3. **Ottimizzazione KV Cache:** Implementare un sistema basilare per cachare il "System Prompt" (se fisso), riducendo ulteriormente il tempo di prima valutazione.
-4. **Sviluppo Server FastAPI:**
-   - Creare un endpoint `POST /v1/systemone` in Python.
-   - Deve accettare il formato JSON per task "Choice" (lo stesso previsto da Jev).
-   - Restituire JSON contenente l'opzione vincente e l'array con le confidenze calibrate.
+4. **Architettura e Sviluppo CLI/Server (Multi-Modello):**
+   - Creare un pacchetto Python installabile (`pyproject.toml`) con entrypoint CLI (`lightning-route`).
+   - Implementare i comandi `serve` (avvio server FastAPI), `decide` (inferenza one-shot su JSON locale) e `schema` (estrazione JSON schema).
+   - Esporre gli endpoint `POST /v1/route` (e alias `/v1/systemone`) e `GET /health`.
+   - **Cruciale:** Il server e la CLI non devono avere il modello hardcodato. Devono accettare `--model` e `--adapter` come argomenti da riga di comando in fase di avvio, permettendo di switchare dinamicamente tra modelli e pesi LoRA per le valutazioni.
+   - Restituire JSON contenente l'opzione vincente (`chosen_tool`), la confidenza (`confidence`), l'array dei logit calibrati e il tempo di esecuzione (`latency_ms`).
 
 ---
 
@@ -69,28 +71,31 @@ Questo documento espande la "Metodologia Operativa" del piano principale, dettag
 
 ## Fase 4: Benchmarking e Risultati
 
-**Obiettivo:** Quantificare scientificamente i guadagni in latenza e il trade-off accuratezza/dimensioni, consolidando il lavoro di tesi.
+**Obiettivo:** Quantificare in modo organico la superiorità architetturale di LightningRoute misurando latenza e accuratezza al variare del numero di tool (da 1 a 25), confrontandolo direttamente con i paradigmi esistenti.
 
-### Step Tecnici:
-1. **Script Benchmark Latenza:**
-   - Scrivere uno script che invia 100 richieste identiche al nostro server FastAPI locale.
-   - Registrare il Time-To-First-Token (TTFT) e il tempo totale.
-   - Calcolare Metriche: `p50`, `p90`, `p99` della latenza.
-2. **Script Benchmark Baseline Generativa:**
-   - Avviare LM Studio in background caricando Qwen3.5-4B (senza il nostro router).
-   - Inviare tramite API OpenAI-compatible la richiesta di generare il JSON del tool calling (approccio classico Autoregressivo).
-   - Misurare i tempi.
-3. **Confronto Dimensionale (Trade-off):**
-   - Eseguire il set di test (`test.jsonl` della Fase 1) sul modello 4B e sul modello 0.5B usando il nostro router.
-   - Calcolare l'accuratezza pura (`Recall@1`: quante volte ha scelto il tool giusto o "Abstain" in modo corretto).
-4. **Data Visualization (Matplotlib):**
-   - Creare i grafici a barre "Latenza: SystemOne vs Generativo".
-   - Creare un grafico a dispersione o a torta "Accuratezza: 4B vs 0.5B".
-   - (Questi grafici finiranno direttamente nell'elaborato di tesi).
+### L'Esperimento Unificato
+Sfruttando il dataset `v3_test.jsonl` (che raggruppa le query in bucket omogenei per numero di tool: 1-5, 6-10, fino a 21-25), eseguiremo un'unica suite di valutazione che metterà a confronto tre diverse pipeline architetturali:
 
-## General Scope: LightningRoute vs. General System One Architectures
+1. **Pipeline Generativa Tradizionale (Complessità $\mathcal{O}(L)$):**
+   - Un LLM monolitico (es. Qwen 7B) riceve la query e il contesto completo di *tutti* i tool disponibili. Genera direttamente il JSON finale (Tool Selection + Argument Extraction).
+   - *Ipotesi:* Latenza costantemente elevata a causa della decodifica token per token ($\mathcal{O}(L)$), e crollo dell'accuratezza semantica all'aumentare delle opzioni dovuta alla confusione nel contesto.
 
-While **LightningRoute** shares the same foundational "System One" philosophy (no text generation, instant classification) as Jev, SemIf, and Rizzo-Flow, it is vastly more specialized and efficient for the specific task of **Tool Routing** due to three massive architectural advantages:
+2. **Pipeline Baseline System One, es. Rizzo-Flow (Complessità $\mathcal{O}(N)$):**
+   - Un modello valuta la probabilità della sequenza per *ogni singola opzione* in modo indipendente.
+   - *Ipotesi:* Mentre a bassi numeri di tool (es. 4) può competere, la sua latenza esplode in modo lineare ($\mathcal{O}(N)$) all'aumentare dei tool, rendendolo inadatto a scenari complessi.
+
+3. **Pipeline LightningRoute Cascade (Complessità $\mathcal{O}(1)$):**
+   - **Gatekeeper (Selezione):** LightningRoute (0.5B fine-tuned) riceve tutte le descrizioni dei tool ed esegue un singolo forward pass, restituendo istantaneamente il tool corretto o 'Z' (Abstain) con latenza assolutamente piatta ($\mathcal{O}(1)$).
+   - **Estrattore (Argomenti):** Un LLM minuscolo (es. 1.5B/3B) riceve *solo* lo schema dell'unico tool selezionato per generare rapidamente il JSON.
+   - *Ipotesi:* Latenza End-to-End nettamente inferiore e accuratezza semantica preservata (il rumore di fondo viene abbattuto prima della generazione).
+
+### Output e Visualizzazione Dati (Matplotlib)
+I risultati dell'esperimento verranno distillati nei seguenti grafici e metriche per l'elaborato di tesi:
+- **Metriche di Latenza Rigorose:** Per ogni pipeline e per ogni bucket di tool, calcoleremo esattamente la latenza `p50` (mediana), `p90` e `p99`, così da documentare la stabilità del sistema anche nei casi peggiori (tail latency).
+- **Scalabilità della Latenza (Curve):** Grafico a linee (Asse X: Numero di Tool; Asse Y: Latenza ms) che evidenzia la curva piatta di LightningRoute $\mathcal{O}(1)$ contro la crescita lineare $\mathcal{O}(N)$ di Rizzo-Flow e la linea alta $\mathcal{O}(L)$ del generativo.
+- **Efficacia End-to-End (Scatter Plot):** Grafico a dispersione (Asse X: Latenza Totale Pipeline; Asse Y: Accuratezza %) per dimostrare che LightningRoute Cascade domina su entrambi i fronti rispetto ai classici Router LLM monolitici.
+
+While **LightningRoute** shares the same foundational "System One" philosophy (no text generation, instant classification) as Jev and Rizzo-Flow, it is vastly more specialized and efficient for the specific task of **Tool Routing** due to three massive architectural advantages:
 
 ### 1. The 0.5B LoRA Advantage (Specialization over Generalization)
 - **General System One (SemIf/Rizzo-Flow):** These are typically **zero-shot** frameworks. To achieve decent accuracy without fine-tuning, they must rely on the emergent reasoning capabilities of larger base models (e.g., Qwen 4B or 7B). A 7B model requires significantly more FLOPS and VRAM for its forward pass.
@@ -106,3 +111,22 @@ While **LightningRoute** shares the same foundational "System One" philosophy (n
 
 ### Summary
 Jev and SemIf are **general-purpose** System One models—they can score any text, answer True/False, or evaluate options zero-shot, which requires large models and complex inference engines. **LightningRoute** is a **purpose-built Tool Router**. By combining specialized LoRA fine-tuning with a strict single-token output format, we stripped away the generic bloat, unlocking a massive speedup via a 0.5B model and a vastly simplified O(1) inference loop.
+
+## Possible Extensions
+
+1. **Dockerization as a Microservice**
+   Packaging the router into a Docker container eliminates dependency and environment fragility, turning it into a true production-ready microservice. In a multi-agent system, an orchestrator can query the `lightning-route` container via a simple HTTP endpoint without needing to manage its internal ML dependencies. Note: Because it is powered by MLX, the container deployment would be restricted to Apple Silicon hardware (e.g., local Mac clusters or AWS EC2 Mac instances).
+
+2. **Overcoming the "26 Tools" (A-Z) Bottleneck**
+   System One models that rely on single-token extraction are typically limited by the alphabet (26 tools). Possible extensions to bypass this include:
+   - **Hierarchical Routing:** Grouping tools into categories (e.g., `A: Database Tools`, `B: Web Tools`). A first forward pass selects the category, and a second pass selects the specific tool within that category.
+   - **Multi-Token Logit Extraction:** Shifting to a two-token extraction (e.g., `AA`, `AB`, `AC`) allowing for $26^2$ (676) possible tools, though this introduces slight autoregressive overhead.
+   - **Dynamic Chunking:** Evaluating subsets of tools in parallel batches if the options exceed 26.
+
+3. **Two-Level Cascade Architecture**
+   Splitting the routing logic into two specialized models to maximize speed and accuracy:
+   - **Level 1 (Gatekeeper):** An ultra-tiny, highly optimized binary classifier that exclusively determines whether to *Abstain* or *Route*.
+   - **Level 2 (Selector):** If Level 1 decides to route, the request is passed to a second model tasked purely with selecting the correct tool, removing the burden of epistemic honesty from the selector.
+
+4. **Explainable AI (XAI) for Logit Analysis**
+   Applying XAI techniques (such as SHAP, LIME, or Integrated Gradients) to the input prompt embeddings. This would allow us to analyze the feature importance of specific words in the user's query and understand *why* the model assigned a high probability to a specific tool class or why it triggered the 'Z' (Abstain) condition.

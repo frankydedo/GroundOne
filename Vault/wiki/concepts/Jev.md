@@ -21,6 +21,7 @@ Given a "State" (unstructured text data) and "Instructions" (natural language), 
 - **Real-time processing**: AI agents playing games (e.g., Doom), autonomous driving simulations.
 - **Agentic Routing & Guardrails**: Quickly deciding which LLM or MCP tool an agent should call. In [[LangChain]], this is facilitated by `ModelRouterMiddleware` and `AutoModeMiddleware`.
 - **Data Extraction**: Extracting structured metadata, scores, and categories from large volumes of unstructured text almost instantaneously.
+- **LLM-as-a-Judge / Evaluation**: Used in pipelines like MLflow to evaluate factual correctness of answers at scale. It offers extremely low cost and latency with high accuracy, though it lacks the ability to generate textual rationale.
 
 ## Architecture & Training
 - Created by a team including Diogo Almeida (co-inventor of RLHF).
