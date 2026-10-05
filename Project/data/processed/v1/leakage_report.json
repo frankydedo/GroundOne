@@ -1,0 +1,88 @@
+{
+  "version": "v1",
+  "status": "PASS",
+  "fails": [],
+  "warnings": [
+    "train_05b: 58 claim strings also appear in LLM-AggreFact test (with different documents)",
+    "train_3b: 12 claim strings also appear in LLM-AggreFact test (with different documents)",
+    "dev_ragtruth: 11 claim strings also appear in LLM-AggreFact test (with different documents)"
+  ],
+  "counts": {
+    "train_05b ∩ test_aggrefact": {
+      "groups": 0,
+      "pairs": 0
+    },
+    "train_05b ∩ test_anli": {
+      "groups": 0,
+      "pairs": 0
+    },
+    "train_05b ∩ test_ragtruth": {
+      "groups": 0,
+      "pairs": 0
+    },
+    "train_05b docs in test_aggrefact": 0,
+    "train_05b claims equal to an aggrefact test claim": 58,
+    "train_3b ∩ test_aggrefact": {
+      "groups": 0,
+      "pairs": 0
+    },
+    "train_3b ∩ test_anli": {
+      "groups": 0,
+      "pairs": 0
+    },
+    "train_3b ∩ test_ragtruth": {
+      "groups": 0,
+      "pairs": 0
+    },
+    "train_3b docs in test_aggrefact": 0,
+    "train_3b claims equal to an aggrefact test claim": 12,
+    "dev_anli ∩ test_aggrefact": {
+      "groups": 0,
+      "pairs": 0
+    },
+    "dev_anli ∩ test_anli": {
+      "groups": 0,
+      "pairs": 0
+    },
+    "dev_anli ∩ test_ragtruth": {
+      "groups": 0,
+      "pairs": 0
+    },
+    "dev_anli docs in test_aggrefact": 0,
+    "dev_anli claims equal to an aggrefact test claim": 0,
+    "dev_minicheck ∩ test_aggrefact": {
+      "groups": 0,
+      "pairs": 0
+    },
+    "dev_minicheck ∩ test_anli": {
+      "groups": 0,
+      "pairs": 0
+    },
+    "dev_minicheck ∩ test_ragtruth": {
+      "groups": 0,
+      "pairs": 0
+    },
+    "dev_minicheck docs in test_aggrefact": 0,
+    "dev_minicheck claims equal to an aggrefact test claim": 0,
+    "dev_ragtruth ∩ test_aggrefact": {
+      "groups": 0,
+      "pairs": 0
+    },
+    "dev_ragtruth ∩ test_anli": {
+      "groups": 0,
+      "pairs": 0
+    },
+    "dev_ragtruth ∩ test_ragtruth": {
+      "groups": 0,
+      "pairs": 0
+    },
+    "dev_ragtruth docs in test_aggrefact": 0,
+    "dev_ragtruth claims equal to an aggrefact test claim": 11,
+    "train_05b ∩ dev_anli (anli) groups": 0,
+    "train_05b ∩ dev_minicheck (minicheck) groups": 0,
+    "train_05b ∩ dev_ragtruth (ragtruth) groups": 0,
+    "train_3b ∩ dev_anli (anli) groups": 0,
+    "train_3b ∩ dev_minicheck (minicheck) groups": 0,
+    "train_3b ∩ dev_ragtruth (ragtruth) groups": 0
+  }
+}

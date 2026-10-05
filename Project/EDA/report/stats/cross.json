@@ -1,0 +1,59 @@
+{
+  "aggrefact_ragtruth_subset": {
+    "n": 31711,
+    "by_split": {
+      "test": 16371,
+      "dev": 15340
+    },
+    "claims_equal_to_a_full_ragtruth_response": {
+      "nan": 31625,
+      "test": 56,
+      "train": 30
+    },
+    "claims_equal_to_a_ragtruth_sentence": {
+      "test": 14942,
+      "train": 14046,
+      "nan": 2364,
+      "test/train": 359
+    }
+  },
+  "aggrefact_ragtruth_docs_found_in_ragtruth_sources": 0.267,
+  "minicheck_docs_in_aggrefact": 0,
+  "minicheck_claims_in_aggrefact": 0,
+  "anli_premises_in_aggrefact": 0,
+  "doc_tokens_median": {
+    "ANLI": 73.0,
+    "RAGTruth (QA)": 308.0,
+    "RAGTruth (Summary)": 552.0,
+    "MiniCheck synth": 186.0,
+    "LLM-AggreFact test": 530.0
+  },
+  "label_schemes": {
+    "ANLI": "3 classes from humans: entailment / neutral / contradiction",
+    "RAGTruth": "character spans of 4 types on LLM answers; sentence classes derived (supported / not mentioned / contradicted)",
+    "MiniCheck synth": "binary supported / unsupported (synthetic, LLM-generated)",
+    "LLM-AggreFact": "binary supported / unsupported (human); partial support = unsupported"
+  },
+  "figures": [
+    {
+      "file": "figures/cross_doc_lengths.png",
+      "caption": "Document length across all datasets. ANLI premises are an order of magnitude shorter than RAG contexts."
+    }
+  ],
+  "label_agreement_ours_vs_aggrefact": {
+    "matched_sentences": 29191,
+    "agreement": 0.9856,
+    "crosstab_rows_ours_cols_aggrefact": {
+      "0": {
+        "0": 2518,
+        "1": 419
+      },
+      "1": {
+        "0": 1,
+        "1": 26253
+      }
+    },
+    "aggrefact_dev_ragtruth_comes_from": "RAGTruth train split",
+    "aggrefact_test_ragtruth_comes_from": "RAGTruth test split"
+  }
+}

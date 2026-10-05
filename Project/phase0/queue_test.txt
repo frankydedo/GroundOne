@@ -1,0 +1,2 @@
+../.venv/bin/python 02_readout.py qwen0.5b 5
+../.venv/bin/python 02_readout.py qwen3b 5

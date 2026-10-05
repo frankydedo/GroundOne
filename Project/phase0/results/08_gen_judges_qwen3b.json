@@ -1,0 +1,18 @@
+{
+  "model": "lmstudio-community/Qwen2.5-3B-Instruct-MLX-8bit",
+  "wall_min": 16.757487547397613,
+  "terse": {
+    "n_sentences": 630,
+    "format_failure_rate": 0.0,
+    "bacc": 0.6731948815732041,
+    "response_ms_p50": 2069.9396250001882,
+    "gen_tokens_per_sentence_mean": 4.27446995110153
+  },
+  "verbose": {
+    "n_sentences": 630,
+    "format_failure_rate": 0.06507936507936508,
+    "bacc": 0.6454547543017299,
+    "response_ms_p50": 7198.525729500034,
+    "gen_tokens_per_sentence_mean": 30.960138507691134
+  }
+}

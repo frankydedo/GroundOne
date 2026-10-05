@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GroundOne playground</title>
+<style>
+  :root { --ink:#1a202c; --muted:#4a5568; --line:#e2e8f0; --bg:#f7fafc; --ok:#2f855a; --warn:#b7791f; --bad:#c53030; --accent:#2b6cb0; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:24px; font:14px/1.5 -apple-system, system-ui, sans-serif; color:var(--ink); background:var(--bg); }
+  h1 { font-size:20px; margin:0 0 4px; } .sub { color:var(--muted); margin:0 0 20px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; } @media (max-width:900px){ .grid{grid-template-columns:1fr;} }
+  .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:16px; }
+  label { font-weight:600; display:block; margin:10px 0 4px; }
+  textarea { width:100%; min-height:150px; padding:10px; border:1px solid var(--line); border-radius:8px; font:13px/1.45 ui-monospace, monospace; }
+  .row { display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:9px 18px; font-weight:600; cursor:pointer; }
+  button:disabled { opacity:.5; }
+  .sent { padding:8px 10px; border-left:4px solid var(--line); margin:6px 0; border-radius:4px; background:#fff; }
+  .sent .meta { font-size:12px; color:var(--muted); margin-top:3px; }
+  .ok { border-color:var(--ok); background:#f0fff4; } .warn { border-color:var(--warn); background:#fffaf0; } .bad { border-color:var(--bad); background:#fff5f5; }
+  .stats { font-size:12px; color:var(--muted); margin-top:10px; } .err { color:var(--bad); white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<h1>GroundOne</h1>
+<p class="sub">Checks every sentence of an answer against the document in one pass, without generating text. <span id="model"></span></p>
+<div class="grid">
+  <div class="card">
+    <label for="doc">Document (retrieved context)</label>
+    <textarea id="doc">The Eiffel Tower is a wrought-iron lattice tower in Paris, France. It was completed in 1889 as the entrance to the World's Fair and is 330 metres tall.</textarea>
+    <label for="ans">Answer to verify</label>
+    <textarea id="ans" style="min-height:100px">The Eiffel Tower is in Paris. It was finished in 1889. It is about 500 metres tall. It was designed to be a radio antenna.</textarea>
+    <div class="row">
+      <label><input type="checkbox" value="sup" checked> supported?</label>
+      <label><input type="checkbox" value="three" checked> three-way</label>
+      <label><input type="checkbox" value="strict"> strict rule</label>
+      <label><input type="checkbox" value="lenient"> lenient rule</label>
+    </div>
+    <div class="row">
+      <label for="thr" style="margin:0">Flag below P(supported) =</label>
+      <input id="thr" type="range" min="0" max="1" step="0.05" value="0.5"><span id="thrv">0.50</span>
+      <button id="go">Verify</button>
+    </div>
+  </div>
+  <div class="card">
+    <label>Result</label>
+    <div id="out"><span style="color:var(--muted)">Press Verify.</span></div>
+    <div class="stats" id="stats"></div>
+  </div>
+</div>
+<script>
+const $ = (s) => document.querySelector(s);
+let last = null;
+fetch('/health').then(r => r.json()).then(h => { $('#model').textContent = '· model: ' + h.model.name + (h.calibrated ? ' (calibrated)' : ''); });
+$('#thr').oninput = () => { $('#thrv').textContent = Number($('#thr').value).toFixed(2); if (last) render(last); };
+function cls(p, t) { if (p === null) return ''; return p >= t ? 'ok' : (p >= t - 0.2 ? 'warn' : 'bad'); }
+function render(r) {
+  const t = Number($('#thr').value);
+  $('#out').innerHTML = r.sentences.map(s => {
+    const parts = Object.entries(s.answers).map(([q, ps]) => q + ': ' + Object.entries(ps).map(([k, v]) => k + ' ' + v.toFixed(2)).join(' / '));
+    const p = s.p_supported;
+    return `<div class="sent ${cls(p, t)}">${s.index + 1}. ${s.text.replace(/</g, '&lt;')}<div class="meta">${parts.join(' · ')}</div></div>`;
+  }).join('');
+  $('#stats').textContent = `${r.n_decisions} decisions in ${(r.timing.total_seconds * 1000).toFixed(0)} ms (prefill ${(r.timing.prefill_seconds * 1000).toFixed(0)} ms, batch ${(r.timing.batch_seconds * 1000).toFixed(0)} ms) · ${r.usage.input_tokens} input tokens, 0 generated`;
+}
+$('#go').onclick = async () => {
+  const questions = [...document.querySelectorAll('input[type=checkbox]:checked')].map(c => c.value);
+  if (!questions.length) return;
+  $('#go').disabled = true; $('#out').textContent = 'Verifying…';
+  try {
+    const r = await fetch('/v1/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ document: $('#doc').value, answer: $('#ans').value, questions, threshold: Number($('#thr').value) }) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(JSON.stringify(j.detail, null, 2));
+    last = j; render(j);
+  } catch (e) { $('#out').innerHTML = `<div class="err">${e.message}</div>`; }
+  $('#go').disabled = false;
+};
+</script>
+</body>
+</html>

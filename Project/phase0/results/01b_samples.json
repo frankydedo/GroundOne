@@ -1,0 +1,20 @@
+{
+  "aggrefact": {
+    "count": 550,
+    "mean": 0.598
+  },
+  "anli": {
+    "count": 300,
+    "mean": 0.297
+  },
+  "rt_resp": {
+    "count": 300,
+    "mean": 0.5
+  },
+  "rt_sent": {
+    "count": 630,
+    "mean": 0.875
+  },
+  "rt_sent_responses": 100,
+  "rt_sent_mean_K": 6.3
+}

@@ -1,0 +1,26 @@
+\chapter{Background and Related Work}
+\label{sec:background}
+
+% STATUS: skeleton. Each section lists what it must contain (TODO notes, not thesis text).
+
+\section{Transformer inference: prefill, decode and the KV cache}
+% TODO: Pope et al. 2023; Kwon et al. 2023 (PagedAttention); measured prefill vs decode on the M4 (Phase 0). Wiki: Prefill and Decode, KV Cache.
+
+\section{System One models}
+% TODO: Jev (TypeSafe), SemIf, Rizzo-Flow, CLM; taxonomy: proprietary readout head / LM-head letter readout / bi-encoder. Evidence quality (vendor claims vs measurements). Wiki: System One Models, When System One Beats an LLM.
+
+\section{Retrieval-augmented generation and hallucination}
+% TODO: Lewis et al. 2020; RAGTruth (Niu et al. 2024); why RAG still hallucinates.
+
+\section{Groundedness verification}
+% TODO: NLI (ANLI, MNLI); encoder checkers (AlignScore, MiniCheck, HHEM); LLM-as-a-judge (Zheng et al. 2023; RAGAS, ARES, Lynx, Self-RAG critic); benchmarks (LLM-AggreFact).
+
+\section{Calibration and selective prediction}
+% TODO: Naeini 2015 (ECE), Guo 2017 (temperature scaling), Kadavath 2022, Tian 2023, Geifman & El-Yaniv 2017.
+
+\section{Parameter-efficient fine-tuning}
+% TODO: LoRA (Hu et al. 2022), QLoRA (Dettmers et al. 2023); Qwen2.5 (Qwen Team 2024); MLX.
+
+\section{Research gap}
+% TODO: No independent, controlled study of a task-specialised compact System One vs generative judges and encoders under consumer-hardware constraints.
+

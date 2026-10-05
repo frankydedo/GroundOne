@@ -1,0 +1,33 @@
+# Phase 0 overnight queue (one job at a time, under the memory guard)
+../.venv/bin/python 02_readout.py qwen0.5b
+../.venv/bin/python 02_readout.py qwen3b
+# encoders: short test, then full
+../.venv/bin/python 03_encoders.py hhem 3
+../.venv/bin/python 03_encoders.py minicheck-roberta 3
+../.venv/bin/python 03_encoders.py minicheck-ft5 3
+../.venv/bin/python 03_encoders.py hhem
+../.venv/bin/python 03_encoders.py minicheck-roberta
+../.venv/bin/python 03_encoders.py minicheck-deberta 100
+../.venv-hhem/bin/python 03_encoders.py hhem 100
+../.venv/bin/python 03_encoders.py minicheck-ft5 50
+# shared-prefix speed
+../.venv/bin/python 04_speed.py qwen0.5b
+../.venv/bin/python 04_speed.py qwen3b
+# LoRA memory probe (smallest first; 3B at 2048 last because it is the riskiest)
+../.venv/bin/python 05_train_probe.py qwen0.5b 1024
+../.venv/bin/python 05_train_probe.py qwen0.5b 2048
+../.venv/bin/python 05_train_probe.py qwen3b 1024
+../.venv/bin/python 05_train_probe.py qwen3b 2048
+# training probe, rerun with chat format
+../.venv/bin/python 05_train_probe.py qwen0.5b 1024
+../.venv/bin/python 05_train_probe.py qwen0.5b 2048
+../.venv/bin/python 05_train_probe.py qwen3b 1024
+../.venv/bin/python 05_train_probe.py qwen3b 2048
+# training probe v3: custom MLX loop with the restricted A/B loss
+../.venv/bin/python 05_train_probe.py qwen0.5b 1024
+../.venv/bin/python 05_train_probe.py qwen0.5b 2048
+../.venv/bin/python 05_train_probe.py qwen3b 1024
+../.venv/bin/python 05_train_probe.py qwen3b 2048
+../.venv-hhem/bin/python 03_encoders.py hhem 150
+../.venv/bin/python 03_encoders.py minicheck-deberta 150
+END

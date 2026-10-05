@@ -1,0 +1,30 @@
+# GroundOne LoRA fine-tuning — Qwen2.5-3B-Instruct (MLX 8-bit)
+# Run:   groundone train --config train_3b.yaml
+# Same recipe as the 0.5B on a 10K stratified subset, so that it fits one night (plan §6.3, D17).
+
+# --- model and data -------------------------------------------------------------------------------------------
+size: "3b"
+data: "v1"
+train: "train_3b"            # 10,000 rows, stratified by source x question type; 3.4 M tokens
+run: "g1-3b-v1"
+
+# --- LoRA -----------------------------------------------------------------------------------------------------
+rank: 16
+scale: 2.0
+dropout: 0.05
+
+# --- optimisation ---------------------------------------------------------------------------------------------
+lr: 5.0e-5                   # lower than the 0.5B: larger model, fewer steps (Rizzo-Flow used 5e-5 on a 4B)
+warmup: 0.03
+epochs: 1.0
+token_budget: 2048           # smaller micro-batches for memory (Phase 0 probe: 5.9 GB peak at 2,048 tokens, batch 1)
+max_rows: 8
+accum: 4                     # same effective batch as the 0.5B
+seed: 1234
+
+# --- evaluation, safety ---------------------------------------------------------------------------------------
+eval_every: 100
+dev_size: 600
+max_hours: 7.5
+max_steps: 0
+mem_gb: 10.0

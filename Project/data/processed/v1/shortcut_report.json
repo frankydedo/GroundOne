@@ -1,0 +1,26 @@
+{
+  "train_rows": 21000,
+  "chance": 0.3333333333333333,
+  "dev_anli": {
+    "claim_only_bacc": 0.3574,
+    "negation_rate_by_class": {
+      "contradicted": 0.094,
+      "not_mentioned": 0.129,
+      "supported": 0.165
+    }
+  },
+  "test_anli": {
+    "claim_only_bacc": 0.393,
+    "negation_rate_by_class": {
+      "contradicted": 0.077,
+      "not_mentioned": 0.115,
+      "supported": 0.147
+    }
+  },
+  "train_negation_rate_by_class": {
+    "contradicted": 0.26,
+    "not_mentioned": 0.084,
+    "supported": 0.104
+  },
+  "train_holdout_claim_only_bacc": 0.559
+}

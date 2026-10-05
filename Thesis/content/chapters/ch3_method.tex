@@ -1,0 +1,23 @@
+\chapter{GroundOne: Method and Implementation}
+\label{sec:method}
+
+% STATUS: skeleton. Each section lists what it must contain (TODO notes, not thesis text).
+
+\section{Task and question set}
+% TODO: Sentence-level groundedness; questions sup / three / strict / lenient; label mapping from three-way classes (prompts.py).
+
+\section{Prompt format and shared prefix}
+% TODO: Document + numbered answer as shared prefix, index-based question suffix; single source of truth for training and inference.
+
+\section{Batched single-pass readout}
+% TODO: Prefix prefilled once, KV cache replicated K times, right-padded suffix batch, restricted softmax over letters; exactness (|dp| = 0, Phase 0b). Cost model.
+
+\section{Training objective}
+% TODO: LoRA on all linear layers; cross-entropy over the allowed letters at the last prompt token; length-bucketed batches; hyper-parameters (YAML) and the LR sweep.
+
+\section{Calibration}
+% TODO: Temperature per question type fitted on dev; bound to the model fingerprint.
+
+\section{Software}
+% TODO: Package, CLI, native and Jev-compatible API, memory guard; where each advantage comes from (mechanism vs training).
+

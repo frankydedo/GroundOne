@@ -58,3 +58,9 @@
 - `Mixture of Experts`: MoE in Jev marked as Archer Hume's inference.
 - `Function Calling`, `Berkeley Function Calling Leaderboard`: marked as archived context of the abandoned tool-routing experiment.
 - `index.md` reorganised around the thesis.
+
+## [2026-10-05] ingest | dataset sources and GroundOne EDA (Phase 1a)
+- Added and verified 17 sources in `raw/`: dataset cards (ANLI, LLM-AggreFact, MiniCheck C2D/D2C, RAGTruth), RAGTruth origin sources (MS MARCO, See 2017 and Hermann 2015 for CNN/DM, Yelp Open Dataset), the 8 papers behind LLM-AggreFact's sub-datasets; plus the project's own EDA report.
+- Created 18 source pages and concept pages `ANLI`, `MiniCheck Synthetic Data`, `Datasets for GroundOne` (synthesis), `LLM-AggreFact Sub-datasets`.
+- Updated `RAGTruth` (EDA findings) and `LLM-AggreFact` (licence: evaluation only, no training or fitting on any split; sub-datasets; RAGTruth-subset overlap).
+- Renamed processed raw files with `_ingested`; updated `index.md` (new Data section).

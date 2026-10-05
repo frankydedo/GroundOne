@@ -56,12 +56,46 @@ See [[Groundedness Verification#Reference numbers (LLM-AggreFact average BAcc)]]
 - Per-dataset ceiling: **ExpertQA is about 50–61** for every model.
 
 ## Licence
-Not stated in the paper or the leaderboard capture. The paper says use is "for research purposes only, consistent with [the datasets'] intended use" (App. C.4). Each constituent dataset keeps its own licence.
+Not stated in the paper or the leaderboard capture. **Update**: the Hugging Face card states CC BY-ND 4.0 and an evaluation-only condition; see "Access condition and licence (dataset card)" below. The paper says use is "for research purposes only, consistent with [the datasets'] intended use" (App. C.4). Each constituent dataset keeps its own licence.
 
 ## Relevance to GroundOne
 - It is the same task framing as GroundOne: per-sentence, binary, document-grounded.
 - **Headline protocol**: t = 0.5 on P(supported), BAcc per dataset plus the macro average. Secondary results: dev-tuned thresholds, AUROC and ECE.
 - The documents are long: ClaimVerify and WiCE average about 1.6–1.9K length units (likely words, so probably more than 2K tokens). Check that Qwen2.5 inputs fit without truncation, or chunk and take the maximum as MiniCheck does.
 
+## Access condition and licence (dataset card)
+From [[Dataset card - LLM-AggreFact]] (gated dataset):
+- **"This resource is permitted for use as an evaluation benchmark. Data in the benchmark should not be used in pretraining or fine-tuning any NLP models."** Access requires accepting this condition.
+- Licence field: **CC BY-ND 4.0**.
+- Released sizes: **dev 30,420, test 29,320**. Fields: `dataset`, `doc`, `claim`, `label`, `contamination_identifier` (64-character string for contamination detection).
+- For GroundOne: **evaluation only, no training or fine-tuning on any split.** Nothing is fitted on it either: no temperature, threshold or model selection on any split (plan decision D18, 2026-10-05); dev is at most a sanity check.
+
+## The 11 sub-datasets (GroundOne Phase 1a EDA)
+Test split, measured by [[GroundOne 2026 - EDA report]] in Qwen2.5 tokens (the paper table above uses a different length unit). Details per dataset: [[LLM-AggreFact Sub-datasets]].
+
+| Sub-dataset | n (test) | supported | doc tokens p50 | doc tokens p90 | claim tokens p50 |
+|---|---|---|---|---|---|
+| AggreFact-CNN | 558 | 89.8 % | 560 | 1,059 | 67 |
+| AggreFact-XSum | 558 | 51.1 % | 359 | 729 | 27 |
+| ClaimVerify | 1,088 | 72.5 % | 1,368 | 4,743 | 23 |
+| ExpertQA | 3,702 | 80.3 % | 185 | 1,138 | 30 |
+| FactCheck-GPT | 1,566 | 24.0 % | 117 | 169 | 14 |
+| LFQA | 1,911 | 58.7 % | 401 | 547 | 25 |
+| RAGTruth | 16,371 | 92.2 % | 606 | 1,110 | 23 |
+| REVEAL | 1,710 | 23.4 % | 112 | 223 | 13 |
+| TofuEval-MediaS | 726 | 76.3 % | 1,025 | 1,178 | 22 |
+| TofuEval-MeetB | 772 | 80.6 % | 981 | 1,264 | 23 |
+| WiCE | 358 | 31.0 % | 1,286 | 3,658 | 31.5 |
+
+- The counts sum to the card's 29,320 test rows. Without RAGTruth, test has 12,949 and dev 15,080 rows, consistent with the paper's ~12.9K / ~15.1K (derived by subtraction).
+- RAGTruth is **56 % of the test rows** but weighs 1/11 in the macro-averaged balanced accuracy.
+- Overall test document median 530 tokens; **2.4 % of test documents exceed 2,048 tokens** (mostly ClaimVerify and WiCE). This answers the length question in "Relevance to GroundOne": a 2,048 cap or chunking is needed only for a small tail, and the handling must be stated.
+- No overlap with [[MiniCheck Synthetic Data]] (documents or claims) or [[ANLI]] premises.
+
+## RAGTruth-subset overlap (GroundOne Phase 1a EDA)
+- The RAGTruth sub-dataset has 31,711 claims (dev 15,340, test 16,371). By sentence matching: **dev comes from RAGTruth train** (14,046 matched) and **test from RAGTruth test** (14,942 matched); 359 ambiguous, 2,364 unmatched. The card confirms a random sample of RAGTruth train was put in the validation set.
+- Consequences: training on RAGTruth train is safe for LLM-AggreFact **test**; the RAGTruth part of LLM-AggreFact **dev** must not be used for calibration or model selection; RAGTruth test and LLM-AggreFact-RAGTruth test are the same data and are reported once.
+- Labels agree with our span-derived RAGTruth sentence labels on 98.6 % of 29,191 matched sentences. See [[RAGTruth]] and [[Datasets for GroundOne]].
+
 ## Links
-[[MiniCheck]], [[HHEM]], [[AlignScore]], [[RAGTruth]], [[Groundedness Verification]], [[Hallucination Detection]], [[LLM-as-a-Judge]], [[Qwen2.5]], [[GroundOne]]
+[[MiniCheck]], [[HHEM]], [[AlignScore]], [[RAGTruth]], [[Groundedness Verification]], [[Hallucination Detection]], [[LLM-as-a-Judge]], [[Qwen2.5]], [[GroundOne]], [[LLM-AggreFact Sub-datasets]], [[Dataset card - LLM-AggreFact]], [[Datasets for GroundOne]], [[GroundOne 2026 - EDA report]]

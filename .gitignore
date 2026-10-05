@@ -63,6 +63,28 @@ training_results/
 benchmark_results.txt
 *log.txt
 
-# GroundOne local data and run outputs
-Project/data/
+# GroundOne: environments and build artefacts
+.venv*/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# GroundOne: data (download script, manifests and data cards are tracked; data itself is not)
+Project/data/raw/
+Project/data/processed/**/*.jsonl
+Project/data/processed/**/*.parquet
 Project/phase0/data/
+
+# GroundOne: models and run outputs (adapters, checkpoints, raw predictions); small JSON summaries stay tracked
+Project/models/
+Project/runs/
+Project/phase0/results/*.parquet
+Project/phase0/logs/
+Project/results/**/*.parquet
+Project/results/**/*.npz
+*.log
+
+# Claude Code local settings
+.claude/settings.local.json

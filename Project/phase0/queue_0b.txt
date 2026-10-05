@@ -1,0 +1,10 @@
+# Phase 0b (one job at a time, under the memory guard)
+../.venv/bin/python 06_speed_batched.py qwen0.5b
+../.venv/bin/python 06_speed_batched.py qwen3b
+../.venv/bin/python 07_flex.py qwen0.5b
+../.venv/bin/python 07_flex.py qwen3b
+../.venv/bin/python 08_gen_judges.py qwen0.5b
+../.venv/bin/python 08_gen_judges.py qwen3b
+../.venv/bin/python 07_flex.py qwen0.5b
+../.venv/bin/python 07_flex.py qwen3b
+END

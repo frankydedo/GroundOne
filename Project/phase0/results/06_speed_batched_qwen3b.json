@@ -1,0 +1,139 @@
+{
+  "model": "lmstudio-community/Qwen2.5-3B-Instruct-MLX-8bit",
+  "batched_vs_fresh_max_dp": 0.0,
+  "peak_mem_gb": 5.978534252,
+  "table": {
+    "L500_K1": {
+      "s1_batched_ms": 1212.04,
+      "terse_ms": 1321.65,
+      "terse_tokens": 5.0,
+      "verbose_ms": null,
+      "verbose_tokens": null,
+      "prefix_tokens": 580.0,
+      "max_suffix_tokens": 1.0,
+      "gain_vs_terse": 1.09,
+      "gain_vs_verbose": null
+    },
+    "L500_K3": {
+      "s1_batched_ms": 1388.59,
+      "terse_ms": 1780.01,
+      "terse_tokens": 15.0,
+      "verbose_ms": null,
+      "verbose_tokens": null,
+      "prefix_tokens": 585.0,
+      "max_suffix_tokens": 24.0,
+      "gain_vs_terse": 1.28,
+      "gain_vs_verbose": null
+    },
+    "L500_K8": {
+      "s1_batched_ms": 1779.39,
+      "terse_ms": 2975.28,
+      "terse_tokens": 40.0,
+      "verbose_ms": null,
+      "verbose_tokens": null,
+      "prefix_tokens": 684.0,
+      "max_suffix_tokens": 24.0,
+      "gain_vs_terse": 1.67,
+      "gain_vs_verbose": null
+    },
+    "L500_K24": {
+      "s1_batched_ms": 2686.12,
+      "terse_ms": 4529.81,
+      "terse_tokens": 70.0,
+      "verbose_ms": null,
+      "verbose_tokens": null,
+      "prefix_tokens": 684.0,
+      "max_suffix_tokens": 26.0,
+      "gain_vs_terse": 1.69,
+      "gain_vs_verbose": null
+    },
+    "L1000_K1": {
+      "s1_batched_ms": 2196.78,
+      "terse_ms": 2197.88,
+      "terse_tokens": 4.0,
+      "verbose_ms": 2747.44,
+      "verbose_tokens": 20.0,
+      "prefix_tokens": 1080.0,
+      "max_suffix_tokens": 1.0,
+      "gain_vs_terse": 1.0,
+      "gain_vs_verbose": 1.25
+    },
+    "L1000_K3": {
+      "s1_batched_ms": 2358.85,
+      "terse_ms": 2701.01,
+      "terse_tokens": 15.0,
+      "verbose_ms": 5651.9,
+      "verbose_tokens": 100.0,
+      "prefix_tokens": 1085.0,
+      "max_suffix_tokens": 24.0,
+      "gain_vs_terse": 1.15,
+      "gain_vs_verbose": 2.4
+    },
+    "L1000_K8": {
+      "s1_batched_ms": 2766.1,
+      "terse_ms": 3846.59,
+      "terse_tokens": 40.0,
+      "verbose_ms": 9233.16,
+      "verbose_tokens": 193.5,
+      "prefix_tokens": 1184.0,
+      "max_suffix_tokens": 24.0,
+      "gain_vs_terse": 1.39,
+      "gain_vs_verbose": 3.34
+    },
+    "L1000_K24": {
+      "s1_batched_ms": 3698.38,
+      "terse_ms": 7150.12,
+      "terse_tokens": 120.0,
+      "verbose_ms": 21434.63,
+      "verbose_tokens": 527.0,
+      "prefix_tokens": 1184.0,
+      "max_suffix_tokens": 26.0,
+      "gain_vs_terse": 1.93,
+      "gain_vs_verbose": 5.8
+    },
+    "L2000_K1": {
+      "s1_batched_ms": 4262.16,
+      "terse_ms": 4072.8,
+      "terse_tokens": 5.0,
+      "verbose_ms": null,
+      "verbose_tokens": null,
+      "prefix_tokens": 2080.0,
+      "max_suffix_tokens": 1.0,
+      "gain_vs_terse": 0.96,
+      "gain_vs_verbose": null
+    },
+    "L2000_K3": {
+      "s1_batched_ms": 4494.0,
+      "terse_ms": 4551.28,
+      "terse_tokens": 15.0,
+      "verbose_ms": null,
+      "verbose_tokens": null,
+      "prefix_tokens": 2085.0,
+      "max_suffix_tokens": 24.0,
+      "gain_vs_terse": 1.01,
+      "gain_vs_verbose": null
+    },
+    "L2000_K8": {
+      "s1_batched_ms": 4935.6,
+      "terse_ms": 5804.64,
+      "terse_tokens": 40.0,
+      "verbose_ms": null,
+      "verbose_tokens": null,
+      "prefix_tokens": 2184.0,
+      "max_suffix_tokens": 24.0,
+      "gain_vs_terse": 1.18,
+      "gain_vs_verbose": null
+    },
+    "L2000_K24": {
+      "s1_batched_ms": 5807.05,
+      "terse_ms": 9129.22,
+      "terse_tokens": 120.0,
+      "verbose_ms": null,
+      "verbose_tokens": null,
+      "prefix_tokens": 2184.0,
+      "max_suffix_tokens": 26.0,
+      "gain_vs_terse": 1.57,
+      "gain_vs_verbose": null
+    }
+  }
+}

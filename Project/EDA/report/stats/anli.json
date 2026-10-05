@@ -1,0 +1,186 @@
+{
+  "sizes": {
+    "r1": {
+      "dev": 1000,
+      "test": 1000,
+      "train": 16946
+    },
+    "r2": {
+      "dev": 1000,
+      "test": 1000,
+      "train": 45460
+    },
+    "r3": {
+      "dev": 1200,
+      "test": 1200,
+      "train": 100459
+    }
+  },
+  "label_share_by_split_round": [
+    {
+      "split": "dev",
+      "round": "r1",
+      "contradicted": 0.333,
+      "not_mentioned": 0.333,
+      "supported": 0.334
+    },
+    {
+      "split": "dev",
+      "round": "r2",
+      "contradicted": 0.333,
+      "not_mentioned": 0.333,
+      "supported": 0.334
+    },
+    {
+      "split": "dev",
+      "round": "r3",
+      "contradicted": 0.33,
+      "not_mentioned": 0.335,
+      "supported": 0.335
+    },
+    {
+      "split": "test",
+      "round": "r1",
+      "contradicted": 0.333,
+      "not_mentioned": 0.333,
+      "supported": 0.334
+    },
+    {
+      "split": "test",
+      "round": "r2",
+      "contradicted": 0.333,
+      "not_mentioned": 0.333,
+      "supported": 0.334
+    },
+    {
+      "split": "test",
+      "round": "r3",
+      "contradicted": 0.33,
+      "not_mentioned": 0.335,
+      "supported": 0.335
+    },
+    {
+      "split": "train",
+      "round": "r1",
+      "contradicted": 0.267,
+      "not_mentioned": 0.416,
+      "supported": 0.317
+    },
+    {
+      "split": "train",
+      "round": "r2",
+      "contradicted": 0.221,
+      "not_mentioned": 0.461,
+      "supported": 0.318
+    },
+    {
+      "split": "train",
+      "round": "r3",
+      "contradicted": 0.273,
+      "not_mentioned": 0.406,
+      "supported": 0.321
+    }
+  ],
+  "premise_tokens": {
+    "count": 169265.0,
+    "mean": 75.7,
+    "std": 24.4,
+    "min": 18.0,
+    "50%": 74.0,
+    "90%": 106.0,
+    "99%": 146.0,
+    "max": 333.0
+  },
+  "hypothesis_tokens": {
+    "count": 169265.0,
+    "mean": 12.8,
+    "std": 7.2,
+    "min": 4.0,
+    "50%": 11.0,
+    "90%": 20.0,
+    "99%": 41.0,
+    "max": 172.0
+  },
+  "premise_tokens_by_round": {
+    "r1": {
+      "count": 18946.0,
+      "mean": 81.7,
+      "std": 15.3,
+      "min": 43.0,
+      "50%": 81.0,
+      "90%": 101.0,
+      "99%": 124.0,
+      "max": 150.0
+    },
+    "r2": {
+      "count": 47460.0,
+      "mean": 81.2,
+      "std": 15.2,
+      "min": 44.0,
+      "50%": 80.0,
+      "90%": 101.0,
+      "99%": 120.0,
+      "max": 150.0
+    },
+    "r3": {
+      "count": 102859.0,
+      "mean": 72.1,
+      "std": 28.2,
+      "min": 18.0,
+      "50%": 67.0,
+      "90%": 112.0,
+      "99%": 153.4,
+      "max": 333.0
+    }
+  },
+  "overlap_mean_by_label": {
+    "contradicted": 0.643,
+    "not_mentioned": 0.523,
+    "supported": 0.634
+  },
+  "negation_rate_by_label": {
+    "contradicted": 0.24,
+    "not_mentioned": 0.082,
+    "supported": 0.107
+  },
+  "negation_rate_by_label_train": {
+    "contradicted": 0.248,
+    "not_mentioned": 0.081,
+    "supported": 0.105
+  },
+  "premises_unique": 10761,
+  "hypotheses_per_premise_mean": 15.73,
+  "dev_test_premises_also_in_train": {
+    "dev": 0.9862,
+    "test": 0.9888
+  },
+  "reason_field_nonempty": 0.163,
+  "examples": {
+    "supported": {
+      "premise": "Franco Zeffirelli, KBE Grande Ufficiale OMRI (] ; born 12 February 1923) is an Italian director and producer of operas, films and television. He is also a former senator (1994\u20132001) for the Italian centre-right \"Forza Italia\" party. Recently, Italian researchers have found that he is one of the few distant relatives of Leonardo da Vinci.",
+      "hypothesis": "Franco Zeffirelli had a political career"
+    },
+    "not_mentioned": {
+      "premise": "Almost Sunrise is a 2016 American documentary film directed by Michael Collins. It recounts the story of two Iraq veterans, Tom Voss and Anthony Anderson, who, in an attempt to put their combat experience behind them, embark on a 2,700-mile trek on foot across America. It made its world premiere on the opening night of the Telluride Mountainfilm Festival on 27 May, 2016.",
+      "hypothesis": "Tom and Anthony have both killed someone."
+    },
+    "contradicted": {
+      "premise": "Linguistics is the scientific study of language, and involves an analysis of language form, language meaning, and language in context. The earliest activities in the documentation and description of language have been attributed to the 4th century BCE Indian grammarian P\u0101\u1e47ini, who wrote a formal description of the Sanskrit language in his \"A\u1e63\u1e6d\u0101dhy\u0101y\u012b \".",
+      "hypothesis": "Form and meaning are the only aspects of language linguistics is concerned with."
+    }
+  },
+  "figures": [
+    {
+      "file": "figures/anli_labels.png",
+      "caption": "ANLI label shares per split and round. Train is imbalanced (neutral-heavy in R2/R3); dev and test are balanced."
+    },
+    {
+      "file": "figures/anli_lengths.png",
+      "caption": "ANLI premise and hypothesis lengths (Qwen2.5 tokens). Premises are single paragraphs; far shorter than RAG contexts."
+    },
+    {
+      "file": "figures/anli_shortcuts.png",
+      "caption": "Possible shortcuts in ANLI: word overlap and negation words differ by label. A model could partly learn the label from the claim alone."
+    }
+  ]
+}

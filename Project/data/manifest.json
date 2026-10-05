@@ -1,0 +1,108 @@
+{
+  "created": "2026-10-05 10:54:17",
+  "datasets": {
+    "anli": {
+      "origin": "huggingface: facebook/anli",
+      "license": "CC BY-NC 4.0",
+      "use": "three-way NLI pairs (entailment / neutral / contradiction); training and rule experiments",
+      "files": {
+        "train_r1.parquet": {
+          "rows": 16946,
+          "bytes": 2016198,
+          "sha256": "a45fdd401db08720a44138c2c79804fe1f208760cb73354cd43bb88bbfa18e61"
+        },
+        "dev_r1.parquet": {
+          "rows": 1000,
+          "bytes": 346669,
+          "sha256": "2b90fbe2ad104f66af827fa7197d9d6897775bf4016f2868b114aef5c7b7efc6"
+        },
+        "test_r1.parquet": {
+          "rows": 1000,
+          "bytes": 348934,
+          "sha256": "0aad46101743e7dde601113eaa1ef0760d49ac8e74e19f0fe112a40338edc86f"
+        },
+        "train_r2.parquet": {
+          "rows": 45460,
+          "bytes": 4199097,
+          "sha256": "17f5545fdb6f0336f37a3639e33538a79fd4b5970abab9c278bfd7027f123438"
+        },
+        "dev_r2.parquet": {
+          "rows": 1000,
+          "bytes": 346075,
+          "sha256": "a8653dc64fc0fdd5cf78e6bb8441a1232d489bbeb012117f30e40e5f482eb889"
+        },
+        "test_r2.parquet": {
+          "rows": 1000,
+          "bytes": 356865,
+          "sha256": "d83a2b827cfb26f3e6b4ea0c1cab9d5a20946c953680675091a8a17dba4dfb9b"
+        },
+        "train_r3.parquet": {
+          "rows": 100459,
+          "bytes": 16289978,
+          "sha256": "961f4e05a0344ed9424acb20ddd206ab49c39fc05d0744e717d8fa414b1150ef"
+        },
+        "dev_r3.parquet": {
+          "rows": 1200,
+          "bytes": 424726,
+          "sha256": "0a7991228265622483733fd4a096d861c1ce89a3dc0ef508801526ec5498105c"
+        },
+        "test_r3.parquet": {
+          "rows": 1200,
+          "bytes": 420461,
+          "sha256": "c10967abf888d3d39b09d195b99b4964e61d679f57f91ae1df747a04d9bdb994"
+        }
+      }
+    },
+    "ragtruth": {
+      "origin": "github: ParticleMedia/RAGTruth (dataset/)",
+      "license": "MIT",
+      "use": "RAG responses with span-level hallucination labels; in-domain train and test",
+      "files": {
+        "response.jsonl": {
+          "rows": 17790,
+          "bytes": 21458735,
+          "sha256": "e4c2e4ac24fff676d8984cc61c35d791612fadc58015335d97dd632375e18073"
+        },
+        "source_info.jsonl": {
+          "rows": 2965,
+          "bytes": 15117971,
+          "sha256": "0dffc26ea9f3c1c3d7c7e8336b56ef1646e3cec876edffcca3c9c624d12d578b"
+        }
+      }
+    },
+    "minicheck_synth": {
+      "origin": "huggingface: lytang/C2D-and-D2C-MiniCheck",
+      "license": "MIT",
+      "use": "synthetic multi-sentence grounding data (MiniCheck training recipe)",
+      "files": {
+        "c2d.parquet": {
+          "rows": 7076,
+          "bytes": 669221,
+          "sha256": "4ddeb5dab89c0ea39e02277aa3a1b44c9332ac1585e4d4f87fbdfb46566baa15"
+        },
+        "d2c.parquet": {
+          "rows": 7319,
+          "bytes": 1613897,
+          "sha256": "be5d3a2c0acf145ef97ac6689d5c5537d3c28eda865e461194cd7523d07b2919"
+        }
+      }
+    },
+    "llm_aggrefact": {
+      "origin": "huggingface: lytang/LLM-AggreFact (gated)",
+      "license": "CC BY-ND 4.0",
+      "use": "main out-of-distribution benchmark (dev for checks only, test for evaluation)",
+      "files": {
+        "dev.parquet": {
+          "rows": 30420,
+          "bytes": 42210411,
+          "sha256": "b2b421a533fc42dd7b003216c4cf8d88589248454127b870a8b57b8324d9d6d4"
+        },
+        "test.parquet": {
+          "rows": 29320,
+          "bytes": 22797859,
+          "sha256": "e9e3c29a3ce863c9dfeaee3e918a07e42c3ed955cc750d7ec38093982250f544"
+        }
+      }
+    }
+  }
+}

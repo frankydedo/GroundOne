@@ -1,0 +1,72 @@
+{
+  "n": 3200,
+  "questions": [
+    "sup",
+    "three",
+    "strict",
+    "lenient"
+  ],
+  "by_question": {
+    "lenient": {
+      "all": {
+        "n": 3200,
+        "pos_rate": 0.6681,
+        "bacc": 0.46345652782842617,
+        "auroc": 0.4394344380847687,
+        "ece15": 0.20741143054329167,
+        "brier": 0.2772045223810129,
+        "nll": 0.7495616738803254
+      }
+    },
+    "strict": {
+      "all": {
+        "n": 3200,
+        "pos_rate": 0.3344,
+        "bacc": 0.49925628537580624,
+        "auroc": 0.507398753894081,
+        "ece15": 0.14693339576883643,
+        "brier": 0.24913143170930988,
+        "nll": 0.6914233478412722
+      }
+    },
+    "sup": {
+      "all": {
+        "n": 3200,
+        "pos_rate": 0.3344,
+        "bacc": 0.4848865780351893,
+        "auroc": 0.4786988284849283,
+        "ece15": 0.13766974238951762,
+        "brier": 0.25320543385677163,
+        "nll": 0.7004753942324392
+      }
+    },
+    "three": {
+      "all": {
+        "n": 3200,
+        "macro_recall": 0.3342908229120379,
+        "accuracy": 0.3346875,
+        "recall": {
+          "supported": 0.0,
+          "contradicted": 0.011299435028248588,
+          "not_mentioned": 0.9915730337078652
+        },
+        "ece15_maxprob": 0.37976057815453185,
+        "nll": 1.6449965995803881
+      }
+    }
+  },
+  "model": {
+    "name": "groundone-0.5b-base",
+    "base_model": "lmstudio-community/Qwen2.5-0.5B-Instruct-MLX-8bit",
+    "adapter": null,
+    "adapter_sha256": null,
+    "prompt_version": "groundone-v1",
+    "runtime": "mlx",
+    "load_seconds": 0.66,
+    "fingerprint": "fd8070a37264e759"
+  },
+  "calibrated": false,
+  "data": "v1",
+  "limit": 0,
+  "wall_minutes": 6.68
+}

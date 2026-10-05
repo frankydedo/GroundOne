@@ -1,0 +1,294 @@
+{
+  "llm_aggrefact": {
+    "card": {
+      "license": "cc-by-nd-4.0",
+      "gated": "auto"
+    },
+    "columns": [
+      "dataset",
+      "doc",
+      "claim",
+      "label",
+      "contamination_identifier"
+    ],
+    "sizes": {
+      "dev": 30420,
+      "test": 29320
+    },
+    "per_dataset_test": {
+      "AggreFact-CNN": {
+        "count": 558,
+        "mean": 0.898
+      },
+      "AggreFact-XSum": {
+        "count": 558,
+        "mean": 0.511
+      },
+      "ClaimVerify": {
+        "count": 1088,
+        "mean": 0.725
+      },
+      "ExpertQA": {
+        "count": 3702,
+        "mean": 0.803
+      },
+      "FactCheck-GPT": {
+        "count": 1566,
+        "mean": 0.24
+      },
+      "Lfqa": {
+        "count": 1911,
+        "mean": 0.587
+      },
+      "RAGTruth": {
+        "count": 16371,
+        "mean": 0.922
+      },
+      "Reveal": {
+        "count": 1710,
+        "mean": 0.234
+      },
+      "TofuEval-MediaS": {
+        "count": 726,
+        "mean": 0.763
+      },
+      "TofuEval-MeetB": {
+        "count": 772,
+        "mean": 0.806
+      },
+      "Wice": {
+        "count": 358,
+        "mean": 0.31
+      }
+    },
+    "per_dataset_dev": {
+      "AggreFact-CNN": {
+        "count": 459,
+        "mean": 0.871
+      },
+      "AggreFact-XSum": {
+        "count": 777,
+        "mean": 0.507
+      },
+      "ClaimVerify": {
+        "count": 1093,
+        "mean": 0.751
+      },
+      "ExpertQA": {
+        "count": 3773,
+        "mean": 0.779
+      },
+      "FactCheck-GPT": {
+        "count": 1537,
+        "mean": 0.173
+      },
+      "Lfqa": {
+        "count": 2029,
+        "mean": 0.567
+      },
+      "RAGTruth": {
+        "count": 15340,
+        "mean": 0.898
+      },
+      "Reveal": {
+        "count": 1656,
+        "mean": 0.232
+      },
+      "TofuEval-MediaS": {
+        "count": 1800,
+        "mean": 0.803
+      },
+      "TofuEval-MeetB": {
+        "count": 1607,
+        "mean": 0.82
+      },
+      "Wice": {
+        "count": 349,
+        "mean": 0.33
+      }
+    },
+    "doc_chars_test": {
+      "count": 29320.0,
+      "mean": 2773.0,
+      "std": 4164.0,
+      "min": 1.0,
+      "25%": 1038.0,
+      "50%": 1981.0,
+      "75%": 2945.0,
+      "max": 120274.0
+    },
+    "sample": {
+      "n": 550,
+      "per_dataset": {
+        "AggreFact-CNN": 50,
+        "AggreFact-XSum": 50,
+        "ClaimVerify": 50,
+        "ExpertQA": 50,
+        "FactCheck-GPT": 50,
+        "Lfqa": 50,
+        "RAGTruth": 50,
+        "Reveal": 50,
+        "TofuEval-MediaS": 50,
+        "TofuEval-MeetB": 50,
+        "Wice": 50
+      },
+      "share_of_docs_over_8000_chars_excluded": {
+        "AggreFact-CNN": 0.011,
+        "AggreFact-XSum": 0.005,
+        "ClaimVerify": 0.39,
+        "ExpertQA": 0.081,
+        "FactCheck-GPT": 0.0,
+        "Lfqa": 0.0,
+        "RAGTruth": 0.01,
+        "Reveal": 0.0,
+        "TofuEval-MediaS": 0.0,
+        "TofuEval-MeetB": 0.0,
+        "Wice": 0.318
+      }
+    }
+  },
+  "ragtruth": {
+    "license": "MIT License",
+    "responses": 17790,
+    "sources": 2965,
+    "split_counts": {
+      "train": 15090,
+      "test": 2700
+    },
+    "task_counts": {
+      "Summary": 5658,
+      "Data2txt": 6198,
+      "QA": 5934
+    },
+    "span_flags": {
+      "spans": 14289,
+      "implicit_true": 1928,
+      "due_to_null": 1642
+    },
+    "response_keys": [
+      "id",
+      "source_id",
+      "model",
+      "temperature",
+      "labels",
+      "split",
+      "quality",
+      "response"
+    ],
+    "source_keys": [
+      "source_id",
+      "task_type",
+      "source",
+      "source_info",
+      "prompt"
+    ],
+    "test_sentences": {
+      "n": 19932,
+      "supported_rate": 0.92,
+      "by_task": {
+        "Data2txt": {
+          "count": 8806,
+          "mean": 0.892
+        },
+        "QA": {
+          "count": 5918,
+          "mean": 0.935
+        },
+        "Summary": {
+          "count": 5208,
+          "mean": 0.949
+        }
+      },
+      "sentences_per_response": {
+        "count": 2700.0,
+        "mean": 7.38,
+        "std": 3.76,
+        "min": 1.0,
+        "25%": 5.0,
+        "50%": 7.0,
+        "75%": 9.0,
+        "max": 29.0
+      }
+    },
+    "sample": {
+      "responses": 120,
+      "sentences": 734,
+      "supported_rate": 0.95,
+      "by_task": {
+        "QA": 394,
+        "Summary": 340
+      }
+    }
+  },
+  "minicheck_train": {
+    "card": {
+      "license": "mit",
+      "gated": false
+    },
+    "c2d": {
+      "n": 7076,
+      "columns": [
+        "claim",
+        "doc",
+        "label"
+      ]
+    },
+    "d2c": {
+      "n": 7319,
+      "columns": [
+        "claim",
+        "doc",
+        "label"
+      ]
+    }
+  },
+  "anli": {
+    "card": {
+      "license": [
+        "cc-by-nc-4.0"
+      ],
+      "gated": false
+    },
+    "splits": {
+      "train_r1": 16946,
+      "dev_r1": 1000,
+      "test_r1": 1000,
+      "train_r2": 45460,
+      "dev_r2": 1000,
+      "test_r2": 1000,
+      "train_r3": 100459,
+      "dev_r3": 1200,
+      "test_r3": 1200
+    }
+  },
+  "model_cards": {
+    "vectara/hallucination_evaluation_model": {
+      "license": "apache-2.0",
+      "gated": false
+    },
+    "lytang/MiniCheck-Flan-T5-Large": {
+      "license": "mit",
+      "gated": false
+    },
+    "lytang/MiniCheck-RoBERTa-Large": {
+      "license": "mit",
+      "gated": false
+    },
+    "lytang/MiniCheck-DeBERTa-v3-Large": {
+      "license": "mit",
+      "gated": false
+    },
+    "Qwen/Qwen2.5-0.5B-Instruct": {
+      "license": "apache-2.0",
+      "gated": false
+    },
+    "Qwen/Qwen2.5-3B-Instruct": {
+      "license": "other",
+      "gated": false
+    },
+    "Qwen/Qwen2.5-7B-Instruct": {
+      "license": "apache-2.0",
+      "gated": false
+    }
+  }
+}

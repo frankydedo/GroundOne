@@ -1,0 +1,58 @@
+{
+  "model": "lmstudio-community/Qwen2.5-3B-Instruct-MLX-8bit",
+  "wall_min": 46.33278206984202,
+  "anli": {
+    "n": 300,
+    "class_counts": {
+      "not_mentioned": 118,
+      "contradicted": 93,
+      "supported": 89
+    },
+    "threeway_macro_recall": 0.4654457352038765,
+    "threeway_recall": {
+      "supported": 0.34831460674157305,
+      "contradicted": 0.6666666666666666,
+      "not_mentioned": 0.3813559322033898
+    },
+    "strict_rule": {
+      "qwen_bacc": 0.495260663507109,
+      "minicheck_bacc": 0.660738058469567
+    },
+    "lenient_rule": {
+      "qwen_bacc": 0.49353280349072776,
+      "qwen_strict_prompt_on_lenient_labels": 0.4970391148511766,
+      "minicheck_bacc": 0.5215832943743182
+    },
+    "rule_sensitivity_on_not_mentioned": {
+      "mean_p_ok_strict": 0.014045386659913946,
+      "mean_p_ok_lenient": 0.018370786285350552
+    }
+  },
+  "rt_sent": {
+    "n": 630,
+    "class_counts": {
+      "supported": 551,
+      "not_mentioned": 61,
+      "contradicted": 18
+    },
+    "threeway_macro_recall": 0.48633273718811193,
+    "threeway_recall": {
+      "supported": 0.7549909255898367,
+      "contradicted": 0.2777777777777778,
+      "not_mentioned": 0.4262295081967213
+    },
+    "strict_rule": {
+      "qwen_bacc": 0.514519056261343,
+      "minicheck_bacc": 0.7816972592983987
+    },
+    "lenient_rule": {
+      "qwen_bacc": 0.5179738562091504,
+      "qwen_strict_prompt_on_lenient_labels": 0.5130718954248366,
+      "minicheck_bacc": 0.75
+    },
+    "rule_sensitivity_on_not_mentioned": {
+      "mean_p_ok_strict": 0.002430903166769028,
+      "mean_p_ok_lenient": 0.0036745089982320386
+    }
+  }
+}

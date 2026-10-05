@@ -1,0 +1,44 @@
+[project]
+name = "groundone"
+version = "0.1.0"
+description = "GroundOne: a specialist System One for sentence-level groundedness verification in local RAG (MSc thesis)"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "mlx>=0.29",
+    "mlx-lm>=0.29",
+    "transformers>=4.46",
+    "datasets>=3.0",
+    "huggingface_hub",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "pydantic>=2.6",
+    "pandas",
+    "pyarrow",
+    "numpy",
+    "scikit-learn",
+    "matplotlib",
+    "psutil",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "httpx"]
+baselines = ["torch", "sentencepiece", "protobuf"]
+
+[project.scripts]
+groundone = "groundone.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+groundone = ["playground.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["model: needs the real MLX model (slow; run with -m model)"]

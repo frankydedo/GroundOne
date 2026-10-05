@@ -1,0 +1,248 @@
+{
+  "responses_by_split_task": {
+    "Data2txt": {
+      "test": 900,
+      "train": 5298
+    },
+    "QA": {
+      "test": 900,
+      "train": 5034
+    },
+    "Summary": {
+      "test": 900,
+      "train": 4758
+    }
+  },
+  "sources_by_task_origin": {
+    "Data2txt | Yelp": 1033,
+    "QA | MARCO": 989,
+    "Summary | CNN/DM": 628,
+    "Summary | Recent News": 315
+  },
+  "sources_shared_between_splits": 0,
+  "quality": {
+    "good": 17617,
+    "incorrect_refusal": 144,
+    "truncated": 29
+  },
+  "hallucinated_rate_by_task_split": {
+    "test": {
+      "Data2txt": 0.643,
+      "QA": 0.178,
+      "Summary": 0.227
+    },
+    "train": {
+      "Data2txt": 0.694,
+      "QA": 0.311,
+      "Summary": 0.311
+    }
+  },
+  "hallucinated_rate_by_model": {
+    "gpt-3.5-turbo-0613": 0.135,
+    "gpt-4-0613": 0.137,
+    "llama-2-70b-chat": 0.47,
+    "llama-2-13b-chat": 0.566,
+    "llama-2-7b-chat": 0.618,
+    "mistral-7B-instruct": 0.659
+  },
+  "spans_total": 14289,
+  "span_types": {
+    "Evident Baseless Info": 6237,
+    "Evident Conflict": 5324,
+    "Subtle Baseless Info": 2527,
+    "Subtle Conflict": 201
+  },
+  "span_kind_by_task": {
+    "Baseless (not mentioned)": {
+      "Data2txt": 5053,
+      "QA": 2455,
+      "Summary": 1256
+    },
+    "Conflict (contradicted)": {
+      "Data2txt": 4237,
+      "QA": 472,
+      "Summary": 816
+    }
+  },
+  "span_flags": {
+    "implicit_true": 1928,
+    "due_to_null": 1642
+  },
+  "span_length_chars": {
+    "count": 14289.0,
+    "mean": 52.9,
+    "std": 78.3,
+    "min": 1.0,
+    "50%": 32.0,
+    "90%": 111.0,
+    "99%": 328.0,
+    "max": 1441.0
+  },
+  "sentences_total": 138239,
+  "spans_crossing_sentence_boundary": {
+    "n": 865,
+    "share": 0.061
+  },
+  "spans_not_covered_by_any_sentence": 0,
+  "sentence_class_share_by_task_split": {
+    "Data2txt | test": {
+      "contradicted": 0.052,
+      "not_mentioned": 0.056,
+      "supported": 0.892
+    },
+    "Data2txt | train": {
+      "contradicted": 0.064,
+      "not_mentioned": 0.069,
+      "supported": 0.866
+    },
+    "QA | test": {
+      "contradicted": 0.005,
+      "not_mentioned": 0.06,
+      "supported": 0.935
+    },
+    "QA | train": {
+      "contradicted": 0.015,
+      "not_mentioned": 0.088,
+      "supported": 0.897
+    },
+    "Summary | test": {
+      "contradicted": 0.022,
+      "not_mentioned": 0.03,
+      "supported": 0.949
+    },
+    "Summary | train": {
+      "contradicted": 0.025,
+      "not_mentioned": 0.04,
+      "supported": 0.935
+    }
+  },
+  "sentence_class_counts_train": {
+    "supported": 105572,
+    "not_mentioned": 8077,
+    "contradicted": 4658
+  },
+  "sentence_class_counts_test": {
+    "supported": 18331,
+    "not_mentioned": 999,
+    "contradicted": 602
+  },
+  "sentences_with_implicit_true": 2012,
+  "K_by_task": {
+    "Data2txt": {
+      "count": 6198.0,
+      "mean": 9.9,
+      "std": 3.1,
+      "min": 2.0,
+      "50%": 9.0,
+      "90%": 14.0,
+      "99%": 18.0,
+      "max": 29.0
+    },
+    "QA": {
+      "count": 5934.0,
+      "mean": 7.3,
+      "std": 4.9,
+      "min": 1.0,
+      "50%": 6.0,
+      "90%": 13.0,
+      "99%": 23.0,
+      "max": 53.0
+    },
+    "Summary": {
+      "count": 5658.0,
+      "mean": 5.9,
+      "std": 2.5,
+      "min": 1.0,
+      "50%": 5.0,
+      "90%": 9.0,
+      "99%": 15.0,
+      "max": 28.0
+    }
+  },
+  "responses_with_K_ge_8_share": 0.454,
+  "context_tokens_by_task": {
+    "Data2txt": {
+      "count": 1033.0,
+      "mean": 723.4,
+      "std": 191.1,
+      "min": 326.0,
+      "50%": 685.0,
+      "90%": 965.0,
+      "99%": 1363.0,
+      "max": 1909.0
+    },
+    "QA": {
+      "count": 989.0,
+      "mean": 327.9,
+      "std": 106.3,
+      "min": 131.0,
+      "50%": 308.0,
+      "90%": 475.0,
+      "99%": 567.1,
+      "max": 677.0
+    },
+    "Summary": {
+      "count": 943.0,
+      "mean": 712.0,
+      "std": 404.5,
+      "min": 143.0,
+      "50%": 552.0,
+      "90%": 1297.0,
+      "99%": 2016.8,
+      "max": 2266.0
+    }
+  },
+  "response_tokens_by_task": {
+    "Data2txt": {
+      "count": 6198.0,
+      "mean": 202.3,
+      "std": 59.0,
+      "min": 44.0,
+      "50%": 186.0,
+      "90%": 286.0,
+      "99%": 353.0,
+      "max": 443.0
+    },
+    "QA": {
+      "count": 5934.0,
+      "mean": 151.1,
+      "std": 80.3,
+      "min": 1.0,
+      "50%": 141.0,
+      "90%": 256.0,
+      "99%": 396.0,
+      "max": 459.0
+    },
+    "Summary": {
+      "count": 5658.0,
+      "mean": 140.5,
+      "std": 60.4,
+      "min": 10.0,
+      "50%": 127.0,
+      "90%": 220.0,
+      "99%": 340.4,
+      "max": 778.0
+    }
+  },
+  "share_prompts_over_1024_tokens": 0.222,
+  "share_prompts_over_2048_tokens": 0.01,
+  "example_data2txt_context": "{\"name\": \"Apna Indian Kitchen\", \"address\": \"718 State St\", \"city\": \"Santa Barbara\", \"state\": \"CA\", \"categories\": \"Gluten-Free, Gastropubs, Vegan, Restaurants, Indian\", \"hours\": {\"Tuesday\": \"16:30-21:0\", \"Wednesday\": \"16:30-21:0\", \"Thursday\": \"16:30-21:0\", \"Friday\": \"16:30-21:0\", \"Saturday\": \"16:30-21:0\", \"Sunday\": \"16:30-21:0\"}, \"attributes\": {\"BusinessParking\": null, \"RestaurantsReservations\": tr",
+  "figures": [
+    {
+      "file": "figures/ragtruth_responses.png",
+      "caption": "RAGTruth responses with at least one annotated hallucination, by task and by the LLM that wrote them."
+    },
+    {
+      "file": "figures/ragtruth_spans.png",
+      "caption": "RAGTruth hallucination spans: Baseless Info (content not in the context) dominates; Conflict (contradiction) is rarer, and Subtle Conflict is very rare."
+    },
+    {
+      "file": "figures/ragtruth_sentences.png",
+      "caption": "RAGTruth at sentence level (labels derived from spans): K per response and the share of supported / not mentioned / contradicted sentences."
+    },
+    {
+      "file": "figures/ragtruth_context_lengths.png",
+      "caption": "RAGTruth context lengths by task. Data2txt contexts are JSON business records; QA contexts are 3 retrieved passages."
+    }
+  ]
+}

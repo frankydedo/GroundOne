@@ -52,5 +52,29 @@ tags: [concept, dataset, benchmark, rag, hallucination, span-level, training-dat
 - **Training use**: RAGTruth train gives in-domain negatives that NLI data lacks. Watch for leakage, since the [[LLM-AggreFact]] RAGTruth column likely comes from the RAGTruth test split. Its provenance is not stated in the sources.
 - Report per task (QA vs data-to-text vs summarization). Data-to-text, with JSON input and a 68.6% hallucination rate, behaves very differently from the other two.
 
+## EDA findings (GroundOne Phase 1a)
+Measured by [[GroundOne 2026 - EDA report]] (Qwen2.5 tokens, rule-based sentence splitter), complemented by the official README ([[Dataset card - RAGTruth README]]). Synthesis and usage rules: [[Datasets for GroundOne]].
+
+**Task sources** (`source` field): QA = **MS MARCO** questions with 3 retrieved web passages ([[Nguyen 2016 - MS MARCO]]); Summary = **CNN/DM** (628 instances; [[Hermann 2015 - Teaching Machines to Read and Comprehend]], [[See 2017 - Get To The Point]]) plus **recent news** (315 instances); Data2txt = **Yelp** business records and reviews as JSON ([[Yelp Open Dataset]]).
+
+**Per task** (responses; share with at least one hallucination; context tokens; K = sentences per answer):
+
+| Task | Train | Test | Hallucinated train | Hallucinated test | Context p50 / p90 | K p50 / p90 |
+|---|---|---|---|---|---|---|
+| QA | 5,034 | 900 | 31.1 % | 17.8 % | 308 / 475 | 6 / 13 |
+| Summary | 4,758 | 900 | 31.1 % | 22.7 % | 552 / 1,297 | 5 / 9 |
+| Data2txt | 5,298 | 900 | 69.4 % | 64.3 % | 685 / 965 | 9 / 14 |
+
+- **By generator** (share of responses hallucinated): GPT-3.5 13.5 %, GPT-4 13.7 %, Llama-2-70B 47.0 %, Llama-2-13B 56.6 %, Llama-2-7B 61.8 %, Mistral-7B 65.9 %.
+- **Span types** (14,289): Evident Baseless Info 6,237; Evident Conflict 5,324; Subtle Baseless Info 2,527; Subtle Conflict 201. Flags: `implicit_true` 1,928, `due_to_null` 1,642. 6.1 % of spans cross a sentence boundary. The README attributes 9,290 spans (65 %) to Data2txt.
+- **Sentence-level classes** (derived from spans; 138,239 sentences): train 105,572 supported / 8,077 not mentioned / 4,658 contradicted; test 18,331 / 999 / 602. **77 % of contradiction spans come from Data2txt**; in QA test only 0.5 % of sentences are contradicted. `implicit_true` covers 2,012 sentences.
+- **K distribution**: median 9 (Data2txt), 6 (QA), 5 (Summary); 45 % of answers have K ≥ 8.
+- **Lengths**: 22 % of full prompts (context + answer) exceed 1,024 tokens, 1 % exceed 2,048. A 2,048 cap keeps 99 %.
+- **Quality flags**: 17,617 good, 144 `incorrect_refusal`, 29 `truncated` (drop the 173).
+- **Splits are clean**: no `source_id` in both train and test.
+- **Overlap with [[LLM-AggreFact]]** (resolves the "Splits" discrepancy and the leakage caveat above): the LLM-AggreFact RAGTruth subset has 31,711 claims (dev 15,340, test 16,371). 14,046 dev claims match RAGTruth **train** sentences and 14,942 test claims match RAGTruth **test** sentences (359 ambiguous, 2,364 unmatched). So LLM-AggreFact-RAGTruth test = RAGTruth test (report once) and its dev = RAGTruth train (do not use it for calibration or selection). The LLM-AggreFact card confirms that a random sample of RAGTruth train was put in its validation set and that "non-checkworthy claims" were removed ([[Dataset card - LLM-AggreFact]]).
+- **Label agreement 98.6 %** between our span-derived binary sentence labels and LLM-AggreFact's labels (29,191 sentences). All 419 disagreements are "ours unsupported, AggreFact supported" and are not explained by the `implicit_true` / `due_to_null` flags (likely a different overlap rule or segmentation; not verified). Plan: LLM-AggreFact labels for binary evaluation, our labels for the three-way classes.
+- **Licence**: still not stated in the README.
+
 ## Links
-[[Niu 2024 - RAGTruth]], [[Hallucination Detection]], [[Groundedness Verification]], [[LLM-AggreFact]], [[HHEM]], [[MiniCheck]], [[Ravi 2024 - Lynx]], [[GroundOne]]
+[[Niu 2024 - RAGTruth]], [[Hallucination Detection]], [[Groundedness Verification]], [[LLM-AggreFact]], [[HHEM]], [[MiniCheck]], [[Ravi 2024 - Lynx]], [[GroundOne]], [[Datasets for GroundOne]], [[GroundOne 2026 - EDA report]], [[Dataset card - RAGTruth README]], [[ANLI]]
