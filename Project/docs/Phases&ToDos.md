@@ -46,7 +46,7 @@ Update the status column and the to-do list as work progresses.
 **Standing rule:** every phase leaves figures (`groundone figures all` → `Project/figures/`).
 
 **Next**
-- [ ] Training code for the three-way task (partial-label loss for binary data) and readout design decision (dataset plan §8)
+- [ ] Training code for the three-way task and readout design decision (dataset plan §8)
 - [ ] 0.5B and 3B training on the frozen dataset
 - [ ] Baselines on the frozen test set (encoders, HHEM, Rizzo-Flow; generative judges B0a/B0b; latency protocol §8.3)
 - [ ] Ch. 2 (background and related work), Ch. 3 (method); supervisors + degree programme in `Thesis/common/thesis_info.tex`
