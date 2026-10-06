@@ -19,15 +19,15 @@ warmup: 0.03                 # share of steps with linear warm-up, then cosine d
 epochs: 1.0
 token_budget: 4096           # max padded tokens per micro-batch (rows * longest row)
 max_rows: 16                 # max rows per micro-batch
-accum: 2                     # micro-batches per optimiser step (≈ 20 examples per step on average)
+accum: 4                     # micro-batches per optimiser step (~16 answers, ~110 decisions, ~4-5 contradicted per step)
 seed: 1234
 
 # --- evaluation, safety ---------------------------------------------------------------------------------------
-eval_every: 250              # optimiser steps between dev evaluations; the best checkpoint is kept in best/
+eval_every: 150              # optimiser steps between dev evaluations; the best checkpoint is kept in best/
 design: "b"                  # verdicts read at a marker after each scored sentence (dataset plan §8)
-sample: 9000                 # random subset of training answers (~62K decisions, ~7.5 M tokens); 0 = all 13,203
+sample: 0                    # all 13,203 training answers (~91K decisions, ~11.3 M tokens)
 dev_file: "dev"              # full dev set (1,468 answers, 9,996 decisions); block = task
 select: "bacc"               # best/ = highest mean three-way balanced accuracy over tasks
-max_hours: 0                 # no time limit: the full epoch completes (design b, 9,000 answers: ≈ 4 h expected); author prefers late over truncated
+max_hours: 0                 # no time limit: the full epoch completes (design b, all answers: ≈ 5.5 h expected); author prefers late over truncated
 max_steps: 0                 # 0 = no limit (debug only)
 mem_gb: 9.0                  # MLX memory limit (the memory guard kills the job below 2 GB free anyway)
