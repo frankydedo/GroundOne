@@ -2,7 +2,7 @@
 
 A specialist System One for local RAG: single-pass, calibrated groundedness verification with compact Qwen2.5 models on a 16 GB Apple Silicon laptop.
 
-> **Status:** v0.5 (2026-10-05). Phase 0, 0b, 1a (EDA) and 1 (datasets v1) are done (`phase0_report.md`, `Project/EDA/report/eda_report.md`, `phase1_report.md`). Next: Phase 2 (engine + evaluation harness) and the first 0.5B training run.
+> **Status:** v0.6 (2026-10-06). Phase 0, 0b, 1a (EDA) and the package (Phase 2) are done. The task was redefined on 2026-10-06 (D20: one three-way decision per answer sentence, K = number of sentences). The dataset is being rebuilt from scratch following `dataset_plan.md` (test set first). Next: execute the dataset plan, then train the 0.5B and the 3B.
 > **Hard constraint: the experiment *and* the written thesis (`Thesis/`) must be done by the submission date, 2026-11-10. New experiments only until 2026-10-30.** The schedule (§9) and the scope cuts (§1.5) follow from this.
 > Every number marked *(estimate)* or *(provisional)* is a planning figure to be replaced by a measurement.
 > Companion document: `abstract.md`.
@@ -21,14 +21,17 @@ A specialist System One for local RAG: single-pass, calibrated groundedness veri
 ## 1. Goal and scope
 
 ### 1.1 Thesis statement
-A compact language model, fine-tuned to do **one thing** (verify the sentences of a RAG answer against the retrieved context) and used as a **System One** (one forward pass, logit readout, no text generation), can (i) answer **many questions over one shared context in parallel**, faster than a generative judge and always in a valid format, (ii) approach the accuracy of larger models after specialisation, (iii) follow a small set of verification rules given in the prompt, which a fixed encoder cannot, and (iv) give probabilities calibrated well enough to be used as thresholds, all on a laptop.
+A compact language model, fine-tuned to do **one thing** (verify the sentences of a RAG answer against the retrieved context) and used as a **System One** (one forward pass, logit readout, no text generation), can (i) answer **many questions over one shared context in parallel**, faster than a generative judge and always in a valid format, (ii) approach the accuracy of larger models after specialisation, (iii) tell *contradicted* from *not mentioned* sentences, so that the user can choose a strict or lenient notion of error without retraining, and (iv) give probabilities calibrated well enough to be used as thresholds, all on a laptop.
 
 This is a hypothesis. The thesis is valid whether it is confirmed or not, provided the comparison is controlled and honest.
 
 ### 1.2 The task (one decision, done well)
-**Groundedness verification for RAG.** Input: a retrieved context `C`, a generated answer `A` split into sentences `s_1..s_K`. Output: for each `s_i`, `P(supported | C, A, s_i)`.
+**Groundedness verification for RAG** (redefined 2026-10-06, D20). Input: a retrieved context `C` and a generated answer `A` split into sentences `s_1..s_K`. Output: for each `s_i`, one decision with three classes and their probabilities `P(supported)`, `P(contradicted)`, `P(not_mentioned)` (sum 1).
 
-- **Core question** (binary): supported / not supported. **Additional questions on the same sentence** (decided after Phase 0b): a three-way question (supported / contradicted / not mentioned) and two verification rules written in the prompt (strict: anything not stated is an error; lenient: only contradictions are errors). They raise K naturally (sentences × questions) and are where an LLM-based System One can do what an encoder cannot. Zero-shot the models do not follow them, so they are **trained**. The probability is the product; there is no abstain class; uncertainty is handled with thresholds (selective prediction).
+- **supported**: everything the sentence states is said or directly implied by `C`; **contradicted**: some part conflicts with `C`; **not_mentioned**: it adds information `C` neither contains nor contradicts. A sentence with both a conflicting and an unverifiable part is *contradicted*.
+- **K = the number of sentences of the answer**: one decision per sentence, no artificial extra questions. K is the variable on which the System One advantage is measured (accuracy and latency as a function of K).
+- Everything else is derived from the three probabilities, without asking the model again: binary groundedness = `P(supported)`; strict rule (anything not stated is an error) flags `P(supported) < τ`; lenient rule (only contradictions are errors) flags `P(contradicted) > τ`. There is no abstain class; uncertainty is handled with thresholds (selective prediction).
+- Data with only binary labels (supported / not supported) is used with a partial-label loss (`not supported` = contradicted or not_mentioned).
 - This is the **narrowing of use case B** discussed with the author: one task (groundedness of answer sentences), not chunk relevance. Reason: a shared long context with several short questions occurs naturally (the shared-prefix advantage, §4.3). Per-chunk relevance grading does not have this structure.
 
 ### 1.2b Where each advantage comes from (spine of the method chapter)
@@ -39,14 +42,14 @@ GroundOne is a Qwen2.5 model used in System One mode **plus** task-specific trai
 | Speed vs a generative judge; K questions scored in parallel over one shared context | The **System One mechanism** (single pass, logit readout, shared prefix, batched suffixes) | Yes: it only has to be implemented well (Phase 0b) |
 | Accuracy | **Training** (GroundOne) | No: the 0.5B is ~16 points below the encoders zero-shot |
 | Reliable probabilities (calibration) | Training + temperature scaling | No: zero-shot ECE 0.22–0.32 |
-| Three-way answers and rule changes in the prompt | Training on the three-way format (zero-shot ability measured in Phase 0b) | Partly |
+| Three-way answers (contradicted vs not mentioned), hence strict/lenient rules chosen by the user | Training on three-way labels | Partly (Phase 0b) |
 | Speed vs a **larger** model of equal quality | Training: a 0.5B that matches the 3B is ~6× cheaper per decision | Only if training works |
 
 Fine-tuning does **not** change latency: after LoRA merging, GroundOne runs exactly the same computation as B1.
 
 ### 1.2c What makes GroundOne a specialist (vs general-purpose System Ones such as Rizzo-Flow, SemIf, Jev)
-1. **Data:** trained only on claim-vs-document verification (MiniCheck data, ANLI, RAGTruth train), not on generic typed decisions.
-2. **Question space:** a fixed, narrow set of questions (supported / contradicted / not mentioned, plus the strict and lenient rules), instead of arbitrary questions and primitives.
+1. **Data:** trained only on sentence-vs-document verification (sources in `dataset_plan.md`), not on generic typed decisions.
+2. **Decision space:** one fixed three-way decision per sentence (supported / contradicted / not mentioned), instead of arbitrary questions and primitives.
 3. **Objective:** the loss is computed on the answer letters only, at the exact position and with the exact prompt used at inference.
 4. **Engine and calibration:** the engine is built for RAG (context and answer prefilled once, answer split into sentences, sentences scored by index in parallel), and the temperature is fitted on groundedness data.
 
@@ -74,9 +77,9 @@ The test of specialisation is the head-to-head with Rizzo-Flow on our benchmarks
 | Seeds | 0.5B ×3, 3B ×1–2 | 0.5B ×2 if time allows (else ×1), 3B ×1 |
 | Hyper-parameter sweep | small sweep on 0.5B | at most 2–3 configurations, chosen on dev |
 | Ablations | A1–A5 | **A1, A2 required** (they come for free from baselines B1, B2); A3–A5 in week 4 only if the main matrix is complete |
-| Extensions | E1, E2 | E1 cut. **E2 (rules in the prompt) promoted to the core experiment** after Phase 0b (D15) |
+| Extensions | E1, E2 | E1 cut. E2 (rules in the prompt) replaced by rules derived from the three-way output (D20) |
 | Slow baselines (B0b verbose judge) | full test sets | **stratified subsample** (e.g. 300–500 items), stated in the thesis. B0c (7B) not run (D13) |
-| Training sources | 3–4 sources | MiniCheck recipe (C2D + D2C + hard ANLI) + RAGTruth train; three-way and rule labels from ANLI and RAGTruth (final mix after the EDA, Phase 1a) |
+| Training sources | 3–4 sources | see `dataset_plan.md` |
 | Context cap | 1,024 then 2,048 | 1,024 (2,048 only if free) |
 | Demo | streaming, policy actions | static answer + coloured sentences + threshold slider + timings |
 | Phase 0 | ~1 week | **2 days** |
@@ -91,7 +94,7 @@ The test of specialisation is the head-to-head with Rizzo-Flow on our benchmarks
 | RQ2 | **Readout vs generation.** How much does the System One mechanism buy, at the same model size? | H2a: against a same-model single-token-generation control the latency difference is negligible. H2b: against terse and verbose generative judges the speed-up grows with K (decisions per context). **Phase 0b (untrained models): ≈2× vs terse and ≈6× vs verbose at K = 24**; to be confirmed on GroundOne with the full protocol. H2c: the System One always returns K valid answers, while small generative judges break the format (Phase 0b: up to 97 % failures for the 0.5B verbose judge). |
 | RQ3 | **Calibration.** Are the probabilities usable as confidence? | H3: after fine-tuning plus temperature scaling, ECE is lower than for zero-shot logits of the same model and than for verbalised confidence of generative judges; selective prediction at a chosen coverage improves accuracy monotonically. |
 | RQ4 | **Reliability and cost on-device.** Does the full stack fit and stay interactive on 16 GB? | H4: the verifier adds *(provisional)* < 1 s p95 to a typical 5-sentence answer with the 3B and < 0.3 s with the 0.5B; peak memory of generator + verifier + retriever stays under ~11 GB; the System One has 0 % format failures while small generative judges show measurable ones. |
-| RQ5 | **Flexibility vs the strongest cheap alternative.** What can a System One do that a specialised encoder (MiniCheck, HHEM) cannot? | H5: on the plain binary task the encoder ties or wins (expected, and reported). After training, GroundOne answers the three-way question and follows the strict/lenient rules (gold labels from ANLI and RAGTruth), which MiniCheck's single fixed score cannot express; zero-shot it does not (Phase 0b). |
+| RQ5 | **Beyond a binary score.** What does the System One give that a binary encoder (MiniCheck, HHEM) does not? | H5: on the plain binary task the encoder ties or wins (expected, and reported). GroundOne separates contradicted from not mentioned sentences (three-way macro-F1 above chance on RAGTruth test), so strict and lenient rules can be applied at inference, and it uses the whole answer as context (pronouns, references) while encoders score sentences in isolation. |
 
 Success levels:
 - **Minimum viable thesis:** controlled comparison completed, honest decomposition of gains (H2b/H2c are already supported by Phase 0b), working demo, even if the encoder wins on the plain task.
@@ -106,7 +109,7 @@ Success levels:
 | --- | --- | --- | --- |
 | D1 | Task = groundedness (support) verification, binary | Natural shared context + K short questions; public human-labelled data; real local-RAG need | Chunk relevance (no shared-state structure; strong cross-encoder rivals); prompt-injection detection (K = 1, noisier labels); privacy filter (mostly synthetic labels) |
 | D2 | Models: Qwen2.5 0.5B and 3B Instruct (fine-tuned); 7B zero-shot baseline only | Fits 16 GB; matches author's size plan | 7B fine-tuning (memory with long contexts) |
-| D3 | Two answer tokens (`A` supported / `B` not supported), fixed mapping | Single-token readout; fine-tuning removes most position bias | Random option order (adds noise for a 2-way task); `Yes/No` words (tokenisation variants) |
+| D3 | Fixed answer letters (now `A` supported / `B` contradicted / `C` not mentioned, D20), fixed mapping | Single-token readout; fine-tuning removes most position bias | Random option order (adds noise for a 2-way task); `Yes/No` words (tokenisation variants) |
 | D4 | Custom MLX engine with prefix KV cache and per-claim suffix evaluation | Needed to realise the shared-context advantage; the old LightningRoute engine had none | Using Rizzo-Flow as the engine (not our contribution) |
 | D5 | Custom training loop: cross-entropy over the restricted answer logits, prompt masked | `mlx_lm` rejects prompt masking for the `text` format; previous runs trained on every prompt token (label < 1 % of the loss) | `mlx_lm.lora` with completion format + `mask_prompt` as a first version |
 | D6 | Calibration = temperature scaling fitted on a held-out dev set | One parameter, no leakage risk if dev is separate from test | RLCD (out of scope), isotonic (needs more data) |
@@ -118,17 +121,13 @@ Success levels:
 | D12 | Demo generator = Qwen2.5-3B-Instruct | Memory: 3B generator + verifier fits 16 GB | 7B 4-bit (too tight) |
 | D13 | 7B not run; published leaderboard number used as reference | Memory and time; the number exists | Run 7B 4-bit zero-shot |
 | D14 | Engine scores the K questions in one **batched** pass (prefix KV cache replicated K times, short index-based suffixes) | Phase 0: sequential suffixes erased the System One advantage; Phase 0b: batched is exact (|Δp| = 0) and 2–6× faster than generative judges at K = 24 | Sequential suffixes with cache trimming |
-| D15 | Three-way question and strict/lenient rules become part of GroundOne's question set and of its **training data** | Phase 0b: zero-shot models do not follow rules; this is the flexibility claim vs encoders | Drop flexibility; keep it zero-shot only |
+| D15 | *(Superseded by D20)* Three-way question and strict/lenient rules become part of GroundOne's question set and of its **training data** | Phase 0b: zero-shot models do not follow rules; this is the flexibility claim vs encoders | Drop flexibility; keep it zero-shot only |
 | D17 | Fine-tune **both** 0.5B and 3B; compare at the end | Author's decision: let the results pick the better trade-off | 0.5B main + 3B zero-shot reference |
 | D18 | LLM-AggreFact is used only to evaluate: no training, and no fitting of temperature, threshold or model selection on any of its splits | Its HF gating condition forbids using it for pretraining or fine-tuning; fitting on it would also make our numbers incomparable with the leaderboard | Fit temperature on its dev |
 | D19 | GroundOne is an installable package with CLI and HTTP API (native `/v1/verify` + TypeSafe/Jev-compatible `/v1/systemone`, the contract Rizzo-Flow serves) | Author's requirement; evaluation, demo and server share one engine; drop-in replacement for Rizzo-Flow/Jev clients | Loose scripts |
 | D16 | Phase 1a: exploratory data analysis of ANLI and RAGTruth before building the training mix | Decide which dataset serves which question, length caps, label rules | Build the mix directly |
-| D20 | Data v2: every training item with a three-way class appears with **all four questions** (sup, three, strict, lenient) | v1 (one random question per row) taught the rules as label priors: lenient ≈ always "acceptable", "not mentioned" never predicted (analysis_2026-10-06 §3.2) | Reweight question types only |
-| D21 | Data v2: ~55 % of rows in the multi-sentence format: synthetic ANLI answers (3–12 hypotheses of one premise, up to 3 targets each) + class-balanced RAGTruth sentences with long answers (K ≥ 14) weighted ×2; MiniCheck kept as pairs | v1: −6 points in the multi-sentence format on the same sentences, K ≥ 14 below chance | RAGTruth only (labels noisier, fewer items) |
-| D22 | Fixed dev `dev_mix` (all four questions, blocks ANLI pair / ANLI multi / RAGTruth / MiniCheck); best checkpoint = highest mean balanced accuracy over (block, question) | v1 dev (one random question, plain accuracy, loss selection) was noisy and hid the unlearned lenient rule | Dev loss |
-| D23 | Calibration: temperature **and bias** per question type and per prompt format (pair / multi), fitted on dev; report balanced accuracy at the fixed 0.5 threshold | v1 probabilities squeezed around 0.5 and shifted: temperature alone cannot move the decision boundary | Temperature only; per-task thresholds (task unknown at inference) |
-| D24 | (Optional, not in v2) negation balancing of ANLI rows | Claim-only baseline 0.56 on ANLI train but 0.36–0.39 on dev/test: cue does not transfer, low priority | – |
-| D25 | Run order: 0.5B on v2 first (same hyper-parameters as v1, so v1 vs v2 is an ablation), the 3B on v2 only if the 0.5B v2 improves | Cheapest test of D20–D23 before spending a night on the 3B | 3B on v1 data |
+| D20 | **Task redefined**: one three-way decision per answer sentence (supported / contradicted / not mentioned); K = number of sentences; binary score and strict/lenient rules derived from the three probabilities; binary-only data used with a partial-label loss. Supersedes D15 and the four-question format | The four questions were deterministic functions of the three-way class (strict = binary, lenient = not contradicted): they inflated K artificially and gave conflicting targets for the same sentence. K must come from the task (sentences of the answer) | Keep four questions in the prompt |
+| D21 | **Dataset rebuilt from scratch** following `dataset_plan.md`: task-driven source choice, test set defined, validated and frozen **before** any training, group-disjoint dev/train. Only the final dataset is described in the thesis | Author's decision (2026-10-06): without a reliable test set every later result is useless | Iterate on the previous dataset |
 
 Record future changes below (date, decision, reason).
 
@@ -206,36 +205,11 @@ The thesis must report all three comparisons and not only the favourable one.
 
 ## 5. Data
 
-All sources are public with human labels. Access, sizes and licences were confirmed in Phase 0 (2026-10-05). **The EDA of Phase 1a is done** (`Project/EDA/report/eda_report.md`, usability table in its §2); its recommendations are the starting point of Phase 1. Key constraints from it: LLM-AggreFact is **evaluation-only** by licence (no training, no fitting of temperature/threshold on it); the LLM-AggreFact-RAGTruth **dev** part is RAGTruth **train**; RAGTruth test = LLM-AggreFact-RAGTruth test (report once); training cap 2,048 tokens; ANLI training pairs whose premise appears in ANLI dev/test are excluded.
-
-### 5.1 Evaluation sets (never used for training or threshold tuning)
-| Set | What it is | Use |
-| --- | --- | --- |
-| **LLM-AggreFact** | Human-labelled (document, claim) pairs from 11 datasets (leaderboard version on HF, incl. RAGTruth); **30,420 dev / 29,320 test**; partial support counts as unsupported; HF access gated (granted); licence CC-BY-ND 4.0 | Main out-of-distribution benchmark. **Licence/gating condition: evaluation only — it may not be used for pretraining or fine-tuning any model.** Therefore nothing is fitted on it either (no temperature, threshold or model selection on its dev split); dev is at most a sanity check, and never its RAGTruth part |
-| **RAGTruth (test split)** | 2,965 instances / 17,790 responses (43.1 % hallucinated) from 6 LLMs, QA / summarisation / data-to-text; character-span annotations of 4 types (Evident/Subtle × Conflict/Baseless Info); train 15,090 / test 2,700 responses; **no dev split**; licence MIT (GitHub repo) | Main in-domain RAG benchmark. Sentence labels derived from spans (rule: *unsupported* if the sentence overlaps any span). Spans flagged `implicit_true` and `due_to_null` are handled by an explicit, documented rule (default: keep them as unsupported, report a variant without them). Document the version used (Lynx reports a different test size) |
-
-(A hand-labelled local set was planned and cut for time, D10.)
-
-LLM-AggreFact contains RAGTruth data: the RAGTruth **train** split may be used for training only if no RAGTruth test item reaches the training set, and results on the LLM-AggreFact RAGTruth subset must be reported separately.
-
-### 5.2 Training sources *(availability and licences verified in Phase 0; final mix after the EDA)*
-| Source | Role | Mapping to labels |
-| --- | --- | --- |
-| **MiniCheck training recipe (default)**: 7,076 C2D + 7,319 D2C synthetic examples + a 21K hard ANLI subset (≈35K) | Multi-sentence documents with claims; same data as the strongest small baseline, so the comparison with MiniCheck is data-matched | as released; ANLI neutral/contradiction → not supported |
-| ANLI (full) / MNLI | Only if needed; MiniCheck found more ANLI did not help and AlignScore found NLI-heavy data can hurt | entailment → supported; else not supported |
-| RAGTruth train split | In-domain RAG responses; dev carved out of it **grouped by instance** | sentence-level derived labels |
-| ANLI (three-way) and RAGTruth spans | Three-way question and strict/lenient rules (D15) | entailment / contradiction / neutral; RAGTruth: no span / Conflict / Baseless Info |
-
-Target size: ≈35K (MiniCheck recipe) plus a RAGTruth-train share and the three-way/rule examples, decided after the EDA, class-balanced, with a length cap that keeps the full prompt within the memory budget (§6.3).
-
-### 5.3 Splitting and leakage rules (hard requirements)
-The previous experiment's test set shared 880 of 1000 queries with the training set. This must not happen again.
-
-1. Split by **source document/example ID** before any augmentation, oversampling or duplication.
-2. A `check_leakage.py` script runs on every dataset build and **fails** if any evaluation example (by ID, and by normalised-text hash of context+claim) appears in training or dev. It must be part of the build, not a manual step.
-3. Fixed random seeds; dataset builds are deterministic and hashed; the hash is stored with every result.
-4. Dev (for temperature and threshold) is carved out of the training sources, never from the test benchmarks.
-5. Contamination of Qwen2.5's own pre-training data cannot be excluded; state this as a limitation.
+The dataset (sources, label mapping, splits, leakage rules, reliability checks, sizes) is specified in **`dataset_plan.md`** and is built from scratch (D21). Constraints that stay fixed:
+- LLM-AggreFact is **evaluation only** (D18): no training, and no fitting of temperature, threshold or model selection on any of its splits.
+- Splits are by group (source document / instance), never by row; a leakage check fails the build on any overlap with a test set.
+- The test set is defined, validated and frozen before any training run.
+- Contamination of Qwen2.5's own pre-training data cannot be excluded; stated as a limitation.
 
 ---
 
@@ -267,7 +241,7 @@ The risk is long contexts. Rules of thumb *(to measure)*:
 4. Save adapters, configs, loss curves, dataset hash, git commit for every run.
 
 ### 6.5 Ablations and extensions
-**A1 and A2 are required.** A3–A5 run in week 4 only if the main experiment matrix is complete (§1.5, §9). E1 is future work; E2 is now part of the main experiment (D15). Results go in thesis §6.4.
+**A1 and A2 are required.** A3–A5 run in week 4 only if the main experiment matrix is complete (§1.5, §9). E1 is future work; E2 is evaluated from the three-way output (D20). Results go in thesis §6.4.
 
 | ID | Experiment | Purpose |
 | --- | --- | --- |
@@ -277,7 +251,7 @@ The risk is long contexts. Rules of thumb *(to measure)*:
 | A4 | Training-set size curve (e.g. 5k / 10k / 20k / all) | Data efficiency |
 | A5 | Prefix with and without the full answer | Value of context for resolving references |
 | E1 (stretch) | Sentence-level vs claim-decomposed verification | Granularity |
-| E2 (**core**, D15) | **Rules in the prompt**: strict vs lenient definition of an error, gold labels derived from ANLI / RAGTruth three-way labels; compare with encoders that cannot take a rule | RQ5 |
+| E2 (superseded by D20) | Rules applied at inference from the three-way probabilities (strict: `P(supported) < τ`; lenient: `P(contradicted) > τ`), evaluated against gold rule labels derived from the three-way test labels | RQ5 |
 
 ---
 
@@ -517,7 +491,7 @@ Project/                     # experiment workspace
 
 Reproducibility rules: one config file per run; fixed seeds; dataset and prompt hashes stored with results; results never overwritten; one git tag per reported experiment; `uv` for environments.
 
-**What carries over from `Project_old/`:** the single-thread MLX worker pattern, letter-token mapping, FastAPI skeleton and LoRA/plot scripts (as references). **What does not:** the BFCL datasets, v1–v3 results, the routing benchmark numbers. **Lessons applied:** no train/test overlap (§5.3), prompt masking in training (D5), in-process timing (§8.3), a same-size single-token control (B2), and no flat-latency claim without measurement (§4.3).
+**What carries over from `Project_old/`:** the single-thread MLX worker pattern, letter-token mapping, FastAPI skeleton and LoRA/plot scripts (as references). **What does not:** the BFCL datasets, v1–v3 results, the routing benchmark numbers. **Lessons applied:** no train/test overlap (§5, `dataset_plan.md`), prompt masking in training (D5), in-process timing (§8.3), a same-size single-token control (B2), and no flat-latency claim without measurement (§4.3).
 
 ---
 
@@ -527,7 +501,6 @@ Answered: D1 confirmed; no hand-labelled set (D10); submission 2026-11-10, exper
 
 Also answered: Phase 0/0b run (GO); demo generator = 3B (D12); 7B not run (D13).
 
-Also answered: training mix v1 (`phase1_report.md`).
 
 Still open:
 1. Whether to rebalance ANLI negation cues (v2) — decide after the first training run.
@@ -579,4 +552,4 @@ Authors, years and venues were checked against arXiv, the ACL Anthology and AAAI
 **Inference background**
 - Pope et al. (2023). Efficiently Scaling Transformer Inference. MLSys 2023.
 - Kwon et al. (2023). Efficient Memory Management for Large Language Model Serving with PagedAttention. SOSP 2023.
-- 2026-10-06: after the night-1 results (docs/analysis_2026-10-06.md), the author approved **D20–D25**: datasets v2, fixed dev with balanced-accuracy selection, temperature + bias calibration per format, 0.5B v2 before the 3B.
+- 2026-10-06: **D20** (task redefined: three-way per sentence, K = sentences) and **D21** (dataset rebuilt from scratch, `dataset_plan.md`) decided with the author. The earlier datasets, models trained on them and their analysis were archived outside the repository.

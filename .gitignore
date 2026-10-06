@@ -88,3 +88,6 @@ Project/results/**/*.npz
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Archived outputs of earlier experiments (local only)
+Project/_archive/
