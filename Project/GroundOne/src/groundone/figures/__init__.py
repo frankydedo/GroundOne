@@ -1,4 +1,4 @@
-"""Thesis figures. `groundone figures all|phase0|sweep|training RUN|results|eda` writes PNGs + index.md to Project/figures/.
+"""Thesis figures. `groundone figures all|phase0|sweep|training RUN|results|eda|dataset` writes PNGs + index.md to Project/figures/.
 
 Rule for the project: every phase must leave figures behind (plots are thesis material). Add a function here whenever a
 new kind of result appears, and run `groundone figures all` after each phase.
@@ -41,3 +41,6 @@ def main(argv=None):
         results.main()
     if what in ("eda", "all"):
         eda_copy()
+    if what in ("dataset", "all"):
+        from . import dataset
+        dataset.main()

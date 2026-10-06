@@ -1,0 +1,10 @@
+{
+  "train_sentences": 90795,
+  "chance_balanced_accuracy": 0.3333,
+  "dev": 0.5449,
+  "test_ragtruth": 0.5703,
+  "test_ragtruth|Data2txt": 0.6555,
+  "test_ragtruth|QA": 0.3584,
+  "test_ragtruth|Summary": 0.3529,
+  "test_vitaminc": 0.3307
+}

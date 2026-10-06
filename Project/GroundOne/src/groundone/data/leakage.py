@@ -1,80 +1,51 @@
-"""Phase 1: leakage check (plan §5.3). Exits with code 1 if any hard check fails.
+"""Leakage check for the GroundOne dataset (dataset plan R6). Exits with code 1 if any hard check fails.
 
 Hard checks (FAIL):
-  1. Group disjointness: no group (source document) of train/dev appears in any test set.
-     (ANLI groups = premise hash; RAGTruth = source_id; MiniCheck = document hash.)
-  2. No (document, sentence) pair of train/dev appears in any test set (normalised-text hash).
-  3. No training/dev document appears among LLM-AggreFact test documents.
-  4. Train and dev are disjoint by group within each source.
-Soft checks (WARN, reported): identical claim text shared between train and LLM-AggreFact test with different documents
-(short generic sentences can coincide by chance).
-Usage: groundone data check [--version v1]
+  1. No group (RAGTruth source, LLM-AggreFact document, VitaminC page) of dev/train appears in a test set.
+  2. No document of dev/train appears (normalised text) in any test set.
+  3. No (document, sentence) pair of dev/train appears in any test set.
+  4. dev and train share no group.
+Soft check (WARN): sentence strings of dev/train equal to a test sentence with a different document (short generic
+sentences can coincide by chance).
+Usage: groundone data check
 """
-import argparse
 import json
 import sys
-from pathlib import Path
-
-from ..config import PROJECT
 
 from ..text import h, norm
+from .build import OUT, TEST_FILES
 
 
-def load(path):
-    return [json.loads(l) for l in open(path)]
+def load(name):
+    return [json.loads(l) for l in open(OUT / f"{name}.jsonl")]
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--version", default="v1")
-    args = ap.parse_args(argv)
-    d = PROJECT / "data" / "processed" / args.version
-    sets = {p.stem: load(p) for p in sorted(d.glob("*.jsonl"))}
-    train = {k: v for k, v in sets.items() if k.startswith("train")}
-    dev = {k: v for k, v in sets.items() if k.startswith("dev")}
-    test = {k: v for k, v in sets.items() if k.startswith("test")}
-    fails, warns, report = [], [], {}
-
-    def pairs(items):
-        return {h(x["doc"], x["sentences"][x["idx"]]) for x in items}
-
-    test_groups = {k: {x["group"] for x in v} for k, v in test.items()}
-    test_pairs = {k: pairs(v) for k, v in test.items()}
-    agg_docs = {norm(x["doc"]) for x in test["test_aggrefact"]}
-    agg_claims = {norm(x["sentences"][0]) for x in test["test_aggrefact"]}
-
-    for name, items in {**train, **dev}.items():
-        g = {x["group"] for x in items}
-        p = pairs(items)
-        for tname in test:
-            n_g = len(g & test_groups[tname])
-            n_p = len(p & test_pairs[tname])
-            report[f"{name} ∩ {tname}"] = {"groups": n_g, "pairs": n_p}
-            if n_g:
-                fails.append(f"{name}: {n_g} groups also in {tname}")
-            if n_p:
-                fails.append(f"{name}: {n_p} (document, sentence) pairs also in {tname}")
-        n_doc = sum(norm(x["doc"]) in agg_docs for x in items)
-        n_claim = sum(norm(x["sentences"][x["idx"]]) in agg_claims for x in items)
-        report[f"{name} docs in test_aggrefact"] = n_doc
-        report[f"{name} claims equal to an aggrefact test claim"] = n_claim
-        if n_doc:
-            fails.append(f"{name}: {n_doc} documents also in LLM-AggreFact test")
-        if n_claim:
-            warns.append(f"{name}: {n_claim} claim strings also appear in LLM-AggreFact test (with different documents)")
-
-    for tname, titems in train.items():
-        for dname, ditems in dev.items():
-            for src in {x["source"] for x in ditems}:
-                tg = {x["group"] for x in titems if x["source"] == src}
-                dg = {x["group"] for x in ditems if x["source"] == src}
-                n = len(tg & dg)
-                report[f"{tname} ∩ {dname} ({src}) groups"] = n
-                if n:
-                    fails.append(f"{tname} and {dname} share {n} {src} groups")
-
-    out = {"version": args.version, "status": "FAIL" if fails else "PASS", "fails": fails, "warnings": warns, "counts": report}
-    (d / "leakage_report.json").write_text(json.dumps(out, indent=2, ensure_ascii=False))
+    tests = {n: load(n) for n in TEST_FILES}
+    fit = {n: load(n) for n in ("dev", "train")}
+    fails, warns, counts = [], [], {}
+    t_groups = {n: {r["group"] for r in v} for n, v in tests.items()}
+    t_docs = {n: {norm(r["doc"]) for r in v} for n, v in tests.items()}
+    t_pairs = {n: {h(r["doc"], s) for r in v for s in r["sentences"]} for n, v in tests.items()}
+    t_sents = {norm(s) for v in tests.values() for r in v for s, l in zip(r["sentences"], r["labels"]) if l is not None}
+    for name, recs in fit.items():
+        groups = {r["group"] for r in recs}
+        docs = {norm(r["doc"]) for r in recs}
+        pairs = {h(r["doc"], s) for r in recs for s in r["sentences"]}
+        for t in tests:
+            c = {"groups": len(groups & t_groups[t]), "docs": len(docs & t_docs[t]), "pairs": len(pairs & t_pairs[t])}
+            counts[f"{name} vs {t}"] = c
+            fails += [f"{name}: {v} {k} shared with {t}" for k, v in c.items() if v]
+        same = sum(norm(s) in t_sents for r in recs for s, l in zip(r["sentences"], r["labels"]) if l is not None)
+        counts[f"{name} sentences equal to a test sentence"] = same
+        if same:
+            warns.append(f"{name}: {same} sentence strings also occur in a test set (different documents)")
+    shared = {r["group"] for r in fit["dev"]} & {r["group"] for r in fit["train"]}
+    counts["dev vs train groups"] = len(shared)
+    if shared:
+        fails.append(f"dev and train share {len(shared)} groups")
+    out = {"status": "FAIL" if fails else "PASS", "fails": fails, "warnings": warns, "counts": counts}
+    (OUT / "leakage_report.json").write_text(json.dumps(out, indent=2))
     print(f"leakage check {out['status']}: {len(fails)} failures, {len(warns)} warnings")
     for x in fails + warns:
         print("  -", x)

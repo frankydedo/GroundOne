@@ -1,6 +1,6 @@
 # GroundOne dataset plan
 
-Status: v2.0 (2026-10-06). Simplified to the strict minimum: one training source, three test sets. Decisions D20 and D21 are in `implementation_plan.md` §3.
+Status: v2.1 (2026-10-06). Simplified to the strict minimum: one training source, three test sets. **Steps 1–3 and 5 of §7 are done** (`Project/data/processed/groundone/DATACARD.md`); the tests await the author's approval to be frozen (step 4). Decisions D20 and D21 are in `implementation_plan.md` §3.
 
 This document specifies how the training, development and test data are built from scratch. Nothing is trained until the test sets of §4 are built, validated and frozen. The thesis (Ch. 4) describes only the dataset produced by this plan.
 
@@ -169,7 +169,21 @@ Measured on the raw data with the regex splitter, Qwen2.5 tokens, 10 % dev by so
 4. **Freeze.** C6: manifest with hashes committed.
 5. **Dev and train.** Build from RAGTruth train by `source_id`, then run the leakage and shortcut checks. Write the data card (composition, origin, licence, rationale): it becomes thesis Ch. 4.
 
-**Code.** A new `groundone.data` builder: `ragtruth.py`, `aggrefact.py`, `vitaminc.py`, a `segment.py` with pysbd and the content rule (shared with inference), and a `freeze` step. `leakage.py` and `shortcut.py` are adapted to the answer-level records. Output goes to `Project/data/processed/groundone/`.
+**Code.**
+- `groundone data build`: `data/build.py` (all sources and checks C2–C5) plus `data/segment.py` (pysbd and the content rule, shared with inference).
+- `groundone data check`: `data/leakage.py`.
+- `groundone data shortcut`: `data/shortcut.py`.
+- `groundone data freeze`: writes `tests_frozen.json`.
+- `groundone figures dataset`.
+
+Output goes to `Project/data/processed/groundone/`.
+
+**Results of the first build (2026-10-06).**
+- Build time: 45 s.
+- C2: 96.3 % / 8.5 %. C3: 98.75 %.
+- Leakage: PASS, after excluding one CNN article shared with LLM-AggreFact.
+- Sentence-only shortcut: 0.57 on T1. It is driven entirely by Data2txt (0.66); QA and Summary are at chance.
+- Train: 13,203 answers, 90,795 decisions, 10.9 M tokens.
 
 ## 8. Dependency: readout design (decided after Step 5, before training)
 

@@ -2,7 +2,7 @@
 
 Re-running is safe: files that already exist are kept (re-hashed, not re-downloaded).
 LLM-AggreFact is gated on Hugging Face: log in (`hf auth login`) and accept its terms first.
-Usage: python download.py   (from any directory; uses the Phase 0 environment)
+Usage: python download.py   (from any directory; e.g. with the GroundOne venv)
 """
 import hashlib
 import json
@@ -18,14 +18,16 @@ RAW = ROOT / "raw"
 RAW.mkdir(exist_ok=True)
 
 SOURCES = {
-    "anli": {"origin": "huggingface: facebook/anli", "license": "CC BY-NC 4.0",
-             "use": "three-way NLI pairs (entailment / neutral / contradiction); training and rule experiments"},
     "ragtruth": {"origin": "github: ParticleMedia/RAGTruth (dataset/)", "license": "MIT",
-                 "use": "RAG responses with span-level hallucination labels; in-domain train and test"},
-    "minicheck_synth": {"origin": "huggingface: lytang/C2D-and-D2C-MiniCheck", "license": "MIT",
-                        "use": "synthetic multi-sentence grounding data (MiniCheck training recipe)"},
+                 "use": "GroundOne dataset: the only training source (train, dev) and test T1"},
     "llm_aggrefact": {"origin": "huggingface: lytang/LLM-AggreFact (gated)", "license": "CC BY-ND 4.0",
-                      "use": "main out-of-distribution benchmark (dev for checks only, test for evaluation)"},
+                      "use": "GroundOne dataset: test T2 only (evaluation only by licence)"},
+    "vitaminc": {"origin": "huggingface: tals/vitaminc (test.jsonl)", "license": "CC BY-SA 3.0",
+                 "use": "GroundOne dataset: test T3 only (real revisions, sampled)"},
+    "anli": {"origin": "huggingface: facebook/anli", "license": "CC BY-NC 4.0",
+             "use": "EDA (Phase 1a) only; not part of the GroundOne dataset"},
+    "minicheck_synth": {"origin": "huggingface: lytang/C2D-and-D2C-MiniCheck", "license": "MIT",
+                        "use": "EDA (Phase 1a) only; not part of the GroundOne dataset"},
 }
 
 
@@ -70,7 +72,18 @@ def fetch_hf_parquets(dst, repo, files):
     return out
 
 
+def fetch_hf_files(dst, repo, files):
+    out = []
+    for name in files:
+        f = dst / name
+        if not f.exists():
+            f.write_bytes(Path(hf_hub_download(repo, name, repo_type="dataset")).read_bytes())
+        out.append(f)
+    return out
+
+
 FETCH = {
+    "vitaminc": lambda d: fetch_hf_files(d, "tals/vitaminc", ["test.jsonl"]),
     "anli": fetch_anli,
     "ragtruth": fetch_ragtruth,
     "minicheck_synth": lambda d: fetch_hf_parquets(d, "lytang/C2D-and-D2C-MiniCheck", {

@@ -1,0 +1,250 @@
+{
+  "config": {
+    "seed": 1234,
+    "cap_tokens": 2048,
+    "prompt_overhead_tokens": 80,
+    "dev_source_frac": 0.1,
+    "vitaminc_per_class": 1000,
+    "k_bands": [
+      [
+        1,
+        4
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        9,
+        13
+      ],
+      [
+        14,
+        999
+      ]
+    ]
+  },
+  "created": "2026-10-06 22:20:26",
+  "ragtruth_dropped": {
+    "train: over 2048 tokens": 152,
+    "test: over 2048 tokens": 23,
+    "train: document in LLM-AggreFact test": 6,
+    "train: no checkable sentence": 95,
+    "dev: quality truncated": 5,
+    "train: quality truncated": 23,
+    "dev: over 2048 tokens": 7,
+    "train: quality incorrect_refusal": 105,
+    "test: quality incorrect_refusal": 24,
+    "dev: no checkable sentence": 11,
+    "dev: quality incorrect_refusal": 15,
+    "test: no checkable sentence": 5,
+    "test: quality truncated": 1
+  },
+  "ragtruth_spans_touching_no_checkable_sentence": 27,
+  "vitaminc_real_test_by_label": {
+    "SUPPORTS": 17306,
+    "REFUTES": 9907,
+    "NOT ENOUGH INFO": 7268
+  },
+  "C2": {
+    "aggrefact_claims_found": 0.9626,
+    "our_sentences_absent": 0.0845,
+    "pass": true
+  },
+  "C3": {
+    "matched_unique_sentences": 15492,
+    "binary_agreement": 0.9875,
+    "disagreements": {
+      "ours notS / aggrefact S": 193
+    },
+    "pass": true
+  },
+  "C4": {
+    "test_ragtruth": {
+      "answers": {
+        "Data2txt|1-4": 14,
+        "Data2txt|5-8": 478,
+        "Data2txt|9-13": 332,
+        "Data2txt|>=14": 76,
+        "QA|1-4": 385,
+        "QA|5-8": 353,
+        "QA|9-13": 107,
+        "QA|>=14": 25,
+        "Summary|1-4": 357,
+        "Summary|5-8": 457,
+        "Summary|9-13": 58,
+        "Summary|>=14": 5
+      },
+      "sentences": {
+        "Data2txt|1-4|contradicted": 4,
+        "Data2txt|1-4|not_mentioned": 6,
+        "Data2txt|1-4|supported": 45,
+        "Data2txt|5-8|contradicted": 220,
+        "Data2txt|5-8|not_mentioned": 278,
+        "Data2txt|5-8|supported": 2663,
+        "Data2txt|9-13|contradicted": 205,
+        "Data2txt|9-13|not_mentioned": 169,
+        "Data2txt|9-13|supported": 3124,
+        "Data2txt|>=14|contradicted": 20,
+        "Data2txt|>=14|not_mentioned": 34,
+        "Data2txt|>=14|supported": 1102,
+        "QA|1-4|contradicted": 13,
+        "QA|1-4|not_mentioned": 48,
+        "QA|1-4|supported": 1115,
+        "QA|5-8|contradicted": 11,
+        "QA|5-8|not_mentioned": 113,
+        "QA|5-8|supported": 2065,
+        "QA|9-13|contradicted": 4,
+        "QA|9-13|not_mentioned": 88,
+        "QA|9-13|supported": 1014,
+        "QA|>=14|contradicted": 2,
+        "QA|>=14|not_mentioned": 73,
+        "QA|>=14|supported": 330,
+        "Summary|1-4|contradicted": 34,
+        "Summary|1-4|not_mentioned": 51,
+        "Summary|1-4|supported": 1118,
+        "Summary|5-8|contradicted": 60,
+        "Summary|5-8|not_mentioned": 76,
+        "Summary|5-8|supported": 2526,
+        "Summary|9-13|contradicted": 11,
+        "Summary|9-13|not_mentioned": 19,
+        "Summary|9-13|supported": 567,
+        "Summary|>=14|supported": 76
+      },
+      "cells_below_30": [
+        "Data2txt|1-4|contradicted",
+        "Data2txt|1-4|not_mentioned",
+        "Data2txt|>=14|contradicted",
+        "QA|1-4|contradicted",
+        "QA|5-8|contradicted",
+        "QA|9-13|contradicted",
+        "QA|>=14|contradicted",
+        "Summary|9-13|contradicted",
+        "Summary|9-13|not_mentioned"
+      ]
+    }
+  },
+  "C5_trivial": {
+    "test_ragtruth": {
+      "majority_class": "supported",
+      "majority_balanced_accuracy": 0.3333,
+      "random_balanced_accuracy": 0.3333
+    },
+    "test_vitaminc": {
+      "majority_class": "not_mentioned",
+      "majority_balanced_accuracy": 0.3333,
+      "random_balanced_accuracy": 0.3333
+    }
+  },
+  "C5_reference": "MiniCheck-RoBERTa on the unchanged LLM-AggreFact test: see results/minicheck-roberta/aggrefact (measured 74.0 vs published 73.5)",
+  "summary": {
+    "test_ragtruth": {
+      "records": 2647,
+      "labels": {
+        "supported": 15745,
+        "contradicted": 584,
+        "not_mentioned": 955
+      },
+      "decisions": 17284,
+      "null_sentences": 1443,
+      "by_task": {
+        "Summary": 877,
+        "Data2txt": 900,
+        "QA": 870
+      },
+      "K": {
+        "mean": 6.53,
+        "max": 23,
+        "answers_K_ge_14": 106
+      },
+      "tokens_M": 2.16
+    },
+    "test_aggrefact": {
+      "records": 29320,
+      "labels": {
+        "supported": 22832,
+        "unsupported": 6488
+      },
+      "decisions": 29320,
+      "null_sentences": 0,
+      "by_task": {
+        "AggreFact-CNN": 558,
+        "AggreFact-XSum": 558,
+        "TofuEval-MediaS": 726,
+        "TofuEval-MeetB": 772,
+        "Wice": 358,
+        "Reveal": 1710,
+        "ClaimVerify": 1088,
+        "FactCheck-GPT": 1566,
+        "ExpertQA": 3702,
+        "Lfqa": 1911,
+        "RAGTruth": 16371
+      },
+      "K": {
+        "mean": 1.0,
+        "max": 1,
+        "answers_K_ge_14": 0
+      }
+    },
+    "test_vitaminc": {
+      "records": 3000,
+      "labels": {
+        "not_mentioned": 1000,
+        "contradicted": 1000,
+        "supported": 1000
+      },
+      "decisions": 3000,
+      "null_sentences": 0,
+      "by_task": {
+        "VitaminC": 3000
+      },
+      "K": {
+        "mean": 1.0,
+        "max": 1,
+        "answers_K_ge_14": 0
+      }
+    },
+    "dev": {
+      "records": 1468,
+      "labels": {
+        "supported": 8827,
+        "contradicted": 410,
+        "not_mentioned": 759
+      },
+      "decisions": 9996,
+      "null_sentences": 906,
+      "by_task": {
+        "Summary": 508,
+        "Data2txt": 498,
+        "QA": 462
+      },
+      "K": {
+        "mean": 6.81,
+        "max": 23,
+        "answers_K_ge_14": 64
+      },
+      "tokens_M": 1.22
+    },
+    "train": {
+      "records": 13203,
+      "labels": {
+        "supported": 79898,
+        "contradicted": 4039,
+        "not_mentioned": 6858
+      },
+      "decisions": 90795,
+      "null_sentences": 8191,
+      "by_task": {
+        "Summary": 4087,
+        "Data2txt": 4791,
+        "QA": 4325
+      },
+      "K": {
+        "mean": 6.88,
+        "max": 28,
+        "answers_K_ge_14": 573
+      },
+      "tokens_M": 10.88
+    }
+  }
+}

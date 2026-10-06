@@ -1,0 +1,43 @@
+{
+  "status": "PASS",
+  "fails": [],
+  "warnings": [
+    "dev: 82 sentence strings also occur in a test set (different documents)",
+    "train: 788 sentence strings also occur in a test set (different documents)"
+  ],
+  "counts": {
+    "dev vs test_ragtruth": {
+      "groups": 0,
+      "docs": 0,
+      "pairs": 0
+    },
+    "dev vs test_aggrefact": {
+      "groups": 0,
+      "docs": 0,
+      "pairs": 0
+    },
+    "dev vs test_vitaminc": {
+      "groups": 0,
+      "docs": 0,
+      "pairs": 0
+    },
+    "dev sentences equal to a test sentence": 82,
+    "train vs test_ragtruth": {
+      "groups": 0,
+      "docs": 0,
+      "pairs": 0
+    },
+    "train vs test_aggrefact": {
+      "groups": 0,
+      "docs": 0,
+      "pairs": 0
+    },
+    "train vs test_vitaminc": {
+      "groups": 0,
+      "docs": 0,
+      "pairs": 0
+    },
+    "train sentences equal to a test sentence": 788,
+    "dev vs train groups": 0
+  }
+}

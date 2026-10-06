@@ -41,7 +41,8 @@ Update the status column and the to-do list as work progresses.
 ## To-dos
 
 **Now (Oct 6–9): dataset, following `dataset_plan.md`**
-- [ ] Execute the plan step by step (test set first, then dev, then train); each step has a written acceptance check
+- [x] Dataset built (`groundone data build`): T1 RAGTruth 2,647 answers, T2 LLM-AggreFact 29,320, T3 VitaminC 3,000, dev 1,468 and train 13,203 answers; checks C2, C3, leakage pass; data card `data/processed/groundone/DATACARD.md`; figures `figures/dataset/`
+- [ ] Author approves freezing the test sets (`groundone data freeze`)
 
 **Standing rule:** every phase leaves figures (`groundone figures all` → `Project/figures/`).
 
@@ -72,3 +73,4 @@ Add one line per significant event (date, what happened, impact on the plan).
 - 2026-10-05: Baselines B1 (untrained 0.5B: ≈ chance), B3 Rizzo-Flow 4B Q4 (ANLI sup 0.761, three-way 0.606; RAGTruth 0.805; LLM-AggreFact macro 0.615 on 1,100), B4 MiniCheck-RoBERTa / HHEM on ANLI + RAGTruth. Sanity check vs the LLM-AggreFact leaderboard on the 14,952 RAGTruth sentences shared with it, with its labels: RoBERTa 76.4 (published 77.2), HHEM 73.0 (published 69.9) → implementations correct. On all 19,902 RAGTruth test sentences scores are ~2 points lower (≈ 5k sentences not in LLM-AggreFact are harder, likely splitter fragments): report RAGTruth on the LLM-AggreFact-matched sentences with its labels as the primary number.
 - 2026-10-05: `groundone figures` added (300-dpi PNGs + captions in `Project/figures/`). Night queues end with `groundone figures all`.
 - 2026-10-06: first training runs showed that the dataset did not teach the task (format and question design). Task redefined (D20: one three-way decision per sentence, K = sentences) and dataset rebuilt from scratch (D21, `dataset_plan.md`). Earlier processed data deleted; earlier models, results and figures moved to `Project/_archive/` (not versioned).
+- 2026-10-06: dataset built in one evening following `dataset_plan.md` v2 (RAGTruth only for training; tests RAGTruth, LLM-AggreFact, VitaminC). pysbd segmentation + checkable-content rule; C2 96.3 %, C3 98.75 %, leakage PASS. The sentence-only baseline reaches 0.66 on Data2txt (template sentences) and chance on QA/Summary. VitaminC ingested in the wiki.
