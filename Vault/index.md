@@ -21,7 +21,7 @@ Knowledge base for the MSc thesis **[[GroundOne]]**: a specialist System One mod
 
 ## Data
 - [[Datasets for GroundOne]] (synthesis: origins, differences, which dataset for which experiment)
-- [[ANLI]], [[RAGTruth]], [[MiniCheck Synthetic Data]], [[LLM-AggreFact]], [[LLM-AggreFact Sub-datasets]]
+- [[ANLI]], [[RAGTruth]], [[MiniCheck Synthetic Data]], [[LLM-AggreFact]], [[LLM-AggreFact Sub-datasets]], [[VitaminC]]
 
 ## Calibration and decision-making
 - [[Calibration]], [[Expected Calibration Error]], [[Selective Prediction]]
@@ -45,6 +45,7 @@ Knowledge base for the MSc thesis **[[GroundOne]]**: a specialist System One mod
 
 **Datasets**
 - Cards: [[Dataset card - ANLI]], [[Dataset card - LLM-AggreFact]], [[Dataset card - MiniCheck C2D-D2C]], [[Dataset card - RAGTruth README]]
+- Papers: [[Schuster 2021 - VitaminC]]
 - RAGTruth sources: [[Nguyen 2016 - MS MARCO]], [[See 2017 - Get To The Point]], [[Hermann 2015 - Teaching Machines to Read and Comprehend]], [[Yelp Open Dataset]]
 - LLM-AggreFact sub-datasets: [[Tang 2023 - AggreFact]], [[Tang 2024 - TofuEval]], [[Kamoi 2023 - WiCE]], [[Jacovi 2024 - REVEAL]], [[Liu 2023 - Evaluating Verifiability in Generative Search Engines]], [[Wang 2024 - Factcheck-Bench]], [[Malaviya 2024 - ExpertQA]], [[Chen 2024 - Understanding Retrieval Augmentation for LFQA]]
 - Project output: [[GroundOne 2026 - EDA report]]

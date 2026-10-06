@@ -47,6 +47,14 @@ tags: [concept, dataset, benchmark, rag, hallucination, span-level, training-dat
 
 **Caution**: these figures use different metrics, units (response, sentence or claim) and subsets. Compare only within a row group.
 
+## Role in GroundOne (final, 2026-10-06)
+- **The only training source**, plus the dev set (10 % of train sources, by `source_id`) and test **T1** (official test split). See [[Datasets for GroundOne]].
+- **Reliability caveats**, to be stated in the thesis:
+  - the reported agreement (91.8 % per response, 78.8 % per span) says nothing about the **type** (conflict vs baseless), which is exactly the contradicted vs not mentioned boundary;
+  - a 2026 re-annotation of the test split (RT4CHART, arXiv 2603.27752; not ingested) reports 1.68× more hallucinated answers, so the original labels likely under-mark hallucinations.
+  - [[VitaminC]] (test T3) gives an independent check of the three-way distinction.
+- **Segmentation.** LLM-AggreFact's RAGTruth claims match 76.5 % of the sentences from the regex splitter. Most of the rest are fragments from splitting decimals, or sentences without checkable content ("Sure!", "Elements:"). The final pipeline uses pysbd plus a content rule.
+
 ## Relevance to GroundOne
 - It is the most realistic RAG evaluation available: the errors are natural, the generators are modern, and the subtle "baseless info" cases are exactly what a strict verifier must catch.
 - **Training use**: RAGTruth train gives in-domain negatives that NLI data lacks. Watch for leakage, since the [[LLM-AggreFact]] RAGTruth column likely comes from the RAGTruth test split. Its provenance is not stated in the sources.

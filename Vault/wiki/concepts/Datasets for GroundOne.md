@@ -28,7 +28,33 @@ Synthesis of where [[GroundOne]]'s data comes from, how the datasets differ, and
 
 Label-scheme note: only ANLI has human three-way labels; RAGTruth's three-way sentence classes (supported / not mentioned / contradicted) are our derivation from span types (Baseless → not mentioned, Conflict → contradicted).
 
-## Which dataset serves which experiment
+## Final choice (2026-10-06)
+The task was redefined: one three-way decision per answer sentence, with K = the number of sentences (plan decision D20). The dataset was then cut to the strict minimum (D21). The source of truth is `Project/docs/dataset_plan.md`.
+
+| Dataset | Use | Why |
+|---|---|---|
+| **[[RAGTruth]]** | **only training source**; dev (10 % of train sources, by `source_id`); test **T1** | It *is* the task: real RAG answers with natural K and span labels that separate conflict from baseless information |
+| **[[LLM-AggreFact]]** | test **T2** only (evaluation only by licence) | External, leaderboard-comparable binary benchmark |
+| **[[VitaminC]]** | test **T3** only (real test split, stratified sample) | Independent, reliable check of contradicted vs not mentioned (κ = 0.71), since RAGTruth reports no agreement on the hallucination type |
+
+**Dropped:**
+- [[ANLI]]: adversarial, short premises, far from RAG.
+- [[MiniCheck Synthetic Data]]: binary only. Accepted cost: probably a lower LLM-AggreFact score outside the RAG sub-datasets.
+- Verified but not adopted: ANAH, Trivia++, RAGBench. Rejected outright: HaluBench (contains RAGTruth test answers), ANAH-v2 (model-generated labels).
+
+**Expected size** (regex splitter; the final segmenter will be pysbd plus a rule that excludes sentences without checkable content, expected to remove about 10–20 % of sentences, mostly *supported*):
+
+| Split | Answers | Sentence labels | contradicted | not mentioned | Tokens |
+|---|---|---|---|---|---|
+| train | ~13,300 | ~105K (≈ 85–95K after filtering) | ~4,200 | ~7,200 | ~10.7 M |
+| dev | ~1,500 | ~11.6K | ~450 | ~800 | ~1.0 M |
+| T1 test | 2,675 | 19.9K (≈ 16K after filtering) | 602 | 999 | ~2.0 M |
+| T2 test | – | 29,320 pairs | – | – | – |
+| T3 test | – | ~3,000 pairs | ~1,000 | ~1,000 | – |
+
+## Earlier analysis (EDA, 2026-10-05): which dataset could serve which experiment
+Kept for reference. It was written for the earlier four-question design, and the final choice above supersedes it.
+
 From the EDA report §2. ✅ suitable · ⚠️ usable with care · ❌ not suitable.
 
 | Experiment | ANLI | RAGTruth | MiniCheck synthetic | LLM-AggreFact |
@@ -51,11 +77,11 @@ From the EDA report §2. ✅ suitable · ⚠️ usable with care · ❌ not suit
 7. **Hygiene**: drop the 173 RAGTruth responses flagged `incorrect_refusal` / `truncated`; extend the leakage check to LLM-AggreFact test claims; run a claim-only baseline on ANLI (negation shortcut present in train, reversed in dev/test).
 8. **Report RAGTruth per task** (QA / Summary / Data2txt): they differ in format (text vs JSON), hallucination rate (test: 18 % / 23 % / 64 % of answers) and contradiction rate.
 
-## Proposed training mix (EDA recommendation, not final)
+## Proposed training mix (EDA recommendation, superseded by the final choice above)
 - MiniCheck synthetic, all 14,395 pairs (binary).
 - ANLI ~21K hard subset, premises not in dev/test, three-way labels kept (feeds binary, three-way and rules).
 - RAGTruth train, sentence level, quality = good, rebalanced (all not-mentioned and contradicted sentences plus an equal number of supported), each answer used as a shared context to match the K-question inference format.
 - Budget: ≈35K examples for 0.5B (≈3–4 h), ~10K subset for 3B (one night).
 
 ## Links
-[[GroundOne]], [[GroundOne 2026 - EDA report]], [[ANLI]], [[RAGTruth]], [[MiniCheck Synthetic Data]], [[LLM-AggreFact]], [[LLM-AggreFact Sub-datasets]], [[Natural Language Inference]], [[MiniCheck]], [[Calibration]], [[Selective Prediction]], [[Nguyen 2016 - MS MARCO]], [[Hermann 2015 - Teaching Machines to Read and Comprehend]], [[See 2017 - Get To The Point]], [[Yelp Open Dataset]]
+[[GroundOne]], [[GroundOne 2026 - EDA report]], [[ANLI]], [[RAGTruth]], [[MiniCheck Synthetic Data]], [[LLM-AggreFact]], [[LLM-AggreFact Sub-datasets]], [[VitaminC]], [[Schuster 2021 - VitaminC]], [[Natural Language Inference]], [[MiniCheck]], [[Calibration]], [[Selective Prediction]], [[Nguyen 2016 - MS MARCO]], [[Hermann 2015 - Teaching Machines to Read and Comprehend]], [[See 2017 - Get To The Point]], [[Yelp Open Dataset]]

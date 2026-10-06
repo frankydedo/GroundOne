@@ -64,3 +64,9 @@
 - Created 18 source pages and concept pages `ANLI`, `MiniCheck Synthetic Data`, `Datasets for GroundOne` (synthesis), `LLM-AggreFact Sub-datasets`.
 - Updated `RAGTruth` (EDA findings) and `LLM-AggreFact` (licence: evaluation only, no training or fitting on any split; sub-datasets; RAGTruth-subset overlap).
 - Renamed processed raw files with `_ingested`; updated `index.md` (new Data section).
+
+## [2026-10-06] ingest | VitaminC; final dataset choice
+- Added `raw/Schuster 2021 - VitaminC_ingested.pdf` (arXiv 2103.08541) and `raw/Dataset card - VitaminC_ingested.md` (HF card, CC BY-SA 3.0).
+- Created source page `Schuster 2021 - VitaminC` and concept page `VitaminC` (test T3 only).
+- Updated `Datasets for GroundOne`: final choice (RAGTruth = only training source; tests RAGTruth, LLM-AggreFact, VitaminC), expected sizes, and the earlier EDA analysis marked as superseded.
+- Updated `RAGTruth` (final role, reliability caveats, segmentation findings); marked `ANLI` and `MiniCheck Synthetic Data` as not used.

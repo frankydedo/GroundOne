@@ -4,6 +4,8 @@ tags: [concept, dataset, synthetic-data, training-data, minicheck, grounding]
 ---
 # MiniCheck Synthetic Data (C2D / D2C)
 
+> **Not used in the final GroundOne dataset (2026-10-06):** binary labels only; training uses [[RAGTruth]] alone. See [[Datasets for GroundOne]].
+
 The **C2D** and **D2C** datasets are the GPT-4-generated training data of [[MiniCheck]] ([[Tang 2024 - MiniCheck]]), released on Hugging Face as `lytang/C2D-and-D2C-MiniCheck` ([[Dataset card - MiniCheck C2D-D2C]]). They are designed so that a claim can only be verified by checking **several facts against several sentences** of a document.
 
 ## How they are built

@@ -4,6 +4,8 @@ tags: [concept, dataset, nli, adversarial, training-data, three-way, rules]
 ---
 # ANLI (Adversarial NLI)
 
+> **Not used in the final GroundOne dataset (2026-10-06).** The three-way task is trained on [[RAGTruth]] only, and the reliable three-way test is [[VitaminC]]. See [[Datasets for GroundOne]]. The rest of this page describes the dataset and the earlier plan.
+
 **ANLI** is a three-way [[Natural Language Inference]] dataset (entailment / neutral / contradiction) collected adversarially by Facebook AI Research ([[Nie 2020 - Adversarial NLI]], ACL 2020; card: [[Dataset card - ANLI]]). In [[GroundOne]] it is the **only source of balanced, human-labelled three-way data**, so it carries the three-way question and the strict/lenient rules. The general comparison with MultiNLI and the evidence on how useful NLI data is for grounding are on [[Natural Language Inference]]; this page does not repeat them.
 
 ## Origin and collection
