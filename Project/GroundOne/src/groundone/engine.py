@@ -39,8 +39,8 @@ class Engine:
     def name(self):
         return self.backend.metadata["name"]
 
-    def _t(self, qtype):
-        return self.calibration.t(qtype) if self.calibration else 1.0
+    def _probs(self, qtype, logits, multi):
+        return self.calibration.probs(qtype, logits, multi) if self.calibration else softmax(logits)
 
     def _run(self, fn, *args):
         with self._lock:
@@ -59,7 +59,7 @@ class Engine:
         logits, timing = self._run(self.backend.score_shared, prompts, [letters(q) for _, q in jobs])
         res = [{"index": i, "text": s, "answers": {}, "labels": {}} for i, s in enumerate(sentences)]
         for (i, q), lg in zip(jobs, logits):
-            ps = softmax(lg, self._t(q))
+            ps = self._probs(q, lg, len(sentences) > 1)
             names = ANSWER_NAMES[q]
             res[i]["answers"][q] = dict(zip(names, ps))
             res[i]["labels"][q] = names[max(range(len(ps)), key=ps.__getitem__)]
@@ -124,4 +124,5 @@ class Engine:
             done += len(g)
             if progress and done % 500 < len(g):
                 progress(done, len(items))
-        return [(lg, softmax(lg, self._t(it["qtype"]) if temperature else 1.0)) for lg, it in zip(out, items)]
+        return [(lg, self._probs(it["qtype"], lg, len(it["sentences"]) > 1) if temperature else softmax(lg))
+                for lg, it in zip(out, items)]

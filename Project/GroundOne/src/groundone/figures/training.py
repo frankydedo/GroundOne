@@ -41,6 +41,28 @@ def run_figures(run):
         ax.legend(ncol=5, loc="lower right")
         g.save(fig, "dev_accuracy_by_question", f"Dev accuracy per question type during training (run {run}; fixed dev subset).",
                f"models/{run}/train_log.jsonl")
+    if any("dev_bacc" in e for e in ev):  # fixed dev with all questions (data v2, D22)
+        evb = [e for e in ev if "dev_bacc" in e]
+        steps = [e["step"] for e in evb]
+        fig, axes = plt.subplots(1, 2, figsize=(10, 3.4), sharey=True)
+        for ax, part, names in [(axes[0], 1, list(Q_COLORS)), (axes[1], 0, ["anli_pair", "anli_multi", "ragtruth", "minicheck"])]:
+            for k, nm in enumerate(names):
+                ys = []
+                for e in evb:
+                    v = [x for g, x in e["dev_bacc"].items() if g.split("|")[part] == nm]
+                    ys.append(sum(v) / len(v) if v else None)
+                if any(y is not None for y in ys):
+                    ax.plot(steps, ys, marker="o", color=Q_COLORS.get(nm, SERIES[k]), label=nm)
+            ax.plot(steps, [e["dev_score"] for e in evb], color=INK2, ls="--", label="dev score")
+            ax.axhline(0.5, color=NEUTRAL, lw=1, ls=":")
+            ax.set_xlabel("optimiser step")
+            ax.legend(fontsize=7)
+        axes[0].set_title("by question (mean over blocks)", fontsize=9)
+        axes[1].set_title("by block (mean over questions)", fontsize=9)
+        axes[0].set_ylabel("dev balanced accuracy")
+        g.save(fig, "dev_bacc_by_question_and_block", f"Balanced accuracy on the fixed dev set (every item with all four "
+               f"questions) during training of run {run}; dev score = mean over (block, question), used to pick best/. "
+               f"Chance is 0.5 for binary questions and 0.33 for the three-way question.", f"models/{run}/train_log.jsonl")
     if tr:
         fig, ax = plt.subplots(figsize=(7, 2.6))
         ax.plot([e["step"] for e in tr], [e["lr"] for e in tr], color=NEUTRAL)

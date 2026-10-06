@@ -123,6 +123,12 @@ Success levels:
 | D18 | LLM-AggreFact is used only to evaluate: no training, and no fitting of temperature, threshold or model selection on any of its splits | Its HF gating condition forbids using it for pretraining or fine-tuning; fitting on it would also make our numbers incomparable with the leaderboard | Fit temperature on its dev |
 | D19 | GroundOne is an installable package with CLI and HTTP API (native `/v1/verify` + TypeSafe/Jev-compatible `/v1/systemone`, the contract Rizzo-Flow serves) | Author's requirement; evaluation, demo and server share one engine; drop-in replacement for Rizzo-Flow/Jev clients | Loose scripts |
 | D16 | Phase 1a: exploratory data analysis of ANLI and RAGTruth before building the training mix | Decide which dataset serves which question, length caps, label rules | Build the mix directly |
+| D20 | Data v2: every training item with a three-way class appears with **all four questions** (sup, three, strict, lenient) | v1 (one random question per row) taught the rules as label priors: lenient ≈ always "acceptable", "not mentioned" never predicted (analysis_2026-10-06 §3.2) | Reweight question types only |
+| D21 | Data v2: ~55 % of rows in the multi-sentence format: synthetic ANLI answers (3–12 hypotheses of one premise, up to 3 targets each) + class-balanced RAGTruth sentences with long answers (K ≥ 14) weighted ×2; MiniCheck kept as pairs | v1: −6 points in the multi-sentence format on the same sentences, K ≥ 14 below chance | RAGTruth only (labels noisier, fewer items) |
+| D22 | Fixed dev `dev_mix` (all four questions, blocks ANLI pair / ANLI multi / RAGTruth / MiniCheck); best checkpoint = highest mean balanced accuracy over (block, question) | v1 dev (one random question, plain accuracy, loss selection) was noisy and hid the unlearned lenient rule | Dev loss |
+| D23 | Calibration: temperature **and bias** per question type and per prompt format (pair / multi), fitted on dev; report balanced accuracy at the fixed 0.5 threshold | v1 probabilities squeezed around 0.5 and shifted: temperature alone cannot move the decision boundary | Temperature only; per-task thresholds (task unknown at inference) |
+| D24 | (Optional, not in v2) negation balancing of ANLI rows | Claim-only baseline 0.56 on ANLI train but 0.36–0.39 on dev/test: cue does not transfer, low priority | – |
+| D25 | Run order: 0.5B on v2 first (same hyper-parameters as v1, so v1 vs v2 is an ablation), the 3B on v2 only if the 0.5B v2 improves | Cheapest test of D20–D23 before spending a night on the 3B | 3B on v1 data |
 
 Record future changes below (date, decision, reason).
 
@@ -573,3 +579,4 @@ Authors, years and venues were checked against arXiv, the ACL Anthology and AAAI
 **Inference background**
 - Pope et al. (2023). Efficiently Scaling Transformer Inference. MLSys 2023.
 - Kwon et al. (2023). Efficient Memory Management for Large Language Model Serving with PagedAttention. SOSP 2023.
+- 2026-10-06: after the night-1 results (docs/analysis_2026-10-06.md), the author approved **D20–D25**: datasets v2, fixed dev with balanced-accuracy selection, temperature + bias calibration per format, 0.5B v2 before the 3B.

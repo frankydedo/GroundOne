@@ -4,7 +4,10 @@
   last prompt token. The prompt is never supervised. Prompts come from groundone.prompts, as at inference.
 - LoRA on all linear layers of all blocks, gradient checkpointing, length-bucketed batches under a token budget,
   gradient accumulation, AdamW with linear warm-up and cosine decay, one epoch by default.
-- Every `--eval-every` steps: loss and accuracy on a fixed dev subset; the best checkpoint (lowest dev loss) is kept.
+- Every `--eval-every` steps: loss and accuracy on a fixed dev subset; the best checkpoint is kept in best/.
+  With `--dev-file dev_mix` (data v2, D22) the dev rows carry their question and a block (ANLI pair / ANLI multi-sentence
+  / RAGTruth / MiniCheck); balanced accuracy is computed per (block, question) and `--select bacc` keeps the checkpoint
+  with the highest mean of these (`dev_score`) instead of the lowest dev loss.
 - Output (MLX adapter format, loadable by `groundone serve --adapter <dir>`):
     models/<run>/adapters.safetensors, adapter_config.json, groundone.json, train_log.jsonl, best/ (same files)
 Hyper-parameters come from a YAML file (GroundOne/configs/*.yaml); command-line flags override it. The resolved
@@ -67,7 +70,9 @@ def main(argv=None):
     ap.add_argument("--max-rows", type=int, default=16)
     ap.add_argument("--accum", type=int, default=2, help="micro-batches per optimiser step")
     ap.add_argument("--eval-every", type=int, default=250, help="optimiser steps between dev evaluations")
-    ap.add_argument("--dev-size", type=int, default=600)
+    ap.add_argument("--dev-size", type=int, default=600, help="v1-style dev: rows drawn from dev_anli/ragtruth/minicheck")
+    ap.add_argument("--dev-file", default="", help="fixed dev file with qtype/label/block per row (e.g. dev_mix); overrides --dev-size")
+    ap.add_argument("--select", choices=["loss", "bacc"], default="loss", help="best/ = lowest dev loss or highest dev_score")
     ap.add_argument("--max-hours", type=float, default=0, help="stop cleanly after this wall time (0 = no limit)")
     ap.add_argument("--max-steps", type=int, default=0,
                     help="stop after N optimiser steps; the LR schedule (warm-up + cosine) is compressed to N steps")
@@ -124,14 +129,14 @@ def main(argv=None):
             ids = tok.encode(render(tok, it["doc"], it["sentences"], it["idx"], it["qtype"]), add_special_tokens=False)
             allowed = letters(it["qtype"])
             rows.append({"ids": ids, "_len": len(ids), "n_opt": len(allowed), "gold": allowed.index(it["label"]),
-                         "qtype": it["qtype"], "source": it["source"]})
+                         "qtype": it["qtype"], "source": it["source"], "block": it.get("block", it["source"])})
         return rows
 
     d = DATA_PROCESSED / a.data
     train_rows = prepare(load_jsonl(d / f"{a.train}.jsonl"))
     rng = random.Random(a.seed)
-    dev_items = []
-    for name in ("dev_anli", "dev_ragtruth", "dev_minicheck"):
+    dev_items = load_jsonl(d / f"{a.dev_file}.jsonl") if a.dev_file else []
+    for name in ([] if a.dev_file else ("dev_anli", "dev_ragtruth", "dev_minicheck")):
         items = load_jsonl(d / f"{name}.jsonl")
         for it in items:  # dev rows get a question type like training rows (fixed by seed)
             if it.get("cls") is None:
@@ -195,7 +200,7 @@ def main(argv=None):
     def evaluate():
         model.eval()
         tot, correct, n = 0.0, 0, 0
-        by_q = {}
+        by_q, hits = {}, {}  # hits[(block, qtype)][gold] = [correct, total]
         for b in make_batches(dev_rows, a.token_budget, a.max_rows, 0):
             x, last, opt_ids, mask, gold = batch_arrays(dev_rows, b)
             lg = letter_logits(model, x, last, opt_ids, mask)
@@ -207,13 +212,25 @@ def main(argv=None):
                 q = dev_rows[i]["qtype"]
                 c, t = by_q.get(q, (0, 0))
                 by_q[q] = (c + (p == g), t + 1)
+                hc = hits.setdefault((dev_rows[i]["block"], q), {}).setdefault(g, [0, 0])
+                hc[0] += p == g
+                hc[1] += 1
                 correct += p == g
                 n += 1
         model.train()
-        return {"dev_loss": tot / n, "dev_acc": correct / n, "dev_acc_by_q": {q: round(c / t, 4) for q, (c, t) in by_q.items()}}
+        # balanced accuracy = mean recall over the gold answers present in the group
+        bacc = {f"{b}|{q}": round(sum(c / t for c, t in gs.values()) / len(gs), 4) for (b, q), gs in sorted(hits.items())}
+        return {"dev_loss": tot / n, "dev_acc": correct / n, "dev_acc_by_q": {q: round(c / t, 4) for q, (c, t) in by_q.items()},
+                "dev_bacc": bacc, "dev_score": round(sum(bacc.values()) / len(bacc), 4)}
+
+    def better(ev, best):
+        return ev["dev_score"] > best if a.select == "bacc" else ev["dev_loss"] < best
+
+    def key(ev):
+        return ev["dev_score"] if a.select == "bacc" else ev["dev_loss"]
 
     t_start = time.time()
-    best = math.inf
+    best = -math.inf if a.select == "bacc" else math.inf
     model.train()
     step, micro, acc_grads, run_loss, run_n = 0, 0, None, 0.0, 0
     stop_reason = "completed"
@@ -246,8 +263,8 @@ def main(argv=None):
                 ev = evaluate()
                 log({"event": "eval", "step": step, **ev})
                 save(out, {"last_step": step, **ev})
-                if ev["dev_loss"] < best:
-                    best = ev["dev_loss"]
+                if better(ev, best):
+                    best = key(ev)
                     save(out / "best", {"best_step": step, **ev})
             if a.max_hours and time.time() - t_start > a.max_hours * 3600:
                 stop_reason = f"max-hours ({a.max_hours} h)"
@@ -260,7 +277,7 @@ def main(argv=None):
         break
     ev = evaluate()
     save(out, {"last_step": step, "stop_reason": stop_reason, "finished": time.strftime("%Y-%m-%d %H:%M:%S"), **ev})
-    if ev["dev_loss"] < best:
+    if better(ev, best):
         save(out / "best", {"best_step": step, **ev})
     log({"event": "end", "step": step, "stop_reason": stop_reason, **ev,
          "wall_hours": round((time.time() - t_start) / 3600, 2)})

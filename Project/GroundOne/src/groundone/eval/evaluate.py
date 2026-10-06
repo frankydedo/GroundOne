@@ -6,8 +6,9 @@ Suites (test files from data/processed/<version>/):
              maximum over chunks (as MiniCheck does); the number of chunked items is reported.
   ragtruth   RAGTruth test sentences, scored per answer with the shared prefix; questions configurable (default all 4)
   anli       ANLI test: three-way question and the strict / lenient rules (+ sup)
-Calibration (`groundone calibrate`): predicts the dev sets with all question types, fits one temperature per question
-type, writes calibration.json next to the adapter. Fitted on dev only (never on LLM-AggreFact, D18).
+Calibration (`groundone calibrate`): predicts the dev sets with all question types and fits, per question type and per
+prompt format (pair / multi-sentence), a temperature and a bias (D23; `--mode temperature` = v1 behaviour); writes
+calibration.json next to the adapter. Fitted on dev only (never on LLM-AggreFact, D18).
 Outputs are create-only: results/<name>/<suite>/{predictions.parquet, metrics.json}.
 """
 import argparse
@@ -176,36 +177,62 @@ def main(argv=None):
 
 
 def calibrate(argv=None):
-    from ..calibration import Calibration, fit_temperature, nll
+    from ..calibration import Calibration, affine_nll, affine_probs, fit_affine, fit_temperature
     from ..engine import Engine
     ap = argparse.ArgumentParser(prog="groundone calibrate")
     ap.add_argument("--size")
     ap.add_argument("--adapter", required=True)
     ap.add_argument("--data", default="v1")
     ap.add_argument("--limit", type=int, default=1500, help="dev items per file")
+    ap.add_argument("--mode", choices=["affine", "temperature"], default="affine", help="D23: temperature + bias, or temperature only (v1)")
+    ap.add_argument("--by-format", type=int, default=1, help="1 = also fit q@pair and q@multi keys (min 100 dev rows each)")
+    ap.add_argument("--out", default="calibration.json", help="file name next to the adapter (eval: --calibration <path>)")
     a = ap.parse_args(argv)
     engine = Engine.load(a.size, a.adapter)
     d = DATA_PROCESSED / a.data
+    names = [n for n in ("dev_anli", "dev_anli_multi", "dev_ragtruth", "dev_minicheck") if (d / f"{n}.jsonl").exists()]
     flat = []
-    for name in ("dev_anli", "dev_ragtruth", "dev_minicheck"):
+    for name in names:
         items = subsample(load_jsonl(d / f"{name}.jsonl"), a.limit, lambda x: x.get("cls") or x.get("binary"))
         for it in items:
             qs = ["sup"] if it.get("cls") is None else list(QTYPES)
             for q in qs:
                 lab = ("A" if it["binary"] == 1 else "B") if it.get("cls") is None else label_for(q, it["cls"])
-                flat.append({**it, "qtype": q, "gold": "ABC".index(lab)})
+                flat.append({**it, "qtype": q, "gold": "ABC".index(lab), "fmt": "multi" if len(it["sentences"]) > 1 else "pair"})
     preds = engine.predict(flat, temperature=False, progress=progress_printer("calibrate"))
-    temps, report = {}, {}
+
+    def bal(rows, t, b):
+        """balanced accuracy (mean recall over gold answers) of the argmax after calibration"""
+        rec = {}
+        for l, g in rows:
+            p = affine_probs(l, t, b)
+            c = rec.setdefault(g, [0, 0])
+            c[0] += max(range(len(p)), key=p.__getitem__) == g
+            c[1] += 1
+        return sum(x / n for x, n in rec.values()) / len(rec)
+
+    temps, biases, report = {}, {}, {}
     for q in QTYPES:
-        rows = [(lg, f["gold"]) for f, (lg, _) in zip(flat, preds) if f["qtype"] == q]
-        if not rows:
-            continue
-        temps[q] = fit_temperature(rows)
-        report[q] = {"n": len(rows), "temperature": round(temps[q], 4), "nll_before": round(nll(rows, 1.0), 4),
-                     "nll_after": round(nll(rows, temps[q]), 4)}
+        groups = {q: [(lg, f["gold"]) for f, (lg, _) in zip(flat, preds) if f["qtype"] == q]}
+        if a.by_format:
+            for fmt in ("pair", "multi"):
+                rows = [(lg, f["gold"]) for f, (lg, _) in zip(flat, preds) if f["qtype"] == q and f["fmt"] == fmt]
+                if len(rows) >= 100:
+                    groups[f"{q}@{fmt}"] = rows
+        for k, rows in groups.items():
+            if not rows:
+                continue
+            if a.mode == "affine":
+                temps[k], biases[k] = fit_affine(rows)
+            else:
+                temps[k], biases[k] = fit_temperature(rows), None
+            report[k] = {"n": len(rows), "temperature": round(temps[k], 4), "bias": biases[k] and [round(v, 4) for v in biases[k]],
+                         "nll_before": round(affine_nll(rows, 1.0, None), 4), "nll_after": round(affine_nll(rows, temps[k], biases[k]), 4),
+                         "bacc_before": round(bal(rows, 1.0, None), 4), "bacc_after": round(bal(rows, temps[k], biases[k]), 4)}
+    biases = {k: v for k, v in biases.items() if v}
     from ..config import resolve_model
     adir = __import__("pathlib").Path(resolve_model(a.size, a.adapter)[1])
-    Calibration(temps, engine.backend.metadata["fingerprint"], {"fitted_on": "dev_anli + dev_ragtruth + dev_minicheck",
-                                                                 "data": a.data, "report": report}).save(adir / "calibration.json")
+    Calibration(temps, engine.backend.metadata["fingerprint"], {"fitted_on": " + ".join(names), "data": a.data, "mode": a.mode,
+                                                                 "report": report}, biases).save(adir / a.out)
     print(json.dumps(report, indent=2))
-    print("written", adir / "calibration.json")
+    print("written", adir / a.out)

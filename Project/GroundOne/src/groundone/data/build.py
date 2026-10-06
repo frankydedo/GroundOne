@@ -60,6 +60,9 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--version", default="v1")
     args = ap.parse_args(argv)
+    if args.version == "v2":  # v2 has its own builder (D20–D22); v1 stays reproducible byte for byte
+        from . import build_v2
+        return build_v2.main(argv)
     out = PROJECT / "data" / "processed" / args.version
     out.mkdir(parents=True, exist_ok=True)
     rng = random.Random(CFG["seed"])
