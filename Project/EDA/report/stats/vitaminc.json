@@ -1,0 +1,52 @@
+{
+  "test_by_type_label": {
+    "real | NOT ENOUGH INFO": 7268,
+    "real | REFUTES": 9907,
+    "real | SUPPORTS": 17306,
+    "synthetic | REFUTES": 10358,
+    "synthetic | SUPPORTS": 10358
+  },
+  "real": {
+    "n": 34481,
+    "pages": 2836,
+    "cases": 11308,
+    "pairs_per_case_mean": 3.05,
+    "claims_with_several_evidences": 16981,
+    "claim_tokens": {
+      "count": 34481.0,
+      "mean": 19.9,
+      "std": 8.8,
+      "min": 5.0,
+      "50%": 18.0,
+      "90%": 31.0,
+      "99%": 48.0,
+      "max": 130.0
+    },
+    "evidence_tokens": {
+      "count": 34481.0,
+      "mean": 40.0,
+      "std": 23.5,
+      "min": 1.0,
+      "50%": 36.0,
+      "90%": 66.0,
+      "99%": 120.0,
+      "max": 536.0
+    },
+    "numeric_claim_share_by_label": {
+      "NOT ENOUGH INFO": 0.438,
+      "REFUTES": 0.705,
+      "SUPPORTS": 0.592
+    },
+    "overlap_mean_by_label": {
+      "NOT ENOUGH INFO": 0.359,
+      "REFUTES": 0.462,
+      "SUPPORTS": 0.576
+    }
+  },
+  "figures": [
+    {
+      "file": "figures/vitaminc_overlap_labels.png",
+      "caption": "VitaminC real test split (source of T3): claim-evidence word overlap by label and label counts. Supported claims share more words with the evidence than refuted and NEI claims (0.58 / 0.46 / 0.36) despite the annotators' instructions; T3 samples 1,000 pairs per class."
+    }
+  ]
+}

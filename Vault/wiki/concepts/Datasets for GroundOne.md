@@ -37,6 +37,12 @@ The task was redefined: one three-way decision per answer sentence, with K = the
 | **[[LLM-AggreFact]]** | test **T2** only (evaluation only by licence) | External, leaderboard-comparable binary benchmark |
 | **[[VitaminC]]** | test **T3** only (real test split, stratified sample) | Independent, reliable check of contradicted vs not mentioned (κ = 0.71), since RAGTruth reports no agreement on the hallucination type |
 
+**EDA of the final dataset:** [[GroundOne 2026 - EDA report (dataset)]]. Key consequences:
+- word overlap alone gives AUROC 0.74 on T1;
+- the sentence-only cue is limited to Data2txt;
+- T1 is cleaner than train;
+- contradicted is mostly evident contradictions.
+
 **Dropped:**
 - [[ANLI]]: adversarial, short premises, far from RAG.
 - [[MiniCheck Synthetic Data]]: binary only. Accepted cost: probably a lower LLM-AggreFact score outside the RAG sub-datasets.

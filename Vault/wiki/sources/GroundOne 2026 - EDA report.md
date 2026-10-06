@@ -7,6 +7,8 @@ tags: [source, internal, eda, dataset, groundone, phase-1a, anli, ragtruth, llm-
 ---
 # GroundOne 2026 - EDA report
 
+> **Superseded** by [[GroundOne 2026 - EDA report (dataset)]] (2026-10-06): this report served the abandoned four-question design and analysed ANLI and MiniCheck, which are not in the final dataset. It is kept as history.
+
 **Raw file**: `raw/GroundOne 2026 - EDA report_ingested.md` (Phase 1a exploratory data analysis, 2026-10-05). Scripts: `EDA/scripts/01_anli.py`, `02_ragtruth.py`, `03_minicheck_aggrefact.py`, `04_cross.py`. Data: `Project/data/raw/` (manifest `Project/data/manifest.json`).
 
 ## Overview

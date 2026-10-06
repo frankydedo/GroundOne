@@ -97,6 +97,11 @@ Only the document counts, not the real world. RAGTruth's `implicit_true` spans (
 - All of the above per task and per K band (1–4, 5–8, 9–13, ≥ 14), and per answer (all K sentences correct).
 - 95 % CIs by bootstrap over answers.
 - Cells with fewer than 30 gold examples of a class (e.g. *contradicted* in QA: 31) are marked as indicative.
+- **Baselines that do not read the document as a whole** (EDA, `Project/EDA/report/eda_report.md`), reported per task:
+  - majority class;
+  - word overlap between sentence and document (AUROC 0.74 for supported vs not on T1);
+  - sentence-only n-gram classifier (three-way balanced accuracy 0.66 on Data2txt, chance elsewhere).
+- Primary metrics are base-rate independent (balanced accuracy, macro recall, AUROC), because T1 has fewer hallucinations than train/dev in every task.
 
 ### T2: LLM-AggreFact test (external, binary)
 

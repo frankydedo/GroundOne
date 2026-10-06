@@ -1,18 +1,19 @@
-"""EDA of RAGTruth: tasks, generators, hallucination rates, span types, sentence-level labels, K, lengths."""
+"""EDA part A: RAGTruth as released (tasks, generators, hallucination rates, span types, context lengths).
+
+Sentence-level labels are analysed on the built dataset (04_dataset.py), with the final segmentation."""
 import json
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from common import COLORS, RAW, describe, n_tokens, save_fig, save_stats, split_sentences
+from common import COLORS, RAW, TASKS, describe, n_tokens, save_fig, save_stats
 
 resp = pd.DataFrame([json.loads(l) for l in open(RAW / "ragtruth" / "response.jsonl")])
 src = pd.DataFrame([json.loads(l) for l in open(RAW / "ragtruth" / "source_info.jsonl")])
 df = resp.merge(src[["source_id", "task_type", "source", "source_info"]], on="source_id")
 df["hallucinated"] = df["labels"].map(bool)
 stats, figs = {}, []
-TASKS = ["QA", "Summary", "Data2txt"]
 
 # ---------------- responses ----------------
 stats["responses_by_split_task"] = df.groupby(["split", "task_type"]).size().unstack().to_dict()
@@ -53,43 +54,6 @@ axes[0].set_title("annotated spans by type"); axes[0].legend(frameon=False, font
 axes[1].hist(sp["len"].clip(upper=600), bins=60, color=COLORS[0]); axes[1].set_title("span length (characters, clipped at 600)")
 figs.append(save_fig(fig, "ragtruth_spans", "RAGTruth hallucination spans: Baseless Info (content not in the context) dominates; Conflict (contradiction) is rarer, and Subtle Conflict is very rare."))
 
-# ---------------- sentence-level labels ----------------
-rows, crossing, uncovered = [], 0, 0
-for r in df.itertuples():
-    sents = split_sentences(r.response)
-    spans_r = r.labels
-    for s in spans_r:
-        hit = [i for i, (a, b, _) in enumerate(sents) if a < s["end"] and s["start"] < b]
-        crossing += len(hit) > 1
-        uncovered += len(hit) == 0
-    for i, (a, b, t) in enumerate(sents):
-        types = [s["label_type"] for s in spans_r if a < s["end"] and s["start"] < b]
-        flags_it = any(s.get("implicit_true") for s in spans_r if a < s["end"] and s["start"] < b)
-        cls = "contradicted" if any("Conflict" in x for x in types) else ("not_mentioned" if types else "supported")
-        rows.append({"rid": r.id, "task": r.task_type, "split": r.split, "K": len(sents), "cls": cls,
-                     "n_spans": len(types), "implicit_true": flags_it, "chars": b - a})
-sent = pd.DataFrame(rows)
-stats["sentences_total"] = len(sent)
-stats["spans_crossing_sentence_boundary"] = {"n": crossing, "share": round(crossing / len(sp), 3)}
-stats["spans_not_covered_by_any_sentence"] = uncovered
-stats["sentence_class_share_by_task_split"] = sent.groupby(["task", "split"])["cls"].value_counts(normalize=True).round(3).unstack().to_dict("index")
-stats["sentence_class_counts_train"] = sent[sent.split == "train"]["cls"].value_counts().to_dict()
-stats["sentence_class_counts_test"] = sent[sent.split == "test"]["cls"].value_counts().to_dict()
-stats["sentences_with_implicit_true"] = int(sent["implicit_true"].sum())
-k = sent.groupby("rid").agg(K=("K", "first"), task=("task", "first"))
-stats["K_by_task"] = {t: describe(g["K"]) for t, g in k.groupby("task")}
-stats["responses_with_K_ge_8_share"] = round(float((k["K"] >= 8).mean()), 3)
-fig, axes = plt.subplots(1, 2, figsize=(10, 3.2))
-for i, t in enumerate(TASKS):
-    axes[0].hist(k.loc[k.task == t, "K"], bins=np.arange(0.5, 30.5, 1), alpha=.55, color=COLORS[i], label=t)
-axes[0].set_title("sentences per response (K)"); axes[0].legend(frameon=False)
-cs = sent.groupby("task")["cls"].value_counts(normalize=True).unstack().loc[TASKS][["supported", "not_mentioned", "contradicted"]]
-bottom = np.zeros(3)
-for i, c in enumerate(cs.columns):
-    axes[1].bar(TASKS, cs[c], bottom=bottom, color=COLORS[i], label=c); bottom += cs[c].values
-axes[1].set_title("sentence-level classes (all splits)"); axes[1].legend(frameon=False, fontsize=8, loc="lower right")
-figs.append(save_fig(fig, "ragtruth_sentences", "RAGTruth at sentence level (labels derived from spans): K per response and the share of supported / not mentioned / contradicted sentences."))
-
 # ---------------- context lengths ----------------
 def context_of(task, info):
     if task == "QA":
@@ -117,6 +81,4 @@ figs.append(save_fig(fig, "ragtruth_context_lengths", "RAGTruth context lengths 
 stats["example_data2txt_context"] = src[src.task_type == "Data2txt"]["context"].iloc[0][:400]
 stats["figures"] = figs
 save_stats("ragtruth", stats)
-(RAW.parent / "processed").mkdir(exist_ok=True)
-sent.to_parquet(RAW.parent / "processed" / "ragtruth_sentences_eda.parquet")
-print("ragtruth done:", stats["sentences_total"], "sentences")
+print("ragtruth done:", stats["spans_total"], "spans")

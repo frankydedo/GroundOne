@@ -20,7 +20,7 @@ Knowledge base for the MSc thesis **[[GroundOne]]**: a specialist System One mod
 - Encoder checkers: [[MiniCheck]], [[HHEM]], [[AlignScore]]
 
 ## Data
-- [[Datasets for GroundOne]] (synthesis: origins, differences, which dataset for which experiment)
+- [[Datasets for GroundOne]] (synthesis: origins, differences, which dataset for which experiment); EDA: [[GroundOne 2026 - EDA report (dataset)]]
 - [[ANLI]], [[RAGTruth]], [[MiniCheck Synthetic Data]], [[LLM-AggreFact]], [[LLM-AggreFact Sub-datasets]], [[VitaminC]]
 
 ## Calibration and decision-making

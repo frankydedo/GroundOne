@@ -1,0 +1,193 @@
+{
+  "segmentation": {
+    "answers": 17617,
+    "regex_sentences": 137428,
+    "pysbd_sentences": 130381,
+    "non_checkable_by_reason": {
+      "heading ending with ':'": 6867,
+      "conversational / refusal formula": 1055,
+      "fewer than 2 words": 1982,
+      "citation only": 802
+    },
+    "non_checkable_share": 0.0821
+  },
+  "class_share_by_split_task": {
+    "T1 | Data2txt": {
+      "contradicted": 0.057,
+      "not_mentioned": 0.062,
+      "supported": 0.881
+    },
+    "T1 | QA": {
+      "contradicted": 0.006,
+      "not_mentioned": 0.066,
+      "supported": 0.928
+    },
+    "T1 | Summary": {
+      "contradicted": 0.023,
+      "not_mentioned": 0.032,
+      "supported": 0.945
+    },
+    "train | Data2txt": {
+      "contradicted": 0.072,
+      "not_mentioned": 0.077,
+      "supported": 0.852
+    },
+    "train | QA": {
+      "contradicted": 0.016,
+      "not_mentioned": 0.099,
+      "supported": 0.885
+    },
+    "train | Summary": {
+      "contradicted": 0.028,
+      "not_mentioned": 0.043,
+      "supported": 0.93
+    }
+  },
+  "unsupported_share_by_split_model": {
+    "gpt-3.5-turbo-0613": {
+      "T1": 0.017,
+      "train": 0.022
+    },
+    "gpt-4-0613": {
+      "T1": 0.017,
+      "train": 0.027
+    },
+    "llama-2-13b-chat": {
+      "T1": 0.132,
+      "train": 0.185
+    },
+    "llama-2-70b-chat": {
+      "T1": 0.104,
+      "train": 0.141
+    },
+    "llama-2-7b-chat": {
+      "T1": 0.138,
+      "train": 0.182
+    },
+    "mistral-7B-instruct": {
+      "T1": 0.145,
+      "train": 0.182
+    }
+  },
+  "span_types_behind_classes": {
+    "train|contradicted": {
+      "Evident Conflict": 3414,
+      "Evident Baseless Info + Evident Conflict": 362,
+      "Subtle Conflict": 147,
+      "Evident Conflict + Subtle Baseless Info": 89,
+      "Evident Conflict + Subtle Conflict": 8,
+      "Evident Baseless Info + Evident Conflict + Subtle Baseless Info": 8
+    },
+    "train|not_mentioned": {
+      "Evident Baseless Info": 4841,
+      "Subtle Baseless Info": 1925,
+      "Evident Baseless Info + Subtle Baseless Info": 92
+    },
+    "test_ragtruth|contradicted": {
+      "Evident Conflict": 536,
+      "Evident Baseless Info + Evident Conflict": 29,
+      "Subtle Conflict": 13,
+      "Evident Conflict + Subtle Baseless Info": 3,
+      "Evident Baseless Info + Subtle Conflict": 2,
+      "Evident Baseless Info + Evident Conflict + Subtle Baseless Info": 1
+    },
+    "test_ragtruth|not_mentioned": {
+      "Evident Baseless Info": 796,
+      "Subtle Baseless Info": 157,
+      "Evident Baseless Info + Subtle Baseless Info": 2
+    }
+  },
+  "overlap_mean_by_split_class": {
+    "T1": {
+      "contradicted": 0.468,
+      "not_mentioned": 0.408,
+      "supported": 0.644
+    },
+    "T3": {
+      "contradicted": 0.46,
+      "not_mentioned": 0.346,
+      "supported": 0.581
+    },
+    "train": {
+      "contradicted": 0.463,
+      "not_mentioned": 0.396,
+      "supported": 0.636
+    }
+  },
+  "overlap_auroc_supported_vs_not": {
+    "T1": 0.737,
+    "T3": 0.698,
+    "train": 0.735
+  },
+  "sentence_only_top_ngrams": {
+    "contradicted": [
+      "searches",
+      "validated",
+      "grey",
+      "59",
+      "decides",
+      "imap",
+      "pluto",
+      "eager",
+      "parking facilities",
+      "laser",
+      "applying",
+      "vine",
+      "pork chops",
+      "intimate",
+      "mr"
+    ],
+    "not_mentioned": [
+      "inches apart",
+      "100 reviews",
+      "according customers",
+      "rating google",
+      "nightlife venue",
+      "wifi allows",
+      "electrical",
+      "stars google",
+      "nominee",
+      "valet garage",
+      "family owned",
+      "moderately",
+      "sports grill",
+      "golden brown",
+      "turkey legs"
+    ],
+    "supported": [
+      "reservation services",
+      "accommodate groups",
+      "received average",
+      "seating accepts",
+      "modern times",
+      "falls",
+      "customers left",
+      "spending",
+      "fi reservations",
+      "ambience restaurant",
+      "told",
+      "recording",
+      "seating option",
+      "pollution",
+      "fertilizer"
+    ]
+  },
+  "figures": [
+    {
+      "file": "figures/non_checkable_reasons.png",
+      "caption": "Sentences kept as context but not scored (label null), by the rule that excluded them, over all good RAGTruth answers."
+    },
+    {
+      "file": "figures/minority_share_train_vs_T1.png",
+      "caption": "Share of contradicted and not-mentioned sentences per task in train and T1. T1 has fewer hallucinations than train in every task (RAGTruth test answers are cleaner)."
+    },
+    {
+      "file": "figures/unsupported_by_generator.png",
+      "caption": "Unsupported sentences by the LLM that wrote the answer: GPT-3.5/4 answers are mostly supported, Llama-2 and Mistral answers carry most hallucinations."
+    },
+    {
+      "file": "figures/overlap_by_class.png",
+      "caption": "Word overlap between a sentence and its document, by class (mean in brackets). The same ordering holds in all three sets (supported > contradicted > not mentioned), VitaminC included: word overlap is a natural, partial cue, so a verifier must be compared with an overlap-only baseline."
+    }
+  ]
+}

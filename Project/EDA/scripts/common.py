@@ -1,41 +1,29 @@
-"""Shared helpers for the GroundOne EDA (Phase 1a).
+"""Shared helpers for the GroundOne EDA.
 
-Every analysis script loads raw data from Project/data/raw/, writes figures to EDA/report/figures/ and
-numbers to EDA/report/stats/<name>.json. make_report.py assembles everything into EDA/report/eda_report.md.
-Token counts use the Qwen2.5 tokenizer (same vocabulary for 0.5B and 3B).
+Part A (01–03) describes the source datasets in Project/data/raw/; part B (04) describes the dataset built by
+`groundone data build` (Project/data/processed/groundone/). Each script writes figures to EDA/report/figures/ and numbers
+to EDA/report/stats/<name>.json; make_report.py assembles EDA/report/eda_report.md (conclusions.md is hand-written).
+Token counts use the Qwen2.5 tokenizer (same vocabulary for 0.5B and 3B). Run with the GroundOne venv.
 """
 import json
 import re
 from pathlib import Path
 
-import matplotlib
+import pandas as pd
 
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-import pandas as pd  # noqa: E402
+from groundone.figures.style import NEUTRAL, SERIES, plt  # noqa: F401  (shared thesis style)
 
 PROJECT = Path(__file__).resolve().parents[2]
 RAW = PROJECT / "data" / "raw"
+DATASET = PROJECT / "data" / "processed" / "groundone"
 REPORT = PROJECT / "EDA" / "report"
 FIG = REPORT / "figures"
 STATS = REPORT / "stats"
 FIG.mkdir(parents=True, exist_ok=True)
 STATS.mkdir(parents=True, exist_ok=True)
-
-# The experiments the data must serve (see implementation_plan.md §2, §6.5, §7).
-EXPERIMENTS = {
-    "X1": "Binary groundedness: training data (specialisation, RQ1)",
-    "X2": "Binary groundedness: evaluation comparable with published results (RQ1, RQ5 plain task)",
-    "X3": "K decisions over one shared context: latency and parallel scoring (RQ2)",
-    "X4": "Three-way question: supported / contradicted / not mentioned (RQ5)",
-    "X5": "Rules in the prompt: strict vs lenient definition of an error (RQ5)",
-    "X6": "Calibration: dev split for temperature, test split for ECE / selective prediction (RQ3)",
-    "X7": "Demo realism: RAG answers to user questions over retrieved passages",
-}
-
-COLORS = ["#2b6cb0", "#c05621", "#2f855a", "#9b2c2c", "#6b46c1", "#b7791f", "#4a5568", "#00838f"]
-plt.rcParams.update({"figure.dpi": 130, "axes.spines.top": False, "axes.spines.right": False,
-                     "axes.grid": True, "grid.alpha": 0.25, "font.size": 9})
+COLORS = SERIES
+TASKS = ["QA", "Summary", "Data2txt"]
+CLASS_COLORS = {"supported": SERIES[0], "contradicted": SERIES[1], "not_mentioned": SERIES[6]}
 
 _tok = None
 
@@ -54,22 +42,6 @@ def n_tokens(texts, batch=2048):
     texts = [t if isinstance(t, str) else str(t) for t in texts]
     for i in range(0, len(texts), batch):
         out += [len(x) for x in tok(texts[i:i + batch], add_special_tokens=False)["input_ids"]]
-    return out
-
-
-_SENT_RE = re.compile(r"[^.!?\n]+(?:[.!?]+|$)", re.M)
-
-
-def split_sentences(text):
-    """Rule-based splitter used in Phase 0 (kept identical so EDA numbers match the experiments)."""
-    out = []
-    for m in _SENT_RE.finditer(text):
-        s = m.group(0)
-        if len(s.strip()) < 3:
-            continue
-        start = m.start() + (len(s) - len(s.lstrip()))
-        end = m.end() - (len(s) - len(s.rstrip()))
-        out.append((start, end, text[start:end]))
     return out
 
 
@@ -99,3 +71,7 @@ def save_stats(name, obj):
 def describe(values):
     s = pd.Series(values)
     return {k: round(float(v), 1) for k, v in s.describe(percentiles=[.5, .9, .99]).items()}
+
+
+def load_split(name):
+    return [json.loads(l) for l in open(DATASET / f"{name}.jsonl")]

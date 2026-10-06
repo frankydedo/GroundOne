@@ -1,0 +1,133 @@
+{
+  "per_dataset": [
+    {
+      "dataset": "AggreFact-CNN",
+      "n": 558,
+      "supported": 0.898,
+      "docs": 384,
+      "doc_tok_p50": 560.0,
+      "doc_tok_p90": 1058.9,
+      "claim_tok_p50": 67.0,
+      "claims_per_doc": 1.45
+    },
+    {
+      "dataset": "AggreFact-XSum",
+      "n": 558,
+      "supported": 0.511,
+      "docs": 483,
+      "doc_tok_p50": 359.0,
+      "doc_tok_p90": 728.6,
+      "claim_tok_p50": 27.0,
+      "claims_per_doc": 1.16
+    },
+    {
+      "dataset": "ClaimVerify",
+      "n": 1088,
+      "supported": 0.725,
+      "docs": 697,
+      "doc_tok_p50": 1368.0,
+      "doc_tok_p90": 4743.4,
+      "claim_tok_p50": 23.0,
+      "claims_per_doc": 1.56
+    },
+    {
+      "dataset": "ExpertQA",
+      "n": 3702,
+      "supported": 0.803,
+      "docs": 3135,
+      "doc_tok_p50": 185.0,
+      "doc_tok_p90": 1137.6,
+      "claim_tok_p50": 30.0,
+      "claims_per_doc": 1.18
+    },
+    {
+      "dataset": "FactCheck-GPT",
+      "n": 1566,
+      "supported": 0.24,
+      "docs": 1199,
+      "doc_tok_p50": 117.0,
+      "doc_tok_p90": 168.5,
+      "claim_tok_p50": 14.0,
+      "claims_per_doc": 1.31
+    },
+    {
+      "dataset": "Lfqa",
+      "n": 1911,
+      "supported": 0.587,
+      "docs": 100,
+      "doc_tok_p50": 401.0,
+      "doc_tok_p90": 547.0,
+      "claim_tok_p50": 25.0,
+      "claims_per_doc": 19.11
+    },
+    {
+      "dataset": "RAGTruth",
+      "n": 16371,
+      "supported": 0.922,
+      "docs": 450,
+      "doc_tok_p50": 606.0,
+      "doc_tok_p90": 1110.0,
+      "claim_tok_p50": 23.0,
+      "claims_per_doc": 36.38
+    },
+    {
+      "dataset": "Reveal",
+      "n": 1710,
+      "supported": 0.234,
+      "docs": 1498,
+      "doc_tok_p50": 112.0,
+      "doc_tok_p90": 223.0,
+      "claim_tok_p50": 13.0,
+      "claims_per_doc": 1.14
+    },
+    {
+      "dataset": "TofuEval-MediaS",
+      "n": 726,
+      "supported": 0.763,
+      "docs": 15,
+      "doc_tok_p50": 1025.0,
+      "doc_tok_p90": 1178.0,
+      "claim_tok_p50": 22.0,
+      "claims_per_doc": 48.4
+    },
+    {
+      "dataset": "TofuEval-MeetB",
+      "n": 772,
+      "supported": 0.806,
+      "docs": 15,
+      "doc_tok_p50": 981.0,
+      "doc_tok_p90": 1264.0,
+      "claim_tok_p50": 23.0,
+      "claims_per_doc": 51.47
+    },
+    {
+      "dataset": "Wice",
+      "n": 358,
+      "supported": 0.31,
+      "docs": 355,
+      "doc_tok_p50": 1286.0,
+      "doc_tok_p90": 3657.5,
+      "claim_tok_p50": 31.5,
+      "claims_per_doc": 1.01
+    }
+  ],
+  "n": 29320,
+  "supported_rate": 0.779,
+  "share_docs_over_2048_tokens": 0.024,
+  "doc_tokens": {
+    "count": 29320.0,
+    "mean": 660.1,
+    "std": 951.5,
+    "min": 1.0,
+    "50%": 504.0,
+    "90%": 1144.1,
+    "99%": 3884.7,
+    "max": 28066.0
+  },
+  "figures": [
+    {
+      "file": "figures/aggrefact_datasets.png",
+      "caption": "LLM-AggreFact test (T2): document length and label balance per sub-dataset. The macro balanced accuracy weights the 11 sub-datasets equally, although RAGTruth has 56 % of the claims."
+    }
+  ]
+}

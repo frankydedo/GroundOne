@@ -1,47 +1,46 @@
 ## 1. Summary
 
-Four datasets were analysed: **ANLI** and **RAGTruth** in depth, **MiniCheck synthetic data** and **LLM-AggreFact** more briefly. The question was which dataset can serve which experiment of the thesis (X1–X7 below). Main findings:
+The EDA has two parts:
+- **Part A** describes the three source datasets of the GroundOne dataset: RAGTruth (training source and test T1), LLM-AggreFact (test T2) and VitaminC (test T3).
+- **Part B** describes the dataset built from them (`Project/data/processed/groundone/`, counts in its `DATACARD.md`). It focuses on the properties that shape the experiments and their interpretation.
 
-1. **No single dataset covers everything.** ANLI is the only source with balanced, human three-way labels (supported / contradicted / not mentioned), so it carries the three-way question and the rules. RAGTruth is the only source of real multi-sentence RAG answers over a shared context, so it carries the K-decisions experiment and in-domain training. LLM-AggreFact is the benchmark that makes our numbers comparable with published ones.
-2. **The LLM-AggreFact "RAGTruth" subset is RAGTruth itself.** Its dev part consists of sentences from the RAGTruth *train* split (14,046 of 15,340 matched) and its test part of sentences from the RAGTruth *test* split (14,942 of 16,371). Training on RAGTruth train is therefore safe for the LLM-AggreFact **test** set. LLM-AggreFact itself may only be used for evaluation (licence / gating condition), so none of its splits is used for calibration or model selection. RAGTruth test and LLM-AggreFact-RAGTruth test are the same data and must not be counted twice.
-3. **Our sentence labels for RAGTruth are reliable.** On 29,191 sentences matched with LLM-AggreFact's own labels, our span-derived binary label agrees in **98.6 %** of cases. All 419 disagreements go the same way: we say "unsupported", LLM-AggreFact says "supported". They are not explained by the `implicit_true` / `due_to_null` flags; the likely cause is a different overlap rule or segmentation. We use LLM-AggreFact's labels for binary evaluation (comparability) and our labels where only we have them (three-way classes).
-4. **Contradictions are rare in RAG answers, except in Data2txt.** At sentence level RAGTruth train has 105,572 supported, 8,077 not-mentioned and 4,658 contradicted sentences, and 77 % of the contradiction spans come from Data2txt (Yelp records as JSON). In the QA test split only 0.5 % of sentences are contradicted. A three-way test on RAGTruth QA alone would be meaningless; ANLI is needed.
-5. **ANLI reuses documents across splits.** Each premise has ~16 hypotheses on average, and 98.6 % (dev) / 98.9 % (test) of the dev/test premises also occur in train with other hypotheses. For a clean test of whether rules generalise, the ANLI training subset should exclude those premises: **93,480 train pairs remain** (24,455 contradiction, 38,604 neutral, 30,421 entailment), far more than needed.
-6. **ANLI has a shortcut in train that is reversed in dev/test.** In the train split 25 % of contradiction hypotheses contain a negation word, against 8–11 % for the other classes. In dev and test the pattern is reversed: contradictions contain *fewer* negations (8–9 %) than supported claims (15–16 %), a consequence of ANLI's adversarial collection. A model that learns "negation → contradicted" from train is penalised on dev/test. Not-mentioned claims also share fewer words with the premise (median overlap 0.50 vs 0.64–0.67). Phase 1 should run a claim-only baseline and, if needed, rebalance negations in the training subset.
-7. **Lengths and the training cap.** Median document length: ANLI 73 tokens, MiniCheck 186, RAGTruth QA 308, RAGTruth Summary 552, LLM-AggreFact test 530 (but ClaimVerify and Wice reach a p90 of 3,600–4,700 tokens). For RAGTruth, 22 % of full prompts (context + answer) exceed 1,024 tokens and only 1 % exceed 2,048. **A 2,048-token cap keeps 99 % of RAGTruth; 1,024 would drop a fifth of it**, mostly Summary and Data2txt.
-8. **K is naturally high in RAGTruth.** Median sentences per answer: 9 (Data2txt), 6 (QA), 5 (Summary); 45 % of answers have K ≥ 8. With three questions per sentence, K = 15–27 per answer is realistic, exactly the regime where Phase 0b measured a 2–6× gain.
-9. **RAGTruth is clean between its splits** (no source document is in both train and test) and has 173 responses flagged as `incorrect_refusal` or `truncated` that should be dropped.
-10. **No overlap** was found between MiniCheck synthetic data or ANLI and LLM-AggreFact (documents or claims).
+**Part A: sources**
+- **RAGTruth hallucinations are concentrated by task and by generator.**
+  - Data-to-text answers are hallucinated about 2–4 times as often as QA or summaries (share of answers with at least one span).
+  - Llama-2 and Mistral answers carry most of them; GPT-3.5/4 answers are almost clean.
+  - *Baseless* spans (→ not_mentioned) outnumber *Conflict* spans (→ contradicted), and *Subtle Conflict* is very rare (201 spans).
+- **LLM-AggreFact sub-datasets differ widely** in document length (median 112–1,368 tokens) and label balance (23–92 % supported).
+  - Its macro average weights them equally, although RAGTruth has 56 % of the claims.
+  - 2.4 % of its documents exceed the 2,048-token cap and are chunked.
+- **VitaminC real test claims are short** (median 18 tokens) and the evidence is one Wikipedia sentence (median 36 tokens).
+  - Many claims are numerical: 59 % of supported, 71 % of refuted and 44 % of NEI claims contain a digit.
+  - The classes are unbalanced in the release (50 / 29 / 21 %), hence the per-class sample in T3.
 
-## 2. Usability of each dataset per experiment
+**Part B: built dataset**
+- **Segmentation.** pysbd with line splitting gives 5 % fewer sentences than the earlier regex splitter (130,381 vs 137,428), mainly because it does not cut decimals.
+  - 8.2 % of sentences have no checkable content and are kept as context only.
+  - Most of these are headings that introduce a list (6,867); the rest are short fragments (1,982), conversational or refusal formulas (1,055) and citation-only lines (802).
+- **Test answers are cleaner than training answers.** In every task, T1 has a lower share of contradicted and not-mentioned sentences than train (e.g. QA contradicted 0.6 % vs 1.6 %). This holds for every generator. Metrics that depend on the base rate (precision, F1 on the minority classes) are therefore not comparable between dev and T1; balanced accuracy and macro recall are.
+- **Where the classes come from.**
+  - 85 % of contradicted training sentences come from *Evident Conflict* spans alone; *Subtle Conflict* gives only 147.
+  - Not-mentioned sentences are 71 % *Evident* and 28 % *Subtle Baseless Info*.
+  - The contradicted class is therefore mostly blatant contradictions (wrong numbers, names, facts). Subtle contradictions are barely represented and cannot be evaluated separately.
+- **Surface cues exist and must be reported as baselines.**
+  - *Word overlap.* The share of a sentence's content words found in the document separates the classes in all three sets (supported 0.64 > contradicted 0.47 > not mentioned 0.40 in T1). On its own it reaches AUROC 0.74 for supported vs not on T1, and 0.70 on VitaminC.
+  - *Sentence wording.* A sentence-only classifier reaches a three-way balanced accuracy of 0.66 on Data2txt (chance on QA and Summary). Its strongest not-mentioned cues are Yelp details the business record rarely contains: "100 reviews", "rating google", "wifi", "valet garage", "family owned".
+  - A verifier's gain must be measured against these two baselines, per task.
 
-✅ suitable · ⚠️ usable with care · ❌ not suitable
+## 2. Consequences for the experiments
 
-| Experiment | ANLI | RAGTruth | MiniCheck synthetic | LLM-AggreFact |
-| --- | --- | --- | --- | --- |
-| **X1** Binary groundedness, training (RQ1) | ✅ the MiniCheck "hard ANLI" subset; filter premises seen in dev/test; the train-only negation shortcut must be checked | ✅ in-domain; sentence level; ~90 % supported, so rebalance; drop refusals/truncated | ✅ the core of the MiniCheck recipe (14,395 pairs); makes the comparison with MiniCheck data-matched | ❌ evaluation only (its dev RAGTruth part *is* RAGTruth train) |
-| **X2** Binary evaluation comparable with published results (RQ1, plain task of RQ5) | ⚠️ dev/test usable as a secondary, non-RAG check | ✅ test split, but it **is** the LLM-AggreFact-RAGTruth test; report once, with LLM-AggreFact labels | ❌ training data | ✅ **primary benchmark** (test, 11 sub-datasets, macro balanced accuracy, threshold 0.5); long documents in ClaimVerify/Wice need the 2,048 cap or chunking, stated |
-| **X3** K decisions over one shared context (RQ2) | ⚠️ several hypotheses per premise give a synthetic K, but contexts are tiny (~75 tokens) | ✅ **the natural set**: real answers, median K 5–9, contexts 300–700 tokens | ❌ ~2 claims per document | ⚠️ only its RAGTruth part has several claims per document (same data as RAGTruth) |
-| **X4** Three-way question (RQ5) | ✅ **primary**: human three-way labels, balanced dev/test (1/3 each) | ⚠️ train usable (8,077 not mentioned, 4,658 contradicted, mostly Data2txt); test too skewed (602 contradicted, almost none in QA); report per task | ❌ binary only | ❌ binary only |
-| **X5** Rules in the prompt, strict vs lenient (RQ5) | ✅ **primary**: rule labels derived from three-way labels, balanced, so the two rules differ on ~1/3 of items | ⚠️ the rules differ only on not-mentioned sentences (~4–7 %); informative mainly on Data2txt; the `implicit_true` flag (2,012 sentences) allows a third rule ("true world knowledge is acceptable") | ❌ | ❌ |
-| **X6** Calibration: dev for temperature, test for ECE (RQ3) | ✅ dev for temperature (three-way and rules), test for evaluation | ✅ dev carved from train **by source_id** (no source crosses splits) | ⚠️ could provide a dev slice, but synthetic | ❌ **evaluation only by licence** (no fitting of temperature or thresholds on it; its RAGTruth dev part is also RAGTruth train) |
-| **X7** Demo realism (local RAG) | ❌ single sentences, Wikipedia | ✅ **QA** (MS MARCO questions, 3 retrieved passages, ~300 tokens) is closest to the demo; Summary acceptable; Data2txt (JSON) unlike the demo | ❌ | ❌ |
+1. **Report three baselines that never read the document as a whole:** the majority class, word overlap and sentence-only n-grams. They give the floor against which GroundOne's specialisation is measured, per task.
+2. **Use base-rate-independent metrics** (balanced accuracy, macro recall, AUROC) as primary metrics, because the class shares differ between train/dev and T1.
+3. **Report results per task and per generator group** (GPT vs open models). The hallucination rate depends strongly on both.
+4. **Present the contradicted class as mostly "evident" contradictions.** Claims about subtle contradictions would need data RAGTruth does not provide.
+5. **T3 tests the same contradicted vs not-mentioned distinction in a different domain** (Wikipedia, single sentences, many numbers). It is useful precisely because it shares the word-overlap cue but not RAGTruth's Data2txt templates.
 
-## 3. Recommendations for Phase 1 (data)
+## 3. Limitations of this EDA
 
-1. **Training mix (binary + three-way + rules), first proposal:**
-   - MiniCheck synthetic, all 14,395 pairs (binary).
-   - ANLI train, the ~21K MiniCheck hard subset, restricted to premises **not** in ANLI dev/test (three-way labels kept, so the same pairs also feed the three-way question and the rules).
-   - RAGTruth train, sentence level, quality = good, rebalanced (e.g. all not-mentioned and contradicted sentences plus an equal number of supported ones), each answer used as a shared context so that training matches the K-question inference format.
-   - Size to be fixed against the training budget: ≈35K for the 0.5B (≈ 3–4 h) and a ~10K subset for the 3B (one night).
-2. **Length cap 2,048 tokens** (keeps 99 % of RAGTruth); log every excluded item.
-3. **Splits:** RAGTruth dev carved from train by `source_id`; ANLI dev for temperature and threshold, ANLI test held out; LLM-AggreFact test held out; LLM-AggreFact is evaluation-only by licence (no training, no fitting on dev).
-4. **Labels:** binary evaluation on RAGTruth with LLM-AggreFact's labels; our span-derived three-way labels for X4/X5, with the 98.6 % agreement reported.
-5. **Checks to add to the build:** the leakage check (§5.3 of the plan) must also compare against LLM-AggreFact test claims; a claim-only baseline for the ANLI negation shortcut (present in train, reversed in dev/test).
-6. **Report per RAGTruth task** (QA / Summary / Data2txt): they differ in format (JSON vs text), hallucination rate (18 % vs 64 % of test answers) and contradiction rate.
-
-## 4. Limitations of this EDA
-
-- Sentence splitting is rule-based (the Phase 0 splitter); 6 % of RAGTruth spans cross a sentence boundary and are assigned to every sentence they touch.
-- Token counts use the Qwen2.5 tokenizer without the chat template (~60 extra tokens per prompt).
-- Context-vs-source matching for LLM-AggreFact documents found only 27 % exact matches with RAGTruth sources (formatting differs); the overlap conclusion relies on claim (sentence) matching, which is exact for 92 % of the subset.
+- Sentence labels depend on the span-to-sentence rule and on the segmentation. Both are validated against LLM-AggreFact's independent labels (98.75 % binary agreement, `DATACARD.md`), but the type (conflict vs baseless) has no published agreement.
+- RAGTruth's original labels likely under-mark hallucinations (a 2026 re-annotation of the test split reports 1.68× more hallucinated answers). All class shares above are lower bounds.
+- Word overlap is a crude lexical measure (no stemming, no synonyms). It is used as a cue detector, not as a model.
+- The test splits were analysed only descriptively. No choice about the data or the model was tuned on them.

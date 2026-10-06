@@ -78,88 +78,6 @@
     "99%": 328.0,
     "max": 1441.0
   },
-  "sentences_total": 138239,
-  "spans_crossing_sentence_boundary": {
-    "n": 865,
-    "share": 0.061
-  },
-  "spans_not_covered_by_any_sentence": 0,
-  "sentence_class_share_by_task_split": {
-    "Data2txt | test": {
-      "contradicted": 0.052,
-      "not_mentioned": 0.056,
-      "supported": 0.892
-    },
-    "Data2txt | train": {
-      "contradicted": 0.064,
-      "not_mentioned": 0.069,
-      "supported": 0.866
-    },
-    "QA | test": {
-      "contradicted": 0.005,
-      "not_mentioned": 0.06,
-      "supported": 0.935
-    },
-    "QA | train": {
-      "contradicted": 0.015,
-      "not_mentioned": 0.088,
-      "supported": 0.897
-    },
-    "Summary | test": {
-      "contradicted": 0.022,
-      "not_mentioned": 0.03,
-      "supported": 0.949
-    },
-    "Summary | train": {
-      "contradicted": 0.025,
-      "not_mentioned": 0.04,
-      "supported": 0.935
-    }
-  },
-  "sentence_class_counts_train": {
-    "supported": 105572,
-    "not_mentioned": 8077,
-    "contradicted": 4658
-  },
-  "sentence_class_counts_test": {
-    "supported": 18331,
-    "not_mentioned": 999,
-    "contradicted": 602
-  },
-  "sentences_with_implicit_true": 2012,
-  "K_by_task": {
-    "Data2txt": {
-      "count": 6198.0,
-      "mean": 9.9,
-      "std": 3.1,
-      "min": 2.0,
-      "50%": 9.0,
-      "90%": 14.0,
-      "99%": 18.0,
-      "max": 29.0
-    },
-    "QA": {
-      "count": 5934.0,
-      "mean": 7.3,
-      "std": 4.9,
-      "min": 1.0,
-      "50%": 6.0,
-      "90%": 13.0,
-      "99%": 23.0,
-      "max": 53.0
-    },
-    "Summary": {
-      "count": 5658.0,
-      "mean": 5.9,
-      "std": 2.5,
-      "min": 1.0,
-      "50%": 5.0,
-      "90%": 9.0,
-      "99%": 15.0,
-      "max": 28.0
-    }
-  },
-  "responses_with_K_ge_8_share": 0.454,
   "context_tokens_by_task": {
     "Data2txt": {
       "count": 1033.0,
@@ -235,10 +153,6 @@
     {
       "file": "figures/ragtruth_spans.png",
       "caption": "RAGTruth hallucination spans: Baseless Info (content not in the context) dominates; Conflict (contradiction) is rarer, and Subtle Conflict is very rare."
-    },
-    {
-      "file": "figures/ragtruth_sentences.png",
-      "caption": "RAGTruth at sentence level (labels derived from spans): K per response and the share of supported / not mentioned / contradicted sentences."
     },
     {
       "file": "figures/ragtruth_context_lengths.png",

@@ -70,3 +70,8 @@
 - Created source page `Schuster 2021 - VitaminC` and concept page `VitaminC` (test T3 only).
 - Updated `Datasets for GroundOne`: final choice (RAGTruth = only training source; tests RAGTruth, LLM-AggreFact, VitaminC), expected sizes, and the earlier EDA analysis marked as superseded.
 - Updated `RAGTruth` (final role, reliability caveats, segmentation findings); marked `ANLI` and `MiniCheck Synthetic Data` as not used.
+
+## [2026-10-06] ingest | EDA of the final GroundOne dataset
+- Added `raw/GroundOne 2026 - EDA report (dataset)_ingested.md` and source page `GroundOne 2026 - EDA report (dataset)`.
+- Marked `GroundOne 2026 - EDA report` (Phase 1a, four-question design) as superseded.
+- Updated `Datasets for GroundOne` (EDA consequences) and `index.md`.
