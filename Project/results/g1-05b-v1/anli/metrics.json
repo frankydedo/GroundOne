@@ -1,0 +1,72 @@
+{
+  "n": 3200,
+  "questions": [
+    "sup",
+    "three",
+    "strict",
+    "lenient"
+  ],
+  "by_question": {
+    "lenient": {
+      "all": {
+        "n": 3200,
+        "pos_rate": 0.6681,
+        "bacc": 0.48438135857472797,
+        "auroc": 0.4879214606466433,
+        "ece15": 0.16105103474778926,
+        "brier": 0.2567755758903416,
+        "nll": 0.737771246384546
+      }
+    },
+    "strict": {
+      "all": {
+        "n": 3200,
+        "pos_rate": 0.3344,
+        "bacc": 0.5707889079022421,
+        "auroc": 0.6013264007722346,
+        "ece15": 0.14566728400370846,
+        "brier": 0.23826770712764847,
+        "nll": 0.6691437786062935
+      }
+    },
+    "sup": {
+      "all": {
+        "n": 3200,
+        "pos_rate": 0.3344,
+        "bacc": 0.5698718792505814,
+        "auroc": 0.6001017945680313,
+        "ece15": 0.120910702477351,
+        "brier": 0.23511777269369305,
+        "nll": 0.6611523458406634
+      }
+    },
+    "three": {
+      "all": {
+        "n": 3200,
+        "macro_recall": 0.40897761714642167,
+        "accuracy": 0.409375,
+        "recall": {
+          "supported": 0.6794392523364486,
+          "contradicted": 0.2871939736346516,
+          "not_mentioned": 0.2602996254681648
+        },
+        "ece15_maxprob": 0.10455960207174303,
+        "nll": 1.1462139936407865
+      }
+    }
+  },
+  "model": {
+    "name": "groundone-0.5b-best",
+    "base_model": "lmstudio-community/Qwen2.5-0.5B-Instruct-MLX-8bit",
+    "adapter": "/Users/francescodedominicis/Desktop/THESIS/Project/models/g1-05b-v1/best",
+    "adapter_sha256": "f22a319b5b289b186e838caff0c7e71707d91ddce0131452302fc393caf1c4c6",
+    "prompt_version": "groundone-v1",
+    "runtime": "mlx",
+    "load_seconds": 0.7,
+    "fingerprint": "ec98e3475b5322cb"
+  },
+  "calibrated": true,
+  "data": "v1",
+  "limit": 0,
+  "wall_minutes": 7.68
+}

@@ -25,6 +25,6 @@ seed: 1234
 # --- evaluation, safety ---------------------------------------------------------------------------------------
 eval_every: 250              # optimiser steps between dev evaluations; the best (lowest dev loss) is kept in best/
 dev_size: 600                # fixed dev subset: 200 each from dev_anli, dev_ragtruth, dev_minicheck
-max_hours: 7.0               # measured ≈ 11 s/step → a full epoch (2,235 steps) ≈ 7 h; stops cleanly, last + best saved
+max_hours: 0                 # no time limit: the full epoch completes (≈ 7 h measured, 11 s/step); author prefers late over truncated
 max_steps: 0                 # 0 = no limit (debug only)
 mem_gb: 9.0                  # MLX memory limit (the memory guard kills the job below 2 GB free anyway)

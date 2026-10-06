@@ -23,6 +23,17 @@ from ..config import PROJECT
 
 LOGS = PROJECT / "runs" / "guard"
 LOGS.mkdir(parents=True, exist_ok=True)
+THRESHOLDS = LOGS / "thresholds.json"  # optional; re-read at every check so limits can be changed without a restart
+
+
+def limits():
+    """Current (min free memory GB, max swap growth GB): thresholds.json overrides the environment defaults."""
+    try:
+        import json
+        d = json.loads(THRESHOLDS.read_text())
+        return float(d.get("min_avail_gb", MIN_AVAIL_GB)), float(d.get("max_swap_growth_gb", MAX_SWAP_GROWTH_GB))
+    except (OSError, ValueError):
+        return MIN_AVAIL_GB, MAX_SWAP_GROWTH_GB
 STATUS = LOGS / "watchdog.log"
 
 
@@ -65,14 +76,14 @@ def tree_rss(proc):
 def wait_for_memory(max_wait=300):
     """Before starting a job, wait until free memory recovers (a killed job's memory is released with a delay)."""
     t0 = time.time()
-    while gb(psutil.virtual_memory().available) < MIN_AVAIL_GB + 1.5 and time.time() - t0 < max_wait:
+    while gb(psutil.virtual_memory().available) < limits()[0] + 1.5 and time.time() - t0 < max_wait:
         time.sleep(5)
     return gb(psutil.virtual_memory().available)
 
 
 def run(cmd, idx):
     avail = wait_for_memory()
-    if avail < MIN_AVAIL_GB + 0.5:
+    if avail < limits()[0] + 0.5:
         say(f"SKIP  job{idx:02d}: only {avail:.1f} GB free after waiting 5 min: {cmd}")
         return False
     log_path = LOGS / f"{time.strftime('%m%d-%H%M%S')}-job{idx:02d}.log"
@@ -107,10 +118,11 @@ def _monitor(proc, ps, swap0, idx, t0):
         swap_growth = psutil.swap_memory().used - swap0
         peak_job = max(peak_job, tree_rss(ps))
         min_avail = min(min_avail, vm.available)
-        if gb(vm.available) < MIN_AVAIL_GB:
-            reason = f"available memory {gb(vm.available):.2f} GB < {MIN_AVAIL_GB}"
-        elif gb(swap_growth) > MAX_SWAP_GROWTH_GB:
-            reason = f"swap grew by {gb(swap_growth):.2f} GB > {MAX_SWAP_GROWTH_GB}"
+        min_avail_gb, max_swap_gb = limits()
+        if gb(vm.available) < min_avail_gb:
+            reason = f"available memory {gb(vm.available):.2f} GB < {min_avail_gb}"
+        elif gb(swap_growth) > max_swap_gb:
+            reason = f"swap grew by {gb(swap_growth):.2f} GB > {max_swap_gb}"
         if reason:
             os.killpg(proc.pid, signal.SIGKILL)
             proc.wait()
@@ -142,7 +154,7 @@ def main(argv=None):
     # The queue file is re-read after every job, so jobs can be appended while it runs.
     # A line 'END' stops the guard; otherwise it waits up to IDLE_MIN minutes for new jobs.
     idle_min = float(os.environ.get("IDLE_MIN", 30))
-    say(f"guard started, MIN_AVAIL_GB={MIN_AVAIL_GB}, MAX_SWAP_GROWTH_GB={MAX_SWAP_GROWTH_GB}")
+    say(f"guard started, limits (min free GB, max swap growth GB) = {limits()} (edit {THRESHOLDS} to change them live)")
     i, idle_since = 0, time.time()
     while True:
         cmds = [l.strip() for l in open(argv[0]) if l.strip() and not l.startswith("#")]

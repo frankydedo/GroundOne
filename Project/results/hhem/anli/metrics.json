@@ -1,0 +1,39 @@
+{
+  "by_question": {
+    "sup": {
+      "n": 3200,
+      "pos_rate": 0.3344,
+      "bacc": 0.5136676758369532,
+      "auroc": 0.5726449036900532,
+      "ece15": 0.27817548761159744,
+      "brier": 0.31937380568206253,
+      "nll": 1.0046587458170864
+    },
+    "strict": {
+      "n": 3200,
+      "pos_rate": 0.3344,
+      "bacc": 0.5136676758369532,
+      "auroc": 0.5726449036900532,
+      "ece15": 0.27817548761159744,
+      "brier": 0.31937380568206253,
+      "nll": 1.0046587458170864
+    },
+    "lenient": {
+      "n": 3200,
+      "pos_rate": 0.6681,
+      "bacc": 0.45395400950251835,
+      "auroc": 0.4358610842454447,
+      "ece15": 0.4430862197654005,
+      "brier": 0.46646284902502927,
+      "nll": 1.7063628799659287
+    }
+  },
+  "note": "one fixed score evaluated against each rule's labels (encoders cannot take a rule)",
+  "system": "hhem",
+  "repo": "vectara/hallucination_evaluation_model",
+  "device": "mps",
+  "n": 3200,
+  "limit": 0,
+  "latency_p50_s": 0.023023895500955405,
+  "wall_minutes": 1.28
+}

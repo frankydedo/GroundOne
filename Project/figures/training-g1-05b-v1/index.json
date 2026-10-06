@@ -1,0 +1,17 @@
+[
+  {
+    "file": "loss.png",
+    "caption": "Training and dev loss of run g1-05b-v1 (loss restricted to the allowed answer letters).",
+    "source": "models/g1-05b-v1/train_log.jsonl"
+  },
+  {
+    "file": "dev_accuracy_by_question.png",
+    "caption": "Dev accuracy per question type during training (run g1-05b-v1; fixed dev subset).",
+    "source": "models/g1-05b-v1/train_log.jsonl"
+  },
+  {
+    "file": "learning_rate.png",
+    "caption": "Learning-rate schedule (linear warm-up, cosine decay) of run g1-05b-v1.",
+    "source": "models/g1-05b-v1/train_log.jsonl"
+  }
+]

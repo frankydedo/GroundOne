@@ -1,0 +1,43 @@
+"""Thesis figures. `groundone figures all|phase0|sweep|training RUN|results|eda` writes PNGs + index.md to Project/figures/.
+
+Rule for the project: every phase must leave figures behind (plots are thesis material). Add a function here whenever a
+new kind of result appears, and run `groundone figures all` after each phase.
+"""
+import shutil
+import sys
+
+from ..config import MODELS_DIR, PROJECT
+
+
+def eda_copy():
+    """The EDA has its own scripts (Project/EDA); mirror its figures so figures/ is the one place to look."""
+    src = PROJECT / "EDA" / "report" / "figures"
+    dst = PROJECT / "figures" / "eda"
+    if src.exists():
+        dst.mkdir(parents=True, exist_ok=True)
+        for p in src.glob("*.png"):
+            shutil.copy2(p, dst / p.name)
+        print(f"  copied {len(list(src.glob('*.png')))} EDA figures to figures/eda (captions: EDA/report/eda_report.md)")
+
+
+def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
+    what = argv[0] if argv else "all"
+    from . import phase0, results, training
+    if what in ("phase0", "all"):
+        phase0.main()
+    if what in ("sweep", "all"):
+        training.sweep_figures()
+    if what == "training":
+        training.run_figures(argv[1])
+    if what == "diagnostics":
+        from . import diagnostics
+        diagnostics.main(argv[1])
+    if what == "all":
+        for d in sorted(MODELS_DIR.glob("*/train_log.jsonl")):
+            if not d.parent.name.startswith("sweep-"):
+                training.run_figures(d.parent.name)
+    if what in ("results", "all"):
+        results.main()
+    if what in ("eda", "all"):
+        eda_copy()

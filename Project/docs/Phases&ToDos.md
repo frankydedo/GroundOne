@@ -40,25 +40,23 @@ Update the status column and the to-do list as work progresses.
 
 ## To-dos
 
-**Now (afternoon of Oct 5, GPU free until 22:00)**
-- [ ] Commit the work so far (blocked by the safety rule on `git commit`: the author commits, or allows it)
-- [x] Rizzo-Flow reinstalled natively (arm64 + Metal; the old install was x86/CPU-only); model already on disk
-- [ ] B3 Rizzo-Flow: measured on a subsample of our test sets (queued: `runs/rizzo_job.sh`)
-- [x] `groundone baselines rizzo|encoder` added to the package
-- [ ] B4 MiniCheck-RoBERTa on the full test sets (queued); HHEM on ANLI + RAGTruth if time; DeBERTa and HHEM on LLM-AggreFact later
-- [ ] B1 untrained 0.5B on ANLI + RAGTruth (running); LLM-AggreFact full (~2 h) moved to a later night
-- [x] Thesis skeleton in `Thesis/`: English, title, 8 chapters with TODO notes, summary draft, verified bibliography (`bibliography.bib`, template kept as `bibliography_template.bib`). TODO: supervisor names and degree programme in `common/thesis_info.tex`; LaTeX is not installed locally (compile on Overleaf or install MacTeX)
-- [x] Ch. 4 first draft (data and EDA, with 6 figures)
+**Now (Oct 6)** — analysis of v1 results: `docs/analysis_2026-10-06.md`
+- [ ] Author approves decisions D20–D25 (analysis §4)
+- [ ] Data v2: all four questions per item (D20); ~50 % multi-sentence rows incl. synthetic ANLI answers and full RAGTruth answers up to K ≥ 14 (D21); optional negation balance (D24)
+- [ ] Dev v2 with all questions + selection on mean balanced accuracy (D22); calibration with temperature + bias on multi-sentence dev (D23)
+- [ ] Quick check (~300 steps, ~1 h) of the 0.5B on v2 before the night
 
-**Tonight (start by 22:00)**
-- [ ] Night 1 queue (`runs/queue_night1.txt`): 0.5B full training → calibrate → eval ANLI + LLM-AggreFact. Start only after the afternoon queue has finished (one model at a time)
+**Tonight**
+- [ ] 0.5B full training on v2 → calibrate → eval ANLI, RAGTruth, LLM-AggreFact → `groundone figures all` (D25)
+
+**Standing rule:** every phase leaves figures (`groundone figures all` → `Project/figures/`).
 
 **Next**
-- [ ] Read the night-1 results; decide on ANLI negation rebalancing (v2) and on any config change
-- [ ] 0.5B eval on RAGTruth (all questions, shared prefix) and latency protocol (§8.3)
-- [ ] 3B training (night 2, `configs/train_3b.yaml`)
-- [ ] Generative judges B0a/B0b on the full matrix (subsample for B0b)
-- [ ] Ch. 2 (background and related work), Ch. 3 (method)
+- [ ] 3B training on v2 (night 2), only if the 0.5B v2 improves
+- [ ] Enlarge Rizzo-Flow subsamples for the final tables
+- [ ] Latency protocol (§8.3); B0a/B0b generative judges on the full matrix (subsample for B0b)
+- [ ] DeBERTa baseline; HHEM and untrained 0.5B on LLM-AggreFact
+- [ ] Ch. 2 (background and related work), Ch. 3 (method); supervisors + degree programme in `Thesis/common/thesis_info.tex`
 
 ## Already done
 
@@ -67,6 +65,7 @@ Update the status column and the to-do list as work progresses.
 - ✅ Literature collected, verified and ingested into the wiki in `Vault/` (2026-10-05), incl. dataset sources
 - ✅ Phase 0/0b feasibility, Phase 1a EDA, Phase 1 datasets v1, Phase 2 GroundOne package (2026-10-05)
 - ✅ LR/batch sweep on the 0.5B: lr 1e-4 with ~20 examples per step is best of 4 (2026-10-05)
+- ✅ Baselines B1, B3, B4 (RoBERTa, HHEM) and first GroundOne-0.5B (v1) trained and evaluated (2026-10-05/06)
 
 ## Log
 
@@ -80,3 +79,6 @@ Add one line per significant event (date, what happened, impact on the plan).
 - 2026-10-05: Phase 2 done. GroundOne is an installable package (`Project/GroundOne`, README): CLI, FastAPI server with /v1/verify and Jev/Rizzo-compatible /v1/systemone, training loop, calibration, evaluation suites, memory guard. 10 fast tests + 2 real-model tests pass; end-to-end smoke run (train 10 steps → calibrate → eval → serve adapter) OK.
 - 2026-10-05: Package moved to `Project/GroundOne` (software) vs `Project/` (experiment workspace); training hyper-parameters in YAML (`GroundOne/configs/`). Measured 0.5B training speed: ≈ 11 s/step → a full epoch ≈ 7 h.
 - 2026-10-05: Sweep (4 configs × ~2,200 examples, same order, dev 300): lr 1e-4/accum 2 best (dev loss 1.015 → 0.750, acc 0.38 → 0.52); lr 2e-4 and accum 1 stuck on a constant answer; lr 5e-5 unstable. Config unchanged for night 1.
+- 2026-10-05: Baselines B1 (untrained 0.5B: ≈ chance), B3 Rizzo-Flow 4B Q4 (ANLI sup 0.761, three-way 0.606; RAGTruth 0.805; LLM-AggreFact macro 0.615 on 1,100), B4 MiniCheck-RoBERTa / HHEM on ANLI + RAGTruth. Sanity check vs the LLM-AggreFact leaderboard on the 14,952 RAGTruth sentences shared with it, with its labels: RoBERTa 76.4 (published 77.2), HHEM 73.0 (published 69.9) → implementations correct. On all 19,902 RAGTruth test sentences scores are ~2 points lower (≈ 5k sentences not in LLM-AggreFact are harder, likely splitter fragments): report RAGTruth on the LLM-AggreFact-matched sentences with its labels as the primary number.
+- 2026-10-05: `groundone figures` added; 15 figures generated (phase0, sweep, training, results) + 10 EDA mirrored in `Project/figures/`. Night queue ends with `groundone figures all`.
+- 2026-10-06: Night 1 done without interruptions (0.5B v1, 2,235 steps, 7 h; best dev loss at step 250). LLM-AggreFact: GroundOne-0.5B 72.0 (zero-shot 0.5B 64.2, 7B 72.8; our MiniCheck-RoBERTa 74.0). But: multi-sentence format −6 points on the same sentences, K ≥ 14 below chance, lenient rule always "acceptable", "not mentioned" never predicted, probabilities squeezed around 0.5 and shifted per task. Diagnosis = data (one question per row, 18 % multi-sentence). Proposed data v2 (D20–D25), see `docs/analysis_2026-10-06.md`; diagnostic figures in `figures/diagnostics-g1-05b-v1/`.

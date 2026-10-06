@@ -1,0 +1,17 @@
+[
+  {
+    "file": "anli_questions_and_rules.png",
+    "caption": "ANLI test: the binary question, the two verification rules and the three-way question. Encoders produce one fixed score, evaluated against each rule's labels (no bar for three-way). Rizzo-Flow is measured on a 600-item subsample.",
+    "source": "results/*/anli/metrics.json"
+  },
+  {
+    "file": "ragtruth_supported_by_task.png",
+    "caption": "RAGTruth test, sentence level, binary question, by task (our span-derived labels, all sentences). Rizzo-Flow on a 200-answer subsample.",
+    "source": "results/*/ragtruth/metrics.json"
+  },
+  {
+    "file": "aggrefact_per_dataset.png",
+    "caption": "LLM-AggreFact test: balanced accuracy per sub-dataset at threshold 0.5, the 11-way macro average and the RAG-subset average (RAGTruth, LFQA, ClaimVerify, ExpertQA).",
+    "source": "results/*/aggrefact/metrics.json"
+  }
+]

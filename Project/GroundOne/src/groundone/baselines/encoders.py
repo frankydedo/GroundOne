@@ -51,7 +51,8 @@ def make_scorer(name):
         def score(doc, claim):
             best = 0.0
             for c in chunks(doc):
-                enc = tok(c, claim, return_tensors="pt", truncation="only_first", max_length=512).to(dev)
+                # fixed shape (pad to 512): MPS caches one kernel set per input shape, so variable lengths made memory grow
+                enc = tok(c, claim, return_tensors="pt", truncation="only_first", max_length=512, padding="max_length").to(dev)
                 with torch.no_grad():
                     best = max(best, float(torch.softmax(model(**enc).logits[0], -1)[-1]))
             return best
@@ -81,6 +82,11 @@ def main(argv=None):
             t = time.perf_counter()
             ps.append(score(it["doc"], it["sentences"][it["idx"]]))
             secs.append(time.perf_counter() - t)
+            if dev == "mps" and n % 50 == 49:
+                # the MPS allocator keeps buffers for every input length it has seen: release them regularly
+                # (otherwise the process grew to ~10 GB on RAGTruth and pushed the system into swap)
+                import torch
+                torch.mps.empty_cache()
             if n % 500 == 0:
                 el = time.time() - t0
                 print(f"  [{a.model} {s}] {n}/{len(items)}  {el / 60:.1f} min, eta {el / max(n, 1) * (len(items) - n) / 60:.1f} min", flush=True)

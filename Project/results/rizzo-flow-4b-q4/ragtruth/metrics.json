@@ -1,0 +1,70 @@
+{
+  "sup": {
+    "all": {
+      "n": 1471,
+      "pos_rate": 0.9239,
+      "bacc": 0.8051186534216336,
+      "auroc": 0.8963326500578157,
+      "ece15": 0.12203674115028429,
+      "brier": 0.07435467939505314,
+      "nll": 0.25818783943134277
+    },
+    "Data2txt": {
+      "n": 629,
+      "pos_rate": 0.9014,
+      "bacc": 0.802810490982534,
+      "auroc": 0.8864994026284349,
+      "ece15": 0.12722542490432467,
+      "brier": 0.09054773267944295,
+      "nll": 0.2994064644807704
+    },
+    "QA": {
+      "n": 424,
+      "pos_rate": 0.9458,
+      "bacc": 0.784939824352163,
+      "auroc": 0.8964545158842026,
+      "ece15": 0.13683274961310002,
+      "brier": 0.06848885261092438,
+      "nll": 0.24237270117978899
+    },
+    "Summary": {
+      "n": 418,
+      "pos_rate": 0.9354,
+      "bacc": 0.8167092924126171,
+      "auroc": 0.9044236051908686,
+      "ece15": 0.10919570741201894,
+      "brier": 0.05593764599933396,
+      "nll": 0.2122048333609333
+    }
+  },
+  "answers": 200,
+  "latency_per_answer_p50_s": 4.0543749170028605,
+  "mean_K": 7.355,
+  "system": "rizzo-flow",
+  "server_health": {
+    "status": "ready",
+    "model": {
+      "source": "XHToken/Spark-X2.5-4B",
+      "requested_revision": "0bcb35678590218655dff3765b9e61c83b35e9c4",
+      "gguf_source": "rizzoaiacademy/rizzo-flow",
+      "gguf_revision": "55633c8cbd2b826bd3eefdeb05310450996649df",
+      "source_files": {
+        "spark-x2.5-4b-rizzo-flow-lora-q4_k_m.gguf": "79de5cb8dbfd1a1f5cb3037252251594352841fe5e3dc1ae8cead053010fcd54"
+      },
+      "precision": "q4_k_m",
+      "device": "gpu",
+      "backend": "mtl",
+      "runtime": "llama.cpp",
+      "llama_cpp_release": "b11081",
+      "llama_cpp_commit": "161755f29e415e2c33efe906e91843c068efd664",
+      "prompt_version": "spark-decisions-v3",
+      "weights": "flow",
+      "fingerprint": "4f631100b8e4c0c9d08a58783885e71cb44b08268a69fa03b40dd7b9b476ff91",
+      "device_name": "Apple M4",
+      "context_cells": 6144,
+      "load_seconds": 1.6447038329934003
+    }
+  },
+  "limit": 200,
+  "wall_minutes": 13.81
+}

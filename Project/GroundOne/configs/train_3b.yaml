@@ -25,6 +25,6 @@ seed: 1234
 # --- evaluation, safety ---------------------------------------------------------------------------------------
 eval_every: 100
 dev_size: 600
-max_hours: 7.5
+max_hours: 0                 # no time limit (author prefers late over truncated runs)
 max_steps: 0
 mem_gb: 10.0

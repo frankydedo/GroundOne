@@ -35,6 +35,7 @@ groundone train --config train_0.5b.yaml [--run <run>]   # hyper-parameters in c
 groundone calibrate --adapter <run>              # one temperature per question type, fitted on dev
 groundone eval --suite aggrefact|ragtruth|anli|all --adapter <run> --name <results-name> [--limit N]
 groundone guard queue.txt                        # run long jobs one at a time under a memory guard
+groundone figures all                            # thesis figures (PNG + captions) -> Project/figures/<group>/
 
 # comparison systems (baselines), same test files and metrics as `groundone eval`
 groundone baselines rizzo --url http://127.0.0.1:8017 --suite all --limit 1000 --name rizzo-flow-4b
@@ -84,6 +85,7 @@ src/groundone/
   training/       LoRA training loop with the restricted answer-letter loss
   eval/           evaluation suites and metrics
   baselines/      Rizzo-Flow client (B3) and encoder fact-checkers (B4)
+  figures/        thesis figures from every phase (fixed colour per system)
   tools/          memory guard for unattended runs
 tests/            fast tests with a fake backend; `pytest -m model` runs the real-model tests
 

@@ -10,6 +10,7 @@
   groundone calibrate  --adapter RUN                              temperature per question type, on dev
   groundone eval       --suite aggrefact|ragtruth|anli|all --name NAME [--adapter RUN] [--limit N]
   groundone guard      QUEUE.txt                                  run long jobs one at a time under the memory guard
+  groundone figures    all | phase0 | sweep | training RUN | results | eda   thesis figures -> Project/figures/
   groundone baselines  rizzo | encoder [...]                       comparison systems (Rizzo-Flow via its API; encoders)
 """
 import argparse
@@ -37,7 +38,7 @@ def _engine(a):
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     # sub-commands with their own parsers
-    passthrough = {"train": ("training.train", "main"), "eval": ("eval.evaluate", "main"),
+    passthrough = {"figures": ("figures", "main"), "train": ("training.train", "main"), "eval": ("eval.evaluate", "main"),
                    "calibrate": ("eval.evaluate", "calibrate"), "guard": ("tools.watchdog", "main")}
     if argv and argv[0] in passthrough:
         mod, fn = passthrough[argv[0]]

@@ -326,6 +326,7 @@ ECE (fixed and adaptive bins), Brier, NLL, reliability diagrams, risk-coverage c
 ### 8.5 Reporting rules
 - Report all baselines, including those where we lose.
 - Results files are create-only (never overwritten); each run stores config, git commit, dataset hash and hardware notes.
+- **Every phase leaves figures** (author's rule, 2026-10-05): `groundone figures all` writes 300-dpi PNGs with draft captions to `Project/figures/<group>/` (phase0, eda, sweep, training-<run>, results, …). A new kind of result gets its plotting function in `GroundOne/src/groundone/figures/` in the same change; overnight queues end with `groundone figures all`. Colours are fixed per system across all figures.
 
 ---
 
