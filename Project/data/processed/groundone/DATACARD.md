@@ -60,7 +60,10 @@ A sentence with both a conflicting and an unverifiable part is *contradicted*.
 1. **Segmentation** (`groundone/data/segment.py`, also used at inference):
    - line breaks first, then pysbd within each line;
    - leading list markers ("3. ", "* ") are removed;
-   - the checkable-content rule is written a priori. It was extended once, on training data only, to catch formulas such as "Sure, I can help you with that!".
+   - the checkable-content rule is written a priori. It was adjusted twice, for formatting only:
+     - list markers and citation-only lines, after check C2 on T1 showed them as the main source of mismatches with LLM-AggreFact;
+     - conversational formulas seen in the training data (e.g. "Sure, I can help you with that!").
+   - No label was changed.
 2. **RAGTruth labels.** A scored sentence is *contradicted* if it overlaps a Conflict span, *not_mentioned* if it overlaps only Baseless spans, and *supported* otherwise. `implicit_true` spans stay *not_mentioned*.
    - 27 of 14,226 spans (0.19 %) touch no scored sentence.
 3. **Exclusions** (counts in `build_report.json` → `ragtruth_dropped`):
