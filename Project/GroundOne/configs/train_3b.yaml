@@ -4,9 +4,9 @@
 
 # --- model and data -------------------------------------------------------------------------------------------
 size: "3b"
-data: "v1"
-train: "train_3b"            # 10,000 rows, stratified by source x question type; 3.4 M tokens
-run: "g1-3b-v1"
+data: "groundone"             # dataset in Project/data/processed/<data>/ (built per docs/dataset_plan.md; not built yet)
+train: "train"                # training file name (set when the dataset is built)
+run: "g1-3b"                 # output: Project/models/<run>/ (never overwritten)
 
 # --- LoRA -----------------------------------------------------------------------------------------------------
 rank: 16

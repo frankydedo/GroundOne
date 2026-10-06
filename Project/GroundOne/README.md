@@ -30,7 +30,7 @@ groundone systemone request.json                 # one Jev-compatible request, n
 groundone schema [--response | --compat]         # JSON Schema of the API
 groundone models                                 # base models and trained runs
 
-groundone data build | check | shortcut          # datasets (data/processed/<version>), leakage check, shortcut baseline
+groundone data check | shortcut                  # leakage check, shortcut baseline (dataset builder: see Project/docs/dataset_plan.md)
 groundone train --config train_0.5b.yaml [--run <run>]   # hyper-parameters in configs/*.yaml
 groundone calibrate --adapter <run>              # one temperature per question type, fitted on dev
 groundone eval --suite aggrefact|ragtruth|anli|all --adapter <run> --name <results-name> [--limit N]

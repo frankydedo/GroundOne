@@ -5,7 +5,7 @@
   groundone systemone  FILE.json [--size] [--adapter]            one Jev-compatible request, no server
   groundone schema     [--response] [--compat]                   JSON Schema of the API
   groundone models                                                base models and trained runs available locally
-  groundone data       build | check | shortcut [--version v1]   datasets (Phase 1)
+  groundone data       check | shortcut                          leakage check, shortcut baseline (builder: see docs/dataset_plan.md)
   groundone train      --size --run [...]                         LoRA fine-tuning
   groundone calibrate  --adapter RUN                              temperature per question type, on dev
   groundone eval       --suite aggrefact|ragtruth|anli|all --name NAME [--adapter RUN] [--limit N]
@@ -52,9 +52,9 @@ def main(argv=None):
         return __import__(f"groundone.baselines.{mods[sub]}", fromlist=["main"]).main(argv[2:])
     if argv and argv[0] == "data":
         sub = argv[1] if len(argv) > 1 else ""
-        mods = {"build": "build", "check": "leakage", "shortcut": "shortcut"}
+        mods = {"check": "leakage", "shortcut": "shortcut"}
         if sub not in mods:
-            sys.exit("usage: groundone data build|check|shortcut [--version v1]")
+            sys.exit("usage: groundone data check|shortcut [--version NAME]  (dataset builder: being rewritten, docs/dataset_plan.md)")
         return __import__(f"groundone.data.{mods[sub]}", fromlist=["main"]).main(argv[2:])
 
     ap = argparse.ArgumentParser(prog="groundone", description="GroundOne: local System One groundedness verifier",

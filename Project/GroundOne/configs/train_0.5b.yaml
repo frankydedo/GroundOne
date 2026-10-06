@@ -4,9 +4,9 @@
 
 # --- model and data -------------------------------------------------------------------------------------------
 size: "0.5b"                 # base model (GroundOne/src/groundone/config.py: BASE_MODELS)
-data: "v1"                   # dataset version in Project/data/processed/ (see docs/phase1_report.md)
-train: "train_05b"           # 42,910 rows: ANLI 21,000 + MiniCheck 13,990 + RAGTruth 7,920; 14.5 M tokens
-run: "g1-05b-v1"             # output: Project/models/<run>/ (never overwritten)
+data: "groundone"             # dataset in Project/data/processed/<data>/ (built per docs/dataset_plan.md; not built yet)
+train: "train"                # training file name (set when the dataset is built)
+run: "g1-05b"                 # output: Project/models/<run>/ (never overwritten)
 
 # --- LoRA (plan §6.1: all linear layers of all blocks; coverage matters more than rank) -------------------------
 rank: 16

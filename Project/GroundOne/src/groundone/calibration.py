@@ -4,7 +4,7 @@ A calibration file is bound to the model fingerprint (base model + adapter hash 
 different model raises. Two maps are fitted on dev predictions by minimising NLL:
   temperature  softmax(logits / T)                  one T per key (v1 behaviour)
   affine       softmax(logits / T + b), b[0] = 0     T and a bias per answer letter (D23): also corrects a shifted decision
-               boundary, which temperature alone cannot do (diagnosis of g1-05b-v1, analysis_2026-10-06.md §3.3)
+               boundary, which temperature alone cannot do (probabilities squeezed and shifted per task in early runs)
 Keys are a question type ("sup") or a question type in one prompt format ("sup@pair", "sup@multi": the format is known
 at inference, K = 1 or K > 1). Lookup falls back from "q@format" to "q" to no calibration.
 """
