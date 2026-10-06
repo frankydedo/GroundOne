@@ -77,3 +77,31 @@ ANSWER_NAMES = {
     "strict": ("acceptable", "error"),
     "lenient": ("acceptable", "error"),
 }
+
+
+# ---------------------------------------------------------------------------------------------------- design (b)
+# One forward pass per answer: a marker follows every scored sentence and the letter logits are read at the marker's
+# last token (docs/dataset_plan.md §8; default design). Causal attention: the verdict on sentence i sees the document
+# and sentences 1..i. Nothing after the last marker matters, so the sequence ends there. Pieces are tokenised
+# separately and concatenated, so marker positions are exact and identical at training and inference.
+PROMPT_VERSION_MARKED = "groundone-v2-marked"
+INSTRUCTION_MARKED = ("Check each sentence of the ANSWER against the DOCUMENT. After each sentence give a verdict: "
+                      "A if the DOCUMENT supports it, B if the DOCUMENT contradicts it, C if the DOCUMENT does not mention it.")
+MARKER = " Verdict:"
+LETTERS_MARKED = ("A", "B", "C")  # supported, contradicted, not_mentioned
+
+
+def encode_marked(tokenizer, doc, sentences, scored):
+    """Token ids and marker positions for one answer. `scored[i]` is True for sentences that get a verdict."""
+    enc = lambda t: tokenizer.encode(t, add_special_tokens=False)  # noqa: E731
+    head = (f"<|im_start|>system\n{SYSTEM}<|im_end|>\n<|im_start|>user\n{INSTRUCTION_MARKED}\n\n"
+            f"DOCUMENT:\n{doc}\n\nANSWER:\n")
+    ids, pos = enc(head), []
+    marker, newline = enc(MARKER), enc("\n")
+    for k, (s, sc) in enumerate(zip(sentences, scored)):
+        ids += enc(f"[{k + 1}] {s}")
+        if sc:
+            ids += marker
+            pos.append(len(ids) - 1)
+        ids += newline
+    return ids, pos

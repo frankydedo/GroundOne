@@ -4,6 +4,8 @@
   last prompt token. The prompt is never supervised. Prompts come from groundone.prompts, as at inference.
 - LoRA on all linear layers of all blocks, gradient checkpointing, length-bucketed batches under a token budget,
   gradient accumulation, AdamW with linear warm-up and cosine decay, one epoch by default.
+- Design (b), the default: one row per answer; a marker follows every scored sentence and the loss is the class-weighted
+  cross-entropy over A/B/C at all markers (each class weighted to contribute equally). Design (a): one row per question.
 - Every `--eval-every` steps: loss and accuracy on a fixed dev subset; the best checkpoint is kept in best/.
   With `--dev-file dev_mix` (data v2, D22) the dev rows carry their question and a block (ANLI pair / ANLI multi-sentence
   / RAGTruth / MiniCheck); balanced accuracy is computed per (block, question) and `--select bacc` keeps the checkpoint
@@ -23,7 +25,7 @@ import time
 from pathlib import Path
 
 from ..config import BASE_MODELS, CONFIGS_DIR, DATA_PROCESSED, MODELS_DIR
-from ..prompts import PROMPT_VERSION, letters, render
+from ..prompts import LETTERS_MARKED, PROMPT_VERSION, PROMPT_VERSION_MARKED, encode_marked, letters, render
 
 LETTERS3 = ("A", "B", "C")
 
@@ -78,6 +80,10 @@ def main(argv=None):
                     help="stop after N optimiser steps; the LR schedule (warm-up + cosine) is compressed to N steps")
     ap.add_argument("--eval-initial", type=int, default=1, help="1 = evaluate the untrained model at step 0")
     ap.add_argument("--seed", type=int, default=1234)
+    ap.add_argument("--design", choices=["a", "b"], default="b",
+                    help="b (default): one row per answer, verdicts read at a marker after each scored sentence; "
+                         "a: one row per question (prompt + question suffix)")
+    ap.add_argument("--sample", type=int, default=0, help="design b: random subset of N training answers (0 = all)")
     ap.add_argument("--mem-gb", type=float, default=9.0)
     a = ap.parse_args(argv)
     if a.config:
@@ -133,10 +139,32 @@ def main(argv=None):
         return rows
 
     d = DATA_PROCESSED / a.data
-    train_rows = prepare(load_jsonl(d / f"{a.train}.jsonl"))
+    CLS = ("supported", "contradicted", "not_mentioned")
+
+    def prepare_b(records, weights):
+        rows = []
+        for r in records:
+            scored = [l is not None for l in r["labels"]]
+            ids, pos = encode_marked(tok, r["doc"], r["sentences"], scored)
+            golds = [CLS.index(l) for l in r["labels"] if l is not None]
+            rows.append({"ids": ids, "_len": len(ids), "pos": pos, "golds": golds, "w": [weights[g] for g in golds],
+                         "block": r["task"], "source": r["source"]})
+        return rows
+
+    if a.design == "b":
+        recs = load_jsonl(d / f"{a.train}.jsonl")
+        if a.sample:
+            recs = random.Random(a.seed).sample(recs, min(a.sample, len(recs)))
+        counts = [sum(l == c for r in recs for l in r["labels"]) for c in CLS]
+        total = sum(counts)
+        class_w = [total / (3 * n) for n in counts]  # balanced: each class contributes equally to the loss
+        train_rows = prepare_b(recs, class_w)
+        dev_rows_b = prepare_b(load_jsonl(d / f"{a.dev_file or 'dev'}.jsonl"), class_w)
+    else:
+        train_rows = prepare(load_jsonl(d / f"{a.train}.jsonl"))
     rng = random.Random(a.seed)
-    dev_items = load_jsonl(d / f"{a.dev_file}.jsonl") if a.dev_file else []
-    for name in ([] if a.dev_file else ("dev_anli", "dev_ragtruth", "dev_minicheck")):
+    dev_items = load_jsonl(d / f"{a.dev_file}.jsonl") if a.dev_file and a.design == "a" else []
+    for name in ([] if (a.dev_file or a.design == "b") else ("dev_anli", "dev_ragtruth", "dev_minicheck")):
         items = load_jsonl(d / f"{name}.jsonl")
         for it in items:  # dev rows get a question type like training rows (fixed by seed)
             if it.get("cls") is None:
@@ -147,7 +175,7 @@ def main(argv=None):
                 it["label"] = label_for(it["qtype"], it["cls"])
         rng.shuffle(items)
         dev_items += items[: a.dev_size // 3]
-    dev_rows = prepare(dev_items)
+    dev_rows = prepare(dev_items) if a.design == "a" else dev_rows_b
 
     model.freeze()
     lora_cfg = {"rank": a.rank, "scale": a.scale, "dropout": a.dropout}
@@ -173,6 +201,27 @@ def main(argv=None):
         lg = letter_logits(m, x, last, opt_ids, mask)
         return nn.losses.cross_entropy(lg, gold, reduction="mean")
 
+    from ..readout import logits_at
+    lid3 = mx.array([lid[L] for L in LETTERS_MARKED])
+
+    def batch_arrays_b(rows, idx):
+        S = max(rows[i]["_len"] for i in idx)
+        x = mx.array([rows[i]["ids"] + [pad] * (S - rows[i]["_len"]) for i in idx])
+        r = mx.array([b for b, i in enumerate(idx) for _ in rows[i]["pos"]])
+        c = mx.array([p for i in idx for p in rows[i]["pos"]])
+        gold = mx.array([g for i in idx for g in rows[i]["golds"]])
+        w = mx.array([v for i in idx for v in rows[i]["w"]])
+        return x, r, c, gold, w
+
+    def logits_b(m, x, r, c):
+        return logits_at(m, x, r, c)[:, lid3].astype(mx.float32)
+
+    def loss_fn_b(m, x, r, c, gold, w):
+        ce = nn.losses.cross_entropy(logits_b(m, x, r, c), gold, reduction="none")
+        return (ce * w).sum() / w.sum()
+
+    if a.design == "b":
+        batch_arrays, loss_fn = batch_arrays_b, loss_fn_b
     loss_and_grad = nn.value_and_grad(model, loss_fn)
     batches = make_batches(train_rows, a.token_budget, a.max_rows, a.seed)
     total_micro = int(len(batches) * a.epochs)
@@ -186,8 +235,12 @@ def main(argv=None):
 
     meta = {"size": a.size, "base_model": BASE_MODELS[a.size], "data": a.data, "train_file": a.train,
             "train_rows": len(train_rows), "train_tokens": sum(r["_len"] for r in train_rows),
-            "micro_batches": total_micro, "steps": total_steps, "prompt_version": PROMPT_VERSION,
+            "micro_batches": total_micro, "steps": total_steps, "design": a.design,
+            "prompt_version": PROMPT_VERSION_MARKED if a.design == "b" else PROMPT_VERSION,
             "trainable_params": n_train, "args": vars(a), "started": time.strftime("%Y-%m-%d %H:%M:%S")}
+    if a.design == "b":
+        meta.update({"train_answers": len(train_rows), "train_decisions": sum(len(r["golds"]) for r in train_rows),
+                     "dev_answers": len(dev_rows), "class_weights": dict(zip(CLS, [round(v, 3) for v in class_w]))})
     log({"event": "start", **{k: v for k, v in meta.items() if k != "args"}})
 
     def save(dirpath, extra):
@@ -197,7 +250,38 @@ def main(argv=None):
                                                                  "lora_parameters": lora_cfg}, indent=2))
         (dirpath / "groundone.json").write_text(json.dumps({**meta, **extra}, indent=2))
 
+    def evaluate_b():
+        model.eval()
+        tot, wsum, correct, n = 0.0, 0.0, 0, 0
+        hits, share = {}, [0, 0, 0]
+        for b in make_batches(dev_rows, a.token_budget, a.max_rows, 0):
+            x, r, c, gold, w = batch_arrays_b(dev_rows, b)
+            lg = logits_b(model, x, r, c)
+            ce = nn.losses.cross_entropy(lg, gold, reduction="none")
+            pred = mx.argmax(lg, axis=1)
+            mx.eval(ce, pred)
+            tot += (ce * w).sum().item()
+            wsum += w.sum().item()
+            blocks = [dev_rows[i]["block"] for i in b for _ in dev_rows[i]["pos"]]
+            for blk, p, g in zip(blocks, pred.tolist(), gold.tolist()):
+                for key in (blk, "all"):
+                    hc = hits.setdefault(key, {}).setdefault(g, [0, 0])
+                    hc[0] += p == g
+                    hc[1] += 1
+                share[p] += 1
+                correct += p == g
+                n += 1
+        model.train()
+        rec = {k: sum(c_ / t for c_, t in gs.values()) / len(gs) for k, gs in hits.items()}
+        bacc = {f"{k}|three": round(v, 4) for k, v in sorted(rec.items()) if k != "all"}
+        return {"dev_loss": tot / wsum, "dev_acc": correct / n, "dev_acc_by_q": {"three": round(correct / n, 4)},
+                "dev_bacc": bacc, "dev_score": round(sum(bacc.values()) / len(bacc), 4),
+                "dev_macro_recall_all": round(rec["all"], 4),
+                "dev_pred_share": {k: round(v / n, 4) for k, v in zip(CLS, share)}}
+
     def evaluate():
+        if a.design == "b":
+            return evaluate_b()
         model.eval()
         tot, correct, n = 0.0, 0, 0
         by_q, hits = {}, {}  # hits[(block, qtype)][gold] = [correct, total]

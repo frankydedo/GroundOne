@@ -8,6 +8,7 @@
   groundone data       build | check | shortcut | freeze         dataset (docs/dataset_plan.md), leakage, shortcut, freeze tests
   groundone train      --size --run [...]                         LoRA fine-tuning
   groundone calibrate  --adapter RUN                              temperature per question type, on dev
+  groundone test       --suite t1|t2|t3 --name NAME [--adapter RUN]   frozen GroundOne test sets (three-way)
   groundone eval       --suite aggrefact|ragtruth|anli|all --name NAME [--adapter RUN] [--limit N]
   groundone guard      QUEUE.txt                                  run long jobs one at a time under the memory guard
   groundone figures    all | phase0 | sweep | training RUN | results | eda   thesis figures -> Project/figures/
@@ -38,7 +39,7 @@ def _engine(a):
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     # sub-commands with their own parsers
-    passthrough = {"figures": ("figures", "main"), "train": ("training.train", "main"), "eval": ("eval.evaluate", "main"),
+    passthrough = {"figures": ("figures", "main"), "train": ("training.train", "main"), "eval": ("eval.evaluate", "main"), "test": ("eval.tests", "main"),
                    "calibrate": ("eval.evaluate", "calibrate"), "guard": ("tools.watchdog", "main")}
     if argv and argv[0] in passthrough:
         mod, fn = passthrough[argv[0]]
@@ -52,9 +53,9 @@ def main(argv=None):
         return __import__(f"groundone.baselines.{mods[sub]}", fromlist=["main"]).main(argv[2:])
     if argv and argv[0] == "data":
         sub = argv[1] if len(argv) > 1 else ""
-        mods = {"build": ("build", "main"), "freeze": ("build", "freeze"), "check": ("leakage", "main"), "shortcut": ("shortcut", "main")}
+        mods = {"rows": ("rows", "main"), "build": ("build", "main"), "freeze": ("build", "freeze"), "check": ("leakage", "main"), "shortcut": ("shortcut", "main")}
         if sub not in mods:
-            sys.exit("usage: groundone data build|check|shortcut|freeze")
+            sys.exit("usage: groundone data build|check|shortcut|freeze|rows")
         mod, fn = mods[sub]
         return getattr(__import__(f"groundone.data.{mod}", fromlist=[fn]), fn)(argv[2:])
 

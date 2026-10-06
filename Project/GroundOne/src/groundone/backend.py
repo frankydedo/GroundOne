@@ -97,6 +97,36 @@ class Backend:
         return out, {"prefix_tokens": n, "suffix_tokens": sum(len(p) - n for p in prompts),
                      "prefill_seconds": t1 - t0, "batch_seconds": t2 - t1}
 
+    def score_positions(self, seqs, positions, letters=("A", "B", "C"), token_budget=16384):
+        """Design (b): one forward pass per sequence, letter logits read at each marker position.
+        seqs: token lists; positions: list of position lists. Returns, per sequence, a list of logit triples."""
+        mx = self.mx
+        from .readout import logits_at
+        order = sorted(range(len(seqs)), key=lambda i: len(seqs[i]))
+        lid = mx.array([self.letter_ids[L] for L in letters])
+        result = [None] * len(seqs)
+        i = 0
+        while i < len(order):
+            j, longest = i, 0
+            while j < len(order) and j - i < MAX_BATCH and max(longest, len(seqs[order[j]])) * (j - i + 1) <= token_budget:
+                longest = max(longest, len(seqs[order[j]]))
+                j += 1
+            j = max(j, i + 1)
+            idx = order[i:j]
+            S = max(len(seqs[k]) for k in idx)
+            batch = mx.array([seqs[k] + [self.pad] * (S - len(seqs[k])) for k in idx])
+            rows = [b for b, k in enumerate(idx) for _ in positions[k]]
+            cols = [p for k in idx for p in positions[k]]
+            lg = logits_at(self.model, batch, mx.array(rows), mx.array(cols))[:, lid].astype(mx.float32)
+            mx.eval(lg)
+            flat = lg.tolist()
+            n = 0
+            for k in idx:
+                result[k] = flat[n:n + len(positions[k])]
+                n += len(positions[k])
+            i = j
+        return result
+
     def score_many(self, prompts, letters_list, token_budget=8192):
         """Unrelated prompts, batched by length (no shared cache). Returns logits in input order."""
         mx = self.mx

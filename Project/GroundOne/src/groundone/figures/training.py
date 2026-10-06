@@ -45,7 +45,8 @@ def run_figures(run):
         evb = [e for e in ev if "dev_bacc" in e]
         steps = [e["step"] for e in evb]
         fig, axes = plt.subplots(1, 2, figsize=(10, 3.4), sharey=True)
-        for ax, part, names in [(axes[0], 1, list(Q_COLORS)), (axes[1], 0, ["anli_pair", "anli_multi", "ragtruth", "minicheck"])]:
+        blocks = sorted({g.split("|")[0] for e in evb for g in e["dev_bacc"]})
+        for ax, part, names in [(axes[0], 1, list(Q_COLORS)), (axes[1], 0, blocks)]:
             for k, nm in enumerate(names):
                 ys = []
                 for e in evb:

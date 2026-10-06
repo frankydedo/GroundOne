@@ -4,9 +4,9 @@
 
 # --- model and data -------------------------------------------------------------------------------------------
 size: "0.5b"                 # base model (GroundOne/src/groundone/config.py: BASE_MODELS)
-data: "groundone"             # dataset in Project/data/processed/<data>/ (built per docs/dataset_plan.md; not built yet)
-train: "train"                # training file name (set when the dataset is built)
-run: "g1-05b"                 # output: Project/models/<run>/ (never overwritten)
+data: "groundone"             # Project/data/processed/groundone/ (docs/dataset_plan.md)
+train: "train"                # answer-level records (RAGTruth train split)
+run: "g1-05b-b1"              # output: Project/models/<run>/ (never overwritten)
 
 # --- LoRA (plan §6.1: all linear layers of all blocks; coverage matters more than rank) -------------------------
 rank: 16
@@ -23,8 +23,11 @@ accum: 2                     # micro-batches per optimiser step (≈ 20 examples
 seed: 1234
 
 # --- evaluation, safety ---------------------------------------------------------------------------------------
-eval_every: 250              # optimiser steps between dev evaluations; the best (lowest dev loss) is kept in best/
-dev_size: 600                # fixed dev subset: 200 each from dev_anli, dev_ragtruth, dev_minicheck
-max_hours: 0                 # no time limit: the full epoch completes (≈ 7 h measured, 11 s/step); author prefers late over truncated
+eval_every: 250              # optimiser steps between dev evaluations; the best checkpoint is kept in best/
+design: "b"                  # verdicts read at a marker after each scored sentence (dataset plan §8)
+sample: 9000                 # random subset of training answers (~62K decisions, ~7.5 M tokens); 0 = all 13,203
+dev_file: "dev"              # full dev set (1,468 answers, 9,996 decisions); block = task
+select: "bacc"               # best/ = highest mean three-way balanced accuracy over tasks
+max_hours: 0                 # no time limit: the full epoch completes (design b, 9,000 answers: ≈ 4 h expected); author prefers late over truncated
 max_steps: 0                 # 0 = no limit (debug only)
 mem_gb: 9.0                  # MLX memory limit (the memory guard kills the job below 2 GB free anyway)

@@ -1,6 +1,6 @@
 # GroundOne dataset plan
 
-Status: v2.1 (2026-10-06). Simplified to the strict minimum: one training source, three test sets. **Steps 1–3 and 5 of §7 are done** (`Project/data/processed/groundone/DATACARD.md`); the tests await the author's approval to be frozen (step 4). Decisions D20 and D21 are in `implementation_plan.md` §3.
+Status: v2.2 (2026-10-07). Readout design (b) is the default (§8). Simplified to the strict minimum: one training source, three test sets. **Steps 1–3 and 5 of §7 are done** (`Project/data/processed/groundone/DATACARD.md`); the tests await the author's approval to be frozen (step 4). Decisions D20 and D21 are in `implementation_plan.md` §3.
 
 This document specifies how the training, development and test data are built from scratch. Nothing is trained until the test sets of §4 are built, validated and frozen. The thesis (Ch. 4) describes only the dataset produced by this plan.
 
@@ -190,21 +190,29 @@ Output goes to `Project/data/processed/groundone/`.
 - Sentence-only shortcut: 0.57 on T1. It is driven entirely by Data2txt (0.66); QA and Summary are at chance.
 - Train: 13,203 answers, 90,795 decisions, 10.9 M tokens.
 
-## 8. Dependency: readout design (decided after Step 5, before training)
+## 8. Readout design: (b) is the default, (a) the fallback (author's decision, 2026-10-06)
 
-The dataset is stored per answer, so it serves both designs. The design decides how much of it fits in a night.
+The dataset is stored per answer, so it serves both designs.
 
-**(a) Current design.** The prefix (document + numbered answer) is read once, then K short question suffixes run in one batch.
-- Exact and already implemented.
-- In training, each row is one prompt for one sentence (about 840 tokens).
-- The full train set would be about 88 M tokens. The nightly budget allows about 18K sentences for the 0.5B (about 15 M tokens) and about 7.5K for the 3B (about 6–7 M tokens).
+**(b) Default: K readouts in one pass.**
+- A marker (" Verdict:") follows every scored sentence, and the letter logits A/B/C are read at the marker in the same forward pass.
+- Training: one row per answer carries all its K labels. The loss is the class-weighted cross-entropy at all markers, with each class weighted to contribute equally (supported ≈ 0.38, contradicted ≈ 6.4, not_mentioned ≈ 4.1).
+- Inference: one pass for all K decisions, with the output head applied only at the marker positions.
+- Costs: the verdict on sentence *i* sees only the document and sentences 1..i, and the untrained model has no meaning for the marker (the untrained baseline B1 stays in format a).
+- Prompt version `groundone-v2-marked`.
+- Code: `prompts.encode_marked`, `readout.py`, `Backend.score_positions`, `train.py --design b`, `groundone test`.
 
-**(b) K readouts in one pass.** A marker after each sentence; the letter logits are read at every marker in the same forward pass.
-- In training, one row per answer carries K labels. All 13.3K training answers fit in about 11 M tokens: one night for the 0.5B, and about 60 % of the answers per night for the 3B.
-- At inference, one pass gives all K decisions.
-- Cost: sentence *i* sees only the previous sentences, and a new engine path and training loop are needed.
+**(a) Fallback: one question per sentence.**
+- The prefix is read once, then K short question suffixes run in one batch. Already implemented.
+- Training rows: `groundone data rows` (one row per sentence, class-balanced sample).
+- Used only if (b) fails the validation criteria below.
 
-**Gate.** A half-day prototype on a subset compares (a) and (b) on dev macro-F1 and latency. (b) is adopted only if it is not worse on dev.
+**Validation run (night 2026-10-06/07).** The 0.5B is trained on 9,000 random training answers (about 62K decisions) in design (b), then evaluated on T1, T3 and T2. The dataset is judged useful if all of these hold:
+- three-way balanced accuracy on T1 > 0.57 (the sentence-only baseline);
+- the same metric clearly above 0.36 on QA and Summary;
+- AUROC supported vs not > 0.74 (word overlap);
+- no collapse below chance for K ≥ 14;
+- all three classes predicted.
 
 ## 9. Out of scope
 - LLM-AggreFact for anything but evaluation.
