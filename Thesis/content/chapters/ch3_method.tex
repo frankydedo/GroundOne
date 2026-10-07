@@ -16,7 +16,8 @@
 % TODO: LoRA on all linear layers; cross-entropy over the allowed letters at the last prompt token; length-bucketed batches; hyper-parameters (YAML) and the LR sweep.
 
 \section{Calibration}
-% TODO: Temperature per question type fitted on dev; bound to the model fingerprint.
+% TODO: Temperature (+ bias) fitted on dev; bound to the model fingerprint.
+% TODO (author's request): define ECE here: bin predictions by confidence into M bins (M = 15, equal width); ECE = sum_m |B_m|/n * |acc(B_m) - conf(B_m)|; binary variant on P(supported) vs observed supported rate, top-label variant for three classes; dependence on binning; never reported alone (a constant base-rate predictor has ECE ~ 0), always with Brier, NLL and reliability diagrams; cite Naeini 2015, Guo 2017.
 
 \section{Software}
 % TODO: Package, CLI, native and Jev-compatible API, memory guard; where each advantage comes from (mechanism vs training).
