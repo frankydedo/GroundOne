@@ -1,0 +1,12 @@
+[
+  {
+    "file": "reliability_binary.png",
+    "caption": "Reliability of P(supported) before (raw) and after temperature + bias calibration fitted on dev (run g1-05b-b1); bins with at least 20 sentences.",
+    "source": "results/g1-05b-b1/calibration/metrics.json"
+  },
+  {
+    "file": "risk_coverage.png",
+    "caption": "Selective prediction: error rate of the supported / unsupported decision as the least confident sentences are deferred (calibrated probabilities, run g1-05b-b1).",
+    "source": "results/g1-05b-b1/calibration/metrics.json"
+  }
+]

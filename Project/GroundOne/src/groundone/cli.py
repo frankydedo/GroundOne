@@ -40,7 +40,7 @@ def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     # sub-commands with their own parsers
     passthrough = {"figures": ("figures", "main"), "train": ("training.train", "main"), "eval": ("eval.evaluate", "main"), "test": ("eval.tests", "main"),
-                   "calibrate": ("eval.evaluate", "calibrate"), "guard": ("tools.watchdog", "main")}
+                   "calibrate": ("eval.evaluate", "calibrate"), "calibrate-b": ("eval.calibrate_b", "main"), "guard": ("tools.watchdog", "main")}
     if argv and argv[0] in passthrough:
         mod, fn = passthrough[argv[0]]
         module = __import__(f"groundone.{mod}", fromlist=[fn])

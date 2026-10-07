@@ -121,3 +121,36 @@ Setup: 0.5B, design (b), all training answers, 802 steps (accumulation 4, ≈ 16
   - Use the strict policy for source pages and treat concept pages separately.
 - **Evaluation without manual annotation.** Inject controlled errors into faithful pages (swap numbers, names or dates; add fabricated facts), then measure how many survive with and without the loop, and at what cost in time.
 - Related work to verify before citing: post-hoc revision and attribution such as RARR, Chain-of-Verification and the Self-RAG critic.
+
+## Ch. 6: calibration of the 0.5B (2026-10-07)
+
+Source: `results/g1-05b-b1/calibration/metrics.json`; figures `figures/calibration-g1-05b-b1/` (reliability_binary, risk_coverage). Command: `groundone calibrate-b`.
+
+**Maps fitted on dev** (NLL):
+- temperature only: T = 0.74;
+- temperature + bias: T = 0.92, bias (supported, contradicted, not_mentioned) = (0, −2.76, −2.35).
+
+The adapter's `calibration.json` holds the affine map.
+
+**Raw probabilities underestimate P(supported).** In the reliability diagram the raw curve lies well above the diagonal (dev and T1). This is the expected effect of the class-weighted loss, which trains the model as if the classes were balanced. The bias restores the true base rates.
+
+**Results** (binary metrics are on P(supported)):
+| Split | Map | Three-way macro recall | Accuracy | ECE, binary | ECE, top label | Brier (3-class) |
+| --- | --- | --- | --- | --- | --- | --- |
+| T1 | raw | 0.769 | 0.819 | 0.301 | 0.104 | 0.298 |
+| T1 | temperature | 0.769 | 0.819 | 0.252 | 0.046 | 0.282 |
+| T1 | affine | 0.627 | 0.934 | **0.019** | 0.017 | **0.104** |
+| dev | affine | 0.596 | 0.913 | 0.009 | 0.008 | 0.137 |
+| T3 | raw | 0.442 | 0.442 | 0.169 | 0.223 | 0.691 |
+| T3 | affine | 0.474 | 0.474 | 0.205 | 0.165 | 0.696 |
+
+**Readings.**
+- **On RAG data, calibration works and transfers from dev to test.** T1 binary ECE drops from 0.30 to 0.02, NLL from 0.55 to 0.21, and AUROC is unchanged (0.905), because a monotone map does not change the ranking.
+- **The bias moves the argmax towards "supported".** Calibrated probabilities follow the natural base rate, so the argmax maximises accuracy (0.93) rather than balanced accuracy (macro 0.77 → 0.63). Two uses must be kept apart:
+  - decisions with balanced error costs: use the raw argmax, or a threshold on calibrated probabilities chosen on dev;
+  - probabilities used as confidence (thresholds τ, policies, selective prediction): use the calibrated ones.
+
+  For the thesis, the primary classification metrics are on the raw (balanced) decision; calibration is evaluated with ECE / Brier / NLL / risk-coverage.
+- **Calibration does not transfer to VitaminC** (binary ECE 0.17 → 0.21). The bias encodes RAGTruth's base rate (≈ 88 % supported) and VitaminC's is 33 %. Here a base-rate argument does apply, and it confirms that calibration is distribution-specific: a deployment must calibrate on data like its own.
+- **Selective prediction** (binary decision, calibrated): AURC 0.015 on T1 and 0.022 on dev, against 0.284 on T3. Deferring the least confident sentences makes errors very rare on RAG data.
+

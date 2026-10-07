@@ -68,8 +68,9 @@ def answer_items(recs):
     return flat
 
 
-def score_b(engine, recs):
-    """Design (b): one pass per record, logits at the markers; returns one probability triple per scored sentence."""
+def score_b(engine, recs, raw=False):
+    """Design (b): one pass per record, logits at the markers. Returns one probability triple per scored sentence
+    (calibrated if the engine has a calibration), or the raw logits with raw=True."""
     from ..calibration import softmax
     from ..prompts import encode_marked
     tok = engine.backend.tokenizer
@@ -78,7 +79,8 @@ def score_b(engine, recs):
     for start in range(0, len(enc), 200):
         chunk = enc[start:start + 200]
         lg = engine._run(engine.backend.score_positions, [e[0] for e in chunk], [e[1] for e in chunk])
-        out += [softmax(x) for per in lg for x in per]
+        cal = engine.calibration
+        out += [x if raw else (cal.probs("three", x) if cal else softmax(x)) for per in lg for x in per]
         print(f"  [{start + len(chunk)}/{len(enc)}]", flush=True)
     return out
 
@@ -112,10 +114,12 @@ def run_aggrefact(engine, recs, design="b"):
     else:
         preds = engine.predict(flat, progress=progress_printer("t2"))
     p = np.zeros(len(recs))
+    p3 = [[0.0, 0.0, 0.0] for _ in recs]
     for o, (_, ps) in zip(owner, preds):
-        p[o] = max(p[o], ps[0])
+        if ps[0] >= p[o]:
+            p[o], p3[o] = ps[0], list(map(float, ps))
     df = pd.DataFrame({"id": [r["id"] for r in recs], "dataset": [r["task"] for r in recs],
-                       "label": [int(r["labels"][0] == "supported") for r in recs], "p_supported": p})
+                       "label": [int(r["labels"][0] == "supported") for r in recs], "p_supported": p, "p": p3})
     per = {d: binary(g["label"], g["p_supported"]) for d, g in df.groupby("dataset")}
     return df, {"per_dataset": per, "macro_bacc": float(np.mean([v["bacc"] for v in per.values()])),
                 "rag_subset_bacc": float(np.mean([per[d]["bacc"] for d in RAG_SUBSET if d in per])),

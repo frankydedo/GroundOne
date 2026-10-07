@@ -41,8 +41,8 @@ Update the status column and the to-do list as work progresses.
 ## To-dos
 
 **Now (from Oct 7), in priority order** (author's decisions: freeze approved; 3B option A, one night on a subset, a second night only if the dev is still improving)
-1. [ ] Freeze the test sets (`groundone data freeze`)
-2. [ ] Calibrate the 0.5B (g1-05b-b1) on dev: temperature + bias; ECE / Brier / NLL before and after on T1, T2, T3; reliability diagrams
+1. [x] Freeze the test sets (`groundone data freeze`, 2026-10-07 13:49; a rebuild reproduces the hashes)
+2. [x] Calibrate the 0.5B (g1-05b-b1) on dev (T1 binary ECE 0.30 → 0.02; does not transfer to T3; `thesis_notes.md`): temperature + bias; ECE / Brier / NLL before and after on T1, T2, T3; reliability diagrams
 3. [ ] Train the 3B (design b) for one night on a random subset of ~4,000–4,500 answers; dev on a fixed subset; then T1 and T3 (T2 when the GPU is free)
 4. [ ] Baselines on the frozen tests (daytime, GPU free):
    - [ ] encoders MiniCheck-RoBERTa and HHEM on T1 and T3 (T2: RoBERTa done, 74.0)
