@@ -154,3 +154,23 @@ The adapter's `calibration.json` holds the affine map.
 - **Calibration does not transfer to VitaminC** (binary ECE 0.17 → 0.21). The bias encodes RAGTruth's base rate (≈ 88 % supported) and VitaminC's is 33 %. Here a base-rate argument does apply, and it confirms that calibration is distribution-specific: a deployment must calibrate on data like its own.
 - **Selective prediction** (binary decision, calibrated): AURC 0.015 on T1 and 0.022 on dev, against 0.284 on T3. Deferring the least confident sentences makes errors very rare on RAG data.
 
+## Ch. 5: setup decisions of 2026-10-07
+
+- **Test sets frozen** 2026-10-07 13:49 (`data/processed/groundone/tests_frozen.json`). A full rebuild reproduces the three hashes byte for byte, so the builder is deterministic.
+- **3B run (g1-3b-b1)**: same recipe as the 0.5B, except:
+  - size;
+  - 6,500 random training answers (≈ 45K decisions, ≈ 5.6 M tokens);
+  - micro-batches of ≈ 2 answers (token budget 2,304) with accumulation 8, so ≈ 16 answers per step as for the 0.5B;
+  - warm-up 5 %;
+  - dev evaluation every 80 steps on a fixed subset of 200 dev answers, because a full dev pass costs ≈ 1 h on the 3B.
+
+  Learning rate 1e-4 as for the 0.5B: with only ≈ 400 steps, the 5e-5 of the earlier 3B config risked under-training, and keeping it equal limits confounders. The subset size follows from the measured 3B speed of ≈ 0.75 M tokens/h (3-step smoke test), against an initial estimate of 0.4 M.
+- **Latency protocol** (`groundone baselines judges`):
+  - 200 T1 answers, 50 per K band;
+  - in-process MLX, one answer at a time;
+  - 3 warm-up answers excluded;
+  - System One median of 3 repetitions; judges timed once (greedy decoding is deterministic).
+- **Judge outputs checked by hand.** The untrained 0.5B does not produce verdicts: it copies the answer sentences ("1: Based on the provided structured data, ..."). The ≈ 50 % (terse) and ≈ 97 % (verbose) format-failure rates in the smoke test are genuine, not parser errors. This is consistent with Phase 0b (97 % failures for the 0.5B verbose judge).
+- **Subsamples of slower systems**: Rizzo-Flow on 300 T1 answers and 600 T3 pairs; untrained 3B on 600 T1 answers; judges on the 200 latency answers.
+- **Marker length**: " Verdict:" is 3 tokens (" Ver", "dict", ":").
+
