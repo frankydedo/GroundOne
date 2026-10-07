@@ -55,7 +55,8 @@ def run_figures(run):
                 if any(y is not None for y in ys):
                     ax.plot(steps, ys, marker="o", color=Q_COLORS.get(nm, SERIES[k]), label=nm)
             ax.plot(steps, [e["dev_score"] for e in evb], color=INK2, ls="--", label="dev score")
-            ax.axhline(0.5, color=NEUTRAL, lw=1, ls=":")
+            only_three = all(g.endswith("|three") for e in evb for g in e["dev_bacc"])
+            ax.axhline(1 / 3 if only_three else 0.5, color=NEUTRAL, lw=1, ls=":")
             ax.set_xlabel("optimiser step")
             ax.legend(fontsize=7)
         axes[0].set_title("by question (mean over blocks)", fontsize=9)

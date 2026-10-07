@@ -1,24 +1,114 @@
 \chapter{GroundOne: Method and Implementation}
 \label{sec:method}
 
-% STATUS: skeleton. Each section lists what it must contain (TODO notes, not thesis text).
+% Source notes: Project/docs/thesis_notes.md (Ch. 3), Project/docs/dataset_plan.md §8, implementation_plan.md §4.
 
-\section{Task and question set}
-% TODO: One three-way decision per sentence (supported / contradicted / not mentioned), K = scored sentences; binary score and strict/lenient policies derived from the probabilities (see Ch. 4, Sec. task); readout design for the K decisions (batched suffixes vs per-sentence markers, decided by the prototype).
+GroundOne is a compact language model used as a System One: it reads a document and an answer once and returns a
+verdict for every sentence of the answer by reading the logits of a few answer letters, without generating text. This
+chapter describes the decision it makes, the prompt that carries all the decisions of one answer in a single forward
+pass, the training objective, the calibration of the output probabilities and the software that implements them.
 
-\section{Prompt format and shared prefix}
-% TODO: Document + numbered answer as shared prefix, index-based question suffix; single source of truth for training and inference.
+\section{Task and decision}
+\label{sec:method-task}
 
-\section{Batched single-pass readout}
-% TODO: Prefix prefilled once, KV cache replicated K times, right-padded suffix batch, restricted softmax over letters; exactness (|dp| = 0, Phase 0b). Cost model.
+For every sentence of an answer GroundOne makes one decision among three classes, defined in
+Section~\ref{sec:data-task}: the sentence is \emph{supported}, \emph{contradicted} or \emph{not mentioned} with respect
+to the document. The three classes are mapped to the letters A, B and C, and the model outputs a probability for each
+of them. A binary groundedness score and the strict and lenient policies are not separate questions to the model; they
+are computed from these three probabilities, so that a single forward pass serves every use. An earlier design asked
+the model four different questions about each sentence, including the two policies written out in the prompt. Those
+questions were deterministic functions of the three-way class, so they inflated the number of decisions artificially
+and gave the model conflicting targets for the same sentence. The single three-way decision replaces them.
+
+\section{Reading all verdicts in one forward pass}
+\label{sec:method-readout}
+
+The prompt contains a short instruction, the document and the answer. Every sentence of the answer is numbered, and
+every sentence that carries a decision is followed by a marker, the string ``\texttt{~Verdict:}''. Sentences without
+checkable content (Section~\ref{sec:data-construction}) are kept as context but receive no marker. The model processes
+the whole sequence once, and at the last token of each marker the logits of the letters A, B and C are read and
+normalised with a softmax restricted to these three letters. Because a decoder only attends to earlier positions, the
+verdict on sentence $i$ depends on the document and on sentences $1, \dots, i$, which is what verification needs:
+references such as pronouns point backwards. Nothing after the last marker affects any verdict, so the sequence ends
+there.
+
+Two details make the readout efficient and exact. First, the prompt is built by tokenising its pieces separately and
+concatenating them, so the position of every marker is known exactly and is identical at training and inference time.
+Second, the output projection onto the vocabulary is applied only at the marker positions. The transformer body runs
+over the full sequence, but the large vocabulary matrix is multiplied only by the few hidden states that are read.
+
+This design determines the cost of a verification. If $S$ is the length of the document and answer, $K$ the number of
+decisions and $m$ the length of a marker in tokens, the System One costs one prefill of $S + K m$ tokens. A generative
+judge must also decode its verdicts: with $n$ tokens per verdict and a per-token decoding time $t_\mathrm{dec}$, its
+cost is roughly $\mathrm{prefill}(S) + K\, n\, t_\mathrm{dec}$. Since $m$ is three tokens and decoding is much slower
+per token than prefill on the target hardware, the gap widens as $K$ grows. An alternative design, used in earlier
+experiments and kept as a fallback, reads the shared prefix once and then appends one short question per sentence,
+scored in a batch; it needs a key-value cache replicated $K$ times, whereas the marker design needs a single pass.
+
+% Marker " Verdict:" = 3 tokens with the Qwen2.5 tokenizer (" Ver", "dict", ":"), verified 2026-10-07.
+% TODO: report the measured prefill / decode speeds per model size (Phase 0: prefill 0.37 / 2.2 ms per token, decode 5.9 / 31.8 ms per token for 0.5B / 3B).
 
 \section{Training objective}
-% TODO: LoRA on all linear layers; cross-entropy over the allowed letters at the last prompt token; length-bucketed batches; hyper-parameters (YAML) and the LR sweep.
+\label{sec:method-training}
+
+GroundOne is obtained from Qwen2.5-0.5B-Instruct and Qwen2.5-3B-Instruct~\cite{qwen2024qwen25} with low-rank
+adaptation (LoRA)~\cite{hu2022lora}. Adapters of rank 16, with scaling factor 2 and dropout 0.05, are attached to all
+linear layers of all transformer blocks, since covering every layer matters more than a high rank~\cite{dettmers2023qlora}.
+The base weights stay frozen in 8-bit precision. One training example is one answer with all its scored sentences, and
+the loss is computed at every marker of the answer.
+
+The loss is a cross-entropy over the three letters only, so the prompt itself is never supervised and the training
+signal is entirely the verdicts. Because about 88\,\% of the training sentences are supported, the classes are
+weighted so that each contributes equally to the loss: with the training distribution this gives weights of about 0.38
+for supported, 7.5 for contradicted and 4.4 for not-mentioned sentences. Without such weights a model can reach a low
+loss by answering ``supported'' almost always. A useful consequence is that a model which learned only the class
+frequencies would stay at a loss of $\ln 3 \approx 1.10$, so a loss below this value shows that the text is being used.
+
+Optimisation uses AdamW without weight decay, a learning rate of $10^{-4}$ reached after a linear warm-up over the first
+3\,\% of the steps and then decayed to zero with a cosine schedule, and one epoch over the training answers. Answers of
+similar length are grouped into micro-batches under a budget of padded tokens, and gradients are accumulated so that
+each optimiser step sees about 16 answers, or about 110 decisions; this keeps a few contradicted sentences in every
+step despite their rarity. Gradient checkpointing keeps memory within the 16\,GB of the laptop. The model is evaluated
+on the development set at regular intervals, and the checkpoint with the highest three-way balanced accuracy, averaged
+over the three tasks, is kept. Section~\ref{sec:setup-models} lists the settings of each run.
 
 \section{Calibration}
-% TODO: Temperature (+ bias) fitted on dev; bound to the model fingerprint.
-% TODO (author's request): define ECE here: bin predictions by confidence into M bins (M = 15, equal width); ECE = sum_m |B_m|/n * |acc(B_m) - conf(B_m)|; binary variant on P(supported) vs observed supported rate, top-label variant for three classes; dependence on binning; never reported alone (a constant base-rate predictor has ECE ~ 0), always with Brier, NLL and reliability diagrams; cite Naeini 2015, Guo 2017.
+\label{sec:method-calibration}
+
+The class weights train the model as if the three classes were equally frequent, so its raw probabilities are not
+calibrated to the real frequency of errors. A post-hoc map is therefore fitted on the development set: the three
+logits are divided by a temperature $T$ and shifted by a bias per class, $\mathrm{softmax}(z / T + b)$ with the bias of
+the supported class fixed at zero, and $T$ and $b$ minimise the negative log-likelihood of the development
+labels~\cite{guo2017calibration}. A map of this kind changes the probabilities but not their ranking, so measures such
+as AUROC are unaffected. The bias, however, can change which class is most probable, which matters for how decisions
+and probabilities are used (Section~\ref{sec:results-calibration}).
+
+Calibration is measured mainly with the expected calibration error (ECE)~\cite{naeini2015ece,guo2017calibration}. The
+predictions are divided into $M$ bins of equal width according to their confidence, with $M = 15$ in this thesis. For
+each bin $B_m$ the mean confidence $\mathrm{conf}(B_m)$ is compared with the observed frequency $\mathrm{acc}(B_m)$, and
+the gaps are averaged with weights proportional to the size of the bins:
+\begin{equation}
+  \mathrm{ECE} = \sum_{m=1}^{M} \frac{|B_m|}{n} \, \bigl| \mathrm{acc}(B_m) - \mathrm{conf}(B_m) \bigr| .
+\end{equation}
+In the binary variant the confidence is $P(\text{supported})$ and the observed frequency is the share of supported
+sentences in the bin; in the top-label variant for three classes the confidence is the highest probability and the
+observed frequency is the share of correct predictions. ECE does not compare the class distribution of the predictions
+with that of the test set; it asks whether, among the sentences to which the model assigns a given confidence, that
+confidence matches reality. It depends on the choice of bins, and a constant predictor that always outputs the base
+rate has an ECE close to zero while discriminating nothing. For these reasons ECE is always reported together with the
+Brier score, the negative log-likelihood and reliability diagrams.
 
 \section{Software}
-% TODO: Package, CLI, native and Jev-compatible API, memory guard; where each advantage comes from (mechanism vs training).
+\label{sec:method-software}
 
+GroundOne is implemented as an installable Python package on MLX~\cite{mlx2023,mlxlm}, the array framework for Apple
+silicon, and every training and inference step described above runs in it on the same laptop. The package contains the
+dataset builder and its checks, the training loop, the calibration, the evaluation on the frozen test sets, the
+baselines and a memory guard that runs long jobs one at a time and stops a job before the system runs out of memory.
+A command-line interface and an HTTP server expose the verifier; the server offers a native endpoint and an endpoint
+compatible with the interface used by other System One models, so that existing clients can use GroundOne by changing
+the address. All model computation runs on a single long-lived worker thread, because the Metal context of the GPU must
+not move between threads.
+
+% TODO: the HTTP endpoints still use the earlier batched-question engine; switch them to the marker readout (design b)
+% before the demo, then describe the request/response format (three probabilities, label, flagged under a policy).

@@ -1,17 +1,90 @@
 \chapter{Experimental Setup}
 \label{sec:setup}
 
-% STATUS: skeleton. Each section lists what it must contain (TODO notes, not thesis text).
+% Source notes: Project/docs/thesis_notes.md; configs Project/GroundOne/configs/train_0.5b.yaml, train_3b.yaml;
+% queues Project/runs/queue_night3.txt, queue_day4.txt.
+
+This chapter describes the models that were trained, the systems they are compared with, the metrics and the
+measurement protocol. All experiments run on one machine, a MacBook Pro with an Apple M4 chip and 16\,GB of unified
+memory, so that every result reflects what a verifier can do on the device where a local assistant runs.
 
 \section{Models}
-% TODO: Qwen2.5-0.5B/3B-Instruct, MLX 8-bit; GroundOne adapters; untrained readout (B1).
+\label{sec:setup-models}
+
+Both GroundOne models start from the instruction-tuned Qwen2.5 checkpoints~\cite{qwen2024qwen25} converted to MLX with
+8-bit weights, and both are trained with the recipe of Section~\ref{sec:method-training}. They differ only in size, in
+the number of training answers and in how micro-batches are formed, which memory dictates. The 0.5B model is trained
+on all 13{,}203 training answers: one epoch of 802 optimiser steps took 5.4 hours, with an evaluation on the full
+development set every 150 steps. The 3B model is about six times slower per token, so it is trained for one night on
+a random subset of 6{,}500 answers (about 45{,}000 decisions); its development evaluation uses a fixed subset of 200
+answers, because a full pass would take about an hour. In both cases the checkpoint with the best development score is
+kept and then calibrated as described in Section~\ref{sec:method-calibration}.
+
+% TODO: 3B run statistics (steps, hours, best step, peak memory) once g1-3b-b1 has finished.
 
 \section{Baselines}
-% TODO: B0a terse and B0b verbose generative judges; B1 untrained readout; B2 single-token generation control; B3 Rizzo-Flow; B4 MiniCheck/HHEM; B5 published numbers.
+\label{sec:setup-baselines}
+
+The baselines isolate the sources of any advantage. Each one answers a specific question.
+
+\paragraph{Cues that never read the document as a whole.} Two simple predictors give the floor that any verifier must
+clear. The first scores a sentence by the share of its content words that also occur in the document. The second is a
+bag-of-words classifier trained on the training sentences alone, without the document. Both are described in
+Section~\ref{sec:data-eda}.
+
+\paragraph{Untrained readout (B1).} The same Qwen2.5 models, without fine-tuning, are asked the three-way question for
+each sentence and their answer-letter logits are read. Because an untrained model has no reason to treat the
+\texttt{Verdict:} marker as a question, this baseline uses the alternative format with one explicit question per
+sentence (Section~\ref{sec:method-readout}). It measures what the System One mechanism gives before any specialisation.
+
+\paragraph{Generative judges (B0a, B0b).} The untrained models are also used in the way that is common in practice:
+they receive the document, the numbered answer and the list of sentences to check, and they write a verdict for each
+sentence, with greedy decoding. The \emph{terse} judge writes one line ``\texttt{<number>: <letter>}'' per sentence;
+the \emph{verbose} judge writes one short sentence of reasoning followed by the verdict. A verdict that cannot be
+parsed is a format failure; it is counted as an error in accuracy and reported separately. These judges are the main
+reference for latency.
+
+\paragraph{A general-purpose System One (B3).} Rizzo-Flow~\cite{rizzoflow} is an open re-implementation of the System
+One idea with a 4B model fine-tuned on generic typed decisions. It is queried through its own interface with the
+document and the numbered answer as shared state and one three-way choice question per sentence, using a 4-bit
+quantised model because the 8-bit one does not fit in memory beside the operating system.
+
+\paragraph{Specialised encoders (B4).} MiniCheck-RoBERTa~\cite{tang2024minicheck} and HHEM-2.1-open~\cite{vectara2024hhem}
+are the strongest small verifiers available. They score each (document, sentence) pair independently and return one
+probability of support; long documents are split into chunks of about 400 words and the maximum over chunks is kept, as
+in MiniCheck. They have no three-way output, so they are compared on the binary decision only.
+
+\paragraph{Published results.} For LLM-AggreFact, the scores of larger systems from the public leaderboard, such as
+Qwen2.5-7B used zero-shot, are reported as given and not re-run.
+
+The slower systems are evaluated on stratified subsamples of the test sets: Rizzo-Flow on 300 answers of T1 and 600
+pairs of T3, the untrained 3B on 600 answers of T1, and the generative judges on the 200 answers of the latency
+protocol below. Every other system is evaluated on the complete test sets.
 
 \section{Metrics}
-% TODO: Balanced accuracy at 0.5, AUROC, macro recall (three-way), ECE (definition in Ch. 3, calibration section)/Brier/NLL, risk-coverage; latency p50/p90/p99; format failures; memory.
+\label{sec:setup-metrics}
 
-\section{Protocol and hardware}
-% TODO: M4 16 GB; warm-up, repetitions, one model at a time, memory guard; frozen prompts; create-only results.
+Because the share of hallucinated sentences differs between the development set and T1
+(Section~\ref{sec:data-eda}), the primary metrics do not depend on the base rate. For the three-way decision the main
+metric is the balanced accuracy, that is the mean recall over the three classes, together with the recall of each class
+and the share of each predicted class, which reveals a model that collapses onto one answer. For the binary decision
+the metrics are the balanced accuracy at a threshold of 0.5, as in the LLM-AggreFact leaderboard, and the AUROC of
+$P(\text{supported})$, which does not depend on any threshold. The lenient policy is evaluated with the balanced
+accuracy and AUROC of $1 - P(\text{contradicted})$. Calibration is measured with the ECE defined in
+Section~\ref{sec:method-calibration}, the Brier score and the negative log-likelihood, and selective prediction with
+risk--coverage curves and the area under them (AURC)~\cite{geifman2017selective}. All metrics on T1 are also reported
+per task and per band of $K$.
 
+% TODO: 95 % confidence intervals by bootstrap over answers, and paired bootstrap for system differences.
+
+\section{Latency protocol and hardware}
+\label{sec:setup-protocol}
+
+Latency is measured on 200 answers of T1, 50 from each band of $K$, so that long answers are as well represented as
+short ones. Every system runs in process on MLX, one answer at a time, as a verifier would in a local assistant. The
+first three answers serve as warm-up and are excluded. For the System One variants each answer is timed three times and
+the median is kept; the generative judges are timed once, since greedy decoding is deterministic and each run is much
+longer. The reported time is the wall-clock time of the model call for one answer, from which the time per decision
+follows. Only one model runs at a time, and a memory guard runs every long job and records the free memory and the swap
+throughout. Results are written once and never overwritten, and each run stores its configuration, so every number in
+Chapter~\ref{sec:results} can be traced to the run that produced it.

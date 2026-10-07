@@ -1,20 +1,161 @@
 \chapter{Results}
 \label{sec:results}
 
-% STATUS: skeleton. Each section lists what it must contain (TODO notes, not thesis text).
+% Source notes: Project/docs/thesis_notes.md (Ch. 6). Numbers: Project/results/g1-05b-b1/{t1,t2,t3,calibration}/metrics.json.
+% STATUS: first draft with the 0.5B results; baselines, 3B and latency to be added when their runs complete.
 
-\section{Accuracy against the baselines (RQ1, RQ5)}
-% TODO: T1 RAGTruth by task and by K band (three-way macro recall, binary balanced accuracy, strict/lenient); T2 LLM-AggreFact per sub-dataset + RAG subset; T3 VitaminC three-way; against the no-reading baselines (word overlap, sentence-only).
+This chapter reports what GroundOne achieves on the three frozen test sets, how it compares with the baselines, how
+well its probabilities are calibrated and how its latency grows with the number of decisions. It ends with an analysis
+of the errors that remain.
 
-\section{Latency, throughput and memory (RQ2, RQ4)}
-% TODO: Gain vs K and context length; format failures of generative judges.
+\section{Training the 0.5B model}
+\label{sec:results-training}
 
-\section{Calibration and selective prediction (RQ3)}
-% TODO: Reliability diagrams before/after temperature; risk-coverage.
+Training behaved as intended. Before training, the model in the marker format answers ``contradicted'' for 88\,\% of
+the development sentences and reaches a three-way balanced accuracy of 0.32, which is chance. The training loss falls
+below the value of a model that learned only the class frequencies ($\ln 3 \approx 1.10$) within the first 75 steps,
+and the development score then rises steadily before levelling off (Figure~\ref{fig:results-dev}). The balanced
+accuracy, averaged over the three tasks, reaches 0.55 after 150 steps, 0.63 after 450 and 0.633 at step 600, the best
+checkpoint, after which it stays flat. All three classes are predicted throughout, so the model never collapses onto a
+single answer. Data-to-text improves the most, while question answering and summarisation settle around 0.57 and 0.51.
 
-\section{Ablation studies}
-% TODO: A1 fine-tuned vs base (same readout); A2 readout vs single-token generation; A3--A5 if run.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/g1-05b-dev_bacc.png}
+\caption{Three-way balanced accuracy on the development set during training of the 0.5B model, overall (left) and per
+task (right). The dotted line marks chance.}
+\label{fig:results-dev}
+\end{figure}
+
+\section{Accuracy on the RAG test set (T1)}
+\label{sec:results-t1}
+
+On the 17{,}284 sentences of T1 the 0.5B model reaches a three-way balanced accuracy of 0.769. The recall is 0.825 for
+supported, 0.675 for contradicted and 0.806 for not-mentioned sentences. On the binary decision it reaches a balanced
+accuracy of 0.815 and an AUROC of 0.905; with the lenient policy, which counts only contradictions as errors, the
+balanced accuracy is 0.805. These numbers are well above the two cues that never verify a sentence against its
+document: word overlap reaches an AUROC of 0.737, and the sentence-only classifier a three-way balanced accuracy of
+0.570.
+
+The results differ by task (Table~\ref{tab:results-t1}). Data-to-text is the easiest, with 0.812, and this is also
+where contradictions are frequent and well recognised (recall 0.84). In question answering and summarisation the model
+separates supported from not-mentioned sentences well, but it recognises few contradictions: 0.03 of the 31
+contradicted sentences in question answering and 0.13 in summarisation. These two tasks are nonetheless the clearest
+evidence that the model reads the document, because there the sentence-only classifier stays at chance (0.36 and 0.35)
+while GroundOne reaches 0.589 and 0.544.
+
+\begin{table}[htbp]
+\centering
+\caption{GroundOne 0.5B on T1, by task and by number of decisions per answer ($K$). Three-way balanced accuracy, recall
+per class, and AUROC of $P(\text{supported})$.}
+\label{tab:results-t1}
+\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Subset & Sentences & Balanced acc. & Supported & Contradicted & Not mentioned & AUROC \\
+\midrule
+All & 17{,}284 & 0.769 & 0.825 & 0.675 & 0.806 & 0.905 \\
+\midrule
+Question answering & 4{,}876 & 0.589 & 0.85 & 0.03 & 0.89 & 0.916 \\
+Summarisation & 4{,}538 & 0.544 & 0.87 & 0.13 & 0.63 & 0.775 \\
+Data-to-text & 7{,}870 & 0.812 & 0.78 & 0.84 & 0.81 & 0.929 \\
+\midrule
+$K$ = 1--4 & 2{,}434 & 0.606 & 0.84 & 0.18 & 0.80 & 0.857 \\
+$K$ = 5--8 & 8{,}012 & 0.758 & 0.81 & 0.67 & 0.79 & 0.899 \\
+$K$ = 9--13 & 5{,}201 & 0.824 & 0.82 & 0.82 & 0.83 & 0.926 \\
+$K \geq 14$ & 1{,}637 & 0.723 & 0.86 & 0.50 & 0.81 & 0.908 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Accuracy does not degrade with the length of the answer. The balanced accuracy is 0.723 for answers with fourteen or
+more decisions and the AUROC 0.908, close to the overall values; the hardest band is the shortest one, which mostly
+contains question-answering and summarisation answers. This matters for the thesis, because long answers are exactly
+where a System One saves the most time compared with a generative judge.
+
+% TODO: comparison with the baselines on T1 (encoders, untrained readout, Rizzo-Flow) and Figure comparison_t1.
+
+\section{The external benchmark (T2)}
+\label{sec:results-t2}
+
+On LLM-AggreFact the 0.5B model reaches a macro-averaged balanced accuracy of 70.1 over the eleven datasets, against
+64.2 for the same model used zero-shot and 72.8 for the zero-shot 7B model on the public leaderboard. On the four
+datasets closest to retrieval-augmented generation the average is 74.4, the same as MiniCheck-RoBERTa evaluated in the
+same way (74.6), and on the RAGTruth column it is 82.1 against 76.5. This last comparison favours GroundOne, which was
+trained on RAGTruth training answers while MiniCheck was not, so the fair comparison is the RAG average, where the two
+are equal. Outside retrieval-augmented generation GroundOne is weaker than the encoder, by eight to nine points on the
+news-summary datasets AggreFact-CNN and XSum, on FactCheck-GPT and on REVEAL. This is the expected cost of training
+only on RAG data.
+
+\section{Transfer to a different domain (T3)}
+\label{sec:results-t3}
+
+On VitaminC the three-way balanced accuracy is 0.442, above chance (0.33) but far from the result on T1. The model
+predicts ``not mentioned'' for 82\,\% of the pairs, recognises only 27\,\% of the supported claims and 11\,\% of the
+refuted ones, and its AUROC of 0.722 barely exceeds the 0.698 of word overlap. The gap is not explained by the
+different share of classes: the class-weighted training removes the preference for ``supported'', and the AUROC, which
+does not depend on base rates or thresholds, is itself weak. Section~\ref{sec:results-errors} shows what the model is
+missing.
+
+\section{Calibration and selective prediction}
+\label{sec:results-calibration}
+
+The raw probabilities underestimate support. In the reliability diagram (Figure~\ref{fig:results-reliability}) the raw
+curve lies well above the diagonal, because the class weights train the model as if the classes were balanced, and the
+binary ECE on T1 is 0.30. The temperature and bias fitted on the development set ($T = 0.92$, biases $-2.76$ for
+contradicted and $-2.35$ for not mentioned) bring it to 0.019, reduce the negative log-likelihood from 0.55 to 0.21 and
+the Brier score from 0.30 to 0.10, while the AUROC stays at 0.905. The map fitted on development data therefore
+transfers to the test set of the same domain.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/g1-05b-reliability.png}
+\caption{Reliability of $P(\text{supported})$ before (raw) and after calibration on the development set, for the
+development set, T1 and T3. Points are bins with at least 20 sentences.}
+\label{fig:results-reliability}
+\end{figure}
+
+Calibration has a consequence that must be kept in mind. The bias restores the true frequency of each class, so the most
+probable class becomes ``supported'' more often: accuracy rises from 0.82 to 0.93, but the three-way balanced accuracy
+falls from 0.77 to 0.63. Decisions and probabilities therefore serve different purposes. When the three kinds of error
+matter equally, decisions are taken on the raw output or with a threshold chosen on development data. When a probability
+is used as a confidence, for a policy threshold or to decide which sentences to defer, the calibrated value is the right
+one. Used in this way, the calibrated probabilities make selective prediction effective: deferring the least confident
+sentences lowers the error rate of the binary decision quickly, with an area under the risk--coverage curve of 0.015 on
+T1 (Figure~\ref{fig:results-risk}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.75\textwidth]{images/results/g1-05b-risk_coverage.png}
+\caption{Risk--coverage curves of the binary decision with calibrated probabilities: error rate as the least confident
+sentences are deferred.}
+\label{fig:results-risk}
+\end{figure}
+
+Calibration does not transfer to VitaminC, where the binary ECE rises from 0.17 to 0.21. The bias encodes the base rate
+of RAGTruth, where about 88\,\% of sentences are supported, while VitaminC is balanced by construction. A calibration is
+valid for the distribution it was fitted on, so a deployment needs a small labelled sample of its own data.
+
+\section{Latency as a function of K}
+\label{sec:results-latency}
+
+% TODO: latency_vs_K figure (0.5B and 3B), seconds per answer by K band for GroundOne, the batched-question System One,
+% the terse and verbose judges; format failure rates (judges_quality_failures figure); speed-up at K >= 14.
 
 \section{Error analysis}
-% TODO: Where GroundOne fails: long documents, ExpertQA-type labels, subtle conflicts.
+\label{sec:results-errors}
 
+The weak result on VitaminC and the missed contradictions on T1 have a common cause, which word overlap reveals. On
+VitaminC, when a supported claim shares few words with its evidence (overlap below 0.4) the model recognises it in only
+2\,\% of cases, against 64\,\% when the overlap exceeds 0.7, and it never recognises a contradiction in a claim without
+digits. The model relies partly on lexical overlap: a paraphrased claim looks ``not mentioned'', and a small change to
+a copied sentence, often a number, goes unnoticed.
+
+The same weakness exists on T1, with less weight. Where a sentence shares few or some words with the document, the
+three-way balanced accuracy is 0.77, but for sentences that copy more than 70\,\% of their words from the document it
+falls to 0.54, with a recall of 0.24 for contradicted and 0.43 for not-mentioned sentences. Hallucinations hidden in
+sentences that otherwise copy the source are the main blind spot of the model. VitaminC is not harder in absolute
+terms: it consists mostly of such cases, paraphrased support and minimal edits, which RAGTruth contains in smaller
+numbers.
+
+% TODO: whether the 3B reduces this blind spot (same analysis on g1-3b-b1).

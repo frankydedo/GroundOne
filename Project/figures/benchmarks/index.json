@@ -1,0 +1,17 @@
+[
+  {
+    "file": "comparison_t1.png",
+    "caption": "T1 RAGTruth test: AUROC of P(supported) for every system, and three-way balanced accuracy for systems with a three-way output. Word overlap and the sentence-only classifier never verify the sentence against the document. Rizzo-Flow and the untrained 3B are evaluated on subsamples (see metrics files).",
+    "source": "results/*/t1/metrics.json"
+  },
+  {
+    "file": "comparison_t3.png",
+    "caption": "T3 VitaminC test: AUROC of P(supported) for every system, and three-way balanced accuracy for systems with a three-way output. Word overlap and the sentence-only classifier never verify the sentence against the document. Rizzo-Flow and the untrained 3B are evaluated on subsamples (see metrics files).",
+    "source": "results/*/t3/metrics.json"
+  },
+  {
+    "file": "t1_by_task.png",
+    "caption": "T1 (RAGTruth test) AUROC per task for each system.",
+    "source": "results/*/t1/metrics.json"
+  }
+]
