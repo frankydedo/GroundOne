@@ -1,0 +1,42 @@
+{
+  "binary": {
+    "n": 3000,
+    "pos_rate": 0.3333,
+    "bacc": 0.91225,
+    "auroc": 0.9676005,
+    "ece15": 0.03350153628674645,
+    "brier": 0.06295840873973332,
+    "nll": 0.2241557080823421
+  },
+  "by_task": {
+    "VitaminC": {
+      "n": 3000,
+      "pos_rate": 0.3333,
+      "bacc": 0.91225,
+      "auroc": 0.9676005,
+      "ece15": 0.03350153628674645,
+      "brier": 0.06295840873973332,
+      "nll": 0.2241557080823421
+    }
+  },
+  "by_K_band": {
+    "1-4": {
+      "n": 3000,
+      "pos_rate": 0.3333,
+      "bacc": 0.91225,
+      "auroc": 0.9676005,
+      "ece15": 0.03350153628674645,
+      "brier": 0.06295840873973332,
+      "nll": 0.2241557080823421
+    }
+  },
+  "baseline_word_overlap_auroc": 0.6982060000000001,
+  "device": "mps",
+  "latency_per_sentence_p50_s": 0.17147891699278262,
+  "system": "encoder",
+  "model": "minicheck-roberta",
+  "test_file": "test_vitaminc",
+  "records": 3000,
+  "limit": 0,
+  "wall_minutes": 8.66
+}
