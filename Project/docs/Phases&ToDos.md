@@ -40,17 +40,24 @@ Update the status column and the to-do list as work progresses.
 
 ## To-dos
 
-**Now (Oct 6–9): dataset, following `dataset_plan.md`**
-- [x] Dataset built (`groundone data build`): T1 RAGTruth 2,647 answers, T2 LLM-AggreFact 29,320, T3 VitaminC 3,000, dev 1,468 and train 13,203 answers; checks C2, C3, leakage pass; data card `data/processed/groundone/DATACARD.md`; figures `figures/dataset/`
-- [ ] Author approves freezing the test sets (`groundone data freeze`)
+**Now (from Oct 7), in priority order** (author's decisions: freeze approved; 3B option A, one night on a subset, a second night only if the dev is still improving)
+1. [ ] Freeze the test sets (`groundone data freeze`)
+2. [ ] Calibrate the 0.5B (g1-05b-b1) on dev: temperature + bias; ECE / Brier / NLL before and after on T1, T2, T3; reliability diagrams
+3. [ ] Train the 3B (design b) for one night on a random subset of ~4,000–4,500 answers; dev on a fixed subset; then T1 and T3 (T2 when the GPU is free)
+4. [ ] Baselines on the frozen tests (daytime, GPU free):
+   - [ ] encoders MiniCheck-RoBERTa and HHEM on T1 and T3 (T2: RoBERTa done, 74.0)
+   - [ ] untrained readout B1 (format a) on T1 and T3
+   - [ ] generative judges B0a (terse) and B0b (verbose), stratified subsample
+   - [ ] Rizzo-Flow (B3) on T1 and T3 subsample
+   - [ ] latency protocol as a function of K (central figure)
+5. [ ] First draft of the new thesis chapters from `thesis_notes.md` (Ch. 3 method, Ch. 5 setup, Ch. 6 results so far)
 
-**Standing rule:** every phase leaves figures (`groundone figures all` → `Project/figures/`).
+**Standing rules:** every phase leaves figures (`groundone figures all` → `Project/figures/`); every result or insight goes into `docs/thesis_notes.md`.
 
-**Next**
-- [ ] Training code for the three-way task and readout design decision (dataset plan §8)
-- [ ] 0.5B and 3B training on the frozen dataset
-- [ ] Baselines on the frozen test set (encoders, HHEM, Rizzo-Flow; generative judges B0a/B0b; latency protocol §8.3)
-- [ ] Ch. 2 (background and related work), Ch. 3 (method); supervisors + degree programme in `Thesis/common/thesis_info.tex`
+**Later**
+- [ ] Second night of 3B training if the dev curve is still rising (needs resume-from-checkpoint)
+- [ ] Optional extension (week 4): grounded ingestion loop for an LLM wiki, evaluated with injected errors (`thesis_notes.md`, Ch. 8)
+- [ ] Ch. 2 (background), Ch. 1, 7, 8; supervisors + degree programme in `Thesis/common/thesis_info.tex`
 
 ## Already done
 

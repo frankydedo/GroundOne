@@ -1,0 +1,17 @@
+{
+  "frozen": "2026-10-07 13:49:12",
+  "files": {
+    "test_ragtruth": {
+      "records": 2647,
+      "sha256": "dba35977436dcf7af106f2caa5a8fbb471397d58a2025da28ad9a5d74f5c9ccd"
+    },
+    "test_aggrefact": {
+      "records": 29320,
+      "sha256": "84915b38e96a5e737771c4ef6043a077b72a5885339a332a1d3458e1da295ffe"
+    },
+    "test_vitaminc": {
+      "records": 3000,
+      "sha256": "30d00669e4ae2bff02408ceb7688c326a2a70068e44417f84945a49c9a71ef21"
+    }
+  }
+}
