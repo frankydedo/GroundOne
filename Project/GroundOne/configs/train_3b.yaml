@@ -1,30 +1,35 @@
-# GroundOne LoRA fine-tuning — Qwen2.5-3B-Instruct (MLX 8-bit)
+# GroundOne LoRA fine-tuning — Qwen2.5-3B-Instruct (MLX 8-bit), readout design (b)
 # Run:   groundone train --config train_3b.yaml
-# Same recipe as the 0.5B on a 10K stratified subset, so that it fits one night (plan §6.3, D17).
+# Same recipe as the 0.5B (train_0.5b.yaml) except size, data quantity and micro-batching: one night on a random
+# subset of training answers (author's option A, 2026-10-07; a second night only if the dev is still improving).
 
 # --- model and data -------------------------------------------------------------------------------------------
 size: "3b"
-data: "groundone"             # dataset in Project/data/processed/<data>/ (built per docs/dataset_plan.md; not built yet)
-train: "train"                # training file name (set when the dataset is built)
-run: "g1-3b"                 # output: Project/models/<run>/ (never overwritten)
+data: "groundone"             # Project/data/processed/groundone/ (docs/dataset_plan.md)
+train: "train"                # answer-level records (RAGTruth train split)
+run: "g1-3b-b1"               # output: Project/models/<run>/ (never overwritten)
+design: "b"                   # verdicts read at a marker after each scored sentence (dataset plan §8)
+sample: 6500                  # random subset of training answers (~45K decisions, ~5.6 M tokens; measured ~0.75 M tokens/h)
 
-# --- LoRA -----------------------------------------------------------------------------------------------------
+# --- LoRA (identical to the 0.5B) -----------------------------------------------------------------------------
 rank: 16
 scale: 2.0
 dropout: 0.05
 
 # --- optimisation ---------------------------------------------------------------------------------------------
-lr: 5.0e-5                   # lower than the 0.5B: larger model, fewer steps (Rizzo-Flow used 5e-5 on a 4B)
-warmup: 0.03
+lr: 1.0e-4                   # same as the 0.5B (only ~250 steps: a lower LR would risk under-training)
+warmup: 0.05                 # ~12 steps
 epochs: 1.0
-token_budget: 2048           # smaller micro-batches for memory (Phase 0 probe: 5.9 GB peak at 2,048 tokens, batch 1)
-max_rows: 8
-accum: 4                     # same effective batch as the 0.5B
+token_budget: 2304           # ~2 answers per micro-batch (longest answer ~2,100 tokens with markers)
+max_rows: 4
+accum: 8                     # ~16 answers per optimiser step, as for the 0.5B
 seed: 1234
 
 # --- evaluation, safety ---------------------------------------------------------------------------------------
-eval_every: 100
-dev_size: 600
+eval_every: 80               # ~5 dev evaluations (~400 steps)
+dev_file: "dev"
+dev_sample: 200              # fixed dev subset (a full dev pass costs ~1 h on the 3B)
+select: "bacc"               # best/ = highest mean three-way balanced accuracy over tasks
 max_hours: 0                 # no time limit (author prefers late over truncated runs)
 max_steps: 0
 mem_gb: 10.0

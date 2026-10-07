@@ -84,6 +84,7 @@ def main(argv=None):
                     help="b (default): one row per answer, verdicts read at a marker after each scored sentence; "
                          "a: one row per question (prompt + question suffix)")
     ap.add_argument("--sample", type=int, default=0, help="design b: random subset of N training answers (0 = all)")
+    ap.add_argument("--dev-sample", type=int, default=0, help="design b: fixed random subset of N dev answers (0 = all)")
     ap.add_argument("--mem-gb", type=float, default=9.0)
     a = ap.parse_args(argv)
     if a.config:
@@ -159,7 +160,10 @@ def main(argv=None):
         total = sum(counts)
         class_w = [total / (3 * n) for n in counts]  # balanced: each class contributes equally to the loss
         train_rows = prepare_b(recs, class_w)
-        dev_rows_b = prepare_b(load_jsonl(d / f"{a.dev_file or 'dev'}.jsonl"), class_w)
+        dev_recs = load_jsonl(d / f"{a.dev_file or 'dev'}.jsonl")
+        if a.dev_sample:
+            dev_recs = random.Random(0).sample(dev_recs, min(a.dev_sample, len(dev_recs)))
+        dev_rows_b = prepare_b(dev_recs, class_w)
     else:
         train_rows = prepare(load_jsonl(d / f"{a.train}.jsonl"))
     rng = random.Random(a.seed)
@@ -230,7 +234,7 @@ def main(argv=None):
         total_steps = min(total_steps, a.max_steps)
         total_micro = total_steps * a.accum
     warm = max(1, int(total_steps * a.warmup))
-    sched = optim.join_schedules([optim.linear_schedule(1e-7, a.lr, warm), optim.cosine_decay(a.lr, total_steps - warm)], [warm])
+    sched = optim.join_schedules([optim.linear_schedule(1e-7, a.lr, warm), optim.cosine_decay(a.lr, max(1, total_steps - warm))], [warm])
     opt = optim.AdamW(learning_rate=sched, weight_decay=0.0)
 
     meta = {"size": a.size, "base_model": BASE_MODELS[a.size], "data": a.data, "train_file": a.train,

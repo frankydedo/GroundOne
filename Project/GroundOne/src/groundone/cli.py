@@ -47,9 +47,9 @@ def main(argv=None):
         return getattr(module, fn)(argv[1:])
     if argv and argv[0] == "baselines":
         sub = argv[1] if len(argv) > 1 else ""
-        mods = {"rizzo": "rizzo", "encoder": "encoders"}
+        mods = {"rizzo": "rizzo", "encoder": "encoders", "frozen": "frozen", "judges": "judges"}
         if sub not in mods:
-            sys.exit("usage: groundone baselines rizzo|encoder [...]")
+            sys.exit("usage: groundone baselines rizzo|encoder|frozen|judges [...]")
         return __import__(f"groundone.baselines.{mods[sub]}", fromlist=["main"]).main(argv[2:])
     if argv and argv[0] == "data":
         sub = argv[1] if len(argv) > 1 else ""
