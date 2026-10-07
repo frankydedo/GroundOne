@@ -190,5 +190,9 @@ Source: `results/minicheck-roberta-frozen/{t1,t3}/metrics.json` (full T1 and T3;
 **Readings.**
 - GroundOne's advantage on T1 comes mostly from **data-to-text**, where in-domain training and the template cues help: +0.21 AUROC. QA is close (+0.02), and on **summarisation the encoder is better** (−0.10).
 - RoBERTa's AUROC by K band falls with K: 0.882 (1–4), 0.828, 0.773, 0.763 (≥ 14). GroundOne's does not: 0.857, 0.899, 0.926, 0.908. **Caveat**: the K bands are confounded with the task mix, because long answers are mostly data-to-text, where RoBERTa is weakest. Check per task × K before claiming a K effect.
-- On VitaminC the encoder is near-perfect. **To verify before interpreting**: whether VitaminC, or a closely related source, is part of MiniCheck-RoBERTa's training data or of the model it was initialised from (AlignScore's training mix is reported to include fact-verification data). If it is, T3 is in-distribution for the encoder and the comparison must say so.
+- On VitaminC the encoder is near-perfect, and **verified (2026-10-07) the reason is that T3 is in-distribution for it**:
+  - MiniCheck-RoBERTa is initialised from AlignScore's RoBERTa-L (Tang et al. 2024);
+  - AlignScore was trained on 4.7M examples that include **VitaminC** and NLI-style FEVER (Zha et al. 2023, Table 1; wiki pages `Tang 2024 - MiniCheck`, `Zha 2023 - AlignScore`).
+
+  This is not test leakage in the strict sense: AlignScore used VitaminC's training split, and our T3 comes from the test split, split by article. But T3 measures transfer only for GroundOne, not for this encoder. The T3 comparison must be presented this way. For HHEM, check its training data before interpreting its T3 result.
 
