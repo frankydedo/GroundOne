@@ -5,14 +5,14 @@
   groundone systemone  FILE.json [--size] [--adapter]            one Jev-compatible request, no server
   groundone schema     [--response] [--compat]                   JSON Schema of the API
   groundone models                                                base models and trained runs available locally
-  groundone data       build | check | shortcut | freeze         dataset (docs/dataset_plan.md), leakage, shortcut, freeze tests
-  groundone train      --size --run [...]                         LoRA fine-tuning
-  groundone calibrate  --adapter RUN                              temperature per question type, on dev
+  groundone data       build | check | shortcut | freeze | rows  dataset (docs/dataset_plan.md), leakage, shortcut, freeze tests
+  groundone train      --config train_0.5b.yaml [...]             LoRA fine-tuning (design b by default)
+  groundone calibrate-b --adapter RUN/best --name NAME            temperature + bias on dev (design b)
   groundone test       --suite t1|t2|t3 --name NAME [--adapter RUN]   frozen GroundOne test sets (three-way)
-  groundone eval       --suite aggrefact|ragtruth|anli|all --name NAME [--adapter RUN] [--limit N]
   groundone guard      QUEUE.txt                                  run long jobs one at a time under the memory guard
-  groundone figures    all | phase0 | sweep | training RUN | results | eda   thesis figures -> Project/figures/
-  groundone baselines  rizzo | encoder [...]                       comparison systems (Rizzo-Flow via its API; encoders)
+  groundone figures    all | dataset | benchmarks | training RUN | eda | phase0   thesis figures -> Project/figures/
+  groundone baselines  frozen | judges [...]                      baselines on the frozen tests; generative judges + latency
+  legacy (earlier datasets, kept for reference): groundone eval | calibrate, groundone baselines encoder | rizzo
 """
 import argparse
 import json

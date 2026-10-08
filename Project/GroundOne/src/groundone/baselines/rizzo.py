@@ -1,4 +1,6 @@
-"""Baseline B3: Rizzo-Flow (general-purpose System One) through its TypeSafe/Jev-compatible API.
+"""LEGACY entry point (earlier test files). `post` is reused by baselines/frozen.py, which runs Rizzo-Flow on the frozen tests.
+
+Baseline B3: Rizzo-Flow (general-purpose System One) through its TypeSafe/Jev-compatible API.
 
 Rizzo-Flow must be running (e.g. `rizzo serve --port 8017` from SystemOne_repos/rizzo-flow). Every request uses the
 same contract GroundOne also serves (`POST /v1/systemone`), so the comparison is on equal footing:

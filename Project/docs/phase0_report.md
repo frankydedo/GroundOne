@@ -1,3 +1,5 @@
+> **Historical report (2026-10-05).** It documents the feasibility tests that motivated the project. Several choices described here were later superseded: the four-question design (D15 → D20), ANLI and MiniCheck as data (→ D21), and the batched-question readout (→ design b, D22). Current state: `implementation_plan.md` §2.1 and `thesis_notes.md`.
+
 # Phase 0 report: feasibility of GroundOne
 
 Run on the night of 2026-10-05, 01:00–03:00. Hardware: M4 MacBook Pro, 16 GB unified memory, MLX 0.29.3 / mlx-lm 0.29.1, PyTorch 2.11 (MPS).

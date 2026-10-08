@@ -1,6 +1,6 @@
 # GroundOne dataset plan
 
-Status: v2.2 (2026-10-07). Readout design (b) is the default (§8). Simplified to the strict minimum: one training source, three test sets. **Steps 1–3 and 5 of §7 are done** (`Project/data/processed/groundone/DATACARD.md`); the tests await the author's approval to be frozen (step 4). Decisions D20 and D21 are in `implementation_plan.md` §3.
+Status: v2.3 (2026-10-08). All steps done: the test sets are frozen (2026-10-07, `data/processed/groundone/tests_frozen.json`), and the dataset was validated by training (T1 three-way 0.769 for the 0.5B). Readout design (b) is the default (§8). Simplified to the strict minimum: one training source, three test sets. **Steps 1–3 and 5 of §7 are done** (`Project/data/processed/groundone/DATACARD.md`); the tests await the author's approval to be frozen (step 4). Decisions D20 and D21 are in `implementation_plan.md` §3.
 
 This document specifies how the training, development and test data are built from scratch. Nothing is trained until the test sets of §4 are built, validated and frozen. The thesis (Ch. 4) describes only the dataset produced by this plan.
 

@@ -1,4 +1,6 @@
-"""Diagnostic figures for a trained run: format effect, sentence position / K, probability spread, three-way confusion.
+"""LEGACY (diagnostics of a model trained on datasets v1). Current error analysis: docs/thesis_notes.md (overlap analysis).
+
+Diagnostic figures for a trained run: format effect, sentence position / K, probability spread, three-way confusion.
 
 Usage: groundone figures diagnostics g1-05b-v1   (needs results/<run>/{ragtruth,aggrefact,anli}/predictions.parquet)
 """

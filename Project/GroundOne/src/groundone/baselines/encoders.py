@@ -1,4 +1,6 @@
-"""Baseline B4: encoder fact-checkers (MiniCheck-RoBERTa/-DeBERTa, HHEM-2.1-open) on the processed test sets.
+"""LEGACY entry point (earlier test files). `make_scorer` and `chunks` are reused by baselines/frozen.py, which runs the encoders on the frozen tests.
+
+Baseline B4: encoder fact-checkers (MiniCheck-RoBERTa/-DeBERTa, HHEM-2.1-open) on the processed test sets.
 
 They output one P(supported) per (document, claim). Documents are chunked (~400 words, MiniCheck's recipe) and the
 maximum over chunks is kept. Evaluation:

@@ -1,4 +1,6 @@
-"""Results figures: all systems evaluated so far (results/<name>/<suite>/metrics.json), compared per test set."""
+"""LEGACY (systems on the earlier test files); excluded from `groundone figures all`. Current comparison: figures/benchmarks.py.
+
+Results figures: all systems evaluated so far (results/<name>/<suite>/metrics.json), compared per test set."""
 import json
 
 import numpy as np

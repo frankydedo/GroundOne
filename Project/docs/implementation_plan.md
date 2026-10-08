@@ -2,7 +2,7 @@
 
 A specialist System One for local RAG: single-pass, calibrated groundedness verification with compact Qwen2.5 models on a 16 GB Apple Silicon laptop.
 
-> **Status:** v0.6 (2026-10-06). Phase 0, 0b, 1a (EDA) and the package (Phase 2) are done. The task was redefined on 2026-10-06 (D20: one three-way decision per answer sentence, K = number of sentences). The dataset is being rebuilt from scratch following `dataset_plan.md` (test set first). Next: execute the dataset plan, then train the 0.5B and the 3B.
+> **Status:** v0.7 (2026-10-08). Done: feasibility (Phase 0/0b), EDA, the GroundOne package, the dataset (built, validated, test sets frozen 2026-10-07, `dataset_plan.md`), GroundOne 0.5B and 3B (readout design b), calibration, all baselines on the frozen tests and the latency protocol. First drafts of thesis Ch. 3–6. Pending: T2 for the 3B, bootstrap CIs, HTTP API on design (b), demo, Ch. 1/2/7/8. All findings: `thesis_notes.md`.
 > **Hard constraint: the experiment *and* the written thesis (`Thesis/`) must be done by the submission date, 2026-11-10. New experiments only until 2026-10-30.** The schedule (§9) and the scope cuts (§1.5) follow from this.
 > Every number marked *(estimate)* or *(provisional)* is a planning figure to be replaced by a measurement.
 > Companion document: `abstract.md`.
@@ -100,6 +100,20 @@ Success levels:
 - **Target:** H1 (0.5B), H2b, H2c, H3 and H5 confirmed.
 - **Stretch:** streaming verification in the demo; implicit-truth rule (RAGTruth `implicit_true`).
 
+### 2.1 Status of the hypotheses after the first full round (2026-10-08)
+
+Numbers are from `thesis_notes.md`; T1 = RAGTruth test, T2 = LLM-AggreFact, T3 = VitaminC.
+
+| ID | Evidence so far | Status |
+| --- | --- | --- |
+| H1 specialisation | 0.5B: LLM-AggreFact 70.1 (zero-shot 64.2; 7B zero-shot 72.8), RAG subset 74.4 = MiniCheck-RoBERTa 74.6. T1 AUROC 0.905 (0.5B) and 0.940 (3B) vs 0.81–0.82 for the encoders. On T1 the 0.5B beats Rizzo-Flow 4B (three-way 0.80 vs 0.60 on the same answers) | **Supported in the RAG domain.** Weaker outside it (T3; non-RAG T2 columns) |
+| H2a readout vs single-token generation | Not run as a separate control: with readout design (b), generating one token at each marker is the same computation | Open: decide whether B2 is still meaningful (§14) |
+| H2b speed vs generative judges | At K ≥ 14: 0.5B 0.41 s vs 0.80 s (terse) and 2.51 s (verbose); 3B 2.57 s vs 4.44 s and 15.86 s. The gain grows with K | **Supported** |
+| H2c format reliability | 0.5B judges: 23 % (terse) and 97 % (verbose) unparsable verdicts; 3B: 0.1 % and 7.6 %. System One: 0 % | **Supported** |
+| H3 calibration | Temperature + bias on dev: T1 binary ECE 0.30 → 0.019 (0.5B), 0.18 → 0.019 (3B); AURC 0.015 / 0.010. Does not transfer to T3 | **Supported in domain** |
+| H4 on-device cost | Training peak 2.6 GB (0.5B) and 5.9 GB (3B); verification 0.33 s / 1.99 s median per answer | **Supported** |
+| H5 beyond a binary score | Three-way 0.769 / 0.832 on T1; contradicted recall low outside data-to-text (QA and Summary 0.03 → 0.30 with the 3B) | **Partly supported** |
+
 ---
 
 ## 3. Key design decisions (decision log)
@@ -127,6 +141,9 @@ Success levels:
 | D16 | Phase 1a: exploratory data analysis of ANLI and RAGTruth before building the training mix | Decide which dataset serves which question, length caps, label rules | Build the mix directly |
 | D20 | **Task redefined**: one three-way decision per answer sentence (supported / contradicted / not mentioned); K = number of sentences; binary score and strict/lenient rules derived from the three probabilities. Supersedes D15 and the four-question format | The four questions were deterministic functions of the three-way class (strict = binary, lenient = not contradicted): they inflated K artificially and gave conflicting targets for the same sentence. K must come from the task (sentences of the answer) | Keep four questions in the prompt |
 | D21 | **Dataset rebuilt from scratch** following `dataset_plan.md`, reduced to the strict minimum: RAGTruth is the only training source (plus dev and test T1); LLM-AggreFact (T2) and VitaminC (T3) are test-only. Test sets defined, validated and frozen **before** any training. Only the final dataset is described in the thesis | Author's decision (2026-10-06): without a reliable test set every later result is useless | Iterate on the previous dataset |
+| D22 | **Readout design (b) is the default**: one forward pass per answer, a marker " Verdict:" after every scored sentence, A/B/C logits read at the markers, output head applied only there; class-weighted loss (classes contribute equally). Design (a), with one question suffix per sentence, is kept as a fallback | Uses every labelled sentence of an answer in one training row (≈ 8× more supervision for the same cost) and one pass at inference. Validated on 2026-10-07: T1 three-way 0.769 (0.5B) | Design (a) as default |
+| D23 | **Validation run and 3B configuration**: 0.5B on all training answers (accumulation 4); 3B on 6,500 random answers (option A, one night; same LR 1e-4; ≈ 16 answers per step; dev on 200 answers) | Author's decisions 2026-10-06/07; one night per model on the M4 | 3B on the full set over two nights |
+| D24 | **Calibration per adapter = temperature + per-class bias on dev** (`groundone calibrate-b`). Primary classification metrics use the raw (balanced) decision; calibrated probabilities are used for ECE, thresholds and selective prediction | The bias restores base rates and moves the argmax towards "supported" (three-way 0.77 → 0.63 for the 0.5B) | Temperature only |
 
 Record future changes below (date, decision, reason).
 
@@ -139,6 +156,9 @@ Record future changes below (date, decision, reason).
 ## 4. System design
 
 ### 4.1 Prompt format
+
+> **Current default: readout design (b)** (D22, `prompts.encode_marked`). The prompt is: system message, user turn with an instruction, `DOCUMENT:` and `ANSWER:`. Every sentence is written as `[k] sentence`, and every scored sentence is followed by the marker " Verdict:" (3 tokens). The A/B/C logits are read at the marker's last token, all K in one forward pass, and the sequence ends after the last marker. The format below (design a) is the fallback, and is also used by the untrained baseline B1 and by the current HTTP API.
+
 Chat template of Qwen2.5 (ChatML). The prompt is split into a **shared prefix** and a **per-claim suffix** so that the prefix is encoded once.
 
 ```
@@ -162,6 +182,9 @@ Question about sentence [i]: {question q}  Answer A for yes, B for no.   (three-
 - **Boundary rule:** the engine tokenises each full prompt and takes the **longest common token prefix** as the shared part, so BPE merges at the boundary cannot cause mismatches. Unit test: batched probabilities equal one-pass-per-question probabilities (Phase 0b: max |Δp| = 0.00000).
 
 ### 4.2 Engine (MLX)
+
+> Design (b): `Backend.score_positions` runs one padded batch of whole answers, gathers the hidden states at the marker positions and applies the output head only there (`readout.py`). The description below is design (a).
+
 ```
 engine.verify(context, answer_sentences, questions) -> [P(answer)_k for k in 1..K]
  1. build the K prompts, take the common token prefix, prefill it once   (cost ~ prefill(S))
@@ -234,6 +257,13 @@ The risk is long contexts. Rules of thumb *(to measure)*:
 - Training time (Phase 0 probe, measured per token): one epoch of ≈35K MiniCheck-length examples ≈ 3–4 h on the 0.5B and ≈ 17 h on the 3B. The 3B must be trained on a subset (~10K examples ≈ one night).
 
 ### 6.4 Procedure
+
+> **As run (2026-10-07/08).** One epoch, AdamW lr 1e-4 (no weight decay), cosine decay, LoRA r16 / α32 / dropout 0.05 on all linear layers.
+> - 0.5B: all 13,203 training answers, 802 steps, warm-up 3 %, accumulation 4, dev every 150 steps on the full dev set, 5.4 h.
+> - 3B: 6,500 answers, 403 steps, warm-up 5 %, ≈ 2 answers per micro-batch × accumulation 8, dev on 200 answers every 80 steps, 12.25 h.
+> - Best checkpoint on dev three-way balanced accuracy (mean over tasks).
+> - Configs: `GroundOne/configs/train_0.5b.yaml`, `train_3b.yaml`. Single seed per model (a limitation to state).
+
 1. Sanity run: 0.5B on a small subset; loss must decrease; the engine's output must equal the training-time computation (same prompt, same logits within tolerance).
 2. Hyper-parameter sweep (small): learning rate, rank, epochs, on the 0.5B only; selection on dev only.
 3. Final runs: 0.5B (2 seeds if time allows, else 1), 3B (1 seed, launched overnight). Report mean ± std where seeds exist and state the single-seed limitation otherwise.
@@ -270,7 +300,13 @@ The risk is long contexts. Rules of thumb *(to measure)*:
 
 Rules: same prompt content, same truncation, same machine, same decoding settings (greedy) wherever applicable; prompts of the baselines are fixed **before** looking at test results and frozen in the repo.
 
-Experiment matrix: {B0a, B1, B2, GroundOne} × {0.5B, 3B} on the full test sets; B0b on a stratified subsample; {B3, B4} once each; on {LLM-AggreFact, RAGTruth, ANLI dev (three-way and rules)}.
+Experiment matrix as run on the frozen tests (2026-10-07/08):
+- **Full T1 and T3**: GroundOne 0.5B / 3B; B4 MiniCheck-RoBERTa and HHEM; B1 untrained 0.5B (format a).
+- **T2**: GroundOne 0.5B; RoBERTa (published protocol). The 3B is pending.
+- **Subsamples**: B1 untrained 3B on 600 T1 answers; B3 Rizzo-Flow 4B Q4 on 300 T1 answers and 600 T3 pairs; B0a / B0b terse and verbose judges (0.5B, 3B) on the 200 latency answers (50 per K band).
+- **Baselines that do not verify the sentence against the document**: word overlap (AUROC) and the sentence-only n-gram classifier.
+- **B2** not run (see §14).
+- Commands: `groundone test`, `groundone baselines frozen|judges`.
 
 ---
 
@@ -315,7 +351,7 @@ Experiment and thesis together. The machine trains or benchmarks **at night**; d
 
 | Week | Dates | Experiment | Writing (`Thesis/`) | Gate at end of week |
 | --- | --- | --- | --- | --- |
-| **1** | Oct 5–11 | Phase 0 + 0b ✅ (Oct 5) → **Phase 1a EDA** of ANLI and RAGTruth (`Project/EDA/`) → Phase 1 data pipeline + leakage check → engine + harness; first 0.5B training run overnight | Thesis skeleton (chapters, bib); Ch. 2 Background & related work (wiki ingest ✅); Ch. 4 Data and EDA (material ready) | Datasets frozen; engine probabilities == training-time probabilities |
+| **1** ✅ (ahead) | Oct 5–11 | Phase 0 + 0b ✅ (Oct 5) → **Phase 1a EDA** of ANLI and RAGTruth (`Project/EDA/`) → Phase 1 data pipeline + leakage check → engine + harness; first 0.5B training run overnight | Thesis skeleton (chapters, bib); Ch. 2 Background & related work (wiki ingest ✅); Ch. 4 Data and EDA (material ready) | Datasets frozen ✅ (Oct 7); 0.5B and 3B trained, baselines and latency done (Oct 8), i.e. most of weeks 2–3 |
 | **2** | Oct 12–18 | 0.5B final run(s); 3B training overnight; baselines B0a, B1, B2 on full test sets; B0b/B0c on subsample; B4 encoders; B3 Rizzo-Flow | Ch. 3 Method (task, prompt, engine, loss, calibration) | 0.5B beats B1 on dev; 3B adapter exists |
 | **3** | Oct 19–25 | GroundOne 3B eval; latency protocol (§8.3); calibration (temperature, reliability, risk-coverage); ablations A1/A2; error analysis | Ch. 5 Experimental setup; start Ch. 6 Results as numbers arrive | All main tables and figures generated from `results/` |
 | **4** | Oct 26–Nov 1 | Stretch ablations (A3–A5) if the main matrix is complete; minimal demo (2 days max); **feature freeze Fri Oct 30** | Ch. 6 Results, Ch. 7 Discussion | Experiments closed |
@@ -331,18 +367,10 @@ Thesis chapter outline (to fill in `Thesis/content/chapters/`):
 1. Introduction (motivation: trustworthy local RAG; System One vs LLM; RQs; contributions)
 2. Background and related work (LLM inference: prefill vs decode, KV cache; System One models; hallucination detection and RAG verification; calibration and selective prediction; parameter-efficient fine-tuning)
 3. GroundOne: method and implementation
-4. Data and exploratory analysis (from Phase 1a, `Project/EDA/report/eda_report.md`)
-   - 4.1 The datasets and where they come from: ANLI, RAGTruth, MiniCheck synthetic data, LLM-AggreFact and its 11 sub-datasets
-   - 4.2 Exploratory analysis: label schemes and balance, lengths, sentences per answer (K), span types, shortcuts (ANLI negation cue), label agreement (98.6 % with LLM-AggreFact)
-   - 4.3 Overlaps and leakage: LLM-AggreFact-RAGTruth = RAGTruth (dev = train, test = test), ANLI premise reuse; the rules derived from them
-   - 4.4 Usability of each dataset per experiment and the resulting training mix and splits
+4. Data (written, `Thesis/content/chapters/ch4_data.tex`): task and labels; sources (RAGTruth, LLM-AggreFact, VitaminC); construction; resulting dataset; reliability of the test sets; exploratory analysis; leakage control
 5. Experimental setup (baselines, metrics, protocol, hardware)
 6. Results
-   - 6.1 Accuracy vs baselines (RQ1, RQ5)
-   - 6.2 Latency, throughput and memory: readout vs generation, effect of K and context length (RQ2, RQ4)
-   - 6.3 Calibration and selective prediction (RQ3)
-   - 6.4 **Ablation studies** (§6.5): A1 fine-tuned vs base with the same readout; A2 logit readout vs single-token generation with the same weights; A3–A5 only if run before the freeze
-   - 6.5 Error analysis
+   - First draft written (training; T1; baselines; T2; T3; calibration; latency vs K; error analysis by word overlap). Still to add: T2 for the 3B, CIs, ablations if run
 7. Discussion, limitations and threats to validity
 8. Conclusion and future work (streaming verification, larger models, more rules)
 
@@ -467,25 +495,29 @@ Threats to validity to discuss in the thesis: benchmark representativeness for *
 Implemented structure (2026-10-05, D19), modelled on Rizzo-Flow: an installable package with a CLI and an HTTP API. Usage: `Project/GroundOne/README.md`.
 
 ```
-Project/                     # experiment workspace
+Project/                     # experiment workspace (see the restructuring proposal of 2026-10-08)
   GroundOne/                 # the software (installable package, own .venv)
     pyproject.toml, README.md
-    configs/                 # training hyper-parameters: train_0.5b.yaml, train_3b.yaml (copied into each run)
+    configs/                 # train_0.5b.yaml, train_3b.yaml (copied into each run)
     src/groundone/
-      prompts.py             # single source of truth for prompts and questions (training = inference)
-      backend.py             # MLX model + adapter; shared-prefix batched scoring (D14), length-batched scoring
-      engine.py              # thread-safe service (one MLX thread + lock): verify / systemone / predict
-      schema.py, compat.py   # native contract (/v1/verify) and TypeSafe/Jev-compatible contract (/v1/systemone)
-      api.py, cli.py         # FastAPI app; `groundone serve|verify|systemone|schema|models|data|train|calibrate|eval|guard`
-      calibration.py         # temperature per question type, bound to the model fingerprint
-      data/ training/ eval/ tools/   # dataset build + leakage check; LoRA loop; evaluation suites; memory guard
-      playground.html        # web UI (base of the demo)
-    tests/                   # fake-backend tests (API, schema, compat) + `-m model` real-model tests
-  data/                      # download.py + manifests tracked; raw/ and processed data gitignored
-  models/                    # trained adapters (gitignored)
-  results/                   # evaluation outputs (JSON tracked, predictions gitignored)
-  runs/                      # logs and job queues (gitignored)
-  EDA/  phase0/  docs/
+      prompts.py             # prompts: design (a) questions, design (b) encode_marked (training = inference)
+      readout.py             # design (b): output head applied at marker positions only
+      backend.py             # MLX model + adapter: score_positions (b), score_shared / score_many (a)
+      engine.py, api.py, schema.py, compat.py, cli.py, playground.html   # service, HTTP API (still design a), CLI, UI
+      calibration.py         # temperature + bias per key, bound to the model fingerprint
+      data/                  # build.py (dataset + checks), segment.py (pysbd + content rule), leakage.py, shortcut.py, rows.py (design a)
+      training/train.py      # LoRA loop, design (b) default
+      eval/                  # tests.py (frozen T1/T2/T3), calibrate_b.py, metrics.py; evaluate.py = legacy (v1 data)
+      baselines/             # frozen.py (encoders, Rizzo-Flow), judges.py (generative judges + latency); encoders.py / rizzo.py legacy entry points
+      figures/               # dataset, benchmarks, training, phase0 (+ legacy results, diagnostics)
+      tools/watchdog.py      # memory guard
+    tests/
+  data/                      # download.py + manifests; raw/ and processed/groundone/ (jsonl gitignored; manifest, reports, DATACARD tracked)
+  models/                    # trained adapters (gitignored): g1-05b-b1, g1-3b-b1
+  results/                   # evaluation outputs (metrics.json tracked, predictions gitignored)
+  figures/                   # generated figures (PNG + captions)
+  runs/                      # job queues and guard logs (gitignored)
+  EDA/  phase0/  docs/  _archive/ (earlier experiments, gitignored)
 ```
 
 Reproducibility rules: one config file per run; fixed seeds; dataset and prompt hashes stored with results; results never overwritten; one git tag per reported experiment; `uv` for environments.
@@ -501,9 +533,12 @@ Answered: D1 confirmed; no hand-labelled set (D10); submission 2026-11-10, exper
 Also answered: Phase 0/0b run (GO); demo generator = 3B (D12); 7B not run (D13).
 
 
-Still open:
-1. Whether to rebalance ANLI negation cues (v2) — decide after the first training run.
-2. Supervisor requirements (length/format, mandatory comparisons), if any.
+Still open (2026-10-08):
+1. **B2 control** (single-token generation with the same weights). With design (b) it is the same computation as the readout. Decide whether to run it in format (a), or to drop it and explain why.
+2. **T2 for the 3B**: ≈ 14 h on the full test set; run overnight or on a stratified subsample.
+3. **Bootstrap confidence intervals** and paired tests: computable from the saved predictions, no GPU needed.
+4. **HTTP API and demo** on design (b), plus the optional extension (grounded ingestion loop for an LLM wiki, `thesis_notes.md` Ch. 8).
+5. Supervisor requirements (length/format, mandatory comparisons), if any.
 
 ---
 
@@ -552,3 +587,4 @@ Authors, years and venues were checked against arXiv, the ACL Anthology and AAAI
 - Pope et al. (2023). Efficiently Scaling Transformer Inference. MLSys 2023.
 - Kwon et al. (2023). Efficient Memory Management for Large Language Model Serving with PagedAttention. SOSP 2023.
 - 2026-10-06: **D20** (task redefined: three-way per sentence, K = sentences) and **D21** (dataset rebuilt from scratch, `dataset_plan.md`) decided with the author. The earlier datasets, models trained on them and their analysis were archived outside the repository.
+- 2026-10-07: **D22** (readout design b default), **D23** (validation run; 3B option A), test sets frozen. 2026-10-08: **D24** (calibration temperature + bias; decisions on raw output). First full round of results in `thesis_notes.md`.

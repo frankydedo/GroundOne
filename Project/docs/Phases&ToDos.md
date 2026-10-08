@@ -12,16 +12,16 @@ Update the status column and the to-do list as work progresses.
 | 0 | Feasibility | Decide GO/NO-GO: data available, room for improvement, speed gain, fits in 16 GB | Oct 5 (overnight run) | ✅ | GO on the task; speed criterion failed vs terse judges → framing to decide. See `phase0_report.md` |
 | 0b | Feasibility re-test | Batched System One vs terse and verbose LLM judges at high K; flexibility probe vs MiniCheck | Oct 5 | ✅ | G4b/G4c pass (gain grows with K); G6 fails zero-shot → flexibility trained. See report |
 | 1a | EDA | Analyse the source datasets (labels, lengths, K, span types, overlap) | Oct 5 | ✅ | Report `Project/EDA/report/eda_report.md`; data in `Project/data/raw/` |
-| 1 | Dataset | Task-driven train/dev/test sets for the three-way per-sentence task (D20, D21); test set validated and frozen first | Oct 6–9 | 🟡 | Plan: `dataset_plan.md` |
+| 1 | Dataset | Task-driven train/dev/test sets for the three-way per-sentence task (D20, D21); test set validated and frozen first | Oct 6–7 | ✅ | Built and validated; tests frozen Oct 7. `dataset_plan.md`, `data/processed/groundone/DATACARD.md` |
 | 2 | Engine and benchmark harness | Verifier that reads the context once and scores each sentence, plus scripts that run all systems the same way | Oct 5 | ✅ | `Project/GroundOne` package: CLI, server (native + Jev-compatible API), YAML training configs, calibration, eval; tests pass |
-| 3 | Training 0.5B | Fine-tune the small model and check it beats its untrained version | after Phase 1 | ⬜ | Starts only on the frozen dataset |
-| 4 | Training 3B | Fine-tune the larger model overnight | Week 2 (Oct 12–18) | ⬜ | |
-| 5 | Baselines | Run the comparison systems: terse and verbose generative judges, untrained models, encoders, Rizzo-Flow | Oct 5 – week 2 | 🟡 | Harness works (encoders, HHEM, Rizzo-Flow run on the earlier test files); rerun on the frozen test set |
-| 6 | Main benchmarks | Accuracy and latency of all systems on the test sets | Week 3 (Oct 19–25) | ⬜ | |
-| 7 | Calibration and analysis | Calibration, ablations, error analysis | Week 3–4 | ⬜ | |
+| 3 | Training 0.5B | Fine-tune the small model and check it beats its untrained version | Oct 7 | ✅ | g1-05b-b1 (design b, all answers, 5.4 h): T1 three-way 0.769, AUROC 0.905 |
+| 4 | Training 3B | Fine-tune the larger model overnight | Oct 7–8 | ✅ | g1-3b-b1 (6,500 answers, 12.25 h): T1 0.832, AUROC 0.940; T2 still to run |
+| 5 | Baselines | Run the comparison systems: terse and verbose generative judges, untrained models, encoders, Rizzo-Flow | Oct 7–8 | ✅ | All on the frozen tests (subsamples for Rizzo-Flow, untrained 3B on T1, judges); B2 open (§14 of the plan) |
+| 6 | Main benchmarks | Accuracy and latency of all systems on the test sets | Oct 7–8 | 🟡 | Latency vs K done (central figure); missing: 3B on T2, bootstrap CIs |
+| 7 | Calibration and analysis | Calibration, ablations, error analysis | Oct 7–8 | 🟡 | Calibration (both models) and error analysis by word overlap done; ablations to decide |
 | 8 | Demo | Local RAG chat (Qwen2.5-3B generator) with sentences coloured by GroundOne | Week 4 (Oct 26–30) | ⬜ | Max 2 days |
 | — | **Experiment freeze** | No new experiments after this date | **Oct 30** | ⬜ | |
-| 9 | Thesis writing | Chapters in `Thesis/`, in parallel from week 1 | Oct 5 – Nov 8 | 🟡 | Skeleton + Ch. 4 draft started Oct 5 |
+| 9 | Thesis writing | Chapters in `Thesis/`, in parallel from week 1 | Oct 5 – Nov 8 | 🟡 | First drafts of Ch. 3, 4, 5, 6 and summary; Ch. 1, 2, 7, 8 to write |
 | 10 | Submission | Proofreading, formatting, submit | Nov 9–10 | ⬜ | |
 
 ## Thesis chapters

@@ -37,7 +37,7 @@ def main(argv=None):
         for d in sorted(MODELS_DIR.glob("*/train_log.jsonl")):
             if not d.parent.name.startswith("sweep-"):
                 training.run_figures(d.parent.name)
-    if what in ("results", "all"):
+    if what == "results":  # legacy: systems evaluated on the earlier test files
         results.main()
     if what in ("eda", "all"):
         eda_copy()

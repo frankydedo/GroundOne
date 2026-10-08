@@ -25,14 +25,14 @@ Run from `Project/GroundOne` with the venv (`uv venv --python 3.12 .venv` – na
 ```bash
 pytest -q -m "not model"                     # fast tests, fake backend, no weights
 pytest -q -m model                           # real 0.5B model tests (slow)
-pytest -q tests/test_api.py::test_name       # single test
 
-groundone data check | shortcut                          # leakage check (exit 1 on fail), shortcut baseline (dataset builder: being rewritten, see docs/dataset_plan.md)
-groundone train --config train_0.5b.yaml [--run NAME]    # configs in Project/GroundOne/configs/; flags override YAML
-groundone calibrate --adapter <run>
-groundone eval --suite aggrefact|ragtruth|anli|all --adapter <run> --name <results-name> [--limit N]
-groundone serve --size 0.5b --adapter <run>              # 127.0.0.1:8019, /playground, /docs
-groundone baselines rizzo|encoder ...                    # comparison systems, same test files and metrics
+groundone data build | check | shortcut | freeze   # dataset + checks; leakage check exits 1 on failure; tests are frozen (build refuses changes)
+groundone train --config train_0.5b.yaml [--run NAME]     # design (b) by default; configs in Project/GroundOne/configs/
+groundone calibrate-b --adapter <run>/best --name <results-name>   # temperature + bias on dev
+groundone test --suite t1|t2|t3 --adapter <run>/best --name <results-name>   # frozen tests (T1 RAGTruth, T2 LLM-AggreFact, T3 VitaminC)
+groundone baselines frozen|judges ...                    # encoders / Rizzo-Flow on the frozen tests; generative judges + latency vs K
+groundone figures all | dataset | benchmarks | training RUN
+groundone serve --size 0.5b --adapter <run>              # 127.0.0.1:8019 (HTTP API still uses design a)
 groundone guard queue.txt                                # run queued shell commands one at a time under the memory guard
 ```
 
@@ -42,13 +42,13 @@ Thesis build (from `Thesis/`): `latexmk -pdf thesis.tex` (pdflatex + biber; not 
 
 ## Architecture (needs several files to see)
 
-- **`prompts.py` is the single source of truth** for the prompt layout and question set (currently `sup`, `three`, `strict`, `lenient`; to be reduced to the single three-way decision of D20). Training, evaluation and inference all render through it so training text == inference text. Changing `SYSTEM`, `QUESTIONS` or the layout requires bumping `PROMPT_VERSION`: calibrations and results are tied to it.
-- **Prompt = shared prefix + short suffix.** The prefix (document + numbered answer sentences) is identical for all K questions; the suffix asks one question about sentence `[i]`. `backend.py` prefills the common prefix once, replicates the KV cache along the batch axis and runs suffixes as right-padded batches (`score_shared`, exact vs scoring each prompt alone); `score_many` handles unrelated pair-dataset prompts. Output is the raw logits of the allowed letters (A/B or A/B/C), no generation.
+- **`prompts.py` is the single source of truth** for the prompt formats: design (b) `encode_marked` (default) and the design (a) question set (`three` is the one used; `sup`/`strict`/`lenient` are legacy). Training, evaluation and inference all render through it so training text == inference text. Changing `SYSTEM`, `QUESTIONS` or the layout requires bumping `PROMPT_VERSION`: calibrations and results are tied to it.
+- **Readout design (b), the default (D22).** `prompts.encode_marked` writes the answer with a marker " Verdict:" after every scored sentence; `Backend.score_positions` runs one forward pass per answer and applies the output head only at the markers (`readout.py`), returning A/B/C logits (supported / contradicted / not mentioned). Training (`train.py --design b`) uses a class-weighted loss over all markers. **Design (a)**, the fallback, is a shared prefix plus one question suffix per sentence (`score_shared`, KV cache replicated K times); it is still used by the HTTP API and by the untrained baseline B1.
 - **`engine.py`** wraps the backend in a thread-safe service: ALL MLX calls run on one long-lived worker thread (Metal contexts must not hop threads); requests are serialised by a lock, parallelism is inside a request. `api.py` (FastAPI) exposes native `/v1/verify` (`schema.py`) and the TypeSafe/Jev-compatible `/v1/systemone` (`compat.py`, same contract as Rizzo-Flow).
 - **Training (`training/train.py`)**: loss is cross-entropy over the allowed answer letters only, at the last prompt token; prompt never supervised. LoRA on all linear layers, token-budget length-bucketed batches. Each run writes `Project/models/<run>/` (`adapters.safetensors`, `groundone.json` with the base model, `config.yaml`, `train_log.jsonl`, `best/`); run directories are never overwritten. `config.resolve_model` maps a run name to base repo + adapter.
-- **Calibration** (`calibration.py`): temperature per question type, bound to the model fingerprint (adapter SHA + prompt version); a mismatched fingerprint is rejected.
-- **Data (`data/`)**: the dataset is being rebuilt from scratch following `Project/docs/dataset_plan.md` (task D20: one three-way decision per answer sentence, K = number of sentences; test set frozen first). `leakage.py` must PASS: splits are by group ID (ANLI premise hash, RAGTruth `source_id`, document hash), never by row; run it after every build. Raw data and processed JSONL/parquet are gitignored; manifests and reports are tracked.
-- **Eval/baselines**: B1 untrained base (omit `--adapter`), B3 Rizzo-Flow via HTTP, B4 encoders (MiniCheck, HHEM; documents chunked ~400 words, max over chunks). All write to `Project/results/<name>/`.
+- **Calibration** (`calibration.py`, `eval/calibrate_b.py`): temperature + per-class bias fitted on dev, bound to the model fingerprint (adapter SHA + prompt version). Primary classification metrics use the raw (balanced) decision; calibrated probabilities are used for ECE and thresholds (D24).
+- **Data (`data/`)**: `build.py` builds `Project/data/processed/groundone/` from RAGTruth (train/dev/T1), LLM-AggreFact (T2) and VitaminC (T3) following `Project/docs/dataset_plan.md`; `segment.py` (pysbd + checkable-content rule) is shared with inference; the test sets are frozen (`tests_frozen.json`). `leakage.py` must PASS: splits are by group ID (ANLI premise hash, RAGTruth `source_id`, document hash), never by row; run it after every build. Raw data and processed JSONL/parquet are gitignored; manifests and reports are tracked.
+- **Eval/baselines**: `eval/tests.py` (frozen tests, metrics by task and K band, word-overlap baseline); `baselines/frozen.py` (B4 encoders MiniCheck/HHEM, B3 Rizzo-Flow); `baselines/judges.py` (B0 terse/verbose generative judges and the latency protocol). All write to `Project/results/<name>/`. `eval/evaluate.py`, `baselines/encoders.py|rizzo.py` entry points, `figures/results.py|diagnostics.py` are legacy (earlier datasets).
 - `Project/phase0/scripts/` and `Project/EDA/scripts/` are numbered one-off experiment scripts (feasibility, EDA) with their own `common.py`; they are history/reference, not the package.
 
 ## Operational rules

@@ -1,4 +1,6 @@
-"""Evaluation suites and calibration fitting, all through the same Engine the server uses.
+"""LEGACY (earlier datasets v1/v2, four-question design). Superseded by eval/tests.py (`groundone test`) and eval/calibrate_b.py. Kept for reference; not used by the current pipeline.
+
+Evaluation suites and calibration fitting, all through the same Engine the server uses.
 
 Suites (test files from data/processed/<version>/):
   aggrefact  LLM-AggreFact test, `sup` question; per sub-dataset balanced accuracy at 0.5, 11-way macro average and the
