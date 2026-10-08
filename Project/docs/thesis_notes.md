@@ -6,7 +6,7 @@ Every number points to its source file.
 **Rules:**
 - Add an entry whenever a result or insight appears; never delete one, mark it superseded instead.
 - English, short and factual. The thesis prose is written later from these notes.
-- Raw logs and status are in `Phases&ToDos.md`; this file keeps what the thesis needs.
+- Raw logs and status are in `tracker.md`; this file keeps what the thesis needs.
 
 ---
 
@@ -20,7 +20,7 @@ Every number points to its source file.
 - **Error forms.** In RAGTruth "contradicted" is mostly *evident* conflicts (85 % of contradicted training sentences come from Evident Conflict spans), concentrated in data-to-text.
 - **Claim scope for the thesis.** GroundOne is a verifier of *LLM-written text grounded on a source*, not a universal fact checker. Specialisation is the point of the thesis, not a weakness to hide.
 
-## Ch. 4: data (see also `data/processed/groundone/DATACARD.md`, `EDA/report/eda_report.md`)
+## Ch. 4: data (see also `data/processed/groundone/DATACARD.md`, `experiments/eda/report/eda_report.md`)
 
 - **Dataset.** Train 13,203 answers / 90,795 decisions; dev 1,468 / 9,996; T1 2,647 / 17,284; T2 29,320 pairs; T3 3,000 pairs. Checks: C2 96.3 % / 8.5 %, C3 98.75 %, leakage PASS.
 - **Size vs earlier datasets** (for the author, not for the thesis text):
@@ -46,7 +46,7 @@ Every number points to its source file.
 
 ## Ch. 6: results of the validation run g1-05b-b1 (2026-10-07)
 
-Setup: 0.5B, design (b), all training answers, 802 steps (accumulation 4, ≈ 16 answers per step), 5.4 h on the M4. Best dev checkpoint at step 600. Sources: `results/g1-05b-b1/{t1,t2,t3}/metrics.json`, `models/g1-05b-b1/train_log.jsonl`, `figures/training-g1-05b-b1/`.
+Setup: 0.5B, design (b), all training answers, 802 steps (accumulation 4, ≈ 16 answers per step), 5.4 h on the M4. Best dev checkpoint at step 600. Sources: `outputs/results/g1-05b-b1/{t1,t2,t3}/metrics.json`, `outputs/models/g1-05b-b1/train_log.jsonl`, `outputs/figures/training-g1-05b-b1/`.
 
 **Training dynamics.**
 - Loss 1.24 at step 25, and below the prior-only level ln 3 = 1.10 by step 75; 0.52–0.56 at the end.
@@ -124,7 +124,7 @@ Setup: 0.5B, design (b), all training answers, 802 steps (accumulation 4, ≈ 16
 
 ## Ch. 6: calibration of the 0.5B (2026-10-07)
 
-Source: `results/g1-05b-b1/calibration/metrics.json`; figures `figures/calibration-g1-05b-b1/` (reliability_binary, risk_coverage). Command: `groundone calibrate-b`.
+Source: `outputs/results/g1-05b-b1/calibration/metrics.json`; figures `outputs/figures/calibration-g1-05b-b1/` (reliability_binary, risk_coverage). Command: `groundone calibrate-b`.
 
 **Maps fitted on dev** (NLL):
 - temperature only: T = 0.74;
@@ -176,7 +176,7 @@ The adapter's `calibration.json` holds the affine map.
 
 ## Ch. 6: MiniCheck-RoBERTa on the frozen tests (2026-10-07)
 
-Source: `results/minicheck-roberta-frozen/{t1,t3}/metrics.json` (full T1 and T3; T1 took 72 min on MPS).
+Source: `outputs/results/minicheck-roberta/{t1,t3}/metrics.json` (full T1 and T3; T1 took 72 min on MPS).
 
 | | GroundOne 0.5B | MiniCheck-RoBERTa |
 | --- | --- | --- |
@@ -202,7 +202,7 @@ Source: `results/minicheck-roberta-frozen/{t1,t3}/metrics.json` (full T1 and T3;
 - Dev (200 answers) by step: 0.339 (0), 0.626 (80), 0.658 (160), 0.684 (240), **0.705 (320, best)**, 0.700 (400 and 403).
 - Loss below ln 3 by step 25 (1.02); 0.41–0.49 at the end.
 
-**3B vs 0.5B on the frozen tests** (`results/g1-3b-b1/{t1,t3}/metrics.json`):
+**3B vs 0.5B on the frozen tests** (`outputs/results/g1-3b-b1/{t1,t3}/metrics.json`):
 | | 0.5B | 3B |
 | --- | --- | --- |
 | T1 three-way balanced accuracy | 0.769 | **0.832** |
@@ -217,9 +217,9 @@ Source: `results/minicheck-roberta-frozen/{t1,t3}/metrics.json` (full T1 and T3;
 
 **Readings.**
 - **Size compensates in part**, as predicted: contradictions outside data-to-text go from almost none to ≈ 30 %, and T3 improves clearly. T1 evaluation of the 3B took 85 min, T3 15 min.
-- **On T3 the gain comes from model size, not from the RAGTruth training.** The *untrained* 3B already reaches AUROC 0.821 and a three-way 0.531 on T3 (`results/base-3b-a/t3`), the same as the trained 3B (0.817 / 0.527). On T1 training matters a lot: untrained 3B 0.437 three-way / 0.726 AUROC (600 answers) vs trained 0.832 / 0.940.
+- **On T3 the gain comes from model size, not from the RAGTruth training.** The *untrained* 3B already reaches AUROC 0.821 and a three-way 0.531 on T3 (`outputs/results/untrained-3b/t3`), the same as the trained 3B (0.817 / 0.527). On T1 training matters a lot: untrained 3B 0.437 three-way / 0.726 AUROC (600 answers) vs trained 0.832 / 0.940.
 
-**Other baselines** (`results/*-frozen`, `results/base-*-a`):
+**Other baselines** (`outputs/results/{minicheck-roberta,hhem,rizzo-flow-4b-q4}`, `outputs/results/untrained-*`):
 | System | T1 binary bacc / AUROC | T1 three-way | T3 bacc / AUROC | T3 three-way | Note |
 | --- | --- | --- | --- | --- | --- |
 | HHEM-2.1-open | 0.731 / 0.821 | – | 0.692 / 0.795 | – | full tests |
@@ -230,7 +230,7 @@ Source: `results/minicheck-roberta-frozen/{t1,t3}/metrics.json` (full T1 and T3;
 
 - HHEM by task (AUROC): QA 0.894, Summary 0.824, Data2txt 0.747.
 - Rizzo-Flow predicts "supported" for 90 % of T1 sentences.
-- **Same-subset comparisons** (identical sentence ids; `results/subset_comparisons.json`):
+- **Same-subset comparisons** (identical sentence ids; `outputs/results/subset_comparisons.json`):
 | Subset | System | Three-way | Binary bacc | AUROC |
 | --- | --- | --- | --- | --- |
 | T1, Rizzo's 300 answers (1,971 sentences) | Rizzo-Flow 4B | 0.603 | 0.769 | 0.894 |
@@ -245,7 +245,7 @@ Source: `results/minicheck-roberta-frozen/{t1,t3}/metrics.json` (full T1 and T3;
 
   The specialists beat the 4B generalist System One in the RAG domain: +0.20 three-way for the 0.5B, which is 8× smaller. The generalist transfers much better to VitaminC.
 
-**Latency and generative judges** (`results/{lat-*,judge-*}/latency/metrics.json`; 200 T1 answers, 50 per K band). Median seconds per answer, K bands 1–4 / 5–8 / 9–13 / ≥ 14:
+**Latency and generative judges** (`outputs/results/{g1-*,untrained-*,judge-*}/latency/metrics.json`; 200 T1 answers, 50 per K band). Median seconds per answer, K bands 1–4 / 5–8 / 9–13 / ≥ 14:
 | System | 1–4 | 5–8 | 9–13 | ≥ 14 | Overall | Three-way (failures wrong) | Format failures |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | GroundOne 0.5B (design b) | 0.20 | 0.32 | 0.37 | 0.41 | 0.33 | 0.835 | 0 % |
@@ -261,7 +261,7 @@ Source: `results/minicheck-roberta-frozen/{t1,t3}/metrics.json` (full T1 and T3;
 
 ## Ch. 6: 3B calibration, latency and error analysis (2026-10-08)
 
-**3B calibration** (`results/g1-3b-b1/calibration/metrics.json`): affine T = 1.03, biases (0, −2.19, −2.06).
+**3B calibration** (`outputs/results/g1-3b-b1/calibration/metrics.json`): affine T = 1.03, biases (0, −2.19, −2.06).
 | Split | Map | Three-way | Accuracy | Binary ECE | NLL | AURC |
 | --- | --- | --- | --- | --- | --- | --- |
 | T1 | raw | 0.832 | 0.872 | 0.183 | 0.362 | 0.064 |
@@ -271,7 +271,7 @@ Source: `results/minicheck-roberta-frozen/{t1,t3}/metrics.json` (full T1 and T3;
 
 The raw 3B probabilities are better calibrated than the 0.5B's (T1 ECE 0.18 vs 0.30). On the full dev the 3B reaches 0.784 three-way, against 0.731 for the 0.5B.
 
-**3B latency** (`results/lat-g1-3b-b1`): median 1.23 / 1.93 / 2.25 / 2.57 s per answer for K bands 1–4 / 5–8 / 9–13 / ≥ 14 (overall 1.99 s), three-way 0.90 on the latency subset, 0 % failures. At K ≥ 14 that is 1.7× faster than the terse 3B judge (4.44 s), 6.2× faster than the verbose 3B judge (15.86 s) and 1.5× faster than design (a) (3.83 s).
+**3B latency** (`outputs/results/g1-3b-b1`): median 1.23 / 1.93 / 2.25 / 2.57 s per answer for K bands 1–4 / 5–8 / 9–13 / ≥ 14 (overall 1.99 s), three-way 0.90 on the latency subset, 0 % failures. At K ≥ 14 that is 1.7× faster than the terse 3B judge (4.44 s), 6.2× faster than the verbose 3B judge (15.86 s) and 1.5× faster than design (a) (3.83 s).
 - 0.5B at K ≥ 14: 0.41 s vs 0.80 (terse, 2.0×), 2.51 (verbose, 6.1×), 0.59 (design a, 1.4×).
 - The GroundOne 0.5B is ≈ 6× faster than the GroundOne 3B (0.33 vs 1.99 s median), the size lever.
 

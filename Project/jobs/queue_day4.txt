@@ -1,0 +1,25 @@
+# 2026-10-07 day + night: baselines on the frozen tests, then the 3B (design b, option A). Limits in outputs/logs/guard/thresholds.json
+GroundOne/.venv/bin/groundone baselines frozen --system encoder --model minicheck-roberta --suite t1 --name minicheck-roberta
+GroundOne/.venv/bin/groundone baselines frozen --system encoder --model minicheck-roberta --suite t3 --name minicheck-roberta
+env PYTHONPATH=GroundOne/src envs/hhem/bin/python -m groundone.cli baselines frozen --system encoder --model hhem --suite t1 --name hhem
+env PYTHONPATH=GroundOne/src envs/hhem/bin/python -m groundone.cli baselines frozen --system encoder --model hhem --suite t3 --name hhem
+GroundOne/.venv/bin/groundone test --suite t1 --size 0.5b --design a --name untrained-05b
+GroundOne/.venv/bin/groundone test --suite t3 --size 0.5b --design a --name untrained-05b
+GroundOne/.venv/bin/groundone test --suite t3 --size 3b --design a --name untrained-3b
+GroundOne/.venv/bin/groundone test --suite t1 --size 3b --design a --limit 600 --name untrained-3b
+GroundOne/.venv/bin/groundone baselines judges --system groundone --size 0.5b --adapter g1-05b-b1/best --name g1-05b-b1
+GroundOne/.venv/bin/groundone baselines judges --system readout-a --size 0.5b --name untrained-05b
+GroundOne/.venv/bin/groundone baselines judges --system terse --size 0.5b --name judge-terse-05b
+GroundOne/.venv/bin/groundone baselines judges --system verbose --size 0.5b --name judge-verbose-05b
+GroundOne/.venv/bin/groundone baselines judges --system readout-a --size 3b --name untrained-3b
+GroundOne/.venv/bin/groundone baselines judges --system terse --size 3b --name judge-terse-3b
+GroundOne/.venv/bin/groundone baselines judges --system verbose --size 3b --name judge-verbose-3b
+bash jobs/rizzo_frozen_job.sh
+GroundOne/.venv/bin/groundone train --config train_3b.yaml
+GroundOne/.venv/bin/groundone test --suite t1 --adapter g1-3b-b1/best --name g1-3b-b1
+GroundOne/.venv/bin/groundone test --suite t3 --adapter g1-3b-b1/best --name g1-3b-b1
+GroundOne/.venv/bin/groundone calibrate-b --adapter g1-3b-b1/best --name g1-3b-b1
+GroundOne/.venv/bin/groundone baselines judges --system groundone --size 3b --adapter g1-3b-b1/best --name g1-3b-b1
+GroundOne/.venv/bin/groundone figures training g1-3b-b1
+GroundOne/.venv/bin/groundone figures all
+END

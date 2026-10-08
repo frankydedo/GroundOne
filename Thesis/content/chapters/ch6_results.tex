@@ -1,8 +1,8 @@
 \chapter{Results}
 \label{sec:results}
 
-% Source notes: Project/docs/thesis_notes.md (Ch. 6). Numbers: Project/results/<run>/{t1,t2,t3,calibration,latency}/metrics.json,
-% Project/results/subset_comparisons.json. Figures: Project/figures/{benchmarks,training-*,calibration-*}/.
+% Source notes: Project/docs/thesis_notes.md (Ch. 6). Numbers: Project/outputs/results/<run>/{t1,t2,t3,calibration,latency}/metrics.json,
+% Project/outputs/results/subset_comparisons.json. Figures: Project/outputs/figures/{benchmarks,training-*,calibration-*}/.
 % STATUS: first complete draft (2026-10-08). Missing: T2 for the 3B, bootstrap confidence intervals.
 
 This chapter reports how GroundOne learns, what it achieves on the three frozen test sets, how it compares with the
@@ -27,7 +27,7 @@ predicted throughout both runs, so neither model collapsed onto a single answer.
 \includegraphics[width=\textwidth]{images/results/g1-05b-dev_bacc.png}
 \caption{Three-way balanced accuracy on the development set during training of the 0.5B model, overall (left) and per
 task (right). The dotted line marks chance. The 3B shows the same shape on its 200-answer development subset
-(\texttt{figures/training-g1-3b-b1}).}
+(\texttt{outputs/figures/training-g1-3b-b1}).}
 \label{fig:results-dev}
 \end{figure}
 

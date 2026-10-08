@@ -42,7 +42,7 @@ groundone train --config train_0.5b.yaml [--run <run>]   # hyper-parameters in c
 groundone calibrate-b --adapter <run>/best --name <results-name>   # temperature + bias on dev; reliability figures
 groundone test --suite t1|t2|t3 --adapter <run>/best --name <results-name> [--limit N] [--design a]
 groundone guard queue.txt                        # run long jobs one at a time under a memory guard
-groundone figures all | dataset | benchmarks | training <run>   # thesis figures -> Project/figures/<group>/
+groundone figures all | dataset | benchmarks | training <run>   # thesis figures -> Project/outputs/figures/<group>/
 
 # baselines on the frozen tests, same metrics as `groundone test`
 groundone test --suite t1 --size 0.5b --design a --name <name>               # B1 untrained readout (no adapter)
@@ -54,8 +54,8 @@ groundone baselines judges --system terse|verbose|groundone|readout-a --size 0.5
 - `baselines frozen --system rizzo` queries a running Rizzo-Flow server (B3, general-purpose System One) through the Jev-compatible API.
 - The encoders (B4) need PyTorch: `uv pip install -e ".[baselines]"`. HHEM needs `transformers` < 4.50 and runs from a separate environment: `env PYTHONPATH=GroundOne/src <hhem-env>/bin/python -m groundone.cli baselines frozen --system encoder --model hhem ...`.
 - Legacy entry points for the earlier datasets (`groundone eval`, `groundone calibrate`, `baselines encoder|rizzo`) are kept for reference only.
-- Without `--adapter` the untrained base model is used. Experiment data and outputs live in the workspace one level up (`Project/data`, `Project/models`, `Project/results`, `Project/figures`, `Project/runs`).
-- Trained runs live in `Project/models/<run>/`: `adapters.safetensors`, `adapter_config.json`, `config.yaml`, `groundone.json`, `train_log.jsonl`, and `best/` with `calibration.json`.
+- Without `--adapter` the untrained base model is used. Experiment data and outputs live in the workspace one level up (`Project/data`, `Project/outputs/models`, `Project/outputs/results`, `Project/outputs/figures`, `Project/outputs/logs`).
+- Trained runs live in `Project/outputs/models/<run>/`: `adapters.safetensors`, `adapter_config.json`, `config.yaml`, `groundone.json`, `train_log.jsonl`, and `best/` with `calibration.json`.
 
 ## HTTP API
 

@@ -97,7 +97,7 @@ Only the document counts, not the real world. RAGTruth's `implicit_true` spans (
 - All of the above per task and per K band (1–4, 5–8, 9–13, ≥ 14), and per answer (all K sentences correct).
 - 95 % CIs by bootstrap over answers.
 - Cells with fewer than 30 gold examples of a class (e.g. *contradicted* in QA: 31) are marked as indicative.
-- **Baselines that do not read the document as a whole** (EDA, `Project/EDA/report/eda_report.md`), reported per task:
+- **Baselines that do not read the document as a whole** (EDA, `Project/experiments/eda/report/eda_report.md`), reported per task:
   - majority class;
   - word overlap between sentence and document (AUROC 0.74 for supported vs not on T1);
   - sentence-only n-gram classifier (three-way balanced accuracy 0.66 on Data2txt, chance elsewhere).
@@ -169,7 +169,7 @@ Measured on the raw data with the regex splitter, Qwen2.5 tokens, 10 % dev by so
 ## 7. Build order and acceptance (target: frozen data by Thu 2026-10-09)
 
 1. **Segmenter and content rule.** Install pysbd and implement the rule. *Accept:* C2 passes.
-2. **T1 and T2.** Build, then run C1–C5. *Accept:* all pass; data card section written; figures (class × task × K, token lengths) in `Project/figures/dataset/`.
+2. **T1 and T2.** Build, then run C1–C5. *Accept:* all pass; data card section written; figures (class × task × K, token lengths) in `Project/outputs/figures/dataset/`.
 3. **T3.** Download VitaminC (HF `tals/vitaminc`), sample the real test split, run C1, C4 and C5.
 4. **Freeze.** C6: manifest with hashes committed.
 5. **Dev and train.** Build from RAGTruth train by `source_id`, then run the leakage and shortcut checks. Write the data card (composition, origin, licence, rationale): it becomes thesis Ch. 4.

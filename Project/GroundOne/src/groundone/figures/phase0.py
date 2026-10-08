@@ -1,11 +1,11 @@
-"""Figures of the feasibility study (Phase 0 / 0b), from Project/phase0/results/."""
+"""Figures of the feasibility study (Phase 0 / 0b), from Project/experiments/feasibility/results/."""
 import numpy as np
 import pandas as pd
 
-from ..config import PROJECT
+from ..config import EXPERIMENTS
 from .style import NEUTRAL, SYSTEM_COLORS as C, Group, bar_labels, load_json, plt
 
-R = PROJECT / "phase0" / "results"
+R = EXPERIMENTS / "feasibility" / "results"
 MODELS = {"qwen0.5b": "0.5B", "qwen3b": "3B"}
 
 
@@ -29,7 +29,7 @@ def speed_vs_k(g):
     g.save(fig, "p0b_latency_vs_K", "Time to verify one answer as the number of decisions K over the same 1,000-token "
            "context grows (untrained models, M4 16 GB, MLX 8-bit). The System One scores all K questions in one batched "
            "pass after a single prefill; generative judges decode their verdicts token by token.",
-           "phase0/results/06_speed_batched_*.json")
+           "experiments/feasibility/results/06_speed_batched_*.json")
 
 
 def gain_vs_k(g):
@@ -51,7 +51,7 @@ def gain_vs_k(g):
     axes[0].legend(title="context length")
     g.save(fig, "p0b_speedup_vs_K_by_context", "Speed-up of the batched System One over a terse generative judge as a "
            "function of K, for three context lengths. The gain grows with K and shrinks with context length, because "
-           "prefill is paid by both methods. Dashed line: no gain.", "phase0/results/06_speed_batched_*.json")
+           "prefill is paid by both methods. Dashed line: no gain.", "experiments/feasibility/results/06_speed_batched_*.json")
 
 
 def batching_matters(g):
@@ -71,7 +71,7 @@ def batching_matters(g):
     axes[0].legend()
     g.save(fig, "p0_system_one_variants", "Three ways of computing K System One decisions over one context. Reusing the "
            "prefix is essential; batching the short suffixes removes most of the remaining cost (Phase 0 vs Phase 0b).",
-           "phase0/results/04_speed_*.json, 06_speed_batched_*.json")
+           "experiments/feasibility/results/04_speed_*.json, 06_speed_batched_*.json")
 
 
 def zero_shot_accuracy(g):
@@ -98,7 +98,7 @@ def zero_shot_accuracy(g):
             ax.axhline(0.5, color=NEUTRAL, lw=1, ls="--")
             ax.set_ylim(0.4, 0.9)
         ax.legend(ncol=3, loc="upper center", bbox_to_anchor=(0.5, 1.18))
-        g.save(fig, stem, cap, "phase0/results/02_readout_*.json, 03_minicheck-roberta.json")
+        g.save(fig, stem, cap, "experiments/feasibility/results/02_readout_*.json, 03_minicheck-roberta.json")
 
 
 def generative_judges(g):
@@ -127,7 +127,7 @@ def generative_judges(g):
     axes[0].legend()
     g.save(fig, "p0b_generative_judges", "Generative judges vs System One readout on 630 RAGTruth sentences (untrained "
            "models). Left: share of verdicts that could not be parsed. Right: balanced accuracy. The System One returns a "
-           "valid answer by construction.", "phase0/results/08_gen_judges_*.json, 02_readout_*.json")
+           "valid answer by construction.", "experiments/feasibility/results/08_gen_judges_*.json, 02_readout_*.json")
 
 
 def flexibility(g):
@@ -155,7 +155,7 @@ def flexibility(g):
     g.save(fig, "p0b_flexibility_zero_shot", "Zero-shot flexibility probe: three-way question and verification rules "
            "written in the prompt. Untrained models do not follow the rules (≈ 0.5); MiniCheck cannot receive a rule, so "
            "its single score is evaluated against each rule's labels. Chance: 0.33 (three-way), 0.5 (rules).",
-           "phase0/results/07_flex_*.json")
+           "experiments/feasibility/results/07_flex_*.json")
 
 
 def training_probe(g):
@@ -180,7 +180,7 @@ def training_probe(g):
     axes[0].legend()
     g.save(fig, "p0_training_probe", "LoRA training probe on the M4 16 GB (all linear layers, gradient checkpointing, "
            "restricted answer-letter loss): peak memory and time per step at two example lengths.",
-           "phase0/results/05_train_probe_*.json")
+           "experiments/feasibility/results/05_train_probe_*.json")
 
 
 def main():

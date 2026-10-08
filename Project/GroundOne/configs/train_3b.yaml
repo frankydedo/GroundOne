@@ -7,7 +7,7 @@
 size: "3b"
 data: "groundone"             # Project/data/processed/groundone/ (docs/dataset_plan.md)
 train: "train"                # answer-level records (RAGTruth train split)
-run: "g1-3b-b1"               # output: Project/models/<run>/ (never overwritten)
+run: "g1-3b-b1"               # output: Project/outputs/models/<run>/ (never overwritten)
 design: "b"                   # verdicts read at a marker after each scored sentence (dataset plan §8)
 sample: 6500                  # random subset of training answers (~45K decisions, ~5.6 M tokens; measured ~0.75 M tokens/h)
 

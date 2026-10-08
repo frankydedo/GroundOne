@@ -9,7 +9,7 @@ maximum over chunks is kept. Evaluation:
   anli       the single score is compared with the `sup`, `strict` and `lenient` gold labels: an encoder cannot change
              its behaviour with the rule, which is exactly what RQ5 measures
 Needs PyTorch (`uv pip install -e ".[baselines]"`). HHEM needs transformers < 4.50: run it from the separate
-environment (Project/phase0/.venv-hhem) with PYTHONPATH=GroundOne/src.
+environment (Project/envs/hhem) with PYTHONPATH=GroundOne/src.
 Usage: groundone baselines encoder --model minicheck-roberta --suite all --name minicheck-roberta [--limit N]
 """
 import argparse

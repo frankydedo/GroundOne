@@ -6,18 +6,18 @@ new kind of result appears, and run `groundone figures all` after each phase.
 import shutil
 import sys
 
-from ..config import MODELS_DIR, PROJECT
+from ..config import EXPERIMENTS, FIGURES_DIR, MODELS_DIR
 
 
 def eda_copy():
     """The EDA has its own scripts (Project/EDA); mirror its figures so figures/ is the one place to look."""
-    src = PROJECT / "EDA" / "report" / "figures"
-    dst = PROJECT / "figures" / "eda"
+    src = EXPERIMENTS / "eda" / "report" / "figures"
+    dst = FIGURES_DIR / "eda"
     if src.exists():
         dst.mkdir(parents=True, exist_ok=True)
         for p in src.glob("*.png"):
             shutil.copy2(p, dst / p.name)
-        print(f"  copied {len(list(src.glob('*.png')))} EDA figures to figures/eda (captions: EDA/report/eda_report.md)")
+        print(f"  copied {len(list(src.glob('*.png')))} EDA figures to outputs/figures/eda (captions: experiments/eda/report/eda_report.md)")
 
 
 def main(argv=None):

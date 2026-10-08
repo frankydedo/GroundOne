@@ -8,24 +8,24 @@ import json
 
 import numpy as np
 
-from ..config import PROJECT, RESULTS_DIR
+from ..config import DATA_PROCESSED, RESULTS_DIR
 from .style import NEUTRAL, SERIES, SYSTEM_COLORS, Group, bar_labels, plt
 
 SYSTEMS = [  # (label, results name, kind)
     ("Word overlap", None, "overlap"),
-    ("HHEM", "hhem-frozen", "binary"),
-    ("MiniCheck-RoBERTa", "minicheck-roberta-frozen", "binary"),
-    ("Rizzo-Flow 4B", "rizzo-flow-4b-q4-frozen", "three"),
-    ("Untrained 0.5B", "base-05b-a", "three"),
-    ("Untrained 3B", "base-3b-a", "three"),
+    ("HHEM", "hhem", "binary"),
+    ("MiniCheck-RoBERTa", "minicheck-roberta", "binary"),
+    ("Rizzo-Flow 4B", "rizzo-flow-4b-q4", "three"),
+    ("Untrained 0.5B", "untrained-05b", "three"),
+    ("Untrained 3B", "untrained-3b", "three"),
     ("GroundOne 0.5B", "g1-05b-b1", "three"),
     ("GroundOne 3B", "g1-3b-b1", "three"),
 ]
 COLORS = {**SYSTEM_COLORS, "Word overlap": "#c4c2bb", "Sentence only": "#8a877f"}
 LATENCY = {  # size -> [(label, results name)]
-    "0.5B": [("GroundOne (design b)", "lat-g1-05b-b1"), ("System One (design a)", "lat-readout-a-05b"),
+    "0.5B": [("GroundOne (design b)", "g1-05b-b1"), ("System One (design a)", "untrained-05b"),
              ("Terse judge", "judge-terse-05b"), ("Verbose judge", "judge-verbose-05b")],
-    "3B": [("GroundOne (design b)", "lat-g1-3b-b1"), ("System One (design a)", "lat-readout-a-3b"),
+    "3B": [("GroundOne (design b)", "g1-3b-b1"), ("System One (design a)", "untrained-3b"),
            ("Terse judge", "judge-terse-3b"), ("Verbose judge", "judge-verbose-3b")],
 }
 LAT_COLORS = {"GroundOne (design b)": SERIES[0], "System One (design a)": SERIES[4], "Terse judge": SERIES[7],
@@ -57,7 +57,7 @@ def comparison(g, suite, title):
         rows.append((label, b["bacc"], b["auroc"], m["all"]["macro_recall"] if kind == "three" else None))
     if len(rows) < 2:
         return
-    shortcut = json.loads((PROJECT / "data/processed/groundone/shortcut_report.json").read_text())
+    shortcut = json.loads((DATA_PROCESSED / "groundone/shortcut_report.json").read_text())
     fig, axes = plt.subplots(1, 2, figsize=(11, 3.6))
     names = [r[0] for r in rows]
     y = np.arange(len(rows))

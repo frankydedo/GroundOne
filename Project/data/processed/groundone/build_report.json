@@ -24,7 +24,7 @@
       ]
     ]
   },
-  "created": "2026-10-06 22:20:26",
+  "created": "2026-10-08 11:43:11",
   "ragtruth_dropped": {
     "train: over 2048 tokens": 152,
     "test: over 2048 tokens": 23,

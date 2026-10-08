@@ -13,7 +13,7 @@ A specialist System One for local RAG: single-pass, calibrated groundedness veri
 
 - It is the compass for the whole experiment: if a task is not traceable to a research question (§2), it is out of scope.
 - Decisions that the author must confirm are tagged **[DECIDE]**. Open questions are collected in §14.
-- Phases and gates are in §9 and §10. Phase 0/0b (feasibility) said **GO** on 2026-10-05. A one-page tracker is in `Phases&ToDos.md`.
+- Phases and gates are in §9 and §10. Phase 0/0b (feasibility) said **GO** on 2026-10-05. A one-page tracker is in `tracker.md`.
 - Update this file whenever a decision changes. Never silently change the experiment: add a line to the decision log (§3).
 
 ---
@@ -177,7 +177,7 @@ Question about sentence [i]: {question q}  Answer A for yes, B for no.   (three-
                                   <- read the logits of the allowed letters here
 ```
 
-- The full numbered answer is part of the prefix, so pronouns in sentence *i* can be resolved; the suffix only names the sentence index and the question (~10–25 tokens). This is the Phase 0b format (`phase0/scripts/s1engine.py`, `06_speed_batched.py`); the exact wording is frozen in Phase 2.
+- The full numbered answer is part of the prefix, so pronouns in sentence *i* can be resolved; the suffix only names the sentence index and the question (~10–25 tokens). This is the Phase 0b format (`experiments/feasibility/scripts/s1engine.py`, `06_speed_batched.py`); the exact wording is frozen in Phase 2.
 - For pair-style benchmarks (LLM-AggreFact: `document`, `claim`) the answer *is* the claim and K = 1. The shared-prefix saving only appears on RAGTruth-style responses and in the demo.
 - **Boundary rule:** the engine tokenises each full prompt and takes the **longest common token prefix** as the shared part, so BPE merges at the boundary cannot cause mismatches. Unit test: batched probabilities equal one-pass-per-question probabilities (Phase 0b: max |Δp| = 0.00000).
 
@@ -194,7 +194,7 @@ engine.verify(context, answer_sentences, questions) -> [P(answer)_k for k in 1..
  5. return probabilities (+ timings: prefill_ms, batch_ms)
 ```
 - Restricted softmax over the two answer tokens, divided by a calibrated temperature `T`.
-- Batched by design (D14). Implementation: `GroundOne/src/groundone/backend.py` (prototype: `phase0/scripts/s1engine.py`). Memory: the replicated cache costs K × prefix × ~36 KiB/token on the 3B (≈ 1.7 GB at K = 24, 2,000 tokens).
+- Batched by design (D14). Implementation: `GroundOne/src/groundone/backend.py` (prototype: `experiments/feasibility/scripts/s1engine.py`). Memory: the replicated cache costs K × prefix × ~36 KiB/token on the 3B (≈ 1.7 GB at K = 24, 2,000 tokens).
 - MLX Metal context must stay on one dedicated worker thread (lesson from LightningRoute).
 - Keep the engine free of HTTP so that it can be benchmarked in-process; the API layer is a thin wrapper (FastAPI: `POST /v1/verify`, `GET /health`).
 
@@ -341,7 +341,7 @@ ECE (fixed and adaptive bins), Brier, NLL, reliability diagrams, risk-coverage c
 ### 8.5 Reporting rules
 - Report all baselines, including those where we lose.
 - Results files are create-only (never overwritten); each run stores config, git commit, dataset hash and hardware notes.
-- **Every phase leaves figures** (author's rule, 2026-10-05): `groundone figures all` writes 300-dpi PNGs with draft captions to `Project/figures/<group>/` (phase0, eda, sweep, training-<run>, results, …). A new kind of result gets its plotting function in `GroundOne/src/groundone/figures/` in the same change; overnight queues end with `groundone figures all`. Colours are fixed per system across all figures.
+- **Every phase leaves figures** (author's rule, 2026-10-05): `groundone figures all` writes 300-dpi PNGs with draft captions to `Project/outputs/figures/<group>/` (phase0, eda, sweep, training-<run>, results, …). A new kind of result gets its plotting function in `GroundOne/src/groundone/figures/` in the same change; overnight queues end with `groundone figures all`. Colours are fixed per system across all figures.
 
 ---
 
@@ -351,9 +351,9 @@ Experiment and thesis together. The machine trains or benchmarks **at night**; d
 
 | Week | Dates | Experiment | Writing (`Thesis/`) | Gate at end of week |
 | --- | --- | --- | --- | --- |
-| **1** ✅ (ahead) | Oct 5–11 | Phase 0 + 0b ✅ (Oct 5) → **Phase 1a EDA** of ANLI and RAGTruth (`Project/EDA/`) → Phase 1 data pipeline + leakage check → engine + harness; first 0.5B training run overnight | Thesis skeleton (chapters, bib); Ch. 2 Background & related work (wiki ingest ✅); Ch. 4 Data and EDA (material ready) | Datasets frozen ✅ (Oct 7); 0.5B and 3B trained, baselines and latency done (Oct 8), i.e. most of weeks 2–3 |
+| **1** ✅ (ahead) | Oct 5–11 | Phase 0 + 0b ✅ (Oct 5) → **Phase 1a EDA** of ANLI and RAGTruth (`Project/experiments/eda/`) → Phase 1 data pipeline + leakage check → engine + harness; first 0.5B training run overnight | Thesis skeleton (chapters, bib); Ch. 2 Background & related work (wiki ingest ✅); Ch. 4 Data and EDA (material ready) | Datasets frozen ✅ (Oct 7); 0.5B and 3B trained, baselines and latency done (Oct 8), i.e. most of weeks 2–3 |
 | **2** | Oct 12–18 | 0.5B final run(s); 3B training overnight; baselines B0a, B1, B2 on full test sets; B0b/B0c on subsample; B4 encoders; B3 Rizzo-Flow | Ch. 3 Method (task, prompt, engine, loss, calibration) | 0.5B beats B1 on dev; 3B adapter exists |
-| **3** | Oct 19–25 | GroundOne 3B eval; latency protocol (§8.3); calibration (temperature, reliability, risk-coverage); ablations A1/A2; error analysis | Ch. 5 Experimental setup; start Ch. 6 Results as numbers arrive | All main tables and figures generated from `results/` |
+| **3** | Oct 19–25 | GroundOne 3B eval; latency protocol (§8.3); calibration (temperature, reliability, risk-coverage); ablations A1/A2; error analysis | Ch. 5 Experimental setup; start Ch. 6 Results as numbers arrive | All main tables and figures generated from `outputs/results/` |
 | **4** | Oct 26–Nov 1 | Stretch ablations (A3–A5) if the main matrix is complete; minimal demo (2 days max); **feature freeze Fri Oct 30** | Ch. 6 Results, Ch. 7 Discussion | Experiments closed |
 | **5** | Nov 2–8 | Fixes and re-runs of already-defined experiments only; reproducibility package | Ch. 1 Introduction, Ch. 8 Conclusion, final abstract with numbers; complete draft to supervisor by ~Nov 5; revisions | Complete thesis |
 | **buffer** | Nov 9–10 | – | Formatting, proofreading | **Submission Nov 10** |
@@ -361,7 +361,7 @@ Experiment and thesis together. The machine trains or benchmarks **at night**; d
 Rules:
 - **No new experiment after Oct 30.** Anything that misses the freeze goes to "future work".
 - If a step slips by more than 2 days, cut from the bottom of the priority list: demo polish → B3 Rizzo-Flow → B0b verbose judge on the full matrix (keep the Phase 0b numbers) → 3B fine-tuning (fall back to 0.5B fine-tuned + 3B zero-shot).
-- Figures and tables are produced by scripts from `results/`, never by hand, so that late re-runs do not cost writing time.
+- Figures and tables are produced by scripts from `outputs/results/`, never by hand, so that late re-runs do not cost writing time.
 
 Thesis chapter outline (to fill in `Thesis/content/chapters/`):
 1. Introduction (motivation: trustworthy local RAG; System One vs LLM; RQs; contributions)
@@ -378,11 +378,11 @@ Thesis chapter outline (to fill in `Thesis/content/chapters/`):
 
 ## 10. Phase 0: feasibility test
 
-**Status: Phase 0 and Phase 0b done (2026-10-05).** Phase 0b: speed gain grows with K (≈2× vs terse, ≈6× vs verbose judge at K = 24); generative judges break format; zero-shot rule-following fails, so flexibility becomes a training target. Full results: `phase0_report.md`. Code and raw outputs: `Project/phase0/`.
+**Status: Phase 0 and Phase 0b done (2026-10-05).** Phase 0b: speed gain grows with K (≈2× vs terse, ≈6× vs verbose judge at K = 24); generative judges break format; zero-shot rule-following fails, so flexibility becomes a training target. Full results: `phase0_report.md`. Code and raw outputs: `Project/experiments/feasibility/`.
 
 ### 10.1 What Phase 0 ran
 
-**Which System One was evaluated.** GroundOne does not exist yet (it is the fine-tuned model of Phases 3–4). In Phase 0 the "System One" is the **untrained baseline B1**: the stock instruction models `Qwen2.5-0.5B-Instruct` and `Qwen2.5-3B-Instruct` (MLX 8-bit conversions `lmstudio-community/Qwen2.5-*-Instruct-MLX-8bit`), used in System One mode. That means a chat prompt with the document and the claim, **one forward pass**, the logits of the two answer tokens `A` (supported) and `B` (not supported) read at the last position, and a softmax over those two only. There is no generation, no fine-tuning and no calibration. Rizzo-Flow (the general-purpose System One, B3) was not run. Phase 0 therefore measures the **starting point** of GroundOne and the cost of the System One mechanism, not GroundOne itself. The script is `Project/phase0/scripts/02_readout.py` (accuracy), and `04_speed.py` adds the shared-prefix variant used for the speed test.
+**Which System One was evaluated.** GroundOne does not exist yet (it is the fine-tuned model of Phases 3–4). In Phase 0 the "System One" is the **untrained baseline B1**: the stock instruction models `Qwen2.5-0.5B-Instruct` and `Qwen2.5-3B-Instruct` (MLX 8-bit conversions `lmstudio-community/Qwen2.5-*-Instruct-MLX-8bit`), used in System One mode. That means a chat prompt with the document and the claim, **one forward pass**, the logits of the two answer tokens `A` (supported) and `B` (not supported) read at the last position, and a softmax over those two only. There is no generation, no fine-tuning and no calibration. Rizzo-Flow (the general-purpose System One, B3) was not run. Phase 0 therefore measures the **starting point** of GroundOne and the cost of the System One mechanism, not GroundOne itself. The script is `Project/experiments/feasibility/scripts/02_readout.py` (accuracy), and `04_speed.py` adds the shared-prefix variant used for the speed test.
 
 1. **Data:** LLM-AggreFact, RAGTruth, MiniCheck synthetic data and ANLI downloaded and checked. Evaluation sample of 1,780 items (§5 of the report).
 2. **Zero-shot headroom:** Qwen2.5-0.5B and 3B, single-token readout (B1), on all items. The 7B was **not** run; the published leaderboard number (72.8) is used instead.
@@ -484,7 +484,7 @@ Stretch: verify each sentence while the generator is still producing the next on
 | Scope creep (demo, extra datasets, 7B fine-tune) | High | High | Anything not tied to RQ1–RQ5 or the demo is a stretch item; revisit at each gate |
 | **Schedule: one month for experiment and thesis** | High | High | Night-time runs, experiment freeze Oct 30, cut list in §9, writing in parallel from week 1, scripted figures |
 | 3B training too slow to finish overnight | High (≈17 h per full epoch, measured) | Medium | Train the 3B on a ~10K subset; fall back to 0.5B fine-tuned + 3B zero-shot |
-| The Mac freezes during unattended runs | Low (since the guard) | High | Every long job runs under `phase0/scripts/watchdog.py` (kills a job when free memory < 2 GB) |
+| The Mac freezes during unattended runs | Low (since the guard) | High | Every long job runs under `experiments/feasibility/scripts/watchdog.py` (kills a job when free memory < 2 GB) |
 
 Threats to validity to discuss in the thesis: benchmark representativeness for *local* RAG, single hardware platform, few seeds for the 3B, prompt sensitivity of the baselines (mitigated by freezing prompts before testing), possible pre-training contamination.
 
@@ -495,7 +495,7 @@ Threats to validity to discuss in the thesis: benchmark representativeness for *
 Implemented structure (2026-10-05, D19), modelled on Rizzo-Flow: an installable package with a CLI and an HTTP API. Usage: `Project/GroundOne/README.md`.
 
 ```
-Project/                     # experiment workspace (see the restructuring proposal of 2026-10-08)
+Project/                     # experiment workspace (restructured 2026-10-08; map in Project/README.md)
   GroundOne/                 # the software (installable package, own .venv)
     pyproject.toml, README.md
     configs/                 # train_0.5b.yaml, train_3b.yaml (copied into each run)
@@ -513,11 +513,15 @@ Project/                     # experiment workspace (see the restructuring propo
       tools/watchdog.py      # memory guard
     tests/
   data/                      # download.py + manifests; raw/ and processed/groundone/ (jsonl gitignored; manifest, reports, DATACARD tracked)
-  models/                    # trained adapters (gitignored): g1-05b-b1, g1-3b-b1
-  results/                   # evaluation outputs (metrics.json tracked, predictions gitignored)
-  figures/                   # generated figures (PNG + captions)
-  runs/                      # job queues and guard logs (gitignored)
-  EDA/  phase0/  docs/  _archive/ (earlier experiments, gitignored)
+  outputs/                   # generated by the groundone commands
+    models/                  # trained adapters (gitignored): g1-05b-b1, g1-3b-b1
+    results/                 # metrics.json tracked, predictions gitignored; one folder per system (latency/ inside)
+    figures/                 # thesis figures (PNG + captions)
+    logs/                    # memory-guard logs (gitignored)
+  experiments/               # one-off studies: feasibility/ (Phase 0/0b scripts, data, results), eda/ (scripts, report)
+  jobs/                      # guard queues and job scripts (records of the runs)
+  envs/                      # auxiliary venvs (gitignored): hhem/ (transformers < 4.50), feasibility/
+  docs/  _archive/ (earlier experiments, gitignored)
 ```
 
 Reproducibility rules: one config file per run; fixed seeds; dataset and prompt hashes stored with results; results never overwritten; one git tag per reported experiment; `uv` for environments.

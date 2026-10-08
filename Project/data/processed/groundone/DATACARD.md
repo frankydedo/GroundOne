@@ -3,7 +3,7 @@
 Built by `groundone data build` on 2026-10-06, following `Project/docs/dataset_plan.md` v2.0.
 - Numbers: `build_report.json`, `leakage_report.json`, `shortcut_report.json`.
 - Hashes: `manifest.json`; `tests_frozen.json` once the tests are frozen.
-- Figures: `Project/figures/dataset/`.
+- Figures: `Project/outputs/figures/dataset/`.
 
 ## Task
 For each sentence of an LLM answer, given the retrieved document, one decision among three classes:
@@ -93,7 +93,7 @@ A sentence with both a conflicting and an unverifiable part is *contradicted*.
   - 0.331 on T3, where the contrastive design removes the cue.
 
   In data-to-text, some sentence types (opening hours, amenities, ratings) are often hallucinated, so part of that task can be guessed without reading the document. GroundOne must be compared with this baseline per task.
-- **Word overlap.** The share of a sentence's content words found in the document alone gives AUROC 0.74 (supported vs not) on T1 and 0.70 on T3 (EDA, `Project/EDA/report/eda_report.md`).
+- **Word overlap.** The share of a sentence's content words found in the document alone gives AUROC 0.74 (supported vs not) on T1 and 0.70 on T3 (EDA, `Project/experiments/eda/report/eda_report.md`).
 - **T1 is cleaner than train.** It has a lower share of contradicted and not-mentioned sentences in every task and for every generator.
 - **Contradicted ≈ evident contradictions.** 85 % of contradicted training sentences come from *Evident Conflict* spans only.
 - **Imbalance.** RAGTruth is about 89 % *supported*; *contradicted* is 3–4 %, mostly from Data2txt.

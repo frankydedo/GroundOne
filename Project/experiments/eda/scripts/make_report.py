@@ -1,4 +1,4 @@
-"""Assemble EDA/report/eda_report.md from conclusions.md (hand-written), stats/*.json and figures/*.png.
+"""Assemble experiments/eda/report/eda_report.md from conclusions.md (hand-written), stats/*.json and figures/*.png.
 
 Run after 01–04 (with the GroundOne venv). Only conclusions.md is edited by hand.
 """
@@ -22,9 +22,9 @@ def figs(name):
 
 
 r, a, v, d = S["ragtruth"], S["aggrefact"], S["vitaminc"], S["dataset"]
-md = [f"# EDA report: the GroundOne dataset and its sources\n\nGenerated {time.strftime('%Y-%m-%d %H:%M')} by `EDA/scripts/make_report.py`. "
+md = [f"# EDA report: the GroundOne dataset and its sources\n\nGenerated {time.strftime('%Y-%m-%d %H:%M')} by `experiments/eda/scripts/make_report.py`. "
       "Scripts: `01_ragtruth.py`, `02_aggrefact.py`, `03_vitaminc.py` (part A, sources) and `04_dataset.py` (part B, built dataset). "
-      "Raw numbers: `EDA/report/stats/`. Dataset specification: `Project/docs/dataset_plan.md`; counts: "
+      "Raw numbers: `experiments/eda/report/stats/`. Dataset specification: `Project/docs/dataset_plan.md`; counts: "
       "`Project/data/processed/groundone/DATACARD.md`.\n",
       (REPORT / "conclusions.md").read_text(),
       "---\n\n# Part A: source datasets\n\n## 4. RAGTruth (training source, test T1)\n",

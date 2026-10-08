@@ -1,6 +1,6 @@
 # EDA report: the GroundOne dataset and its sources
 
-Generated 2026-10-06 22:45 by `EDA/scripts/make_report.py`. Scripts: `01_ragtruth.py`, `02_aggrefact.py`, `03_vitaminc.py` (part A, sources) and `04_dataset.py` (part B, built dataset). Raw numbers: `EDA/report/stats/`. Dataset specification: `Project/docs/dataset_plan.md`; counts: `Project/data/processed/groundone/DATACARD.md`.
+Generated 2026-10-08 11:44 by `experiments/eda/scripts/make_report.py`. Scripts: `01_ragtruth.py`, `02_aggrefact.py`, `03_vitaminc.py` (part A, sources) and `04_dataset.py` (part B, built dataset). Raw numbers: `experiments/eda/report/stats/`. Dataset specification: `Project/docs/dataset_plan.md`; counts: `Project/data/processed/groundone/DATACARD.md`.
 
 
 ## 1. Summary

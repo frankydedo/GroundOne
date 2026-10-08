@@ -3,7 +3,7 @@
 # Phase 0 report: feasibility of GroundOne
 
 Run on the night of 2026-10-05, 01:00–03:00. Hardware: M4 MacBook Pro, 16 GB unified memory, MLX 0.29.3 / mlx-lm 0.29.1, PyTorch 2.11 (MPS).
-Code, logs and raw outputs: `Project/phase0/` (`scripts/`, `logs/`, `results/`). No training of GroundOne was done; everything is zero-shot or a short probe.
+Code, logs and raw outputs: `Project/experiments/feasibility/` (`scripts/`, `logs/`, `outputs/results/`). No training of GroundOne was done; everything is zero-shot or a short probe.
 
 > **Update (same day): Phase 0b, at the end of this report, supersedes the speed conclusion below.** With batched scoring the System One is ≈2× faster than a terse and ≈6× faster than a verbose generative judge at K = 24. Read §1–§7 as the record of the first test.
 
@@ -34,7 +34,7 @@ Code, logs and raw outputs: `Project/phase0/` (`scripts/`, `logs/`, `results/`).
 | Training probe | 30 LoRA steps, all linear layers, gradient checkpointing, restricted A/B cross-entropy loss, at 1 024 and 2 048 tokens | done for 0.5B and 3B |
 | Not run (by decision) | Qwen2.5-7B (published leaderboard number used instead), Rizzo-Flow (to be done in daytime) | — |
 
-Evaluation sample (`phase0/data/eval_samples.parquet`):
+Evaluation sample (`experiments/feasibility/data/eval_samples.parquet`):
 
 | Set | Items | % supported | Notes |
 | --- | --- | --- | --- |
@@ -145,14 +145,14 @@ A and B combine well. C is optional.
 
 ## 9. Incidents during the night
 
-- An earlier attempt froze the Mac before any model was loaded (swap > 30 GB). The most likely suspect is a crash-looping `watchman` service (31 crash reports in the same window), not a Phase 0 job; not proven. All later jobs ran under a memory guard (`phase0/scripts/watchdog.py`) that kills a job when free memory drops below 2 GB; it was triggered once (MiniCheck-Flan-T5). Swap never grew by more than ~3 GB.
+- An earlier attempt froze the Mac before any model was loaded (swap > 30 GB). The most likely suspect is a crash-looping `watchman` service (31 crash reports in the same window), not a Phase 0 job; not proven. All later jobs ran under a memory guard (`experiments/feasibility/scripts/watchdog.py`) that kills a job when free memory drops below 2 GB; it was triggered once (MiniCheck-Flan-T5). Swap never grew by more than ~3 GB.
 - Bugs fixed during the run: an incompatible HHEM / `transformers` version (separate environment), a non-random subsample for HHEM/DeBERTa (rerun with a stratified random sample; the earlier numbers were discarded), two failed attempts of the training probe (data format; replaced by a custom loop).
 
 ---
 
 # Phase 0b (2026-10-05, 09:00–10:22): re-test centred on the System One's strengths
 
-Code: `phase0/scripts/s1engine.py`, `06_speed_batched.py`, `07_flex.py`, `08_gen_judges.py`. Same models (untrained Qwen2.5-0.5B/3B in System One mode), same machine, memory guard on (never triggered; min free memory 2.8 GB).
+Code: `experiments/feasibility/scripts/s1engine.py`, `06_speed_batched.py`, `07_flex.py`, `08_gen_judges.py`. Same models (untrained Qwen2.5-0.5B/3B in System One mode), same machine, memory guard on (never triggered; min free memory 2.8 GB).
 
 ## B1. Batched System One vs terse and verbose generative judges
 

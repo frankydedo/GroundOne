@@ -6,7 +6,7 @@
 size: "0.5b"                 # base model (GroundOne/src/groundone/config.py: BASE_MODELS)
 data: "groundone"             # Project/data/processed/groundone/ (docs/dataset_plan.md)
 train: "train"                # answer-level records (RAGTruth train split)
-run: "g1-05b-b1"              # output: Project/models/<run>/ (never overwritten)
+run: "g1-05b-b1"              # output: Project/outputs/models/<run>/ (never overwritten)
 
 # --- LoRA (plan §6.1: all linear layers of all blocks; coverage matters more than rank) -------------------------
 rank: 16

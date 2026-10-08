@@ -75,15 +75,15 @@ dist/
 Project/data/raw/
 Project/data/processed/**/*.jsonl
 Project/data/processed/**/*.parquet
-Project/phase0/data/
+Project/experiments/feasibility/data/
 
 # GroundOne: models and run outputs (adapters, checkpoints, raw predictions); small JSON summaries stay tracked
-Project/models/
-Project/runs/
-Project/phase0/results/*.parquet
-Project/phase0/logs/
-Project/results/**/*.parquet
-Project/results/**/*.npz
+Project/outputs/models/
+Project/outputs/logs/
+Project/experiments/feasibility/results/*.parquet
+Project/experiments/feasibility/logs/
+Project/outputs/results/**/*.parquet
+Project/outputs/results/**/*.npz
 *.log
 
 # Claude Code local settings
@@ -91,3 +91,26 @@ Project/results/**/*.npz
 
 # Archived outputs of earlier experiments (local only)
 Project/_archive/
+
+# Auxiliary Python environments (HHEM, feasibility scripts)
+Project/envs/
+
+# LaTeX build artefacts (Thesis/); sources are tracked, the PDF is rebuilt with latexmk
+Thesis/thesis.aux
+Thesis/thesis.bbl
+Thesis/thesis.bcf
+Thesis/thesis.blg
+Thesis/thesis.fdb_latexmk
+Thesis/thesis.fls
+Thesis/thesis.glo
+Thesis/thesis.glo-abr
+Thesis/thesis.gls
+Thesis/thesis.glg
+Thesis/thesis.ist
+Thesis/thesis.lof
+Thesis/thesis.lot
+Thesis/thesis.log
+Thesis/thesis.out
+Thesis/thesis.run.xml
+Thesis/thesis.synctex.gz
+Thesis/thesis.toc

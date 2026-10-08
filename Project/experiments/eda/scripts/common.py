@@ -1,8 +1,8 @@
 """Shared helpers for the GroundOne EDA.
 
 Part A (01–03) describes the source datasets in Project/data/raw/; part B (04) describes the dataset built by
-`groundone data build` (Project/data/processed/groundone/). Each script writes figures to EDA/report/figures/ and numbers
-to EDA/report/stats/<name>.json; make_report.py assembles EDA/report/eda_report.md (conclusions.md is hand-written).
+`groundone data build` (Project/data/processed/groundone/). Each script writes figures to experiments/eda/report/figures/ and numbers
+to experiments/eda/report/stats/<name>.json; make_report.py assembles experiments/eda/report/eda_report.md (conclusions.md is hand-written).
 Token counts use the Qwen2.5 tokenizer (same vocabulary for 0.5B and 3B). Run with the GroundOne venv.
 """
 import json
@@ -13,10 +13,10 @@ import pandas as pd
 
 from groundone.figures.style import NEUTRAL, SERIES, plt  # noqa: F401  (shared thesis style)
 
-PROJECT = Path(__file__).resolve().parents[2]
+PROJECT = Path(__file__).resolve().parents[3]  # Project/ (scripts live in Project/experiments/eda/scripts)
 RAW = PROJECT / "data" / "raw"
 DATASET = PROJECT / "data" / "processed" / "groundone"
-REPORT = PROJECT / "EDA" / "report"
+REPORT = PROJECT / "experiments" / "eda" / "report"
 FIG = REPORT / "figures"
 STATS = REPORT / "stats"
 FIG.mkdir(parents=True, exist_ok=True)

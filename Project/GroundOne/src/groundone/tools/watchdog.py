@@ -6,7 +6,7 @@ killed (whole process group) and the queue moves on. Every 60 s the top memory u
 runaway process that is not ours can be identified afterwards.
 
 Usage: groundone guard queue.txt   (one shell command per line, '#' comments allowed; a line END stops the guard)
-Jobs run from the Project/ directory; logs go to Project/runs/guard/.
+Jobs run from the Project/ directory; logs go to Project/outputs/logs/guard/.
 """
 import os
 import signal
@@ -19,9 +19,9 @@ import psutil
 
 MIN_AVAIL_GB = float(os.environ.get("MIN_AVAIL_GB", 2.0))
 MAX_SWAP_GROWTH_GB = float(os.environ.get("MAX_SWAP_GROWTH_GB", 3.0))
-from ..config import PROJECT
+from ..config import LOGS_DIR, PROJECT
 
-LOGS = PROJECT / "runs" / "guard"
+LOGS = LOGS_DIR / "guard"
 LOGS.mkdir(parents=True, exist_ok=True)
 THRESHOLDS = LOGS / "thresholds.json"  # optional; re-read at every check so limits can be changed without a restart
 

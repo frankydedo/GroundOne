@@ -8,8 +8,12 @@ PROJECT = Path(os.environ.get("GROUNDONE_WORKSPACE", PACKAGE_ROOT.parent))  # ..
 CONFIGS_DIR = PACKAGE_ROOT / "configs"
 DATA_RAW = PROJECT / "data" / "raw"
 DATA_PROCESSED = PROJECT / "data" / "processed"
-MODELS_DIR = PROJECT / "models"                        # trained adapters live here (gitignored)
-RESULTS_DIR = PROJECT / "results"
+OUTPUTS = PROJECT / "outputs"                          # everything the groundone commands generate
+MODELS_DIR = OUTPUTS / "models"                        # trained adapters (gitignored)
+RESULTS_DIR = OUTPUTS / "results"                      # metrics.json tracked, predictions gitignored
+FIGURES_DIR = OUTPUTS / "figures"                      # thesis figures (PNG + captions)
+LOGS_DIR = OUTPUTS / "logs"                            # memory-guard logs and job output
+EXPERIMENTS = PROJECT / "experiments"                  # one-off studies: feasibility (Phase 0), eda
 
 # Base checkpoints (MLX 8-bit conversions). Sizes are the thesis' two model sizes (D2, D17).
 BASE_MODELS = {
