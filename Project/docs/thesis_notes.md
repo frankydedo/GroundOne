@@ -196,3 +196,53 @@ Source: `results/minicheck-roberta-frozen/{t1,t3}/metrics.json` (full T1 and T3;
 
   This is not test leakage in the strict sense: AlignScore used VitaminC's training split, and our T3 comes from the test split, split by article. But T3 measures transfer only for GroundOne, not for this encoder. The T3 comparison must be presented this way. For HHEM, check its training data before interpreting its T3 result.
 
+## Ch. 6: GroundOne 3B (g1-3b-b1) and the other baselines (2026-10-08)
+
+**3B training.** 6,500 answers, 403 steps, 12.25 h on the M4 (≈ 0.48 M tokens/h, slower than the 0.75 M/h of the 3-step smoke test, which had shorter answers); peak 5.9 GB.
+- Dev (200 answers) by step: 0.339 (0), 0.626 (80), 0.658 (160), 0.684 (240), **0.705 (320, best)**, 0.700 (400 and 403).
+- Loss below ln 3 by step 25 (1.02); 0.41–0.49 at the end.
+
+**3B vs 0.5B on the frozen tests** (`results/g1-3b-b1/{t1,t3}/metrics.json`):
+| | 0.5B | 3B |
+| --- | --- | --- |
+| T1 three-way balanced accuracy | 0.769 | **0.832** |
+| T1 recall S / C / NM | 0.83 / 0.67 / 0.81 | 0.88 / 0.76 / 0.86 |
+| T1 binary balanced accuracy / AUROC | 0.815 / 0.905 | **0.874 / 0.940** |
+| T1 QA (three-way; contradicted recall) | 0.589 (0.03) | 0.699 (**0.30**) |
+| T1 Summary (three-way; contradicted recall) | 0.544 (0.13) | 0.629 (**0.30**) |
+| T1 Data2txt | 0.812 | 0.873 |
+| T1 K bands 1–4 / 5–8 / 9–13 / ≥ 14 | 0.61 / 0.76 / 0.82 / 0.72 | 0.68 / 0.83 / 0.86 / **0.84** |
+| T3 three-way (contradicted recall) | 0.442 (0.11) | **0.527 (0.34)** |
+| T3 AUROC | 0.722 | **0.817** |
+
+**Readings.**
+- **Size compensates in part**, as predicted: contradictions outside data-to-text go from almost none to ≈ 30 %, and T3 improves clearly. T1 evaluation of the 3B took 85 min, T3 15 min.
+- **On T3 the gain comes from model size, not from the RAGTruth training.** The *untrained* 3B already reaches AUROC 0.821 and a three-way 0.531 on T3 (`results/base-3b-a/t3`), the same as the trained 3B (0.817 / 0.527). On T1 training matters a lot: untrained 3B 0.437 three-way / 0.726 AUROC (600 answers) vs trained 0.832 / 0.940.
+
+**Other baselines** (`results/*-frozen`, `results/base-*-a`):
+| System | T1 binary bacc / AUROC | T1 three-way | T3 bacc / AUROC | T3 three-way | Note |
+| --- | --- | --- | --- | --- | --- |
+| HHEM-2.1-open | 0.731 / 0.821 | – | 0.692 / 0.795 | – | full tests |
+| MiniCheck-RoBERTa | 0.762 / 0.814 | – | 0.912 / 0.968 | – | T3 in-distribution (AlignScore includes VitaminC) |
+| Rizzo-Flow 4B Q4 | 0.769 / 0.894 | 0.603 | 0.847 / 0.909 | 0.712 | 300 T1 answers (1,971 sentences), 600 T3 pairs |
+| Untrained 0.5B (format a) | 0.500 / 0.502 | 0.372 | 0.500 / 0.503 | 0.334 | never answers "supported" |
+| Untrained 3B (format a) | 0.630 / 0.726 | 0.437 | 0.653 / 0.821 | 0.531 | T1 on 600 answers |
+
+- HHEM by task (AUROC): QA 0.894, Summary 0.824, Data2txt 0.747.
+- Rizzo-Flow predicts "supported" for 90 % of T1 sentences.
+- TODO: compare GroundOne with Rizzo-Flow and the untrained 3B on exactly their subsamples (same ids).
+
+**Latency and generative judges** (`results/{lat-*,judge-*}/latency/metrics.json`; 200 T1 answers, 50 per K band). Median seconds per answer, K bands 1–4 / 5–8 / 9–13 / ≥ 14:
+| System | 1–4 | 5–8 | 9–13 | ≥ 14 | Overall | Three-way (failures wrong) | Format failures |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| GroundOne 0.5B (design b) | 0.20 | 0.32 | 0.37 | 0.41 | 0.33 | 0.835 | 0 % |
+| System One 0.5B, design a (untrained) | 0.22 | 0.38 | 0.48 | 0.59 | 0.42 | 0.363 | 0 % |
+| Terse judge 0.5B | 0.35 | 0.52 | 0.69 | 0.80 | 0.64 | 0.233 | 23 % |
+| Verbose judge 0.5B | 0.79 | 1.47 | 2.09 | 2.51 | 1.81 | 0.017 | 97 % |
+| System One 3B, design a (untrained) | 1.31 | 2.21 | 2.78 | 3.83 | 2.47 | 0.360 | 0 % |
+| Terse judge 3B | 1.57 | 2.63 | 3.65 | 4.44 | 3.16 | 0.390 | 0.1 % |
+| Verbose judge 3B | 4.65 | 8.74 | 13.78 | 15.86 | 10.23 | 0.402 | 7.6 % (248 generated tokens per answer) |
+
+- At K ≥ 14, GroundOne 0.5B is ≈ 2× faster than the terse 0.5B judge and ≈ 6× faster than the verbose one.
+- The 3B GroundOne latency run is pending (queue).
+

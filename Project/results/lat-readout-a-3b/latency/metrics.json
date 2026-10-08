@@ -1,0 +1,73 @@
+{
+  "system": "readout-a",
+  "size": "3b",
+  "adapter": null,
+  "answers": 200,
+  "decisions": 1747,
+  "format_failure_rate": 0.0,
+  "macro_recall_failures_wrong": 0.36022738040695196,
+  "recall_failures_wrong": {
+    "supported": 0.20784069695084006,
+    "contradicted": 0.5102040816326531,
+    "not_mentioned": 0.3626373626373626
+  },
+  "parsed_only": {
+    "n": 1747,
+    "macro_recall": 0.36022738040695196,
+    "recall": {
+      "supported": 0.20784069695084006,
+      "contradicted": 0.5102040816326531,
+      "not_mentioned": 0.3626373626373626
+    },
+    "predicted_share": {
+      "supported": 0.1952,
+      "contradicted": 0.4156,
+      "not_mentioned": 0.3892
+    },
+    "binary": {
+      "n": 1747,
+      "pos_rate": 0.9199,
+      "bacc": 0.577513556760601,
+      "auroc": 0.732734020801849,
+      "ece15": 0.7076745976129489,
+      "brier": 0.6594221128357138,
+      "nll": 3.336996216922304
+    },
+    "lenient_auroc": 0.5641811494915987,
+    "lenient_bacc": 0.5578111103098483
+  },
+  "latency_by_K_band": {
+    "1-4": {
+      "answers": 50,
+      "median_s": 1.3073495415010257,
+      "p90_s": 1.593268491703202,
+      "median_s_per_decision": 0.4357831805003419
+    },
+    "5-8": {
+      "answers": 50,
+      "median_s": 2.2125445835117716,
+      "p90_s": 3.2407833164092152,
+      "median_s_per_decision": 0.3323342206975213
+    },
+    "9-13": {
+      "answers": 50,
+      "median_s": 2.7791757710074307,
+      "p90_s": 3.5995044493960453,
+      "median_s_per_decision": 0.25803567343576683
+    },
+    ">=14": {
+      "answers": 50,
+      "median_s": 3.825312083499739,
+      "p90_s": 4.74247333338717,
+      "median_s_per_decision": 0.2554975333230972
+    }
+  },
+  "latency_all": {
+    "median_s": 2.473542562496732,
+    "p90_s": 3.936544653883902,
+    "p99_s": 5.410193950746031,
+    "mean_generated_tokens": 0.0,
+    "mean_K": 8.735
+  },
+  "protocol": "in-process MLX, one answer at a time, 3 warm-up answers excluded; System One median of 3 repetitions"
+}

@@ -1,0 +1,90 @@
+{
+  "all": {
+    "n": 600,
+    "macro_recall": 0.7116666666666666,
+    "recall": {
+      "supported": 0.89,
+      "contradicted": 0.62,
+      "not_mentioned": 0.625
+    },
+    "predicted_share": {
+      "supported": 0.4467,
+      "contradicted": 0.2733,
+      "not_mentioned": 0.28
+    },
+    "binary": {
+      "n": 600,
+      "pos_rate": 0.3333,
+      "bacc": 0.8474999999999999,
+      "auroc": 0.9092874999999999,
+      "ece15": 0.06735469705927614,
+      "brier": 0.1193519692334655,
+      "nll": 0.37819187404046045
+    },
+    "lenient_auroc": 0.860825,
+    "lenient_bacc": 0.75
+  },
+  "by_task": {
+    "VitaminC": {
+      "n": 600,
+      "macro_recall": 0.7116666666666666,
+      "recall": {
+        "supported": 0.89,
+        "contradicted": 0.62,
+        "not_mentioned": 0.625
+      },
+      "predicted_share": {
+        "supported": 0.4467,
+        "contradicted": 0.2733,
+        "not_mentioned": 0.28
+      },
+      "binary": {
+        "n": 600,
+        "pos_rate": 0.3333,
+        "bacc": 0.8474999999999999,
+        "auroc": 0.9092874999999999,
+        "ece15": 0.06735469705927614,
+        "brier": 0.1193519692334655,
+        "nll": 0.37819187404046045
+      },
+      "lenient_auroc": 0.860825,
+      "lenient_bacc": 0.75
+    }
+  },
+  "by_K_band": {
+    "1-4": {
+      "n": 600,
+      "macro_recall": 0.7116666666666666,
+      "recall": {
+        "supported": 0.89,
+        "contradicted": 0.62,
+        "not_mentioned": 0.625
+      },
+      "predicted_share": {
+        "supported": 0.4467,
+        "contradicted": 0.2733,
+        "not_mentioned": 0.28
+      },
+      "binary": {
+        "n": 600,
+        "pos_rate": 0.3333,
+        "bacc": 0.8474999999999999,
+        "auroc": 0.9092874999999999,
+        "ece15": 0.06735469705927614,
+        "brier": 0.1193519692334655,
+        "nll": 0.37819187404046045
+      },
+      "lenient_auroc": 0.860825,
+      "lenient_bacc": 0.75
+    }
+  },
+  "baseline_word_overlap_auroc": 0.71225,
+  "skipped_records": 0,
+  "latency_per_answer_p50_s": 0.7620568965066923,
+  "system": "rizzo",
+  "model": "rizzo-flow (server)",
+  "test_file": "test_vitaminc",
+  "records": 600,
+  "limit": 600,
+  "wall_minutes": 7.49
+}

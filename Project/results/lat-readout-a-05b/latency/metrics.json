@@ -1,0 +1,73 @@
+{
+  "system": "readout-a",
+  "size": "0.5b",
+  "adapter": null,
+  "answers": 200,
+  "decisions": 1747,
+  "format_failure_rate": 0.0,
+  "macro_recall_failures_wrong": 0.3633680747201949,
+  "recall_failures_wrong": {
+    "supported": 0.0006222775357809583,
+    "contradicted": 0.6938775510204082,
+    "not_mentioned": 0.3956043956043956
+  },
+  "parsed_only": {
+    "n": 1747,
+    "macro_recall": 0.3633680747201949,
+    "recall": {
+      "supported": 0.0006222775357809583,
+      "contradicted": 0.6938775510204082,
+      "not_mentioned": 0.3956043956043956
+    },
+    "predicted_share": {
+      "supported": 0.0006,
+      "contradicted": 0.6411,
+      "not_mentioned": 0.3583
+    },
+    "binary": {
+      "n": 1747,
+      "pos_rate": 0.9199,
+      "bacc": 0.5003111387678905,
+      "auroc": 0.3913881233887456,
+      "ece15": 0.8696125021937603,
+      "brier": 0.8317440692200848,
+      "nll": 2.8753385073623674
+    },
+    "lenient_auroc": 0.5364474411672796,
+    "lenient_bacc": 0.574559505781111
+  },
+  "latency_by_K_band": {
+    "1-4": {
+      "answers": 50,
+      "median_s": 0.22084993749740534,
+      "p90_s": 0.2727260247134836,
+      "median_s_per_decision": 0.07374834716999126
+    },
+    "5-8": {
+      "answers": 50,
+      "median_s": 0.3813733750139363,
+      "p90_s": 0.5623974791902583,
+      "median_s_per_decision": 0.05709184710108925
+    },
+    "9-13": {
+      "answers": 50,
+      "median_s": 0.4819399580010213,
+      "p90_s": 0.6278534252895043,
+      "median_s_per_decision": 0.044636053063864395
+    },
+    ">=14": {
+      "answers": 50,
+      "median_s": 0.5878364795062225,
+      "p90_s": 0.7312207497045166,
+      "median_s_per_decision": 0.039897151295593306
+    }
+  },
+  "latency_all": {
+    "median_s": 0.42198872948938515,
+    "p90_s": 0.6371343377890297,
+    "p99_s": 0.8035988822364004,
+    "mean_generated_tokens": 0.0,
+    "mean_K": 8.735
+  },
+  "protocol": "in-process MLX, one answer at a time, 3 warm-up answers excluded; System One median of 3 repetitions"
+}

@@ -1,0 +1,223 @@
+{
+  "all": {
+    "n": 17284,
+    "macro_recall": 0.3718852543883758,
+    "recall": {
+      "supported": 0.00038107335662114955,
+      "contradicted": 0.577054794520548,
+      "not_mentioned": 0.5382198952879581
+    },
+    "predicted_share": {
+      "supported": 0.0003,
+      "contradicted": 0.5148,
+      "not_mentioned": 0.4848
+    },
+    "binary": {
+      "n": 17284,
+      "pos_rate": 0.911,
+      "bacc": 0.5000635122261036,
+      "auroc": 0.501835643647302,
+      "ece15": 0.858472201245599,
+      "brier": 0.8185762766141423,
+      "nll": 2.7930347394660404
+    },
+    "lenient_auroc": 0.550020968337298,
+    "lenient_bacc": 0.5354860142728242
+  },
+  "by_task": {
+    "Data2txt": {
+      "n": 7870,
+      "macro_recall": 0.37197727400916786,
+      "recall": {
+        "supported": 0.0,
+        "contradicted": 0.643652561247216,
+        "not_mentioned": 0.4722792607802875
+      },
+      "predicted_share": {
+        "supported": 0.0,
+        "contradicted": 0.647,
+        "not_mentioned": 0.353
+      },
+      "binary": {
+        "n": 7870,
+        "pos_rate": 0.8811,
+        "bacc": 0.5,
+        "auroc": 0.47292396995850994,
+        "ece15": 0.8361631811740261,
+        "brier": 0.804333157392302,
+        "nll": 2.799806935731505
+      },
+      "lenient_auroc": 0.49594931496694655,
+      "lenient_bacc": 0.49830538689789317
+    },
+    "QA": {
+      "n": 4876,
+      "macro_recall": 0.3397058796609021,
+      "recall": {
+        "supported": 0.0011052166224580018,
+        "contradicted": 0.4,
+        "not_mentioned": 0.6180124223602484
+      },
+      "predicted_share": {
+        "supported": 0.001,
+        "contradicted": 0.3804,
+        "not_mentioned": 0.6185
+      },
+      "binary": {
+        "n": 4876,
+        "pos_rate": 0.9278,
+        "bacc": 0.5002210433244916,
+        "auroc": 0.5030396596937545,
+        "ece15": 0.8655540753460904,
+        "brier": 0.8172074543820672,
+        "nll": 2.7077203752294197
+      },
+      "lenient_auroc": 0.525625945797221,
+      "lenient_bacc": 0.5135988444077589
+    },
+    "Summary": {
+      "n": 4538,
+      "macro_recall": 0.3084273956777959,
+      "recall": {
+        "supported": 0.00023326335432703523,
+        "contradicted": 0.34285714285714286,
+        "not_mentioned": 0.5821917808219178
+      },
+      "predicted_share": {
+        "supported": 0.0002,
+        "contradicted": 0.4299,
+        "not_mentioned": 0.5699
+      },
+      "binary": {
+        "n": 4538,
+        "pos_rate": 0.9447,
+        "bacc": 0.5,
+        "auroc": 0.48946365227218025,
+        "ece15": 0.88955214171481,
+        "brier": 0.844748098006712,
+        "nll": 2.8729588592123063
+      },
+      "lenient_auroc": 0.4361455748552523,
+      "lenient_bacc": 0.46631540502508245
+    }
+  },
+  "by_K_band": {
+    "1-4": {
+      "n": 2434,
+      "macro_recall": 0.32431400420864864,
+      "recall": {
+        "supported": 0.0026338893766461808,
+        "contradicted": 0.29411764705882354,
+        "not_mentioned": 0.6761904761904762
+      },
+      "predicted_share": {
+        "supported": 0.0025,
+        "contradicted": 0.3899,
+        "not_mentioned": 0.6076
+      },
+      "binary": {
+        "n": 2434,
+        "pos_rate": 0.9359,
+        "bacc": 0.5004389815627743,
+        "auroc": 0.5391805114698003,
+        "ece15": 0.8624628192230813,
+        "brier": 0.8054609522543755,
+        "nll": 2.6020111614876065
+      },
+      "lenient_auroc": 0.43691013963285685,
+      "lenient_bacc": 0.4887602544164959
+    },
+    "5-8": {
+      "n": 8012,
+      "macro_recall": 0.36478852856697846,
+      "recall": {
+        "supported": 0.0,
+        "contradicted": 0.47766323024054985,
+        "not_mentioned": 0.6167023554603854
+      },
+      "predicted_share": {
+        "supported": 0.0,
+        "contradicted": 0.4365,
+        "not_mentioned": 0.5635
+      },
+      "binary": {
+        "n": 8012,
+        "pos_rate": 0.9054,
+        "bacc": 0.5,
+        "auroc": 0.5276275558640016,
+        "ece15": 0.8525752607813466,
+        "brier": 0.8125128432642741,
+        "nll": 2.7518860411904096
+      },
+      "lenient_auroc": 0.5380450336054078,
+      "lenient_bacc": 0.507792377730036
+    },
+    "9-13": {
+      "n": 5201,
+      "macro_recall": 0.40096618357487923,
+      "recall": {
+        "supported": 0.0,
+        "contradicted": 0.75,
+        "not_mentioned": 0.4528985507246377
+      },
+      "predicted_share": {
+        "supported": 0.0,
+        "contradicted": 0.6235,
+        "not_mentioned": 0.3765
+      },
+      "binary": {
+        "n": 5201,
+        "pos_rate": 0.9046,
+        "bacc": 0.5,
+        "auroc": 0.4654976260669843,
+        "ece15": 0.8595660808300846,
+        "brier": 0.8256709646427421,
+        "nll": 2.8834574658323913
+      },
+      "lenient_auroc": 0.5990399883192494,
+      "lenient_bacc": 0.5812866164151047
+    },
+    ">=14": {
+      "n": 1637,
+      "macro_recall": 0.36618521665250636,
+      "recall": {
+        "supported": 0.0,
+        "contradicted": 0.8181818181818182,
+        "not_mentioned": 0.2803738317757009
+      },
+      "predicted_share": {
+        "supported": 0.0,
+        "contradicted": 0.7385,
+        "not_mentioned": 0.2615
+      },
+      "binary": {
+        "n": 1637,
+        "pos_rate": 0.9212,
+        "bacc": 0.5,
+        "auroc": 0.3873578640018095,
+        "ece15": 0.8779247700443072,
+        "brier": 0.8452124739593281,
+        "nll": 2.991169229113241
+      },
+      "lenient_auroc": 0.6072755417956656,
+      "lenient_bacc": 0.5747255840135097
+    }
+  },
+  "baseline_word_overlap_auroc": 0.737294696935463,
+  "n_answers": 2647,
+  "design": "a",
+  "model": {
+    "name": "groundone-0.5b-base",
+    "base_model": "lmstudio-community/Qwen2.5-0.5B-Instruct-MLX-8bit",
+    "adapter": null,
+    "adapter_sha256": null,
+    "prompt_version": "groundone-v1",
+    "runtime": "mlx",
+    "load_seconds": 0.68,
+    "fingerprint": "fd8070a37264e759"
+  },
+  "calibrated": false,
+  "test_file": "test_ragtruth",
+  "limit": 0,
+  "wall_minutes": 16.69
+}

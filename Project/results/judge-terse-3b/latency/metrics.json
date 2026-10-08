@@ -1,0 +1,73 @@
+{
+  "system": "terse",
+  "size": "3b",
+  "adapter": null,
+  "answers": 200,
+  "decisions": 1747,
+  "format_failure_rate": 0.0005724098454493417,
+  "macro_recall_failures_wrong": 0.38995277398691036,
+  "recall_failures_wrong": {
+    "supported": 0.8276291225886746,
+    "contradicted": 0.12244897959183673,
+    "not_mentioned": 0.21978021978021978
+  },
+  "parsed_only": {
+    "n": 1746,
+    "macro_recall": 0.390124552551167,
+    "recall": {
+      "supported": 0.8281444582814446,
+      "contradicted": 0.12244897959183673,
+      "not_mentioned": 0.21978021978021978
+    },
+    "predicted_share": {
+      "supported": 0.807,
+      "contradicted": 0.0951,
+      "not_mentioned": 0.0979
+    },
+    "binary": {
+      "n": 1746,
+      "pos_rate": 0.9198,
+      "bacc": 0.6319293719978651,
+      "auroc": 0.6319293719978651,
+      "ece15": 0.2033217785796108,
+      "brier": 0.20332183791524486,
+      "nll": 3.2771615665703293
+    },
+    "lenient_auroc": 0.5140824744747634,
+    "lenient_bacc": 0.5140824744747634
+  },
+  "latency_by_K_band": {
+    "1-4": {
+      "answers": 50,
+      "median_s": 1.5689973954868037,
+      "p90_s": 1.876195532816928,
+      "median_s_per_decision": 0.5177200693287887
+    },
+    "5-8": {
+      "answers": 50,
+      "median_s": 2.6266128749848576,
+      "p90_s": 3.6222268333134706,
+      "median_s_per_decision": 0.413292269417434
+    },
+    "9-13": {
+      "answers": 50,
+      "median_s": 3.654853000000003,
+      "p90_s": 4.395463395796833,
+      "median_s_per_decision": 0.3367144352216403
+    },
+    ">=14": {
+      "answers": 50,
+      "median_s": 4.438735104020452,
+      "p90_s": 5.388147025016951,
+      "median_s_per_decision": 0.2993685920627278
+    }
+  },
+  "latency_all": {
+    "median_s": 3.156840937503148,
+    "p90_s": 4.5350510797085,
+    "p99_s": 5.691080918655204,
+    "mean_generated_tokens": 36.225,
+    "mean_K": 8.735
+  },
+  "protocol": "in-process MLX, one answer at a time, 3 warm-up answers excluded; System One median of 3 repetitions"
+}

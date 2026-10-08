@@ -1,0 +1,223 @@
+{
+  "all": {
+    "n": 3869,
+    "macro_recall": 0.4365155679448569,
+    "recall": {
+      "supported": 0.3431176973496723,
+      "contradicted": 0.5575221238938053,
+      "not_mentioned": 0.4089068825910931
+    },
+    "predicted_share": {
+      "supported": 0.3179,
+      "contradicted": 0.4272,
+      "not_mentioned": 0.2548
+    },
+    "binary": {
+      "n": 3869,
+      "pos_rate": 0.907,
+      "bacc": 0.6295695988094108,
+      "auroc": 0.7255648174535322,
+      "ece15": 0.5877644206347101,
+      "brier": 0.5378060350920943,
+      "nll": 2.6567583379293196
+    },
+    "lenient_auroc": 0.5871019348393602,
+    "lenient_bacc": 0.5718602448471826
+  },
+  "by_task": {
+    "Data2txt": {
+      "n": 1624,
+      "macro_recall": 0.3966891690658196,
+      "recall": {
+        "supported": 0.12578179291174427,
+        "contradicted": 0.55,
+        "not_mentioned": 0.5142857142857142
+      },
+      "predicted_share": {
+        "supported": 0.1133,
+        "contradicted": 0.4643,
+        "not_mentioned": 0.4224
+      },
+      "binary": {
+        "n": 1624,
+        "pos_rate": 0.8861,
+        "bacc": 0.5509606896681254,
+        "auroc": 0.7132336645192796,
+        "ece15": 0.7547411133973793,
+        "brier": 0.7174523109785277,
+        "nll": 3.873792943565125
+      },
+      "lenient_auroc": 0.549595207253886,
+      "lenient_bacc": 0.5472474093264248
+    },
+    "QA": {
+      "n": 1178,
+      "macro_recall": 0.45751541387905026,
+      "recall": {
+        "supported": 0.2780952380952381,
+        "contradicted": 0.7142857142857143,
+        "not_mentioned": 0.38016528925619836
+      },
+      "predicted_share": {
+        "supported": 0.2538,
+        "contradicted": 0.5526,
+        "not_mentioned": 0.1935
+      },
+      "binary": {
+        "n": 1178,
+        "pos_rate": 0.8913,
+        "bacc": 0.6060863095238095,
+        "auroc": 0.6667819940476191,
+        "ece15": 0.6237298141958498,
+        "brier": 0.5714244150604688,
+        "nll": 2.6569359366681624
+      },
+      "lenient_auroc": 0.5998536049774308,
+      "lenient_bacc": 0.5902769305843601
+    },
+    "Summary": {
+      "n": 1067,
+      "macro_recall": 0.43424908424908426,
+      "recall": {
+        "supported": 0.7166666666666667,
+        "contradicted": 0.5384615384615384,
+        "not_mentioned": 0.047619047619047616
+      },
+      "predicted_share": {
+        "supported": 0.7001,
+        "contradicted": 0.2324,
+        "not_mentioned": 0.0675
+      },
+      "binary": {
+        "n": 1067,
+        "pos_rate": 0.956,
+        "bacc": 0.678316645807259,
+        "auroc": 0.7517417605340007,
+        "ece15": 0.29473639456839124,
+        "brier": 0.2272643259615295,
+        "nll": 0.8042059378666158
+      },
+      "lenient_auroc": 0.7327089337175793,
+      "lenient_bacc": 0.6674056011231804
+    }
+  },
+  "by_K_band": {
+    "1-4": {
+      "n": 538,
+      "macro_recall": 0.35352638814177273,
+      "recall": {
+        "supported": 0.6469428007889546,
+        "contradicted": 0.36363636363636365,
+        "not_mentioned": 0.05
+      },
+      "predicted_share": {
+        "supported": 0.6338,
+        "contradicted": 0.3346,
+        "not_mentioned": 0.0316
+      },
+      "binary": {
+        "n": 538,
+        "pos_rate": 0.9424,
+        "bacc": 0.6068906279824394,
+        "auroc": 0.6767194757269198,
+        "ece15": 0.3476775183122742,
+        "brier": 0.3050918059760256,
+        "nll": 1.379054052197618
+      },
+      "lenient_auroc": 0.5444195273417285,
+      "lenient_bacc": 0.5205278592375366
+    },
+    "5-8": {
+      "n": 1849,
+      "macro_recall": 0.42676038180890546,
+      "recall": {
+        "supported": 0.38263473053892216,
+        "contradicted": 0.5873015873015873,
+        "not_mentioned": 0.3103448275862069
+      },
+      "predicted_share": {
+        "supported": 0.3515,
+        "contradicted": 0.4613,
+        "not_mentioned": 0.1871
+      },
+      "binary": {
+        "n": 1849,
+        "pos_rate": 0.9032,
+        "bacc": 0.6528066771484963,
+        "auroc": 0.7588047368949251,
+        "ece15": 0.5537745500551952,
+        "brier": 0.49700968985367494,
+        "nll": 2.3819401247989136
+      },
+      "lenient_auroc": 0.5780408467978456,
+      "lenient_bacc": 0.5679091345384738
+    },
+    "9-13": {
+      "n": 1068,
+      "macro_recall": 0.44119988161969004,
+      "recall": {
+        "supported": 0.18549222797927462,
+        "contradicted": 0.5294117647058824,
+        "not_mentioned": 0.6086956521739131
+      },
+      "predicted_share": {
+        "supported": 0.1685,
+        "contradicted": 0.426,
+        "not_mentioned": 0.4054
+      },
+      "binary": {
+        "n": 1068,
+        "pos_rate": 0.9036,
+        "bacc": 0.5806378590472357,
+        "auroc": 0.7061673122390462,
+        "ece15": 0.7208263545576169,
+        "brier": 0.670390047214944,
+        "nll": 3.458745721219008
+      },
+      "lenient_auroc": 0.5877232904767323,
+      "lenient_bacc": 0.5620946637842759
+    },
+    ">=14": {
+      "n": 414,
+      "macro_recall": 0.49394922364949617,
+      "recall": {
+        "supported": 0.15803814713896458,
+        "contradicted": 0.8,
+        "not_mentioned": 0.5238095238095238
+      },
+      "predicted_share": {
+        "supported": 0.1425,
+        "contradicted": 0.3986,
+        "not_mentioned": 0.4589
+      },
+      "binary": {
+        "n": 414,
+        "pos_rate": 0.8865,
+        "bacc": 0.5735694822888283,
+        "auroc": 0.6226447910023771,
+        "ece15": 0.7304044750453493,
+        "brier": 0.6803977565004978,
+        "nll": 3.475650261717698
+      },
+      "lenient_auroc": 0.6787286063569682,
+      "lenient_bacc": 0.7117359413202935
+    }
+  },
+  "baseline_word_overlap_auroc": 0.7517079098191951,
+  "n_answers": 600,
+  "design": "a",
+  "model": {
+    "name": "groundone-3b-base",
+    "base_model": "lmstudio-community/Qwen2.5-3B-Instruct-MLX-8bit",
+    "adapter": null,
+    "adapter_sha256": null,
+    "prompt_version": "groundone-v1",
+    "runtime": "mlx",
+    "load_seconds": 1.54,
+    "fingerprint": "89a258f951410ed8"
+  },
+  "calibrated": false,
+  "test_file": "test_ragtruth",
+  "limit": 600,
+  "wall_minutes": 21.3
+}

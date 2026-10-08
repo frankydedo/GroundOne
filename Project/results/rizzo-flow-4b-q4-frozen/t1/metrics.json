@@ -1,0 +1,215 @@
+{
+  "all": {
+    "n": 1971,
+    "macro_recall": 0.6028856099523652,
+    "recall": {
+      "supported": 0.9513299377475948,
+      "contradicted": 0.42028985507246375,
+      "not_mentioned": 0.43703703703703706
+    },
+    "predicted_share": {
+      "supported": 0.9011,
+      "contradicted": 0.0421,
+      "not_mentioned": 0.0568
+    },
+    "binary": {
+      "n": 1971,
+      "pos_rate": 0.8965,
+      "bacc": 0.7692083624621326,
+      "auroc": 0.893696527847132,
+      "ece15": 0.11550801719009904,
+      "brier": 0.08096174514553926,
+      "nll": 0.28425627613000654
+    },
+    "lenient_auroc": 0.8846446913241591,
+    "lenient_bacc": 0.6577287066246057
+  },
+  "by_task": {
+    "Data2txt": {
+      "n": 886,
+      "macro_recall": 0.6245331866011178,
+      "recall": {
+        "supported": 0.9421813403416557,
+        "contradicted": 0.48214285714285715,
+        "not_mentioned": 0.4492753623188406
+      },
+      "predicted_share": {
+        "supported": 0.8646,
+        "contradicted": 0.0655,
+        "not_mentioned": 0.07
+      },
+      "binary": {
+        "n": 886,
+        "pos_rate": 0.8589,
+        "bacc": 0.7800946123521681,
+        "auroc": 0.8826491458607097,
+        "ece15": 0.1277793463575791,
+        "brier": 0.09907523958244857,
+        "nll": 0.33794596194037624
+      },
+      "lenient_auroc": 0.8967943201376936,
+      "lenient_bacc": 0.6855851979345955
+    },
+    "QA": {
+      "n": 608,
+      "macro_recall": 0.4561581216560178,
+      "recall": {
+        "supported": 0.9336917562724014,
+        "contradicted": 0.0,
+        "not_mentioned": 0.43478260869565216
+      },
+      "predicted_share": {
+        "supported": 0.9046,
+        "contradicted": 0.0296,
+        "not_mentioned": 0.0658
+      },
+      "binary": {
+        "n": 608,
+        "pos_rate": 0.9178,
+        "bacc": 0.7325089605734767,
+        "auroc": 0.8885663082437276,
+        "ece15": 0.1311094343361023,
+        "brier": 0.085532160596949,
+        "nll": 0.28854289447596154
+      },
+      "lenient_auroc": 0.8687913907284769,
+      "lenient_bacc": 0.4900662251655629
+    },
+    "Summary": {
+      "n": 477,
+      "macro_recall": 0.5370205026455026,
+      "recall": {
+        "supported": 0.9888392857142857,
+        "contradicted": 0.2222222222222222,
+        "not_mentioned": 0.4
+      },
+      "predicted_share": {
+        "supported": 0.9644,
+        "contradicted": 0.0147,
+        "not_mentioned": 0.021
+      },
+      "binary": {
+        "n": 477,
+        "pos_rate": 0.9392,
+        "bacc": 0.749692118226601,
+        "auroc": 0.8964747536945813,
+        "ece15": 0.08670702930122033,
+        "brier": 0.0414913705846194,
+        "nll": 0.1790669143221904
+      },
+      "lenient_auroc": 0.73338081671415,
+      "lenient_bacc": 0.5512820512820513
+    }
+  },
+  "by_K_band": {
+    "1-4": {
+      "n": 284,
+      "macro_recall": 0.44491826581378824,
+      "recall": {
+        "supported": 0.9776119402985075,
+        "contradicted": 0.0,
+        "not_mentioned": 0.35714285714285715
+      },
+      "predicted_share": {
+        "supported": 0.9577,
+        "contradicted": 0.0176,
+        "not_mentioned": 0.0246
+      },
+      "binary": {
+        "n": 284,
+        "pos_rate": 0.9437,
+        "bacc": 0.6688432835820896,
+        "auroc": 0.8036380597014925,
+        "ece15": 0.09599355476872018,
+        "brier": 0.05694989235966164,
+        "nll": 0.22228842321537046
+      },
+      "lenient_auroc": 0.3014184397163121,
+      "lenient_bacc": 0.49645390070921985
+    },
+    "5-8": {
+      "n": 923,
+      "macro_recall": 0.5894286927093731,
+      "recall": {
+        "supported": 0.9501822600243013,
+        "contradicted": 0.40540540540540543,
+        "not_mentioned": 0.4126984126984127
+      },
+      "predicted_share": {
+        "supported": 0.8971,
+        "contradicted": 0.0509,
+        "not_mentioned": 0.052
+      },
+      "binary": {
+        "n": 923,
+        "pos_rate": 0.8917,
+        "bacc": 0.7667253948967193,
+        "auroc": 0.8960874848116646,
+        "ece15": 0.10417736275228501,
+        "brier": 0.0798593667529493,
+        "nll": 0.2785161724265178
+      },
+      "lenient_auroc": 0.8939051918735892,
+      "lenient_bacc": 0.6351046305899579
+    },
+    "9-13": {
+      "n": 517,
+      "macro_recall": 0.6447161572052401,
+      "recall": {
+        "supported": 0.9541484716157205,
+        "contradicted": 0.48,
+        "not_mentioned": 0.5
+      },
+      "predicted_share": {
+        "supported": 0.8917,
+        "contradicted": 0.0426,
+        "not_mentioned": 0.0658
+      },
+      "binary": {
+        "n": 517,
+        "pos_rate": 0.8859,
+        "bacc": 0.7920398194064096,
+        "auroc": 0.9109984457109022,
+        "ece15": 0.13623428771072188,
+        "brier": 0.08670164490533148,
+        "nll": 0.30185586328282293
+      },
+      "lenient_auroc": 0.9111382113821138,
+      "lenient_bacc": 0.6949186991869919
+    },
+    ">=14": {
+      "n": 247,
+      "macro_recall": 0.591921508664628,
+      "recall": {
+        "supported": 0.9174311926605505,
+        "contradicted": 0.4,
+        "not_mentioned": 0.4583333333333333
+      },
+      "predicted_share": {
+        "supported": 0.8704,
+        "contradicted": 0.0364,
+        "not_mentioned": 0.0931
+      },
+      "binary": {
+        "n": 247,
+        "pos_rate": 0.8826,
+        "bacc": 0.7725403353369187,
+        "auroc": 0.8978171464726353,
+        "ece15": 0.14590328117374282,
+        "brier": 0.10067564503111492,
+        "nll": 0.3401186218306972
+      },
+      "lenient_auroc": 0.8876033057851239,
+      "lenient_bacc": 0.693801652892562
+    }
+  },
+  "baseline_word_overlap_auroc": 0.7236647913268308,
+  "skipped_records": 0,
+  "latency_per_answer_p50_s": 3.748885770997731,
+  "system": "rizzo",
+  "model": "rizzo-flow (server)",
+  "test_file": "test_ragtruth",
+  "records": 300,
+  "limit": 300,
+  "wall_minutes": 20.1
+}

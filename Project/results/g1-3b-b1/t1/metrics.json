@@ -1,0 +1,223 @@
+{
+  "all": {
+    "n": 17284,
+    "macro_recall": 0.832111652797462,
+    "recall": {
+      "supported": 0.8770403302635758,
+      "contradicted": 0.7585616438356164,
+      "not_mentioned": 0.8607329842931937
+    },
+    "predicted_share": {
+      "supported": 0.8099,
+      "contradicted": 0.0565,
+      "not_mentioned": 0.1336
+    },
+    "binary": {
+      "n": 17284,
+      "pos_rate": 0.911,
+      "bacc": 0.8736112065445243,
+      "auroc": 0.9399042281851082,
+      "ece15": 0.18299241355567514,
+      "brier": 0.10120786879103447,
+      "nll": 0.34087765645890356
+    },
+    "lenient_auroc": 0.9472039311787384,
+    "lenient_bacc": 0.8537259043556722
+  },
+  "by_task": {
+    "Data2txt": {
+      "n": 7870,
+      "macro_recall": 0.8728619201579391,
+      "recall": {
+        "supported": 0.8360253821747908,
+        "contradicted": 0.8975501113585747,
+        "not_mentioned": 0.8850102669404517
+      },
+      "predicted_share": {
+        "supported": 0.7437,
+        "contradicted": 0.098,
+        "not_mentioned": 0.1583
+      },
+      "binary": {
+        "n": 7870,
+        "pos_rate": 0.8811,
+        "bacc": 0.8826208463683225,
+        "auroc": 0.9547779860910808,
+        "ece15": 0.1999538236329283,
+        "brier": 0.11932741223337125,
+        "nll": 0.3956974844800536
+      },
+      "lenient_auroc": 0.9710511223041576,
+      "lenient_bacc": 0.9231645342822646
+    },
+    "QA": {
+      "n": 4876,
+      "macro_recall": 0.6987885178289975,
+      "recall": {
+        "supported": 0.8740053050397878,
+        "contradicted": 0.3,
+        "not_mentioned": 0.922360248447205
+      },
+      "predicted_share": {
+        "supported": 0.8179,
+        "contradicted": 0.0178,
+        "not_mentioned": 0.1643
+      },
+      "binary": {
+        "n": 4876,
+        "pos_rate": 0.9278,
+        "bacc": 0.8770697693111487,
+        "auroc": 0.9484862300056265,
+        "ece15": 0.1926929239116205,
+        "brier": 0.10085835105224035,
+        "nll": 0.33096680914073623
+      },
+      "lenient_auroc": 0.7660441601320679,
+      "lenient_bacc": 0.612539551520154
+    },
+    "Summary": {
+      "n": 4538,
+      "macro_recall": 0.6285521345118535,
+      "recall": {
+        "supported": 0.9465826918591089,
+        "contradicted": 0.29523809523809524,
+        "not_mentioned": 0.6438356164383562
+      },
+      "predicted_share": {
+        "supported": 0.9163,
+        "contradicted": 0.026,
+        "not_mentioned": 0.0577
+      },
+      "binary": {
+        "n": 4538,
+        "pos_rate": 0.9447,
+        "bacc": 0.7936957558150881,
+        "auroc": 0.873111240598604,
+        "ece15": 0.14315416194624986,
+        "brier": 0.07015970695832617,
+        "nll": 0.25645571837977904
+      },
+      "lenient_auroc": 0.8684358652100589,
+      "lenient_bacc": 0.5952628017144146
+    }
+  },
+  "by_K_band": {
+    "1-4": {
+      "n": 2434,
+      "macro_recall": 0.676899814652229,
+      "recall": {
+        "supported": 0.9091308165057067,
+        "contradicted": 0.2549019607843137,
+        "not_mentioned": 0.8666666666666667
+      },
+      "predicted_share": {
+        "supported": 0.8665,
+        "contradicted": 0.0234,
+        "not_mentioned": 0.1101
+      },
+      "binary": {
+        "n": 2434,
+        "pos_rate": 0.9359,
+        "bacc": 0.8336513135679071,
+        "auroc": 0.9207849328020531,
+        "ece15": 0.19187847944826344,
+        "brier": 0.09233524980460221,
+        "nll": 0.3154071574457745
+      },
+      "lenient_auroc": 0.8199542511087524,
+      "lenient_bacc": 0.6042762048167987
+    },
+    "5-8": {
+      "n": 8012,
+      "macro_recall": 0.8290736605101587,
+      "recall": {
+        "supported": 0.8647642679900744,
+        "contradicted": 0.7766323024054983,
+        "not_mentioned": 0.8458244111349036
+      },
+      "predicted_share": {
+        "supported": 0.7944,
+        "contradicted": 0.0593,
+        "not_mentioned": 0.1463
+      },
+      "binary": {
+        "n": 8012,
+        "pos_rate": 0.9054,
+        "bacc": 0.8674018810838966,
+        "auroc": 0.9363655608442399,
+        "ece15": 0.19457868936168604,
+        "brier": 0.1099259284866722,
+        "nll": 0.3645751852234792
+      },
+      "lenient_auroc": 0.9526898346144825,
+      "lenient_bacc": 0.8541285849143518
+    },
+    "9-13": {
+      "n": 5201,
+      "macro_recall": 0.8625707241056314,
+      "recall": {
+        "supported": 0.8699256110520722,
+        "contradicted": 0.8590909090909091,
+        "not_mentioned": 0.8586956521739131
+      },
+      "predicted_share": {
+        "supported": 0.7964,
+        "contradicted": 0.0717,
+        "not_mentioned": 0.1319
+      },
+      "binary": {
+        "n": 5201,
+        "pos_rate": 0.9046,
+        "bacc": 0.8832753419491961,
+        "auroc": 0.9453082684858248,
+        "ece15": 0.17494337638083873,
+        "brier": 0.10096466009723243,
+        "nll": 0.3427563083656091
+      },
+      "lenient_auroc": 0.9733770144731799,
+      "lenient_bacc": 0.9141870927707105
+    },
+    ">=14": {
+      "n": 1637,
+      "macro_recall": 0.8389553834284739,
+      "recall": {
+        "supported": 0.9098143236074271,
+        "contradicted": 0.6818181818181818,
+        "not_mentioned": 0.9252336448598131
+      },
+      "predicted_share": {
+        "supported": 0.8448,
+        "contradicted": 0.0434,
+        "not_mentioned": 0.1118
+      },
+      "binary": {
+        "n": 1637,
+        "pos_rate": 0.9212,
+        "bacc": 0.9098477371332223,
+        "auroc": 0.9571690004729301,
+        "ece15": 0.13864611924046683,
+        "brier": 0.07250401341412002,
+        "nll": 0.25679685350801795
+      },
+      "lenient_auroc": 0.8184632704756543,
+      "lenient_bacc": 0.8048691246833661
+    }
+  },
+  "baseline_word_overlap_auroc": 0.737294696935463,
+  "n_answers": 2647,
+  "design": "b",
+  "model": {
+    "name": "groundone-3b-best",
+    "base_model": "lmstudio-community/Qwen2.5-3B-Instruct-MLX-8bit",
+    "adapter": "/Users/francescodedominicis/Desktop/THESIS/Project/models/g1-3b-b1/best",
+    "adapter_sha256": "7bd9fd756613445dd1eaf2cd053fd90a963a673da1c204bb5b396e979a17771f",
+    "prompt_version": "groundone-v1",
+    "runtime": "mlx",
+    "load_seconds": 1.62,
+    "fingerprint": "72a54a5507933e8a"
+  },
+  "calibrated": false,
+  "test_file": "test_ragtruth",
+  "limit": 0,
+  "wall_minutes": 84.64
+}

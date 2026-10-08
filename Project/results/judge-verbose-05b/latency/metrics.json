@@ -1,0 +1,70 @@
+{
+  "system": "verbose",
+  "size": "0.5b",
+  "adapter": null,
+  "answers": 200,
+  "decisions": 1747,
+  "format_failure_rate": 0.9696622781911849,
+  "macro_recall_failures_wrong": 0.017211786346820572,
+  "recall_failures_wrong": {
+    "supported": 0.018668326073428748,
+    "contradicted": 0.0,
+    "not_mentioned": 0.03296703296703297
+  },
+  "parsed_only": {
+    "n": 53,
+    "macro_recall": 0.8,
+    "recall": {
+      "supported": 0.6,
+      "not_mentioned": 1.0
+    },
+    "predicted_share": {
+      "supported": 0.566,
+      "contradicted": 0.2642,
+      "not_mentioned": 0.1698
+    },
+    "binary": {
+      "n": 53,
+      "pos_rate": 0.9434,
+      "bacc": 0.8,
+      "auroc": 0.8,
+      "ece15": 0.37735850377358504,
+      "brier": 0.37735841509434975,
+      "nll": 6.082300307908806
+    }
+  },
+  "latency_by_K_band": {
+    "1-4": {
+      "answers": 50,
+      "median_s": 0.7871284584834939,
+      "p90_s": 1.1403089038940382,
+      "median_s_per_decision": 0.2489553125014936
+    },
+    "5-8": {
+      "answers": 50,
+      "median_s": 1.4678510420053499,
+      "p90_s": 2.4134794542129385,
+      "median_s_per_decision": 0.2397910618004971
+    },
+    "9-13": {
+      "answers": 50,
+      "median_s": 2.0937133959960192,
+      "p90_s": 2.575995399407111,
+      "median_s_per_decision": 0.19730211873320513
+    },
+    ">=14": {
+      "answers": 50,
+      "median_s": 2.5113528954971116,
+      "p90_s": 3.6740607330109927,
+      "median_s_per_decision": 0.16857147171478054
+    }
+  },
+  "latency_all": {
+    "median_s": 1.8137387294846121,
+    "p90_s": 2.774592670495622,
+    "p99_s": 7.408846562176468,
+    "mean_generated_tokens": 251.645,
+    "mean_K": 8.735
+  },
+  "protocol": "in-process MLX, one answer at a time, 3 warm-up answers excluded; System One median of 3 repetitions"
+}
