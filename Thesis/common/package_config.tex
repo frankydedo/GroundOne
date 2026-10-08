@@ -91,10 +91,15 @@
 
 
 % biblatex setup
-% generally 9000 is ok, if higher than 10000 it's bad
+% 10000 forbids breaking inside words and numbers of URLs: they break only at punctuation such as / . -
 % If you want to break on URL numbers
-\setcounter{biburlnumpenalty}{9000}
+\setcounter{biburlnumpenalty}{10000}
 % If you want to break on URL lower case letters
-\setcounter{biburllcpenalty}{9000}
+\setcounter{biburllcpenalty}{10000}
 % If you want to break on URL UPPER CASE letters
-\setcounter{biburlucpenalty}{9000}
+\setcounter{biburlucpenalty}{10000}
+
+% toptesi sets Italian as main language, so quotation marks would come out as guillemets: use English ones
+\DeclareQuoteAlias{english}{italian}
+% no stretchable glue inside URLs: it opened visible gaps around / and . in justified lines
+\appto{\biburlsetup}{\Urlmuskip=0mu}
