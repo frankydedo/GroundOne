@@ -1,0 +1,4 @@
+# Night 2026-10-08/09 (option 1, author's choice): full T2 (LLM-AggreFact test, 29,320 items) for the 3B. Limits in outputs/logs/guard/thresholds.json
+GroundOne/.venv/bin/groundone test --suite t2 --adapter g1-3b-b1/best --name g1-3b-b1
+GroundOne/.venv/bin/groundone figures all
+END
