@@ -230,7 +230,20 @@ Source: `results/minicheck-roberta-frozen/{t1,t3}/metrics.json` (full T1 and T3;
 
 - HHEM by task (AUROC): QA 0.894, Summary 0.824, Data2txt 0.747.
 - Rizzo-Flow predicts "supported" for 90 % of T1 sentences.
-- TODO: compare GroundOne with Rizzo-Flow and the untrained 3B on exactly their subsamples (same ids).
+- **Same-subset comparisons** (identical sentence ids; `results/subset_comparisons.json`):
+| Subset | System | Three-way | Binary bacc | AUROC |
+| --- | --- | --- | --- | --- |
+| T1, Rizzo's 300 answers (1,971 sentences) | Rizzo-Flow 4B | 0.603 | 0.769 | 0.894 |
+| | GroundOne 0.5B | **0.798** | 0.826 | 0.916 |
+| | GroundOne 3B | **0.840** | **0.887** | **0.950** |
+| T3, Rizzo's 600 pairs | Rizzo-Flow 4B | **0.712** | **0.847** | **0.909** |
+| | GroundOne 0.5B | 0.442 | 0.594 | 0.744 |
+| | GroundOne 3B | 0.537 | 0.640 | 0.845 |
+| T1, untrained 3B's 600 answers (3,869 sentences) | untrained 3B | 0.437 | 0.630 | 0.726 |
+| | GroundOne 0.5B | 0.750 | 0.811 | 0.907 |
+| | GroundOne 3B | **0.818** | **0.877** | **0.946** |
+
+  The specialists beat the 4B generalist System One in the RAG domain: +0.20 three-way for the 0.5B, which is 8× smaller. The generalist transfers much better to VitaminC.
 
 **Latency and generative judges** (`results/{lat-*,judge-*}/latency/metrics.json`; 200 T1 answers, 50 per K band). Median seconds per answer, K bands 1–4 / 5–8 / 9–13 / ≥ 14:
 | System | 1–4 | 5–8 | 9–13 | ≥ 14 | Overall | Three-way (failures wrong) | Format failures |
