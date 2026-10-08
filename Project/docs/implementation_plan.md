@@ -338,7 +338,7 @@ ECE (fixed and adaptive bins), Brier, NLL, reliability diagrams, risk-coverage c
 ### 8.4 Resources and reliability
 - Peak memory per configuration (MLX peak memory; process RSS for PyTorch baselines).
 - Output-format failure rate for generative baselines (unparseable verdicts), reported as a percentage.
-- Optional: energy via `powermetrics` (stretch).
+- Energy per verification via `powermetrics` (in scope since 2026-10-08, part of the locality pillar): joules per answer, GroundOne vs generative judges. Needs root.
 
 ### 8.5 Reporting rules
 - Report all baselines, including those where we lose.

@@ -346,9 +346,9 @@ This must be stated in the introduction and argued with evidence, not just menti
    - Measured on the M4 (Phase 0): prefill ≈ 0.37 ms/token vs decode ≈ 5.9 ms/token on the 0.5B (≈ 16× per token), and 2.2 vs 31.8 ms/token on the 3B.
    - A System One avoids decoding entirely, so its advantage is largest exactly where inference is local. This turns locality from a constraint into the reason the design matters.
 
-**Other ideas to consider.**
+**Further points (all approved by the author, 2026-10-08; to-do in `tracker.md`).**
 - **Co-residence**: a local RAG assistant must hold generator, verifier and retriever in the same memory. Measured peaks: GroundOne training 2.6 GB (0.5B) and 5.9 GB (3B); the 3B judge plus generator budget is in Phase 0.
-- **Energy per verification** with `powermetrics` (stretch; listed in plan §8.4).
+- **Energy per verification** with `powermetrics`: joules per answer for GroundOne vs the generative judges on the latency answers. It needs root, so the author starts `sudo powermetrics` or grants a rule.
 - **Proof of independence**: re-run a full evaluation with the network disabled (`HF_HUB_OFFLINE=1`, Wi-Fi off) and report that it completes. It is cheap and makes the claim verifiable.
 - **Licences as part of independence**: Qwen2.5-0.5B is Apache-2.0, while Qwen2.5-3B is under the Qwen Research licence; datasets RAGTruth MIT, VitaminC CC BY-SA, LLM-AggreFact evaluation only.
 - **Cost comparison with a remote judge**: the cost of verifying N answers with a hosted LLM judge vs locally. Prices must be taken from the providers' pages on a stated date, and are not filled in here.
