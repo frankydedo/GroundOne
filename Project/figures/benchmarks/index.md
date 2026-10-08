@@ -25,3 +25,19 @@ T3 VitaminC test: AUROC of P(supported) for every system, and three-way balanced
 T1 (RAGTruth test) AUROC per task for each system.
 
 *Source: results/*/t1/metrics.json*
+
+## latency_vs_K.png
+
+![](latency_vs_K.png)
+
+Latency per answer as a function of K on the same T1 answers (in-process MLX, one answer at a time, M4 16 GB). Generative judges write a verdict per sentence; the System One reads all K verdicts without generating text.
+
+*Source: results/*/latency/metrics.json*
+
+## judges_quality_failures.png
+
+![](judges_quality_failures.png)
+
+On the latency subset: three-way balanced accuracy (format failures counted as wrong) and share of sentences whose verdict could not be parsed. System One outputs are always valid.
+
+*Source: results/*/latency/metrics.json*

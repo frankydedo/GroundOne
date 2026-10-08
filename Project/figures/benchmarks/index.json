@@ -13,5 +13,15 @@
     "file": "t1_by_task.png",
     "caption": "T1 (RAGTruth test) AUROC per task for each system.",
     "source": "results/*/t1/metrics.json"
+  },
+  {
+    "file": "latency_vs_K.png",
+    "caption": "Latency per answer as a function of K on the same T1 answers (in-process MLX, one answer at a time, M4 16 GB). Generative judges write a verdict per sentence; the System One reads all K verdicts without generating text.",
+    "source": "results/*/latency/metrics.json"
+  },
+  {
+    "file": "judges_quality_failures.png",
+    "caption": "On the latency subset: three-way balanced accuracy (format failures counted as wrong) and share of sentences whose verdict could not be parsed. System One outputs are always valid.",
+    "source": "results/*/latency/metrics.json"
   }
 ]

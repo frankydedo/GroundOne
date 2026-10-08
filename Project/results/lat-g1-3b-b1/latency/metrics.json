@@ -1,0 +1,73 @@
+{
+  "system": "groundone",
+  "size": "3b",
+  "adapter": "g1-3b-b1/best",
+  "answers": 200,
+  "decisions": 1747,
+  "format_failure_rate": 0.0,
+  "macro_recall_failures_wrong": 0.8995909119475659,
+  "recall_failures_wrong": {
+    "supported": 0.8761667703795893,
+    "contradicted": 0.8775510204081632,
+    "not_mentioned": 0.945054945054945
+  },
+  "parsed_only": {
+    "n": 1747,
+    "macro_recall": 0.8995909119475659,
+    "recall": {
+      "supported": 0.8761667703795893,
+      "contradicted": 0.8775510204081632,
+      "not_mentioned": 0.945054945054945
+    },
+    "predicted_share": {
+      "supported": 0.8088,
+      "contradicted": 0.0544,
+      "not_mentioned": 0.1368
+    },
+    "binary": {
+      "n": 1747,
+      "pos_rate": 0.9199,
+      "bacc": 0.9118254955996088,
+      "auroc": 0.969068361632145,
+      "ece15": 0.180996812816774,
+      "brier": 0.09585571858840042,
+      "nll": 0.3255611037480659
+    },
+    "lenient_auroc": 0.9469724285473907,
+    "lenient_bacc": 0.9156150092545852
+  },
+  "latency_by_K_band": {
+    "1-4": {
+      "answers": 50,
+      "median_s": 1.229727666504914,
+      "p90_s": 1.4978952964651397,
+      "median_s_per_decision": 0.40583660065991956
+    },
+    "5-8": {
+      "answers": 50,
+      "median_s": 1.9322684169746935,
+      "p90_s": 3.05568096220959,
+      "median_s_per_decision": 0.2959295333072077
+    },
+    "9-13": {
+      "answers": 50,
+      "median_s": 2.251992353994865,
+      "p90_s": 2.996201683871914,
+      "median_s_per_decision": 0.2102154458991255
+    },
+    ">=14": {
+      "answers": 50,
+      "median_s": 2.566815020982176,
+      "p90_s": 3.330336766678374,
+      "median_s_per_decision": 0.17303789867796962
+    }
+  },
+  "latency_all": {
+    "median_s": 1.9945953124843072,
+    "p90_s": 3.050364941987209,
+    "p99_s": 3.930402043416976,
+    "mean_generated_tokens": 0.0,
+    "mean_K": 8.735
+  },
+  "protocol": "in-process MLX, one answer at a time, 3 warm-up answers excluded; System One median of 3 repetitions"
+}

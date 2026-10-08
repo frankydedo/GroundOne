@@ -43,14 +43,14 @@ Update the status column and the to-do list as work progresses.
 **Now (from Oct 7), in priority order** (author's decisions: freeze approved; 3B option A, one night on a subset, a second night only if the dev is still improving)
 1. [x] Freeze the test sets (`groundone data freeze`, 2026-10-07 13:49; a rebuild reproduces the hashes)
 2. [x] Calibrate the 0.5B (g1-05b-b1) on dev (T1 binary ECE 0.30 → 0.02; does not transfer to T3; `thesis_notes.md`): temperature + bias; ECE / Brier / NLL before and after on T1, T2, T3; reliability diagrams
-3. [ ] Train the 3B (design b) for one night on a random subset of ~4,000–4,500 answers; dev on a fixed subset; then T1 and T3 (T2 when the GPU is free)
-4. [ ] Baselines on the frozen tests (daytime, GPU free):
-   - [ ] encoders MiniCheck-RoBERTa and HHEM on T1 and T3 (T2: RoBERTa done, 74.0)
-   - [ ] untrained readout B1 (format a) on T1 and T3
-   - [ ] generative judges B0a (terse) and B0b (verbose), stratified subsample
-   - [ ] Rizzo-Flow (B3) on T1 and T3 subsample
-   - [ ] latency protocol as a function of K (central figure)
-5. [ ] First draft of the new thesis chapters from `thesis_notes.md` (Ch. 3 method, Ch. 5 setup, Ch. 6 results so far)
+3. [x] Train the 3B (design b) on 6,500 random answers (g1-3b-b1, 12.25 h; T1 0.832 three-way / AUROC 0.940; T3 0.527); T2 for the 3B still to run when the GPU is free (≈ 14 h estimated: consider a subsample)
+4. [x] Baselines on the frozen tests (daytime, GPU free):
+   - [x] encoders MiniCheck-RoBERTa and HHEM on T1 and T3 (T2: RoBERTa done, 74.0)
+   - [x] untrained readout B1 (format a) on T1 and T3 (3B: T1 on 600 answers)
+   - [x] generative judges B0a (terse) and B0b (verbose), 200 answers stratified by K
+   - [x] Rizzo-Flow (B3) on T1 (300 answers) and T3 (600 pairs)
+   - [x] latency protocol as a function of K (central figure `figures/benchmarks/latency_vs_K.png`)
+5. [x] First draft of the new thesis chapters from `thesis_notes.md` (Ch. 3 method, Ch. 5 setup, Ch. 6 results)
 
 **Standing rules:** every phase leaves figures (`groundone figures all` → `Project/figures/`); every result or insight goes into `docs/thesis_notes.md`.
 
@@ -86,3 +86,4 @@ Add one line per significant event (date, what happened, impact on the plan).
 - 2026-10-07: validation run g1-05b-b1 (0.5B, design b, all 13,203 training answers, 802 steps, 5.4 h; best dev checkpoint step 600: three-way balanced accuracy 0.633 mean over tasks, 0.731 overall). **T1 (RAGTruth test): three-way macro recall 0.769** (QA 0.589, Summary 0.544, Data2txt 0.812), binary balanced accuracy 0.815, **AUROC 0.905 vs 0.737 for word overlap**, K >= 14: 0.723 (no collapse). Weak spots: contradicted recall in QA 0.03 / Summary 0.13 (few examples, contradictions concentrated in Data2txt); probabilities uncalibrated (ECE 0.30). **T3 (VitaminC): 0.442**, mostly 'not mentioned' predicted, AUROC 0.722 vs 0.698 overlap: weak transfer outside RAG. Dataset validation criteria on T1 all pass. T2 running.
 - 2026-10-07: g1-05b-b1 on T2 (LLM-AggreFact, 144 min): macro balanced accuracy 70.1 (earlier v1 model 72.0, MiniCheck-RoBERTa 74.0, zero-shot 0.5B 64.2, 7B 72.8); **RAG subset 74.4 (RoBERTa 74.6, v1 71.0); RAGTruth column 82.1 (RoBERTa 76.5)**. Lower on non-RAG columns (AggreFact-CNN/XSum, FactCheck-GPT, Reveal), as expected without pair-format training data. Night queue finished 09:00 without interruptions.
 - 2026-10-07: error analysis of g1-05b-b1 by word overlap. **T3:** supported recall 0.02 when overlap <= 0.4 vs 0.64 when > 0.7; contradicted recall 0 on claims without digits. The model falls back on lexical overlap for paraphrased support and small numeric edits. **T1:** robust at low/mid overlap (macro 0.77), but contradicted 0.24 and not-mentioned 0.43 recall when overlap > 0.7, i.e. hallucinations hidden in sentences that copy the source. Same weakness on both tests; the gap on T3 is that most VitaminC claims are of this kind.
+- 2026-10-08: day/night queue finished at 10:20 without interruptions: all baselines on the frozen tests, generative judges and latency (0.5B, 3B), GroundOne 3B (6,500 answers, 12.25 h; T1 0.832 / AUROC 0.940, T3 0.527), 3B calibration (T1 ECE 0.18 → 0.019). Results in `thesis_notes.md`.

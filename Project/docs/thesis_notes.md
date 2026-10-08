@@ -259,3 +259,30 @@ Source: `results/minicheck-roberta-frozen/{t1,t3}/metrics.json` (full T1 and T3;
 - At K ≥ 14, GroundOne 0.5B is ≈ 2× faster than the terse 0.5B judge and ≈ 6× faster than the verbose one.
 - The 3B GroundOne latency run is pending (queue).
 
+## Ch. 6: 3B calibration, latency and error analysis (2026-10-08)
+
+**3B calibration** (`results/g1-3b-b1/calibration/metrics.json`): affine T = 1.03, biases (0, −2.19, −2.06).
+| Split | Map | Three-way | Accuracy | Binary ECE | NLL | AURC |
+| --- | --- | --- | --- | --- | --- | --- |
+| T1 | raw | 0.832 | 0.872 | 0.183 | 0.362 | 0.064 |
+| T1 | affine | 0.703 | 0.943 | **0.019** | 0.173 | 0.010 |
+| dev (full) | raw | 0.784 | 0.859 | 0.171 | 0.388 | 0.066 |
+| T3 | raw / affine | 0.527 / 0.540 | | 0.141 / 0.191 | | |
+
+The raw 3B probabilities are better calibrated than the 0.5B's (T1 ECE 0.18 vs 0.30). On the full dev the 3B reaches 0.784 three-way, against 0.731 for the 0.5B.
+
+**3B latency** (`results/lat-g1-3b-b1`): median 1.23 / 1.93 / 2.25 / 2.57 s per answer for K bands 1–4 / 5–8 / 9–13 / ≥ 14 (overall 1.99 s), three-way 0.90 on the latency subset, 0 % failures. At K ≥ 14 that is 1.7× faster than the terse 3B judge (4.44 s), 6.2× faster than the verbose 3B judge (15.86 s) and 1.5× faster than design (a) (3.83 s).
+- 0.5B at K ≥ 14: 0.41 s vs 0.80 (terse, 2.0×), 2.51 (verbose, 6.1×), 0.59 (design a, 1.4×).
+- The GroundOne 0.5B is ≈ 6× faster than the GroundOne 3B (0.33 vs 1.99 s median), the size lever.
+
+**Overlap analysis, 3B vs 0.5B** (recall by overlap bin):
+| Test | Bin | 0.5B three-way (C / NM) | 3B three-way (C / NM) |
+| --- | --- | --- | --- |
+| T1 | ≤ 0.4 | 0.773 (0.79 / 0.88) | 0.837 (0.86 / 0.92) |
+| T1 | 0.4–0.7 | 0.770 (0.73 / 0.80) | 0.833 (0.80 / 0.85) |
+| T1 | > 0.7 | 0.537 (**0.24 / 0.43**) | 0.627 (**0.36 / 0.56**) |
+| T3 | ≤ 0.4 | 0.36 (supported 0.02) | 0.41 (supported 0.04) |
+| T3 | > 0.7 | 0.53 | 0.62 |
+
+The blind spot on copied-but-altered sentences shrinks with size but persists. Paraphrased support on VitaminC is still almost never recognised.
+
