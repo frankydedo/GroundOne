@@ -25,6 +25,8 @@ A compact language model, fine-tuned to do **one thing** (verify the sentences o
 
 This is a hypothesis. The thesis is valid whether it is confirmed or not, provided the comparison is controlled and honest.
 
+**Pillar: full locality and independence** (author, 2026-10-08). The whole solution (training, calibration, evaluation, inference) runs on one consumer laptop with no external API or service. This is a central argument, not a constraint: the System One avoids autoregressive decoding, which is the slowest operation on local hardware. Ch. 1–2 include an overview of local inference (local vs remote, evolution, hardware); outline in `thesis_notes.md`.
+
 ### 1.2 The task (one decision, done well)
 **Groundedness verification for RAG** (redefined 2026-10-06, D20). Input: a retrieved context `C` and a generated answer `A` split into sentences `s_1..s_K`. Output: for each `s_i`, one decision with three classes and their probabilities `P(supported)`, `P(contradicted)`, `P(not_mentioned)` (sum 1).
 

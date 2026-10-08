@@ -309,3 +309,52 @@ Even then, runtime, quantisation and model size differ, so the result is a deplo
 - The encoders score (document, sentence) pairs without the rest of the answer, which is how they are designed.
 - MiniCheck-RoBERTa has VitaminC in its training lineage.
 
+## Ch. 1 / Ch. 2: PILLAR, full locality and independence of the solution (author, 2026-10-08)
+
+**Principle.** One of the pillars of the thesis is that GroundOne is **entirely local and independent**:
+- training, calibration, evaluation and inference all run on one consumer laptop (Apple M4, 16 GB unified memory);
+- the pipeline makes no call to any external API or service;
+- the network is used only to download public datasets and open model weights once.
+
+This must be stated in the introduction and argued with evidence, not just mentioned. The early chapters need an overview of local inference. The full write-up comes later; these notes collect the outline and the evidence.
+
+**Planned overview (Ch. 1 motivation, Ch. 2 background).**
+
+1. **Local vs remote (API) inference**:
+   - privacy and data sovereignty (documents never leave the device; GDPR, confidential corpora);
+   - offline availability;
+   - latency (no network round trip, but limited compute);
+   - cost (per-token API pricing vs a one-off hardware cost and energy);
+   - control and reproducibility (fixed model versions, no silent API updates or deprecations, no rate limits);
+   - vendor independence;
+   - the downsides: the capability gap of small models, memory limits, energy and battery, maintenance;
+   - hybrid set-ups (local verifier, remote generator, or the reverse).
+2. **Evolution of local inference**:
+   - runtimes: llama.cpp and the GGUF format, MLX on Apple silicon, Ollama and LM Studio as distribution layers; mobile runtimes;
+   - quantisation (8-bit, 4-bit; QLoRA for training);
+   - the rise of small open models (Qwen2.5 0.5B–7B and others);
+   - on-device models shipped by platform vendors.
+3. **Hardware available today, compared**:
+   - Apple silicon with unified memory (M-series; memory size and bandwidth);
+   - consumer NVIDIA GPUs (VRAM as the limit);
+   - AMD and Intel/Qualcomm laptops with unified memory or NPUs;
+   - phones.
+
+   Key comparison axes: memory capacity (which model fits), memory bandwidth (decode speed), compute (prefill speed), power. **All specifications to be taken from vendor documentation and cited; none are filled in here.**
+4. **The link to System One (the core argument).**
+   - Autoregressive decoding is memory-bandwidth-bound and slow on local hardware; prefill is compute-bound and fast.
+   - Measured on the M4 (Phase 0): prefill ≈ 0.37 ms/token vs decode ≈ 5.9 ms/token on the 0.5B (≈ 16× per token), and 2.2 vs 31.8 ms/token on the 3B.
+   - A System One avoids decoding entirely, so its advantage is largest exactly where inference is local. This turns locality from a constraint into the reason the design matters.
+
+**Other ideas to consider.**
+- **Co-residence**: a local RAG assistant must hold generator, verifier and retriever in the same memory. Measured peaks: GroundOne training 2.6 GB (0.5B) and 5.9 GB (3B); the 3B judge plus generator budget is in Phase 0.
+- **Energy per verification** with `powermetrics` (stretch; listed in plan §8.4).
+- **Proof of independence**: re-run a full evaluation with the network disabled (`HF_HUB_OFFLINE=1`, Wi-Fi off) and report that it completes. It is cheap and makes the claim verifiable.
+- **Licences as part of independence**: Qwen2.5-0.5B is Apache-2.0, while Qwen2.5-3B is under the Qwen Research licence; datasets RAGTruth MIT, VitaminC CC BY-SA, LLM-AggreFact evaluation only.
+- **Cost comparison with a remote judge**: the cost of verifying N answers with a hosted LLM judge vs locally. Prices must be taken from the providers' pages on a stated date, and are not filled in here.
+- **Fully local baselines**: every baseline (encoders, Rizzo-Flow, generative judges) also ran on the same laptop, so the comparison itself is local.
+
+**Evidence already available.**
+- Every step of this project ran on the M4: dataset build, the 0.5B and 3B training (5.4 h and 12.25 h), all evaluations, all baselines, the latency protocol.
+- Measured verification time per answer: 0.33 s (0.5B) and 1.99 s (3B) median; no generated tokens.
+

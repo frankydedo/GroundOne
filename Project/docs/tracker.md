@@ -55,6 +55,7 @@ Update the status column and the to-do list as work progresses.
 **Standing rules:** every phase leaves figures (`groundone figures all` → `Project/outputs/figures/`); every result or insight goes into `docs/thesis_notes.md`.
 
 **Later**
+- [ ] Pillar "full locality": overview of local inference for Ch. 1–2 (local vs remote, evolution, hardware with cited specs); proof-of-independence run with the network disabled (`HF_HUB_OFFLINE=1`); optional energy per verification (`powermetrics`)
 - [ ] Second night of 3B training if the dev curve is still rising (needs resume-from-checkpoint)
 - [ ] Optional extension (week 4): grounded ingestion loop for an LLM wiki, evaluated with injected errors (`thesis_notes.md`, Ch. 8)
 - [ ] Ch. 2 (background), Ch. 1, 7, 8; supervisors + degree programme in `Thesis/common/thesis_info.tex`
