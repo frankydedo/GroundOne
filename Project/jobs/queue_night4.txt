@@ -1,0 +1,10 @@
+# Night 2026-10-08/09 (option 2): T2 for the 3B on a random 10,000-item subsample (seeded), then a second seed of the 0.5B.
+# The 0.5B T2 numbers on the same subsample are computed from its saved full-T2 predictions (same ids). Limits in outputs/logs/guard/thresholds.json
+GroundOne/.venv/bin/groundone test --suite t2 --adapter g1-3b-b1/best --limit 10000 --name g1-3b-b1
+GroundOne/.venv/bin/groundone train --config train_0.5b.yaml --run g1-05b-b1-s2 --seed 2
+GroundOne/.venv/bin/groundone test --suite t1 --adapter g1-05b-b1-s2/best --name g1-05b-b1-s2
+GroundOne/.venv/bin/groundone test --suite t3 --adapter g1-05b-b1-s2/best --name g1-05b-b1-s2
+GroundOne/.venv/bin/groundone calibrate-b --adapter g1-05b-b1-s2/best --name g1-05b-b1-s2
+GroundOne/.venv/bin/groundone figures training g1-05b-b1-s2
+GroundOne/.venv/bin/groundone figures all
+END
