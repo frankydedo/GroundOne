@@ -286,3 +286,26 @@ The raw 3B probabilities are better calibrated than the 0.5B's (T1 ECE 0.18 vs 0
 
 The blind spot on copied-but-altered sentences shrinks with size but persists. Paraphrased support on VitaminC is still almost never recognised.
 
+## Ch. 5 / Ch. 7: fairness of the comparisons (2026-10-08)
+
+**Latency claims are made only among systems measured under identical conditions.**
+- Conditions: GroundOne, the design (a) System One and the terse/verbose judges run in-process on MLX, the same Qwen2.5 8-bit base weights, the same machine, one answer at a time, on the same 200 answers.
+- GroundOne carries an unmerged LoRA adapter, which adds a little compute, so if anything the comparison is conservative.
+- Differences in protocol, stated in Ch. 5: judges timed once (greedy decoding is deterministic) vs the median of 3 for System One.
+
+**No latency comparison is claimed for Rizzo-Flow or the encoders**, and none should be made from the current numbers.
+- Rizzo-Flow: its times (median 3.75 s per T1 answer, 0.76 s per T3 pair, `outputs/results/rizzo-flow-4b-q4`) were measured through its HTTP server, on another runtime (llama.cpp, GGUF, 4-bit), with a 4B model.
+- Encoders: per-sentence times (MiniCheck-RoBERTa 0.17 s, HHEM 0.15 s) are in-process PyTorch MPS, with one call per (document chunk, sentence) pair.
+
+**If wanted, a fair system-level comparison** would put every system behind the same interface on the same 200 answers:
+- GroundOne behind its HTTP server, which first needs moving to design (b), vs Rizzo-Flow behind its server;
+- the encoders timed per answer (K sentence calls) in-process.
+
+Even then, runtime, quantisation and model size differ, so the result is a deployment comparison, not a mechanism comparison.
+
+**Accuracy comparisons**: the same frozen test items and the same metrics for every system.
+- Rizzo-Flow and the untrained 3B are compared on their own subsamples, with identical sentence ids (`outputs/results/subset_comparisons.json`).
+- Rizzo-Flow runs 4-bit (8-bit did not fit in memory) and receives the document and numbered answer as shared state, with one three-way choice question per sentence: the closest equivalent of GroundOne's input.
+- The encoders score (document, sentence) pairs without the rest of the answer, which is how they are designed.
+- MiniCheck-RoBERTa has VitaminC in its training lineage.
+
