@@ -32,6 +32,7 @@ groundone calibrate-b --adapter <run>/best --name <results-name>   # temperature
 groundone test --suite t1|t2|t3 --adapter <run>/best --name <results-name>   # frozen tests (T1 RAGTruth, T2 LLM-AggreFact, T3 VitaminC)
 groundone baselines frozen|judges ...                    # encoders / Rizzo-Flow on the frozen tests; generative judges + latency vs K
 groundone figures all | dataset | benchmarks | training RUN
+groundone matrix                                         # results matrix (all systems x test sets) -> Project/docs/tracker.md; re-run after every new result
 groundone serve --size 0.5b --adapter <run>              # 127.0.0.1:8019 (HTTP API still uses design a)
 groundone guard queue.txt                                # run queued shell commands one at a time under the memory guard
 ```
