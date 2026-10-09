@@ -15,9 +15,9 @@ Update the status column and the to-do list as work progresses.
 | 1 | Dataset | Task-driven train/dev/test sets for the three-way per-sentence task (D20, D21); test set validated and frozen first | Oct 6–7 | ✅ | Built and validated; tests frozen Oct 7. `dataset_plan.md`, `data/processed/groundone/DATACARD.md` |
 | 2 | Engine and benchmark harness | Verifier that reads the context once and scores each sentence, plus scripts that run all systems the same way | Oct 5 | ✅ | `Project/GroundOne` package: CLI, server (native + Jev-compatible API), YAML training configs, calibration, eval; tests pass |
 | 3 | Training 0.5B | Fine-tune the small model and check it beats its untrained version | Oct 7 | ✅ | g1-05b-b1 (design b, all answers, 5.4 h): T1 three-way 0.769, AUROC 0.905 |
-| 4 | Training 3B | Fine-tune the larger model overnight | Oct 7–8 | ✅ | g1-3b-b1 (6,500 answers, 12.25 h): T1 0.832, AUROC 0.940; T2 still to run |
+| 4 | Training 3B | Fine-tune the larger model overnight | Oct 7–9 | ✅ | g1-3b-b1 (6,500 answers, 12.25 h): T1 0.832, AUROC 0.940; T2 macro 74.8 |
 | 5 | Baselines | Run the comparison systems: terse and verbose generative judges, untrained models, encoders, Rizzo-Flow | Oct 7–8 | ✅ | All on the frozen tests (subsamples for Rizzo-Flow, untrained 3B on T1, judges); B2 open (§14 of the plan) |
-| 6 | Main benchmarks | Accuracy and latency of all systems on the test sets | Oct 7–8 | 🟡 | Latency vs K done (central figure); missing: 3B on T2, bootstrap CIs |
+| 6 | Main benchmarks | Accuracy and latency of all systems on the test sets | Oct 7–9 | 🟡 | All accuracy runs and latency vs K done; missing: bootstrap CIs, energy (powermetrics), optional second seed |
 | 7 | Calibration and analysis | Calibration, ablations, error analysis | Oct 7–8 | 🟡 | Calibration (both models) and error analysis by word overlap done; ablations to decide |
 | 8 | Demo | Local RAG chat (Qwen2.5-3B generator) with sentences coloured by GroundOne | Week 4 (Oct 26–30) | ⬜ | Max 2 days |
 | — | **Experiment freeze** | No new experiments after this date | **Oct 30** | ⬜ | |
@@ -43,7 +43,7 @@ Update the status column and the to-do list as work progresses.
 **Now (from Oct 7), in priority order** (author's decisions: freeze approved; 3B option A, one night on a subset, a second night only if the dev is still improving)
 1. [x] Freeze the test sets (`groundone data freeze`, 2026-10-07 13:49; a rebuild reproduces the hashes)
 2. [x] Calibrate the 0.5B (g1-05b-b1) on dev (T1 binary ECE 0.30 → 0.02; does not transfer to T3; `thesis_notes.md`): temperature + bias; ECE / Brier / NLL before and after on T1, T2, T3; reliability diagrams
-3. [x] Train the 3B (design b) on 6,500 random answers (g1-3b-b1, 12.25 h; T1 0.832 three-way / AUROC 0.940; T3 0.527); T2 for the 3B still to run when the GPU is free (≈ 14 h estimated: consider a subsample)
+3. [x] Train the 3B (design b) on 6,500 random answers (g1-3b-b1, 12.25 h; T1 0.832 three-way / AUROC 0.940; T3 0.527); T2 full test done 2026-10-09 (14.8 h): macro 74.8, RAG subset 76.9
 4. [x] Baselines on the frozen tests (daytime, GPU free):
    - [x] encoders MiniCheck-RoBERTa and HHEM on T1 and T3 (T2: RoBERTa done, 74.0)
    - [x] untrained readout B1 (format a) on T1 and T3 (3B: T1 on 600 answers)
@@ -55,6 +55,10 @@ Update the status column and the to-do list as work progresses.
 **Standing rules:** every phase leaves figures (`groundone figures all` → `Project/outputs/figures/`); every result or insight goes into `docs/thesis_notes.md`.
 
 **Later**
+- [ ] Bootstrap confidence intervals and paired tests (CPU, from saved predictions)
+- [ ] Second seed of the 0.5B (≈ 6 h with evaluations) to measure run-to-run variance
+- [ ] HTTP API on readout design (b), then demo
+- [ ] Decide on the B2 control (plan §14)
 - [ ] **Pillar "full locality"** (all items approved by the author, 2026-10-08):
    - [ ] overview of local inference for Ch. 1–2: local vs remote, evolution of runtimes, hardware comparison with cited vendor specs
    - [ ] proof of independence: full evaluation with the network disabled (`HF_HUB_OFFLINE=1`, Wi-Fi off); report that it completes

@@ -2,7 +2,7 @@
 
 A specialist System One for local RAG: single-pass, calibrated groundedness verification with compact Qwen2.5 models on a 16 GB Apple Silicon laptop.
 
-> **Status:** v0.7 (2026-10-08). Done: feasibility (Phase 0/0b), EDA, the GroundOne package, the dataset (built, validated, test sets frozen 2026-10-07, `dataset_plan.md`), GroundOne 0.5B and 3B (readout design b), calibration, all baselines on the frozen tests and the latency protocol. First drafts of thesis Ch. 3–6. Pending: T2 for the 3B, bootstrap CIs, HTTP API on design (b), demo, Ch. 1/2/7/8. All findings: `thesis_notes.md`.
+> **Status:** v0.7.1 (2026-10-09). Done: feasibility (Phase 0/0b), EDA, the GroundOne package, the dataset (built, validated, test sets frozen 2026-10-07, `dataset_plan.md`), GroundOne 0.5B and 3B (readout design b), calibration, all baselines on the frozen tests, the latency protocol, and the 3B on the full LLM-AggreFact test (macro 74.8). First drafts of thesis Ch. 3–6. Pending: bootstrap CIs, energy measurements and the other locality items, optional second seed, HTTP API on design (b), demo, Ch. 1/2/7/8. All findings: `thesis_notes.md`; summary: `checkpoint_2026-10-08.md`.
 > **Hard constraint: the experiment *and* the written thesis (`Thesis/`) must be done by the submission date, 2026-11-10. New experiments only until 2026-10-30.** The schedule (§9) and the scope cuts (§1.5) follow from this.
 > Every number marked *(estimate)* or *(provisional)* is a planning figure to be replaced by a measurement.
 > Companion document: `abstract.md`.
@@ -304,7 +304,7 @@ Rules: same prompt content, same truncation, same machine, same decoding setting
 
 Experiment matrix as run on the frozen tests (2026-10-07/08):
 - **Full T1 and T3**: GroundOne 0.5B / 3B; B4 MiniCheck-RoBERTa and HHEM; B1 untrained 0.5B (format a).
-- **T2**: GroundOne 0.5B; RoBERTa (published protocol). The 3B is pending.
+- **T2**: GroundOne 0.5B and 3B (full test); RoBERTa (published protocol).
 - **Subsamples**: B1 untrained 3B on 600 T1 answers; B3 Rizzo-Flow 4B Q4 on 300 T1 answers and 600 T3 pairs; B0a / B0b terse and verbose judges (0.5B, 3B) on the 200 latency answers (50 per K band).
 - **Baselines that do not verify the sentence against the document**: word overlap (AUROC) and the sentence-only n-gram classifier.
 - **B2** not run (see §14).
@@ -372,7 +372,7 @@ Thesis chapter outline (to fill in `Thesis/content/chapters/`):
 4. Data (written, `Thesis/content/chapters/ch4_data.tex`): task and labels; sources (RAGTruth, LLM-AggreFact, VitaminC); construction; resulting dataset; reliability of the test sets; exploratory analysis; leakage control
 5. Experimental setup (baselines, metrics, protocol, hardware)
 6. Results
-   - First draft written (training; T1; baselines; T2; T3; calibration; latency vs K; error analysis by word overlap). Still to add: T2 for the 3B, CIs, ablations if run
+   - First draft written (training; T1; baselines; T2; T3; calibration; latency vs K; error analysis by word overlap). Still to add: CIs, energy, ablations if run
 7. Discussion, limitations and threats to validity
 8. Conclusion and future work (streaming verification, larger models, more rules)
 
@@ -541,7 +541,7 @@ Also answered: Phase 0/0b run (GO); demo generator = 3B (D12); 7B not run (D13).
 
 Still open (2026-10-08):
 1. **B2 control** (single-token generation with the same weights). With design (b) it is the same computation as the readout. Decide whether to run it in format (a), or to drop it and explain why.
-2. **T2 for the 3B**: ≈ 14 h on the full test set; run overnight or on a stratified subsample.
+2. ~~T2 for the 3B~~: done 2026-10-09 (macro 74.8).
 3. **Bootstrap confidence intervals** and paired tests: computable from the saved predictions, no GPU needed.
 4. **HTTP API and demo** on design (b), plus the optional extension (grounded ingestion loop for an LLM wiki, `thesis_notes.md` Ch. 8).
 5. Supervisor requirements (length/format, mandatory comparisons), if any.
@@ -594,3 +594,4 @@ Authors, years and venues were checked against arXiv, the ACL Anthology and AAAI
 - Kwon et al. (2023). Efficient Memory Management for Large Language Model Serving with PagedAttention. SOSP 2023.
 - 2026-10-06: **D20** (task redefined: three-way per sentence, K = sentences) and **D21** (dataset rebuilt from scratch, `dataset_plan.md`) decided with the author. The earlier datasets, models trained on them and their analysis were archived outside the repository.
 - 2026-10-07: **D22** (readout design b default), **D23** (validation run; 3B option A), test sets frozen. 2026-10-08: **D24** (calibration temperature + bias; decisions on raw output). First full round of results in `thesis_notes.md`.
+- 2026-10-09: full T2 for the 3B (macro 74.8, RAG subset 76.9); the subsample + second-seed queue was cancelled in favour of it (author). No decision changed.

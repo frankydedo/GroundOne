@@ -1,7 +1,7 @@
-# Thesis abstract (draft v0.3)
+# Thesis abstract (draft v0.3.1)
 
 > **Status:** v0.3 (2026-10-08). It replaces v0.2 (2026-10-05) after the task was redefined (one three-way decision per sentence, D20), the dataset was rebuilt (D21) and the first complete round of experiments ran.
-> It includes **preliminary results** (0.5B and 3B, frozen test sets). Pending: T2 for the 3B, confidence intervals, the demo.
+> It includes **preliminary results** (0.5B and 3B, frozen test sets; updated 2026-10-09 with the 3B on LLM-AggreFact). Pending: confidence intervals, energy measurements, the demo.
 > The thesis summary in `Thesis/content/summary.tex` follows this text; the numbers come from `docs/thesis_notes.md`.
 > Working system name: **GroundOne**.
 
@@ -47,6 +47,7 @@ Everything runs on MLX on an Apple M4 laptop with 16 GB.
 
 ### Preliminary results
 - **RAG test set.** Three-way balanced accuracy 0.769 (0.5B) and 0.832 (3B); AUROC 0.905 and 0.940, against 0.737 for word overlap and about 0.82 for the encoders.
+- **External benchmark (LLM-AggreFact).** The 3B reaches a macro balanced accuracy of 74.8, above MiniCheck-RoBERTa (74.0) and the zero-shot Qwen2.5-7B (72.8), and 76.9 on the RAG datasets; the 0.5B reaches 70.1.
   - On the same answers the 0.5B specialist beats the 4B general-purpose System One (0.80 vs 0.60 three-way).
   - Accuracy holds for long answers (0.84 for the 3B with 14 or more sentences).
 - **Latency.** At K ≥ 14 GroundOne verifies an answer about 2× faster than a terse and about 6× faster than a verbose generative judge of the same size (0.41 s vs 0.80 s and 2.51 s on the 0.5B). The small judges also often break the output format.
@@ -106,6 +107,7 @@ Tutto gira su MLX, su un laptop Apple M4 da 16 GB.
 
 ### Risultati preliminari
 - **Test RAG.** Accuratezza bilanciata a tre classi 0.769 (0.5B) e 0.832 (3B); AUROC 0.905 e 0.940, contro 0.737 della sovrapposizione di parole e circa 0.82 degli encoder.
+- **Benchmark esterno (LLM-AggreFact).** Il 3B raggiunge un'accuratezza bilanciata media di 74.8, sopra MiniCheck-RoBERTa (74.0) e Qwen2.5-7B zero-shot (72.8), e 76.9 sui dataset RAG; il 0.5B raggiunge 70.1.
   - Sulle stesse risposte lo specialista da 0.5B batte il System One generalista da 4B (0.80 contro 0.60 a tre classi).
   - L'accuratezza regge sulle risposte lunghe (0.84 per il 3B con 14 o più frasi).
 - **Latenza.** Con K ≥ 14 GroundOne verifica una risposta circa 2 volte più velocemente di un giudice generativo sintetico e circa 6 volte più di uno verboso della stessa taglia (0.41 s contro 0.80 s e 2.51 s con il 0.5B). I giudici piccoli inoltre spesso non rispettano il formato.
