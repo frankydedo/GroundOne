@@ -97,14 +97,17 @@ class Backend:
         return out, {"prefix_tokens": n, "suffix_tokens": sum(len(p) - n for p in prompts),
                      "prefill_seconds": t1 - t0, "batch_seconds": t2 - t1}
 
-    def score_positions(self, seqs, positions, letters=("A", "B", "C"), token_budget=16384):
+    def score_positions(self, seqs, positions, letters=("A", "B", "C"), token_budget=16384, with_argmax=False):
         """Design (b): one forward pass per sequence, letter logits read at each marker position.
-        seqs: token lists; positions: list of position lists. Returns, per sequence, a list of logit triples."""
+        seqs: token lists; positions: list of position lists. Returns, per sequence, a list of logit triples.
+        with_argmax=True also returns, per sequence, the full-vocabulary argmax token id at each marker (what greedy
+        single-token generation would emit there; control B2)."""
         mx = self.mx
         from .readout import logits_at
         order = sorted(range(len(seqs)), key=lambda i: len(seqs[i]))
         lid = mx.array([self.letter_ids[L] for L in letters])
         result = [None] * len(seqs)
+        amax = [None] * len(seqs)
         i = 0
         while i < len(order):
             j, longest = i, 0
@@ -117,15 +120,19 @@ class Backend:
             batch = mx.array([seqs[k] + [self.pad] * (S - len(seqs[k])) for k in idx])
             rows = [b for b, k in enumerate(idx) for _ in positions[k]]
             cols = [p for k in idx for p in positions[k]]
-            lg = logits_at(self.model, batch, mx.array(rows), mx.array(cols))[:, lid].astype(mx.float32)
-            mx.eval(lg)
-            flat = lg.tolist()
+            full = logits_at(self.model, batch, mx.array(rows), mx.array(cols))
+            lg = full[:, lid].astype(mx.float32)
+            am = mx.argmax(full, axis=1) if with_argmax else None
+            mx.eval(lg, *([am] if with_argmax else []))
+            flat, flat_am = lg.tolist(), am.tolist() if with_argmax else None
             n = 0
             for k in idx:
                 result[k] = flat[n:n + len(positions[k])]
+                if with_argmax:
+                    amax[k] = flat_am[n:n + len(positions[k])]
                 n += len(positions[k])
             i = j
-        return result
+        return (result, amax) if with_argmax else result
 
     def score_many(self, prompts, letters_list, token_budget=8192):
         """Unrelated prompts, batched by length (no shared cache). Returns logits in input order."""

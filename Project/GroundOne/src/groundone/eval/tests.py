@@ -6,8 +6,12 @@
   t3  VitaminC test: same metrics (K = 1).
   t2  LLM-AggreFact test: P(supported) at 0.5, per sub-dataset, 11-way macro and RAG subset; documents longer than
       the cap are chunked and the maximum over chunks is kept.
+  --decision generate (t1/t3, design b; control B2): same forward pass, but the verdict is the full-vocabulary argmax
+      token at each marker, i.e. what greedy single-token generation would emit. "A"/"B"/"C" with or without a leading
+      space map to the three classes; any other token is a format failure (counted as wrong). Also reports the
+      agreement with the 3-letter readout.
 Outputs are create-only: results/<name>/<suite>/{predictions.parquet, metrics.json}.
-Usage: groundone test --suite t1|t2|t3 [--adapter RUN] --name NAME [--design b|a] [--limit N]
+Usage: groundone test --suite t1|t2|t3 [--adapter RUN] --name NAME [--design b|a] [--decision readout|generate] [--limit N]
 """
 import argparse
 import json
@@ -85,6 +89,45 @@ def score_b(engine, recs, raw=False):
     return out
 
 
+def run_generate(engine, recs):
+    """Control B2: verdict = full-vocabulary argmax at each marker (one pass per answer, same as the readout)."""
+    from ..prompts import encode_marked
+    be, tok = engine.backend, engine.backend.tokenizer
+    to_cls = {}
+    for k, L in enumerate("ABC"):
+        to_cls[be.letter_ids[L]] = k
+        to_cls[tok.encode(" " + L, add_special_tokens=False)[0]] = k
+    enc = [encode_marked(tok, r["doc"], r["sentences"], [l is not None for l in r["labels"]]) for r in recs]
+    lg, am = [], []
+    for start in range(0, len(enc), 200):
+        chunk = enc[start:start + 200]
+        l, a = engine._run(lambda: be.score_positions([e[0] for e in chunk], [e[1] for e in chunk], with_argmax=True))
+        lg += [x for per in l for x in per]
+        am += [x for per in a for x in per]
+        print(f"  [{start + len(chunk)}/{len(enc)}]", flush=True)
+    flat = answer_items(recs)
+    df = pd.DataFrame([{k: f[k] for k in ("id", "cls", "task", "K", "kband")} for f in flat])
+    df["token"] = [tok.decode([t]) for t in am]
+    df["pred_generate"] = [to_cls.get(t, -1) for t in am]
+    df["pred_readout"] = [int(np.argmax(x)) for x in lg]
+    y = np.array([CLASSES.index(c) for c in df["cls"]])
+
+    def macro(pred, mask=None):
+        mask = np.ones(len(y), bool) if mask is None else mask
+        return float(np.mean([(pred[mask & (y == k)] == k).mean() for k in range(3) if (mask & (y == k)).any()]))
+    pg, pr = df["pred_generate"].to_numpy(), df["pred_readout"].to_numpy()
+    m = {"decision": "generate (full-vocabulary argmax at the markers; B2)", "n": int(len(df)), "n_answers": len(recs),
+         "macro_recall_generate_failures_wrong": macro(pg), "macro_recall_readout": macro(pr),
+         "format_failure_rate": float((pg == -1).mean()), "agreement_with_readout": float((pg == pr).mean()),
+         "spaced_letter_rate": float(np.mean([t.startswith(" ") and t.strip() in "ABC" and t.strip() != "" for t in df["token"]])),
+         "top_tokens": df["token"].value_counts().head(8).to_dict(),
+         "by_task": {t: {"generate": macro(pg, (df["task"] == t).to_numpy()), "readout": macro(pr, (df["task"] == t).to_numpy())}
+                     for t in sorted(df["task"].unique())},
+         "by_K_band": {b: {"generate": macro(pg, (df["kband"] == b).to_numpy()), "readout": macro(pr, (df["kband"] == b).to_numpy())}
+                       for b in sorted(df["kband"].unique())}}
+    return df, m
+
+
 def run_threeway(engine, recs, name, design="b"):
     flat = answer_items(recs)
     if design == "b":
@@ -136,6 +179,8 @@ def main(argv=None):
     ap.add_argument("--name", required=True)
     ap.add_argument("--limit", type=int, default=0, help="debug: random N records only")
     ap.add_argument("--design", choices=["a", "b"], default="b", help="readout design the adapter was trained for")
+    ap.add_argument("--decision", choices=["readout", "generate"], default="readout",
+                    help="generate = control B2 (t1/t3, design b): full-vocabulary argmax at the markers")
     a = ap.parse_args(argv)
     sd = RESULTS_DIR / a.name / a.suite
     if sd.exists():
@@ -146,13 +191,20 @@ def main(argv=None):
     if a.limit:
         recs = random.Random(0).sample(recs, min(a.limit, len(recs)))
     t0 = time.time()
-    df, m = run_aggrefact(engine, recs, a.design) if a.suite == "t2" else run_threeway(engine, recs, a.suite, a.design)
+    if a.decision == "generate":
+        if a.suite == "t2" or a.design != "b":
+            sys.exit("--decision generate needs --suite t1|t3 and design b")
+        df, m = run_generate(engine, recs)
+    else:
+        df, m = run_aggrefact(engine, recs, a.design) if a.suite == "t2" else run_threeway(engine, recs, a.suite, a.design)
     sd.mkdir(parents=True)
     df.to_parquet(sd / "predictions.parquet")
     m.update({"design": a.design, "model": engine.backend.metadata, "calibrated": engine.calibration is not None, "test_file": file,
               "limit": a.limit, "wall_minutes": round((time.time() - t0) / 60, 2)})
     (sd / "metrics.json").write_text(json.dumps(m, indent=2, default=str))
-    head = m.get("macro_bacc") or {"macro_recall": round(m["all"]["macro_recall"], 4), "auroc": m["all"]["binary"]["auroc"],
+    head = m.get("macro_bacc") or ({k: m[k] for k in ("macro_recall_generate_failures_wrong", "macro_recall_readout",
+                                                       "format_failure_rate", "agreement_with_readout")}
+                                   if a.decision == "generate" else None) or {"macro_recall": round(m["all"]["macro_recall"], 4), "auroc": m["all"]["binary"]["auroc"],
                                    "predicted_share": m["all"]["predicted_share"]}
     print(f"[{a.suite}] done in {m['wall_minutes']} min: {head}", flush=True)
 

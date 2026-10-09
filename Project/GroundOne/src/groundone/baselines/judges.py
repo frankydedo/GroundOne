@@ -15,8 +15,12 @@ Letters: A supported, B contradicted, C not mentioned. A sentence whose verdict 
 3 answers are warm-up and excluded; System One systems are timed over 3 repetitions (median kept).
 Outputs: results/<name>/latency/{predictions.parquet, metrics.json}; with --split dev, results/<name>/dev/ (the same
 K-stratified protocol on dev answers, used to calibrate the judge: `judges-calibrate`).
+--energy: SoC power is sampled with powermetrics (tools/power.py) during the measured loop, after `--idle-seconds` of
+idle sampling with the model loaded; every system runs once per answer (no repetitions). Reports joules per answer and
+per decision, gross and net of idle power, and a per-K-band estimate (net power x answer seconds). Output in
+results/<name>/energy/.
 Usage: groundone baselines judges --system terse|verbose|json|terse-logits|groundone|readout-a --size 0.5b
-       [--adapter RUN] [--split test|dev] --name NAME
+       [--adapter RUN] [--split test|dev] [--energy] --name NAME
        groundone baselines judges-calibrate --name NAME [--calibration PATH]
 """
 import argparse
@@ -145,8 +149,10 @@ def main(argv=None):
     ap.add_argument("--adapter")
     ap.add_argument("--per-band", type=int, default=50)
     ap.add_argument("--name", required=True)
+    ap.add_argument("--energy", action="store_true", help="sample SoC power with powermetrics during the loop")
+    ap.add_argument("--idle-seconds", type=float, default=60)
     a = ap.parse_args(argv)
-    sd = RESULTS_DIR / a.name / ("latency" if a.split == "test" else "dev")
+    sd = RESULTS_DIR / a.name / ("energy" if a.energy else "latency" if a.split == "test" else "dev")
     if sd.exists():
         sys.exit(f"{sd} exists: results are create-only")
     recs = k_stratified(load("test_ragtruth" if a.split == "test" else "dev"), a.per_band)
@@ -154,6 +160,8 @@ def main(argv=None):
     be, tok = engine.backend, engine.backend.tokenizer
     warm = recs[:3]
     rows = []
+    reps = 1 if a.energy else 3
+    energy, meter = None, None
 
     def timed(fn, reps):
         ts, out = [], None
@@ -164,6 +172,12 @@ def main(argv=None):
         return out, float(np.median(ts))
 
     for n, r in enumerate(warm + recs):
+        if a.energy and n == len(warm):
+            from ..tools.power import Meter
+            idle_m = Meter().start()
+            time.sleep(a.idle_seconds)
+            idle = idle_m.stop()
+            meter, t_loop = Meter().start(), time.perf_counter()
         idx = [i for i, y in enumerate(r["labels"]) if y is not None]
         labels = None
         if a.system == "terse-logits":
@@ -196,12 +210,12 @@ def main(argv=None):
         elif a.system == "groundone":
             ids, pos = encode_marked(tok, r["doc"], r["sentences"], [y is not None for y in r["labels"]])
             n_in, n_out, text = len(ids), 0, ""
-            lg, sec = timed(lambda: be.score_positions([ids], [pos]), 3)
+            lg, sec = timed(lambda: be.score_positions([ids], [pos]), reps)
             probs = {i: softmax(x) for i, x in zip(idx, lg[0])}
         else:
             prompts = [be.encode(render(tok, r["doc"], r["sentences"], i, "three")) for i in idx]
             n_in, n_out, text = len(prompts[0]), 0, ""
-            (lg, _), sec = timed(lambda: be.score_shared(prompts, [("A", "B", "C")] * len(idx)), 3)
+            (lg, _), sec = timed(lambda: be.score_shared(prompts, [("A", "B", "C")] * len(idx)), reps)
             probs = {i: softmax(x) for i, x in zip(idx, lg)}
         if n < len(warm):
             continue
@@ -213,6 +227,20 @@ def main(argv=None):
                          "text": text if i == idx[0] else None})
         if (n - len(warm)) % 25 == 0:
             print(f"  [{a.system} {a.size}] {n - len(warm)}/{len(recs)} answers, last {sec:.2f} s (K={len(idx)})", flush=True)
+    if meter is not None:
+        loop_s = time.perf_counter() - t_loop
+        tot = meter.stop()
+        n_ans, n_dec = len(recs), len(rows)
+        # mean sampled power x wall time of the loop (the last partial sample is lost when powermetrics stops)
+        gross_j = tot["mean_watts"] * loop_s
+        net_w = tot["mean_watts"] - idle["mean_watts"]
+        net_j = net_w * loop_s
+        energy = {"idle": idle, "loop": tot, "loop_wall_seconds": loop_s, "answers": n_ans, "decisions": n_dec,
+                  "joules_per_answer": gross_j / n_ans, "net_joules_per_answer": net_j / n_ans,
+                  "joules_per_decision": gross_j / n_dec, "net_joules_per_decision": net_j / n_dec,
+                  "net_watts": net_w, "scope": "powermetrics Combined Power (CPU + GPU + ANE); no DRAM, display, SSD"}
+        for row in rows:
+            row["answer_net_joules_est"] = row["answer_seconds"] * net_w
     df = pd.DataFrame(rows)
     df["format_failure"] = df["p"].isna()
     parsed = df[~df["format_failure"]]
@@ -237,12 +265,21 @@ def main(argv=None):
          "latency_all": {"median_s": float(ans["answer_seconds"].median()), "p90_s": float(ans["answer_seconds"].quantile(.9)),
                          "p99_s": float(ans["answer_seconds"].quantile(.99)),
                          "mean_generated_tokens": float(ans["generated_tokens"].mean()), "mean_K": float(ans["K"].mean())},
-         "protocol": "in-process MLX, one answer at a time, 3 warm-up answers excluded; System One median of 3 repetitions"}
+         "protocol": "in-process MLX, one answer at a time, 3 warm-up answers excluded; System One median of 3 repetitions"
+                     if not a.energy else "energy run: in-process MLX, one answer at a time, 3 warm-up answers excluded, "
+                                          "1 repetition per answer, powermetrics at 200 ms"}
+    if energy:
+        ans_e = df.drop_duplicates("rid")
+        energy["net_joules_per_answer_by_K_band_est"] = {b: float(g["answer_net_joules_est"].median())
+                                                          for b, g in ans_e.groupby("kband")}
+        m["energy"] = energy
     sd.mkdir(parents=True)
     df.assign(p=[json.dumps(p) for p in df["p"]]).to_parquet(sd / "predictions.parquet")
     (sd / "metrics.json").write_text(json.dumps(m, indent=2, default=float))
     print(f"[{a.system} {a.size}] macro {m['macro_recall_failures_wrong']:.3f}, failures "
-          f"{m['format_failure_rate']:.1%}, median {m['latency_all']['median_s']:.2f} s/answer", flush=True)
+          f"{m['format_failure_rate']:.1%}, median {m['latency_all']['median_s']:.2f} s/answer"
+          + (f", {energy['net_joules_per_answer']:.2f} J/answer net ({energy['net_watts']:.1f} W over idle "
+             f"{energy['idle']['mean_watts']:.1f} W)" if energy else ""), flush=True)
 
 
 def calibrate(argv=None):

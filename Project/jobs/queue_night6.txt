@@ -1,0 +1,26 @@
+# Night 2026-10-09/10 (author's go-ahead): starts at 20:00; GPU free by day. Expected end ~08:00.
+# 1) wait until 20:00
+while [ "$(date +%H%M)" -lt 2000 ]; do sleep 30; done
+# 2) second seed of the 0.5B (same config, seed 4321): train, tests, calibration, training figures
+GroundOne/.venv/bin/groundone train --config train_0.5b.yaml --run g1-05b-s2 --seed 4321
+GroundOne/.venv/bin/groundone test --suite t1 --adapter g1-05b-s2/best --name g1-05b-s2
+GroundOne/.venv/bin/groundone test --suite t3 --adapter g1-05b-s2/best --name g1-05b-s2
+GroundOne/.venv/bin/groundone calibrate-b --adapter g1-05b-s2/best --name g1-05b-s2
+GroundOne/.venv/bin/groundone figures training g1-05b-s2
+# 3) control B2: verdict = full-vocabulary argmax at the markers (same pass as the readout), full T1
+GroundOne/.venv/bin/groundone test --suite t1 --adapter g1-05b-b1/best --decision generate --name b2-05b
+GroundOne/.venv/bin/groundone test --suite t1 --adapter g1-3b-b1/best --decision generate --name b2-3b
+# 4) energy (powermetrics), 100 latency answers per system, 60 s idle baseline each
+GroundOne/.venv/bin/groundone baselines judges --system groundone --size 0.5b --adapter g1-05b-b1/best --per-band 25 --energy --name energy-g1-05b
+GroundOne/.venv/bin/groundone baselines judges --system terse --size 0.5b --per-band 25 --energy --name energy-terse-05b
+GroundOne/.venv/bin/groundone baselines judges --system verbose --size 0.5b --per-band 25 --energy --name energy-verbose-05b
+GroundOne/.venv/bin/groundone baselines judges --system groundone --size 3b --adapter g1-3b-b1/best --per-band 25 --energy --name energy-g1-3b
+GroundOne/.venv/bin/groundone baselines judges --system terse --size 3b --per-band 25 --energy --name energy-terse-3b
+GroundOne/.venv/bin/groundone baselines judges --system verbose --size 3b --per-band 25 --energy --name energy-verbose-3b
+# 5) optional, lowest priority (remove this line in the morning if it is still pending and the GPU is needed)
+GroundOne/.venv/bin/groundone test --suite t2 --adapter g1-05b-s2/best --name g1-05b-s2
+# 6) close
+GroundOne/.venv/bin/groundone bootstrap
+GroundOne/.venv/bin/groundone figures all
+GroundOne/.venv/bin/groundone matrix
+END
