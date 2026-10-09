@@ -426,3 +426,25 @@ Two real runs of GroundOne 0.5B (`g1-05b-b1/best` + calibration), design (b).
 **B0d interim observations (2026-10-09 14:15; latency subset, 200 T1 answers):**
 - **B0d-logit 3B = B0a terse 3B in decisions** (macro 0.390 for both, same per-class recall), as expected: same prompt, same greedy generation. Latency at K ≥ 14: 4.38 s vs 4.44 s, so reading the three logits per step costs nothing measurable. The probabilities come for free on top of the terse judge.
 - **B0d-verbal 0.5B is degenerate.** The placeholder prompt gives 69 % entries that parse, but almost all lack a label and repeat uninformative vectors: after renormalisation [1/3, 1/3, 1/3] (323 sentences), [0.4, 0.4, 0.2] (232) and [0.5, 0.5, 0] (172). With the lenient "missing label = argmax p" rule, a tie resolves to A (supported). This inflates its supported recall (0.57) without any real judgement. Macro 0.234, the same as the terse 0.5B. To report: tie rate, and macro with ties counted as failures (computable from `predictions.parquet`, no rerun).
+
+**B0d results (2026-10-09 15:12; 200 T1 answers; judges calibrated on 200 dev answers; files `results/judge-{json,tlogit}-{05b,3b}/latency/{metrics,calibration}.json`, GroundOne `results/g1-*-b1/latency/calibration.json`):**
+
+| System | Three-way (failures wrong) | Format failures | s/answer K ≥ 14 | Generated tokens | Binary AUROC | ECE raw → cal. | AURC cal. |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| GroundOne 0.5B | 0.835 | 0 % | 0.41 | 0 | 0.940 | 0.298 → 0.034 | 0.009 |
+| B0d-logit 0.5B | 0.234 | 23.5 % | 0.81 | 58 | 0.483 | 0.350 → 0.039 | 0.063 |
+| B0d-verbal 0.5B | 0.234 (0.081 with tied unlabeled entries as failures) | 30.9 % | 2.47 | 213 | 0.470 | 0.526 → 0.051 | 0.061 |
+| GroundOne 3B | 0.900 | 0 % | 2.57 | 0 | 0.969 | 0.181 → 0.030 | 0.005 |
+| B0d-logit 3B | 0.390 | 0.1 % | 4.38 | 37 | 0.681 | 0.181 → 0.041 | 0.048 |
+| B0d-verbal 3B | 0.410 | 0 % | 17.00 | 248 | 0.576 | 0.367 → 0.044 | 0.062 |
+
+AUROC is computed on the valid sentences, before calibration (the affine map barely changes the ranking). ECE and AURC are on valid sentences only, so for the 0.5B judges they cover 70–77 % of the sentences.
+
+Findings:
+1. **At equal output GroundOne still wins on every axis.** Accuracy: 0.835 / 0.900 vs at most 0.41. Speed: 2× (logit) and 6–7× (verbal) faster. Quality of the probabilities: AURC 5–12× lower.
+2. **ECE alone is misleading.** After the same calibration every system reaches ECE 0.03–0.05, because a calibration map can match the average confidence to the base rate even when the probabilities do not separate classes (judge AUROC 0.47–0.68, near chance for the 0.5B). The discriminating calibration metrics are AUROC and risk–coverage (AURC). The thesis must report them next to ECE.
+3. **Verbalised probabilities carry almost no information.** The 3B writes a one-hot vector for 93 % of the sentences (1,629 of 1,747; 16 distinct vectors in total). The 0.5B writes uninformative vectors: 1,110 entries without a label, 786 of them tied (e.g. [0.5, 0.5, 0.5]). Counting the tied unlabeled ones as failures, its macro falls from 0.234 to 0.081: the lenient parsing rule was inflating it.
+4. **Logit probabilities are better than verbalised ones** (3B AUROC 0.681 vs 0.576; AURC 0.048 vs 0.062) at a quarter of the latency. They are the strongest generative opponent, and still far from GroundOne. The gap is due to training, not to the readout: B0d-logit makes the same decisions as the terse judge (macro 0.390).
+5. **Writing the JSON costs a lot and buys nothing.** The 3B verbal judge is as slow as the verbose judge (17.0 s vs 15.9 s at K ≥ 14, 248 tokens), with about the same accuracy as the terse one (0.410 vs 0.390).
+6. **Honest caveat.** Judges are zero-shot and GroundOne is fine-tuned, so B0d measures "what a same-size generative judge gives at equal output", not the readout alone. The readout-alone comparison is B1 vs B0d-logit (both untrained) and design (b) vs design (a) for latency.
+

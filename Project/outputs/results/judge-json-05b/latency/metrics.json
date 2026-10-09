@@ -1,0 +1,75 @@
+{
+  "system": "json",
+  "size": "0.5b",
+  "adapter": null,
+  "split": "test",
+  "answers": 200,
+  "decisions": 1747,
+  "label_disagrees_with_argmax_p": 0.033112582781456956,
+  "format_failure_rate": 0.3085289066971952,
+  "macro_recall_failures_wrong": 0.2343635266561749,
+  "recall_failures_wrong": {
+    "supported": 0.5743621655258245,
+    "contradicted": 0.04081632653061224,
+    "not_mentioned": 0.08791208791208792
+  },
+  "parsed_only": {
+    "n": 1208,
+    "macro_recall": 0.33402632104684843,
+    "recall": {
+      "supported": 0.8318661971830986,
+      "contradicted": 0.0,
+      "not_mentioned": 0.1702127659574468
+    },
+    "predicted_share": {
+      "supported": 0.8336,
+      "contradicted": 0.0207,
+      "not_mentioned": 0.1457
+    },
+    "binary": {
+      "n": 1208,
+      "pos_rate": 0.9404,
+      "bacc": 0.47540101721439754,
+      "auroc": 0.47467356220657275,
+      "ece15": 0.5257313422246462,
+      "brier": 0.36478214145872406,
+      "nll": 1.1431812143934077
+    },
+    "lenient_auroc": 0.5244463229078613,
+    "lenient_bacc": 0.4970414201183432
+  },
+  "latency_by_K_band": {
+    "1-4": {
+      "answers": 50,
+      "median_s": 0.6518743124979665,
+      "p90_s": 0.7893583034965559,
+      "median_s_per_decision": 0.20668515966584286
+    },
+    "5-8": {
+      "answers": 50,
+      "median_s": 1.1587748335005017,
+      "p90_s": 1.4942053246879368,
+      "median_s_per_decision": 0.18459404514869676
+    },
+    "9-13": {
+      "answers": 50,
+      "median_s": 1.8509368750019348,
+      "p90_s": 3.7864516544927027,
+      "median_s_per_decision": 0.17127156483345768
+    },
+    ">=14": {
+      "answers": 50,
+      "median_s": 2.469743687004666,
+      "p90_s": 4.858061350007484,
+      "median_s_per_decision": 0.16182428286071324
+    }
+  },
+  "latency_all": {
+    "median_s": 1.3740999590008869,
+    "p90_s": 3.173008700000355,
+    "p99_s": 5.333591365321476,
+    "mean_generated_tokens": 212.965,
+    "mean_K": 8.735
+  },
+  "protocol": "in-process MLX, one answer at a time, 3 warm-up answers excluded; System One median of 3 repetitions"
+}

@@ -1,0 +1,75 @@
+{
+  "system": "terse-logits",
+  "size": "0.5b",
+  "adapter": null,
+  "split": "test",
+  "answers": 200,
+  "decisions": 1747,
+  "label_disagrees_with_argmax_p": null,
+  "format_failure_rate": 0.2346880366342301,
+  "macro_recall_failures_wrong": 0.2338874566628145,
+  "recall_failures_wrong": {
+    "supported": 0.5588052271313005,
+    "contradicted": 0.0,
+    "not_mentioned": 0.14285714285714285
+  },
+  "parsed_only": {
+    "n": 1337,
+    "macro_recall": 0.32600151171579744,
+    "recall": {
+      "supported": 0.7126984126984127,
+      "contradicted": 0.0,
+      "not_mentioned": 0.2653061224489796
+    },
+    "predicted_share": {
+      "supported": 0.7113,
+      "contradicted": 0.0052,
+      "not_mentioned": 0.2835
+    },
+    "binary": {
+      "n": 1337,
+      "pos_rate": 0.9424,
+      "bacc": 0.5058080808080808,
+      "auroc": 0.48275097917955057,
+      "ece15": 0.3502241786334799,
+      "brier": 0.23786883484481436,
+      "nll": 0.6868548124441977
+    },
+    "lenient_auroc": 0.5100813052493725,
+    "lenient_bacc": 0.49961802902979374
+  },
+  "latency_by_K_band": {
+    "1-4": {
+      "answers": 50,
+      "median_s": 0.35466341649589594,
+      "p90_s": 0.6424187753073056,
+      "median_s_per_decision": 0.1314709478756413
+    },
+    "5-8": {
+      "answers": 50,
+      "median_s": 0.5419516874972032,
+      "p90_s": 0.8473806041947682,
+      "median_s_per_decision": 0.08916608475022561
+    },
+    "9-13": {
+      "answers": 50,
+      "median_s": 0.7000197705056053,
+      "p90_s": 1.1574301253000159,
+      "median_s_per_decision": 0.062417809055760796
+    },
+    ">=14": {
+      "answers": 50,
+      "median_s": 0.8075661244947696,
+      "p90_s": 1.2301755249951385,
+      "median_s_per_decision": 0.05398136607150913
+    }
+  },
+  "latency_all": {
+    "median_s": 0.6598301664998871,
+    "p90_s": 1.0185722958951373,
+    "p99_s": 1.3262983553345833,
+    "mean_generated_tokens": 57.615,
+    "mean_K": 8.735
+  },
+  "protocol": "in-process MLX, one answer at a time, 3 warm-up answers excluded; System One median of 3 repetitions"
+}
