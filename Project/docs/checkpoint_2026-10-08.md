@@ -47,7 +47,7 @@ with generative judges.
 | **GroundOne 0.5B** | **0.769** (0.798 on Rizzo's answers) | **0.905** |
 | **GroundOne 3B** | **0.832** (0.840 on Rizzo's answers) | **0.940** |
 
-- **External benchmark (T2, 0.5B).** 70.1 macro balanced accuracy (zero-shot 0.5B 64.2; zero-shot 7B 72.8). On the RAG subset 74.4, equal to MiniCheck-RoBERTa (74.6).
+- **External benchmark (T2).** Macro balanced accuracy 70.1 (0.5B) and **74.8 (3B, added 2026-10-09)**, against MiniCheck-RoBERTa 74.0, zero-shot 0.5B 64.2 and zero-shot 7B 72.8. RAG subset: 74.4 and 76.9, against 74.6.
 - **Different domain (T3, VitaminC).** 0.442 (0.5B) and 0.527 (3B), against Rizzo-Flow 0.712. For MiniCheck-RoBERTa (AUROC 0.968) T3 is in its training distribution.
 
 **Latency** (median seconds per answer, answers with K ≥ 14)
@@ -79,7 +79,6 @@ with generative judges.
 ## 5. What remains (to 2026-10-30)
 
 - **Measurements**:
-  - T2 for the 3B;
   - bootstrap confidence intervals;
   - decide on the single-token generation control (B2);
   - optionally, latency of Rizzo-Flow and the encoders in comparable conditions (see the fairness note in `thesis_notes.md`).

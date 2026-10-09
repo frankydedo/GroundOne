@@ -108,7 +108,7 @@ Numbers are from `thesis_notes.md`; T1 = RAGTruth test, T2 = LLM-AggreFact, T3 =
 
 | ID | Evidence so far | Status |
 | --- | --- | --- |
-| H1 specialisation | 0.5B: LLM-AggreFact 70.1 (zero-shot 64.2; 7B zero-shot 72.8), RAG subset 74.4 = MiniCheck-RoBERTa 74.6. T1 AUROC 0.905 (0.5B) and 0.940 (3B) vs 0.81–0.82 for the encoders. On T1 the 0.5B beats Rizzo-Flow 4B (three-way 0.80 vs 0.60 on the same answers) | **Supported in the RAG domain.** Weaker outside it (T3; non-RAG T2 columns) |
+| H1 specialisation | LLM-AggreFact macro: 3B **74.8** (above MiniCheck-RoBERTa 74.0 and zero-shot 7B 72.8), 0.5B 70.1 (zero-shot 64.2); RAG subset 76.9 (3B) / 74.4 (0.5B) vs RoBERTa 74.6. T1 AUROC 0.905 (0.5B) and 0.940 (3B) vs 0.81–0.82 for the encoders. On T1 the 0.5B beats Rizzo-Flow 4B (three-way 0.80 vs 0.60 on the same answers) | **Supported in the RAG domain.** Weaker outside it (T3; non-RAG T2 columns) |
 | H2a readout vs single-token generation | Not run as a separate control: with readout design (b), generating one token at each marker is the same computation | Open: decide whether B2 is still meaningful (§14) |
 | H2b speed vs generative judges | At K ≥ 14: 0.5B 0.41 s vs 0.80 s (terse) and 2.51 s (verbose); 3B 2.57 s vs 4.44 s and 15.86 s. The gain grows with K | **Supported** |
 | H2c format reliability | 0.5B judges: 23 % (terse) and 97 % (verbose) unparsable verdicts; 3B: 0.1 % and 7.6 %. System One: 0 % | **Supported** |

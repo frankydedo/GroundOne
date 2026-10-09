@@ -109,7 +109,11 @@ RAGTruth column it is 82.1 against 76.5, a comparison that favours GroundOne bec
 answers. Outside retrieval-augmented generation GroundOne is weaker than the encoder by eight to nine points on
 AggreFact-CNN, AggreFact-XSum, FactCheck-GPT and REVEAL, the expected cost of training on RAG data only.
 
-% TODO: T2 for the 3B (about 14 h on the full test set: run on a stratified subsample or overnight).
+The 3B model, evaluated on the full test set, closes this gap. Its macro-averaged balanced accuracy is 74.8, above
+MiniCheck-RoBERTa (74.0) and the zero-shot 7B model (72.8), and 76.9 on the RAG datasets. Its gain over the 0.5B is broad,
+with the largest improvements on REVEAL, WiCE, FactCheck-GPT and XSum, so model size improves transfer beyond the
+training domain. The 3B remains below the encoder on news summarisation (AggreFact-CNN, 59.3 against 67.1) and on
+ClaimVerify.
 
 \section{Transfer to a different domain (T3)}
 \label{sec:results-t3}

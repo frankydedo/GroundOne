@@ -358,3 +358,30 @@ This must be stated in the introduction and argued with evidence, not just menti
 - Every step of this project ran on the M4: dataset build, the 0.5B and 3B training (5.4 h and 12.25 h), all evaluations, all baselines, the latency protocol.
 - Measured verification time per answer: 0.33 s (0.5B) and 1.99 s (3B) median; no generated tokens.
 
+## Ch. 6: GroundOne 3B on LLM-AggreFact (T2, full test, 2026-10-09)
+
+Source: `outputs/results/g1-3b-b1/t2/metrics.json`. 887.8 min (14.8 h, plus a 25-min pause) for 29,320 items (32,070 document chunks, 22.65 M tokens); peak 5.2 GB.
+
+| Balanced accuracy (%) | GroundOne 3B | GroundOne 0.5B | MiniCheck-RoBERTa (ours) |
+| --- | --- | --- | --- |
+| **Macro average (11)** | **74.8** | 70.1 | 74.0 |
+| **RAG subset (4)** | **76.9** | 74.4 | 74.6 |
+| AggreFact-CNN | 59.3 | 59.1 | **67.1** |
+| AggreFact-XSum | 69.1 | 62.8 | **70.9** |
+| ClaimVerify | 76.0 | 74.1 | **78.3** |
+| ExpertQA | **57.7** | 56.4 | 57.2 |
+| FactCheck-GPT | 73.2 | 66.8 | **74.1** |
+| LFQA | **86.8** | 85.0 | 86.2 |
+| RAGTruth | **87.3** | 82.1 | 76.5 |
+| REVEAL | **90.3** | 79.9 | 88.9 |
+| TofuEval-MediaS | **71.6** | 66.9 | 69.3 |
+| TofuEval-MeetB | 74.7 | 70.6 | **75.9** |
+| WiCE | **76.9** | 67.9 | 69.8 |
+
+Pooled AUROC: 0.895 (3B) and 0.866 (0.5B). Published references: Qwen2.5-7B zero-shot 72.8; MiniCheck-Flan-T5-L (0.8B) 75.0; Bespoke-MiniCheck-7B 77.4.
+
+**Readings.**
+- The 3B reaches the encoder on the macro average (+0.8) and exceeds the zero-shot 7B (+2.0), despite being trained only on RAGTruth.
+- Its gain over the 0.5B is broad: +4.7 macro, with large gains on REVEAL (+10.4), WiCE (+9.0), FactCheck-GPT (+6.4) and XSum (+6.3). Size improves transfer outside the training domain, consistent with T3.
+- Still below the encoder on news summarisation (AggreFact-CNN −7.8, XSum −1.8) and ClaimVerify (−2.3). The RAGTruth column (+10.8 over RoBERTa) is in-domain for GroundOne and must be read with that caveat; the fair RAG comparison is the subset average excluding it, or a note.
+
