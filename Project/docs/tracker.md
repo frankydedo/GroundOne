@@ -85,7 +85,7 @@ Update the status column and the to-do list as work progresses.
 **Later**
 - [ ] Bootstrap confidence intervals and paired tests (CPU, from saved predictions)
 - [ ] Second seed of the 0.5B (≈ 6 h with evaluations) to measure run-to-run variance
-- [ ] HTTP API on readout design (b), then demo
+- [ ] HTTP API on readout design (b), then demo; the served output must be coherent (labels and strict/lenient flags from one rule, e.g. calibrated probabilities with dev-tuned thresholds; see thesis notes 2026-10-09)
 - [ ] Decide on the B2 control (plan §14)
 - [ ] **Pillar "full locality"** (all items approved by the author, 2026-10-08):
    - [ ] overview of local inference for Ch. 1–2: local vs remote, evolution of runtimes, hardware comparison with cited vendor specs

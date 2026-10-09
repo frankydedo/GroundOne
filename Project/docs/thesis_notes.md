@@ -385,3 +385,13 @@ Pooled AUROC: 0.895 (3B) and 0.866 (0.5B). Published references: Qwen2.5-7B zero
 - Its gain over the 0.5B is broad: +4.7 macro, with large gains on REVEAL (+10.4), WiCE (+9.0), FactCheck-GPT (+6.4) and XSum (+6.3). Size improves transfer outside the training domain, consistent with T3.
 - Still below the encoder on news summarisation (AggreFact-CNN −7.8, XSum −1.8) and ClaimVerify (−2.3). The RAGTruth column (+10.8 over RoBERTa) is in-domain for GroundOne and must be read with that caveat; the fair RAG comparison is the subset average excluding it, or a note.
 
+## Ch. 3 / demo: real outputs and the coherence of the served output (2026-10-09)
+
+Two real runs of GroundOne 0.5B (`g1-05b-b1/best` + calibration), design (b).
+- **Toy example.** Document "Acme was founded in 2005 in Turin and has 120 employees."; answer "Acme was founded in 2005. It is based in Milan. Its CEO is Maria Rossi." Result: supported 0.98; **not mentioned 0.80** for "It is based in Milan"; not mentioned 0.63 for the CEO sentence. 133 input tokens, 0 output tokens, 0.10 s.
+  - The model's choice for "Milan" is defensible: the document gives where Acme was *founded*, not where it is *based* now. The illustrative JSON written earlier in chat ("contradicted") was wrong. Good example for the thesis of what "not mentioned" means.
+- **Real T1 answer** (rt-14134, QA, Llama-2-13B). 4/4 verdicts equal to the gold labels: two supported at 0.99, two not mentioned. Six sentences without checkable content (greeting, list headings, closing formulas) are kept as context with no verdict. 487 input tokens, 0.19 s.
+- **Issue to fix before the demo / API.** For two sentences the label (argmax of the raw, class-balanced output, D24) is "not mentioned", while the calibrated P(supported) shown next to it is 0.54 / 0.52, so the strict flag is off. Showing raw-based labels next to calibrated probabilities is incoherent for a user. The served output must use one coherent rule, chosen on dev: either
+  - labels and policy flags both derived from the calibrated probabilities with thresholds tuned on dev, or
+  - two clearly separated fields.
+
