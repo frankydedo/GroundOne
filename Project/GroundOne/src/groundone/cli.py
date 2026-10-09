@@ -9,6 +9,7 @@
   groundone train      --config train_0.5b.yaml [...]             LoRA fine-tuning (design b by default)
   groundone calibrate-b --adapter RUN/best --name NAME            temperature + bias on dev (design b)
   groundone test       --suite t1|t2|t3 --name NAME [--adapter RUN]   frozen GroundOne test sets (three-way)
+  groundone matrix     [--print]                                  results matrix (all systems x test sets) -> docs/tracker.md
   groundone guard      QUEUE.txt                                  run long jobs one at a time under the memory guard
   groundone figures    all | dataset | benchmarks | training RUN | eda | phase0   thesis figures -> Project/figures/
   groundone baselines  frozen | judges [...]                      baselines on the frozen tests; generative judges + latency
@@ -39,7 +40,7 @@ def _engine(a):
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     # sub-commands with their own parsers
-    passthrough = {"figures": ("figures", "main"), "train": ("training.train", "main"), "eval": ("eval.evaluate", "main"), "test": ("eval.tests", "main"),
+    passthrough = {"figures": ("figures", "main"), "train": ("training.train", "main"), "eval": ("eval.evaluate", "main"), "test": ("eval.tests", "main"), "matrix": ("tools.matrix", "main"),
                    "calibrate": ("eval.evaluate", "calibrate"), "calibrate-b": ("eval.calibrate_b", "main"), "guard": ("tools.watchdog", "main")}
     if argv and argv[0] in passthrough:
         mod, fn = passthrough[argv[0]]
