@@ -523,4 +523,8 @@ Run `g1-05b-s2`: same config as `g1-05b-b1`, seed 4321 (LoRA initialisation and 
 - **For the thesis:** the recipe is not robust to the seed. This must be reported, not hidden by re-running until a seed works. How often it collapses needs at least a third seed. A fix (gradient clipping, lower lr, warm-up) is a declared change, to be checked on new seeds.
 - **Stopped at step ≈ 470 of 801 (21:54, author's decision), log kept; training curve in `figures/training-g1-05b-s2/`.** At step 450 it had moved off the constant predictor (0.444, still never predicting "not mentioned"), but the loss was still ≈ 1.07, far from seed 1. The decision was taken on the step-300 evaluation. Whether it would have recovered by the end of the epoch is unknown, and this must be stated.
 - Replaced by a third seed with the identical config (`g1-05b-s3`, seed 777, `jobs/queue_night6.txt`).
+- **Reporting decision (author, 2026-10-09 22:00).**
+  - In the thesis the completed third-seed run (`g1-05b-s3`) is presented as the second run of the 0.5B. Tables show completed runs only.
+  - The stopped run (`g1-05b-s2`) is disclosed in one sentence (footnote or limitations), not hidden. Draft: *"A further run was stopped at 60 % of the epoch after its dev accuracy collapsed to the constant-predictor level (0.33 at step 300, 0.44 at step 450); it is excluded from the tables because it is incomplete, and it indicates that the recipe, which has no gradient clipping, is not fully robust to initialisation."*
+  - Logs, notes and figures of the stopped run stay in the repository.
 
