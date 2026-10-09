@@ -422,3 +422,7 @@ Two real runs of GroundOne 0.5B (`g1-05b-b1/best` + calibration), design (b).
 
 **For the thesis (author's request):** show one real output example per system on the same answer: GroundOne JSON, terse, verbose and equal-output judge texts, encoders, Rizzo-Flow. The judge predictions now store the generated text (`text` column of `predictions.parquet`, first sentence row of each answer).
 
+
+**B0d interim observations (2026-10-09 14:15; latency subset, 200 T1 answers):**
+- **B0d-logit 3B = B0a terse 3B in decisions** (macro 0.390 for both, same per-class recall), as expected: same prompt, same greedy generation. Latency at K ≥ 14: 4.38 s vs 4.44 s, so reading the three logits per step costs nothing measurable. The probabilities come for free on top of the terse judge.
+- **B0d-verbal 0.5B is degenerate.** The placeholder prompt gives 69 % entries that parse, but almost all lack a label and repeat uninformative vectors: after renormalisation [1/3, 1/3, 1/3] (323 sentences), [0.4, 0.4, 0.2] (232) and [0.5, 0.5, 0] (172). With the lenient "missing label = argmax p" rule, a tie resolves to A (supported). This inflates its supported recall (0.57) without any real judgement. Macro 0.234, the same as the terse 0.5B. To report: tie rate, and macro with ties counted as failures (computable from `predictions.parquet`, no rerun).
