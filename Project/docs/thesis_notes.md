@@ -498,3 +498,10 @@ The 0.5B's other argmax tokens: " " (362), "1" (23).
 - **Possible improvement, not run:** read and train the spaced letters in design (b). It would align readout and generation. The effect on accuracy is unknown, since the restricted loss does not depend on absolute mass.
 - **For the thesis:** state in Ch. 3 that the readout is a restricted classifier over three token logits, not a decoding step.
 
+
+**Framing (discussion with the author, 2026-10-09).** The B2 check is not an anomaly. It is what defines a System One.
+- A System One never decodes: it asks a closed question, runs one pass and takes the best of the admissible options' scores. What the model would write if left free is irrelevant by design.
+- In a zero-shot System One (SemIf, Rizzo-Flow, B1), the readout works because the model already tends to answer with the option letter, so readout and generation roughly agree. That is why they were earlier treated as nearly equivalent ("single-token control").
+- After fine-tuning with a loss restricted to the options, the two decouple: GroundOne becomes a classifier that uses the LM, not a faster generator.
+- For Ch. 3: the advantage does not come from "generating one token instead of many" but from not generating at all. The returned probabilities are conditional on the answer being A, B or C (the rest of the vocabulary holds about 95 % of the mass at the markers). They are made reliable by the dev calibration.
+- B2 becomes optional: it would only quantify the value of the restricted readout over a generative decision on the same pass.
