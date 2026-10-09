@@ -88,7 +88,7 @@ Update the status column and the to-do list as work progresses.
 - [ ] HTTP API on readout design (b), then demo; the served output must be coherent (labels and strict/lenient flags from one rule, e.g. calibrated probabilities with dev-tuned thresholds; see thesis notes 2026-10-09)
 - [ ] Decide on the B2 control (plan §14)
 - [ ] Thesis: show one real output example per system (GroundOne JSON, terse and verbose judge text, encoders, Rizzo-Flow) on the same answer (author request, 2026-10-09)
-- [ ] Proposed (awaiting go-ahead): equal-output judge B0c, a generative judge that must return the same content as GroundOne (label + three probabilities per scored sentence); see thesis notes 2026-10-09
+- [ ] Proposed (awaiting go-ahead): equal-output judge B0d (B0c is the 7B reference), a generative judge that must return the same content as GroundOne (label + three probabilities per scored sentence); see thesis notes 2026-10-09
 - [ ] **Pillar "full locality"** (all items approved by the author, 2026-10-08):
    - [ ] overview of local inference for Ch. 1–2: local vs remote, evolution of runtimes, hardware comparison with cited vendor specs
    - [ ] proof of independence: full evaluation with the network disabled (`HF_HUB_OFFLINE=1`, Wi-Fi off); report that it completes
