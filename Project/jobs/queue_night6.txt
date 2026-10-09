@@ -3,10 +3,14 @@
 while [ "$(date +%H%M)" -lt 2000 ]; do sleep 30; done
 # 2) second seed of the 0.5B (same config, seed 4321): train, tests, calibration, training figures
 GroundOne/.venv/bin/groundone train --config train_0.5b.yaml --run g1-05b-s2 --seed 4321
-GroundOne/.venv/bin/groundone test --suite t1 --adapter g1-05b-s2/best --name g1-05b-s2
-GroundOne/.venv/bin/groundone test --suite t3 --adapter g1-05b-s2/best --name g1-05b-s2
-GroundOne/.venv/bin/groundone calibrate-b --adapter g1-05b-s2/best --name g1-05b-s2
+# 21:10 author's decision: seed 2 collapsed to a constant predictor (dev macro 0.333 at step 300); stopped, log kept.
+# Replaced by a third seed with the identical config (thesis notes 2026-10-09).
 GroundOne/.venv/bin/groundone figures training g1-05b-s2
+GroundOne/.venv/bin/groundone train --config train_0.5b.yaml --run g1-05b-s3 --seed 777
+GroundOne/.venv/bin/groundone test --suite t1 --adapter g1-05b-s3/best --name g1-05b-s3
+GroundOne/.venv/bin/groundone test --suite t3 --adapter g1-05b-s3/best --name g1-05b-s3
+GroundOne/.venv/bin/groundone calibrate-b --adapter g1-05b-s3/best --name g1-05b-s3
+GroundOne/.venv/bin/groundone figures training g1-05b-s3
 # 3) control B2: verdict = full-vocabulary argmax at the markers (same pass as the readout), full T1
 GroundOne/.venv/bin/groundone test --suite t1 --adapter g1-05b-b1/best --decision generate --name b2-05b
 GroundOne/.venv/bin/groundone test --suite t1 --adapter g1-3b-b1/best --decision generate --name b2-3b
@@ -18,7 +22,7 @@ GroundOne/.venv/bin/groundone baselines judges --system groundone --size 3b --ad
 GroundOne/.venv/bin/groundone baselines judges --system terse --size 3b --per-band 25 --energy --name energy-terse-3b
 GroundOne/.venv/bin/groundone baselines judges --system verbose --size 3b --per-band 25 --energy --name energy-verbose-3b
 # 5) optional, lowest priority (remove this line in the morning if it is still pending and the GPU is needed)
-GroundOne/.venv/bin/groundone test --suite t2 --adapter g1-05b-s2/best --name g1-05b-s2
+GroundOne/.venv/bin/groundone test --suite t2 --adapter g1-05b-s3/best --name g1-05b-s3
 # 6) close
 GroundOne/.venv/bin/groundone bootstrap
 GroundOne/.venv/bin/groundone figures all

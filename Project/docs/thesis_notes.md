@@ -506,7 +506,7 @@ The 0.5B's other argmax tokens: " " (362), "1" (23).
 - For Ch. 3: the advantage does not come from "generating one token instead of many" but from not generating at all. The returned probabilities are conditional on the answer being A, B or C (the rest of the vocabulary holds about 95 % of the mass at the markers). They are made reliable by the dev calibration.
 - B2 becomes optional: it would only quantify the value of the restricted readout over a generative decision on the same pass.
 
-## Ch. 5 / Ch. 7: second seed of the 0.5B collapses (2026-10-09, in progress)
+## Ch. 5 / Ch. 7: second seed of the 0.5B collapses (2026-10-09)
 
 Run `g1-05b-s2`: same config as `g1-05b-b1`, seed 4321 (LoRA initialisation and batch order). Log: `outputs/models/g1-05b-s2/train_log.jsonl`.
 
@@ -515,8 +515,12 @@ Run `g1-05b-s2`: same config as `g1-05b-b1`, seed 4321 (LoRA initialisation and 
 | 100 | 0.93 / 0.83 | | |
 | 150 | 0.81 / 1.12 | 0.630 / 0.369 | 0.22 / 0.00 / 0.78 |
 | 300 | | 0.688 / 0.333 | 1.00 / 0.00 / 0.00 |
+| 450 | 0.77 (step 225) / 1.07 | 0.731 / 0.444 | 0.75 / 0.24 / 0.00 |
 
 - After step 100 the seed-2 loss rose to about 1.03–1.07 and stayed there. That is near the class-weighted loss of a model with no information (≈ ln 3 = 1.10). By step 300 it predicts "supported" for every sentence.
 - The run collapsed to a constant predictor. Seed 1 kept improving (0.731 at step 450).
 - The training loop has no gradient clipping: `training/train.py` contains no clipping or non-finite check. With lr 1e-4 and class weight 7.5 on "contradicted", one unlucky update can push the LoRA weights into a region the optimiser does not leave.
 - **For the thesis:** the recipe is not robust to the seed. This must be reported, not hidden by re-running until a seed works. How often it collapses needs at least a third seed. A fix (gradient clipping, lower lr, warm-up) is a declared change, to be checked on new seeds.
+- **Stopped at step ≈ 470 of 801 (21:54, author's decision), log kept; training curve in `figures/training-g1-05b-s2/`.** At step 450 it had moved off the constant predictor (0.444, still never predicting "not mentioned"), but the loss was still ≈ 1.07, far from seed 1. The decision was taken on the step-300 evaluation. Whether it would have recovered by the end of the epoch is unknown, and this must be stated.
+- Replaced by a third seed with the identical config (`g1-05b-s3`, seed 777, `jobs/queue_night6.txt`).
+

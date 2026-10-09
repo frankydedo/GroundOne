@@ -89,7 +89,7 @@ Update the status column and the to-do list as work progresses.
 **Standing rules:** every phase leaves figures (`groundone figures all` → `Project/outputs/figures/`); every result or insight goes into `docs/thesis_notes.md`.
 
 **Later**
-- [ ] Night 2026-10-09/10, `jobs/queue_night6.txt` (starts 20:00, expected end ~08:00): second seed of the 0.5B (train, T1, T3, calibration, T2 last), control B2 on full T1 (0.5B, 3B), energy per answer with powermetrics (GroundOne, terse, verbose; 0.5B and 3B)
+- [ ] Night 2026-10-09/10, `jobs/queue_night6.txt` (started 18:49, expected end ~09:00): seed 2 collapsed and was stopped at 21:54 (author's decision); third seed of the 0.5B (g1-05b-s3) (train, T1, T3, calibration, T2 last), control B2 on full T1 (0.5B, 3B), energy per answer with powermetrics (GroundOne, terse, verbose; 0.5B and 3B)
 - [ ] HTTP API on readout design (b), then demo; the served output must be coherent (labels and strict/lenient flags from one rule, e.g. calibrated probabilities with dev-tuned thresholds; see thesis notes 2026-10-09)
 - [ ] B2 control: dev check done (generation ≠ readout at the token level, plan §2 H2a); run B2 on full T1? (awaiting go-ahead, plan §14)
 - [ ] Thesis: show one real output example per system (GroundOne JSON, terse and verbose judge text, encoders, Rizzo-Flow) on the same answer (author request, 2026-10-09)
