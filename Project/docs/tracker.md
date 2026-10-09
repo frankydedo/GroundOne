@@ -62,12 +62,12 @@ Update the status column and the to-do list as work progresses.
 - [ ] **Pillar "full locality"** (all items approved by the author, 2026-10-08):
    - [ ] overview of local inference for Ch. 1–2: local vs remote, evolution of runtimes, hardware comparison with cited vendor specs
    - [ ] proof of independence: full evaluation with the network disabled (`HF_HUB_OFFLINE=1`, Wi-Fi off); report that it completes
-   - [ ] energy per verification with `powermetrics` (GPU/CPU/ANE power while verifying the latency answers, joules per answer for GroundOne vs the judges). Needs root: `sudo powermetrics` must be started by the author, or a sudo rule granted
+   - [ ] energy per verification with `powermetrics` (GPU/CPU/ANE power while verifying the latency answers, joules per answer for GroundOne vs the judges). `sudo -n powermetrics` enabled without password (sudoers rule + Claude Code allow rule, 2026-10-08; tested)
    - [ ] co-residence: peak memory of generator (3B) + GroundOne verifier + retriever running together, against the 16 GB budget
    - [ ] licences as part of independence: one table (models, datasets, baselines) with licence and allowed use
    - [ ] cost comparison with a hosted LLM judge for N answers (provider prices on a stated date, cited)
    - [ ] state in Ch. 5 that every baseline also ran on the same laptop
-- [ ] Second night of 3B training if the dev curve is still rising (needs resume-from-checkpoint)
+- [x] ~~Second night of 3B training~~: not needed, the dev score plateaued (0.705 at step 320, 0.700 at the end)
 - [ ] Optional extension (week 4): grounded ingestion loop for an LLM wiki, evaluated with injected errors (`thesis_notes.md`, Ch. 8)
 - [ ] Ch. 2 (background), Ch. 1, 7, 8; supervisors + degree programme in `Thesis/common/thesis_info.tex`
 
