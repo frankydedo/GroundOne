@@ -89,10 +89,9 @@ Update the status column and the to-do list as work progresses.
 **Standing rules:** every phase leaves figures (`groundone figures all` → `Project/outputs/figures/`); every result or insight goes into `docs/thesis_notes.md`.
 
 **Later**
-- [ ] Bootstrap confidence intervals and paired tests (CPU, from saved predictions)
 - [ ] Second seed of the 0.5B (≈ 6 h with evaluations) to measure run-to-run variance
 - [ ] HTTP API on readout design (b), then demo; the served output must be coherent (labels and strict/lenient flags from one rule, e.g. calibrated probabilities with dev-tuned thresholds; see thesis notes 2026-10-09)
-- [ ] Decide on the B2 control (plan §14)
+- [ ] B2 control: dev check done (generation ≠ readout at the token level, plan §2 H2a); run B2 on full T1? (awaiting go-ahead, plan §14)
 - [ ] Thesis: show one real output example per system (GroundOne JSON, terse and verbose judge text, encoders, Rizzo-Flow) on the same answer (author request, 2026-10-09)
 - [ ] **Pillar "full locality"** (all items approved by the author, 2026-10-08):
    - [ ] overview of local inference for Ch. 1–2: local vs remote, evolution of runtimes, hardware comparison with cited vendor specs
@@ -116,6 +115,7 @@ Update the status column and the to-do list as work progresses.
 
 ## Log
 
+- 2026-10-09 16:30: bootstrap CIs and paired tests (`groundone bootstrap`, B = 2000, cluster by leakage group). All claimed differences significant except T2 macro 3B vs MiniCheck-RoBERTa (+0.8, CI −0.5 to +2.1): claim tempered in abstract, plan and Ch. 6. B2 check on dev: generation emits the spaced letter, agrees with the readout in 75 % / 92 %
 - 2026-10-09 15:12: equal-output judge B0d (D25) done, both variants, 0.5B + 3B (queue_day5, 1 h 48 min, no guard intervention). GroundOne wins at equal output: three-way 0.835 / 0.900 vs ≤ 0.41; AURC 0.009 / 0.005 vs 0.048–0.063. Judge table of the results matrix updated; details in thesis notes
 Add one line per significant event (date, what happened, impact on the plan).
 

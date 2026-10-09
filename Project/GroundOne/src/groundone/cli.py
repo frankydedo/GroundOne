@@ -13,6 +13,7 @@
   groundone guard      QUEUE.txt                                  run long jobs one at a time under the memory guard
   groundone figures    all | dataset | benchmarks | training RUN | eda | phase0   thesis figures -> Project/figures/
   groundone baselines  frozen | judges | judges-calibrate [...]   baselines on the frozen tests; generative judges + latency
+  groundone bootstrap  [--reps 2000]                              CIs and paired tests from saved predictions (CPU)
   legacy (earlier datasets, kept for reference): groundone eval | calibrate, groundone baselines encoder | rizzo
 """
 import argparse
@@ -40,7 +41,7 @@ def _engine(a):
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     # sub-commands with their own parsers
-    passthrough = {"figures": ("figures", "main"), "train": ("training.train", "main"), "eval": ("eval.evaluate", "main"), "test": ("eval.tests", "main"), "matrix": ("tools.matrix", "main"),
+    passthrough = {"figures": ("figures", "main"), "train": ("training.train", "main"), "eval": ("eval.evaluate", "main"), "test": ("eval.tests", "main"), "matrix": ("tools.matrix", "main"), "bootstrap": ("eval.bootstrap", "main"),
                    "calibrate": ("eval.evaluate", "calibrate"), "calibrate-b": ("eval.calibrate_b", "main"), "guard": ("tools.watchdog", "main")}
     if argv and argv[0] in passthrough:
         mod, fn = passthrough[argv[0]]

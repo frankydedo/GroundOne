@@ -108,8 +108,8 @@ Numbers are from `thesis_notes.md`; T1 = RAGTruth test, T2 = LLM-AggreFact, T3 =
 
 | ID | Evidence so far | Status |
 | --- | --- | --- |
-| H1 specialisation | LLM-AggreFact macro: 3B **74.8** (above MiniCheck-RoBERTa 74.0 and zero-shot 7B 72.8), 0.5B 70.1 (zero-shot 64.2); RAG subset 76.9 (3B) / 74.4 (0.5B) vs RoBERTa 74.6. T1 AUROC 0.905 (0.5B) and 0.940 (3B) vs 0.81–0.82 for the encoders. On T1 the 0.5B beats Rizzo-Flow 4B (three-way 0.80 vs 0.60 on the same answers) | **Supported in the RAG domain.** Weaker outside it (T3; non-RAG T2 columns) |
-| H2a readout vs single-token generation | Not run as a separate control: with readout design (b), generating one token at each marker is the same computation | Open: decide whether B2 is still meaningful (§14) |
+| H1 specialisation | LLM-AggreFact macro: 3B **74.8** (on par with MiniCheck-RoBERTa 74.0: +0.8, 95 % CI −0.5 to +2.1; above the published zero-shot 7B 72.8), 0.5B 70.1 (zero-shot 64.2); RAG subset 76.9 (3B, +2.4 over RoBERTa, CI +1.4 to +3.3) / 74.4 (0.5B, on par) vs RoBERTa 74.6. T1 AUROC 0.905 (0.5B) and 0.940 (3B) vs 0.81–0.82 for the encoders. On T1 the 0.5B beats Rizzo-Flow 4B (three-way 0.80 vs 0.60 on the same answers) | **Supported in the RAG domain.** Weaker outside it (T3; non-RAG T2 columns) |
+| H2a readout vs single-token generation | Checked on 200 dev answers (2026-10-09): at the markers the full-vocabulary argmax is the *spaced* letter (" A") in 75 % (0.5B) / 99 % (3B) of cases, never the unspaced letter that the readout reads; mapped to a verdict, it agrees with the readout in 75 % / 92 %. The trained letters carry only 4–5 % of the probability mass: the restricted loss shapes their relative logits, not their absolute mass. Same forward pass, so same latency | Readout ≠ single-token generation at the token level; B2 on full T1 proposed (§14) |
 | H2b speed vs generative judges | At K ≥ 14: 0.5B 0.41 s vs 0.80 s (terse) and 2.51 s (verbose); 3B 2.57 s vs 4.44 s and 15.86 s. The gain grows with K | **Supported** |
 | H2c format reliability | 0.5B judges: 23 % (terse) and 97 % (verbose) unparsable verdicts; 3B: 0.1 % and 7.6 %. System One: 0 % | **Supported** |
 | H3 calibration | Temperature + bias on dev: T1 binary ECE 0.30 → 0.019 (0.5B), 0.18 → 0.019 (3B); AURC 0.015 / 0.010. Does not transfer to T3 | **Supported in domain** |
@@ -542,9 +542,9 @@ Also answered: Phase 0/0b run (GO); demo generator = 3B (D12); 7B not run (D13).
 
 
 Still open (2026-10-08):
-1. **B2 control** (single-token generation with the same weights). With design (b) it is the same computation as the readout. Decide whether to run it in format (a), or to drop it and explain why.
+1. **B2 control** (single-token generation with the same weights). The earlier argument ("with design (b) it is the same computation") holds for the forward pass, not for the decision: the 2026-10-09 check (§2, H2a) shows that generation would emit the spaced letter and agree with the readout in only 75 % (0.5B) / 92 % (3B) of the markers. Proposed: run B2 on full T1 (one pass per answer, full-vocabulary argmax at the markers, spaced or unspaced letter mapped to a verdict, anything else = format failure); awaiting the author's go-ahead.
 2. ~~T2 for the 3B~~: done 2026-10-09 (macro 74.8).
-3. **Bootstrap confidence intervals** and paired tests: computable from the saved predictions, no GPU needed.
+3. ~~Bootstrap confidence intervals~~: done 2026-10-09 (`groundone bootstrap`, `results/bootstrap/`). Every claimed difference is significant except: T2 macro 3B vs MiniCheck-RoBERTa (+0.8, CI −0.5 to +2.1), T2 RAG subset 0.5B vs RoBERTa, T1 AUROC 0.5B vs Rizzo-Flow on its subsample.
 4. **HTTP API and demo** on design (b), plus the optional extension (grounded ingestion loop for an LLM wiki, `thesis_notes.md` Ch. 8).
 5. Supervisor requirements (length/format, mandatory comparisons), if any.
 

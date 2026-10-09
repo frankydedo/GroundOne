@@ -448,3 +448,53 @@ Findings:
 5. **Writing the JSON costs a lot and buys nothing.** The 3B verbal judge is as slow as the verbose judge (17.0 s vs 15.9 s at K ≥ 14, 248 tokens), with about the same accuracy as the terse one (0.410 vs 0.390).
 6. **Honest caveat.** Judges are zero-shot and GroundOne is fine-tuned, so B0d measures "what a same-size generative judge gives at equal output", not the readout alone. The readout-alone comparison is B1 vs B0d-logit (both untrained) and design (b) vs design (a) for latency.
 
+## Ch. 5 / Ch. 6: bootstrap intervals and paired tests (2026-10-09)
+
+**Protocol** (`groundone bootstrap`, `GroundOne/src/groundone/eval/bootstrap.py`; results in `results/bootstrap/{metrics.json, summary.md}`; figure `figures/bootstrap/paired_differences.png`).
+- No model is run; everything comes from the saved predictions, and the point estimates reproduce `metrics.json`.
+- B = 2000 resamples, 95 % percentile intervals.
+- Cluster bootstrap by leakage group: RAGTruth source document for T1 (447 groups) and the latency subset; document for T2 (8,329 groups, resampled within each dataset because the macro averages datasets); Wikipedia page for T3 (1,257 groups).
+- Paired differences use the same resamples, on the rows both systems scored. Two-sided bootstrap p.
+
+**Significant (p < 0.0005 unless stated):**
+- T1: 3B − 0.5B +0.063 three-way [+0.052, +0.076], +0.035 AUROC; at K ≥ 14 +0.116 [+0.050, +0.180] (93 groups).
+- T1 AUROC: GroundOne over the encoders +0.08 to +0.13; over word overlap +0.17 / +0.20. Balanced accuracy: +0.05 to +0.14.
+- T1 three-way on Rizzo-Flow's 300 answers: 0.5B +0.195 [+0.136, +0.249], 3B +0.237. AUROC 3B +0.056.
+- T2: 3B − 0.5B +0.047 macro. 3B over RoBERTa on the RAG subset +0.024 [+0.014, +0.033]. Over Rizzo-Flow on its 1,100 items: 0.5B +0.068 (p = 0.024), 3B +0.123.
+- T3: 3B − 0.5B +0.085 three-way, +0.095 AUROC. Rizzo-Flow over the 3B: +0.175 three-way, +0.064 AUROC. RoBERTa over the 3B: +0.151 AUROC.
+- Latency subset: GroundOne over every judge by +0.49 to +0.82 three-way. Speed-up at K ≥ 14 (median ratio, paired answers):
+  - 0.5B: terse 1.95× [1.82, 2.14], verbose 6.16× [5.72, 6.67], B0d-logit 1.98×, B0d-verbal 6.05×;
+  - 3B: terse 1.73× [1.65, 1.82], verbose 6.18× [5.88, 6.65], B0d-logit 1.71×, B0d-verbal 6.62×.
+
+**Not significant (claims to temper):**
+- **T2 macro, 3B vs MiniCheck-RoBERTa: +0.008 [−0.005, +0.021], p = 0.24.** The claim "above MiniCheck-RoBERTa" becomes "on par". Corrected in Ch. 6, `abstract.md` and plan §2. The comparison with the zero-shot 7B (72.8) uses a published number, so no interval can be computed.
+- T2 RAG subset, 0.5B vs RoBERTa: −0.002, p = 0.74 (on par). T2 macro, 0.5B vs RoBERTa: −0.039, significantly worse.
+- T1 AUROC, 0.5B vs Rizzo-Flow on its subsample: +0.023 [−0.007, +0.052], p = 0.15. The three-way difference is significant.
+
+## Ch. 3 / Ch. 5: readout vs single-token generation (B2 check, 2026-10-09)
+
+**Question.** Does greedy single-token generation at each marker (same fine-tuned weights) give the same verdict as the 3-letter readout? The forward pass is the same, so this asks whether the decision rule matters.
+
+**Check.** 200 K-stratified dev answers, 1,740 markers. Script in the session scratchpad; to be turned into a proper B2 run if approved.
+
+| | 0.5B | 3B |
+| --- | --- | --- |
+| Full-vocabulary argmax = the unspaced letter that the readout reads ("A") | 0.2 % | 0 % |
+| Full-vocabulary argmax = a spaced letter (" A", " B", " C") | 75 % | 99 % |
+| Spaced letter mapped to a verdict agrees with the readout | 75 % | 92 % |
+| Mean probability mass on the unspaced letters | 4.8 % | 4.1 % |
+| Mean probability mass on the spaced letters | 11 % | 69 % |
+
+The 0.5B's other argmax tokens: " " (362), "1" (23).
+
+**Interpretation.**
+- The readout tokens (unspaced A/B/C) are not the tokens the model would write after " Verdict:". The natural continuation is the spaced letter.
+- The loss is a cross-entropy restricted to the three readout letters. It is invariant to their absolute mass, so training shapes their relative logits (a 3-way classifier on top of the LM) and leaves them with about 4–5 % of the mass.
+- **Consequences.**
+  - The readout is not equivalent to generation, and "B2 = same computation" was true only for the forward pass.
+  - Generation with the fine-tuned model would differ from the readout on 8 % (3B) to 25 % (0.5B) of the verdicts, including format failures for the 0.5B.
+  - Results are valid, because training and inference use the same tokens (`prompts.py`, `readout.py`).
+  - Design (a) and the untrained B1 are not affected: their prompt ends at the start of the assistant turn, where the unspaced letter is the natural first token.
+- **Possible improvement, not run:** read and train the spaced letters in design (b). It would align readout and generation. The effect on accuracy is unknown, since the restricted loss does not depend on absolute mass.
+- **For the thesis:** state in Ch. 3 that the readout is a restricted classifier over three token logits, not a decoding step.
+
