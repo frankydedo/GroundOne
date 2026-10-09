@@ -12,7 +12,7 @@
   groundone matrix     [--print]                                  results matrix (all systems x test sets) -> docs/tracker.md
   groundone guard      QUEUE.txt                                  run long jobs one at a time under the memory guard
   groundone figures    all | dataset | benchmarks | training RUN | eda | phase0   thesis figures -> Project/figures/
-  groundone baselines  frozen | judges [...]                      baselines on the frozen tests; generative judges + latency
+  groundone baselines  frozen | judges | judges-calibrate [...]   baselines on the frozen tests; generative judges + latency
   legacy (earlier datasets, kept for reference): groundone eval | calibrate, groundone baselines encoder | rizzo
 """
 import argparse
@@ -48,10 +48,12 @@ def main(argv=None):
         return getattr(module, fn)(argv[1:])
     if argv and argv[0] == "baselines":
         sub = argv[1] if len(argv) > 1 else ""
-        mods = {"rizzo": "rizzo", "encoder": "encoders", "frozen": "frozen", "judges": "judges"}
+        mods = {"rizzo": ("rizzo", "main"), "encoder": ("encoders", "main"), "frozen": ("frozen", "main"),
+                "judges": ("judges", "main"), "judges-calibrate": ("judges", "calibrate")}
         if sub not in mods:
-            sys.exit("usage: groundone baselines rizzo|encoder|frozen|judges [...]")
-        return __import__(f"groundone.baselines.{mods[sub]}", fromlist=["main"]).main(argv[2:])
+            sys.exit("usage: groundone baselines rizzo|encoder|frozen|judges|judges-calibrate [...]")
+        mod, fn = mods[sub]
+        return getattr(__import__(f"groundone.baselines.{mod}", fromlist=[fn]), fn)(argv[2:])
     if argv and argv[0] == "data":
         sub = argv[1] if len(argv) > 1 else ""
         mods = {"rows": ("rows", "main"), "build": ("build", "main"), "freeze": ("build", "freeze"), "check": ("leakage", "main"), "shortcut": ("shortcut", "main")}

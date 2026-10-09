@@ -1,0 +1,16 @@
+# Day 2026-10-09 (author's go-ahead): equal-output judge B0d (D25), both variants, 0.5B then 3B.
+# dev run (200 K-stratified dev answers, for calibration) then the latency subset (200 T1 answers), then calibration.
+GroundOne/.venv/bin/groundone baselines judges --system terse-logits --size 0.5b --split dev --name judge-tlogit-05b
+GroundOne/.venv/bin/groundone baselines judges --system terse-logits --size 0.5b --name judge-tlogit-05b
+GroundOne/.venv/bin/groundone baselines judges --system json --size 0.5b --split dev --name judge-json-05b
+GroundOne/.venv/bin/groundone baselines judges --system json --size 0.5b --name judge-json-05b
+GroundOne/.venv/bin/groundone baselines judges --system terse-logits --size 3b --split dev --name judge-tlogit-3b
+GroundOne/.venv/bin/groundone baselines judges --system terse-logits --size 3b --name judge-tlogit-3b
+GroundOne/.venv/bin/groundone baselines judges --system json --size 3b --split dev --name judge-json-3b
+GroundOne/.venv/bin/groundone baselines judges --system json --size 3b --name judge-json-3b
+GroundOne/.venv/bin/groundone baselines judges-calibrate --name judge-tlogit-05b
+GroundOne/.venv/bin/groundone baselines judges-calibrate --name judge-json-05b
+GroundOne/.venv/bin/groundone baselines judges-calibrate --name judge-tlogit-3b
+GroundOne/.venv/bin/groundone baselines judges-calibrate --name judge-json-3b
+GroundOne/.venv/bin/groundone figures all
+GroundOne/.venv/bin/groundone matrix

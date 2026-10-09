@@ -31,6 +31,7 @@ GroundOne/.venv/bin/groundone data build                  # dataset + checks; th
 GroundOne/.venv/bin/groundone data check                  # leakage check
 GroundOne/.venv/bin/groundone guard jobs/queue_night3.txt # 0.5B: train, evaluate (one job at a time, memory guard)
 GroundOne/.venv/bin/groundone guard jobs/queue_day4.txt   # baselines, judges + latency, 3B
+GroundOne/.venv/bin/groundone guard jobs/queue_day5.txt   # equal-output judge B0d (D25)
 GroundOne/.venv/bin/groundone figures all                 # all figures -> outputs/figures/
 GroundOne/.venv/bin/python experiments/eda/scripts/01_ragtruth.py   # EDA (then 02, 03, 04, make_report.py)
 ```

@@ -395,3 +395,30 @@ Two real runs of GroundOne 0.5B (`g1-05b-b1/best` + calibration), design (b).
   - labels and policy flags both derived from the calibrated probabilities with thresholds tuned on dev, or
   - two clearly separated fields.
 
+## Ch. 5 / Ch. 6: equal-output judge B0d (D25, 2026-10-09)
+
+**Why.** The terse (B0a) and verbose (B0b) judges return less than GroundOne: a letter per sentence, no probabilities. Without probabilities a judge has no ECE, no adjustable threshold and no strict/lenient policy. The comparison with them is therefore "GroundOne with more information, faster", not at equal output. The author asked for a judge that returns exactly what GroundOne returns.
+
+**What "same output" means.** GroundOne's JSON envelope (text, index, flags) is written by code. The model's content is one label and three probabilities per scored sentence. The judge is asked for that minimal content and does not echo the sentences, which would add tokens and make it a strawman.
+
+**Two variants, same size, zero-shot, greedy:**
+- **B0d-verbal** (`--system json`): a JSON object `{"<n>": {"label": ..., "p": [pA, pB, pC]}}`. The stated label is the decision; the probabilities feed calibration and ECE. This is what a developer with only a prompt would do. Verbalised confidence is known to be coarse and poorly calibrated.
+- **B0d-logit** (`--system terse-logits`): the terse judge, with P(A), P(B), P(C) read from the logits at the generated letter and renormalised over the three letters. It gives the same content at the cost of the terse judge. It is the strongest generative opponent: what remains against GroundOne is training plus one pass instead of K short generations.
+
+**Fairness of calibration.** Both judges get the same temperature + bias as GroundOne, fitted on 200 K-stratified dev answers. GroundOne is re-evaluated on the same 200-answer latency subset with its own dev calibration (`judges-calibrate --calibration`). Binary ECE on that subset: 0.298 → 0.034 (0.5B) and 0.181 → 0.030 (3B); AURC 0.009 and 0.005.
+
+**Prompt choice, on dev, on format only.** 12 dev answers (110 sentences).
+- With a numeric example in the prompt, the 3B copied the example's probabilities `[0.8, 0.1, 0.1]` in 9/110 sentences and the 0.5B returned only the example.
+- With placeholders, the 3B gave 100 % valid entries with more varied probabilities.
+- The 0.5B failed with both prompts (1 % and 0 % valid). It cannot produce the structured output, consistent with the verbose judge's 97 % failures.
+- Placeholders were kept.
+- First observation: the 3B states mostly extreme probabilities (`[1, 0, 0]`, `[0, 1, 0]`), the expected pattern of verbalised confidence.
+
+**Parsing (in the judge's favour).** One regex per entry, so a truncated object keeps its complete entries. A missing label is taken as the argmax of p. Probabilities are renormalised. Format failure = no valid probabilities. Grammar-constrained decoding was not used, so that the protocol stays the same as B0a/B0b. This is a limitation for the 0.5B failure rates.
+
+**Smoke test, B0d-logit 0.5B** (4 answers): where the 0.5B writes letters, the probabilities are soft (e.g. 0.44 / 0.11 / 0.45), unlike the one-hot terse verdicts. On 3 of the 4 answers it echoed the sentences instead of letters (format failures, as for B0a).
+
+**Results:** pending (queue `jobs/queue_day5.txt`); judge table of the results matrix in `tracker.md`.
+
+**For the thesis (author's request):** show one real output example per system on the same answer: GroundOne JSON, terse, verbose and equal-output judge texts, encoders, Rizzo-Flow. The judge predictions now store the generated text (`text` column of `predictions.parquet`, first sentence row of each answer).
+
