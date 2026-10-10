@@ -23,16 +23,24 @@ from .evaluate import RAG_SUBSET
 from .tests import CLASSES, overlap
 
 LEGACY = PROJECT / "_archive" / "results-legacy-v1"
-T1_SYSTEMS = {"GroundOne 0.5B": "g1-05b-b1", "GroundOne 3B": "g1-3b-b1", "Untrained 0.5B": "untrained-05b",
+T1_SYSTEMS = {"GroundOne 0.5B": "g1-05b-b1", "GroundOne 0.5B, run 2": "g1-05b-s3", "GroundOne 3B": "g1-3b-b1", "Untrained 0.5B": "untrained-05b",
               "Untrained 3B": "untrained-3b", "Rizzo-Flow 4B": "rizzo-flow-4b-q4", "MiniCheck-RoBERTa": "minicheck-roberta",
               "HHEM": "hhem"}
-T2_SYSTEMS = {"GroundOne 0.5B": RESULTS_DIR / "g1-05b-b1", "GroundOne 3B": RESULTS_DIR / "g1-3b-b1",
+T2_SYSTEMS = {"GroundOne 0.5B": RESULTS_DIR / "g1-05b-b1", "GroundOne 0.5B, run 2": RESULTS_DIR / "g1-05b-s3",
+              "GroundOne 3B": RESULTS_DIR / "g1-3b-b1",
               "MiniCheck-RoBERTa": LEGACY / "minicheck-roberta", "Rizzo-Flow 4B": LEGACY / "rizzo-flow-4b-q4"}
 JUDGES = {"Terse judge": "judge-terse", "Verbose judge": "judge-verbose", "Equal-output, logits": "judge-tlogit",
           "Equal-output, verbalised": "judge-json"}
 PAIRS = [  # (test, metric, A, B): difference A - B
     ("t1", "three_way", "GroundOne 3B", "GroundOne 0.5B"), ("t1", "auroc", "GroundOne 3B", "GroundOne 0.5B"),
     ("t1_k14", "three_way", "GroundOne 3B", "GroundOne 0.5B"),
+    ("t1", "three_way", "GroundOne 0.5B", "GroundOne 0.5B, run 2"), ("t1", "auroc", "GroundOne 0.5B", "GroundOne 0.5B, run 2"),
+    ("t1_k14", "three_way", "GroundOne 0.5B", "GroundOne 0.5B, run 2"),
+    ("t2", "macro_bacc", "GroundOne 0.5B", "GroundOne 0.5B, run 2"), ("t3", "three_way", "GroundOne 0.5B", "GroundOne 0.5B, run 2"),
+    ("t3", "auroc", "GroundOne 0.5B", "GroundOne 0.5B, run 2"),
+    ("t1", "three_way", "GroundOne 0.5B", "B2 0.5B (generated token)"), ("t1", "three_way", "GroundOne 3B", "B2 3B (generated token)"),
+    ("t1_k14", "three_way", "GroundOne 0.5B", "B2 0.5B (generated token)"),
+    ("t1_k14", "three_way", "GroundOne 3B", "B2 3B (generated token)"),
     ("t1", "three_way", "GroundOne 0.5B", "Untrained 0.5B"), ("t1", "three_way", "GroundOne 3B", "Untrained 3B"),
     ("t1", "auroc", "GroundOne 0.5B", "Word overlap"), ("t1", "auroc", "GroundOne 3B", "Word overlap"),
     ("t1", "auroc", "GroundOne 0.5B", "MiniCheck-RoBERTa"), ("t1", "auroc", "GroundOne 0.5B", "HHEM"),
@@ -84,6 +92,14 @@ def overlap_frame(ref, recs):
     return ref[["id", "group", "y"]].assign(pred=-2, psup=[overlap(s, d) for s, d in zip(sent, docs)])
 
 
+def frame_b2(path, recs):
+    """Control B2: verdict = generated token at the markers (-1 = format failure, always wrong); no probabilities."""
+    df = pd.read_parquet(path)
+    aid = df["id"].str.rsplit("-", n=1).str[0]
+    return pd.DataFrame({"id": df["id"], "group": aid.map(lambda a: recs[a]["group"]),
+                         "y": [CLASSES.index(c) for c in df["cls"]], "pred": df["pred_generate"].astype(int)})
+
+
 def frame_latency(path, recs):
     df = pd.read_parquet(path)
     P = [json.loads(p) if isinstance(p, str) else p for p in df["p"]]
@@ -96,7 +112,9 @@ def frame_latency(path, recs):
 
 
 def frame_t2(path, groups):
+    """Items a system skipped (no score, e.g. over Rizzo-Flow's context limit) are dropped, as in its own metrics."""
     df = pd.read_parquet(path / ("aggrefact" if "legacy" in str(path) else "t2") / "predictions.parquet")
+    df = df[df["p_supported"].notna()]
     return pd.DataFrame({"id": df["id"], "group": df["id"].map(groups), "dataset": df["dataset"],
                          "y": df["label"].astype(int), "psup": df["p_supported"].astype(float)})
 
@@ -171,6 +189,8 @@ def main(argv=None):
             p = RESULTS_DIR / name / t / "predictions.parquet"
             if p.exists():
                 F[t][label] = frame_sentences(p, recs)
+    for s, tag in (("0.5B", "05b"), ("3B", "3b")):
+        F["t1"][f"B2 {s} (generated token)"] = frame_b2(RESULTS_DIR / f"b2-{tag}" / "t1" / "predictions.parquet", t1r)
     F["t1"]["Word overlap"] = overlap_frame(F["t1"]["GroundOne 0.5B"], t1r)
     F["t3"]["Word overlap"] = overlap_frame(F["t3"]["GroundOne 0.5B"], t3r)
     F["t1_k14"] = {k: v[v["id"].isin(pd.read_parquet(RESULTS_DIR / "g1-05b-b1" / "t1" / "predictions.parquet")
@@ -190,7 +210,7 @@ def main(argv=None):
               "t2": ("macro_bacc", "rag_bacc"), "lat": ("three_way",)}
     for test, metrics in single.items():
         for label, fr in F[test].items():
-            ms = [m for m in metrics if not (m in ("three_way",) and (fr["pred"] == -2).all())
+            ms = [m for m in metrics if not (m in ("three_way",) and "pred" in fr and (fr["pred"] == -2).all())
                   and not (m in ("auroc", "bacc") and "psup" not in fr)]
             if not ms:
                 continue

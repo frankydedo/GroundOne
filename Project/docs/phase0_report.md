@@ -3,7 +3,7 @@
 # Phase 0 report: feasibility of GroundOne
 
 Run on the night of 2026-10-05, 01:00–03:00. Hardware: M4 MacBook Pro, 16 GB unified memory, MLX 0.29.3 / mlx-lm 0.29.1, PyTorch 2.11 (MPS).
-Code, logs and raw outputs: `Project/experiments/feasibility/` (`scripts/`, `logs/`, `outputs/results/`). No training of GroundOne was done; everything is zero-shot or a short probe.
+Code, logs and raw outputs: `Project/experiments/feasibility/` (`scripts/`, `logs/`, `results/`). No training of GroundOne was done; everything is zero-shot or a short probe.
 
 > **Update (same day): Phase 0b, at the end of this report, supersedes the speed conclusion below.** With batched scoring the System One is ≈2× faster than a terse and ≈6× faster than a verbose generative judge at K = 24. Read §1–§7 as the record of the first test.
 

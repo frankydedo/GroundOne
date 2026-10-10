@@ -13,12 +13,12 @@ Update the status column and the to-do list as work progresses.
 | 0b | Feasibility re-test | Batched System One vs terse and verbose LLM judges at high K; flexibility probe vs MiniCheck | Oct 5 | ✅ | G4b/G4c pass (gain grows with K); G6 fails zero-shot → flexibility trained. See report |
 | 1a | EDA | Analyse the source datasets (labels, lengths, K, span types, overlap) | Oct 5 | ✅ | Report `Project/experiments/eda/report/eda_report.md`; data in `Project/data/raw/` |
 | 1 | Dataset | Task-driven train/dev/test sets for the three-way per-sentence task (D20, D21); test set validated and frozen first | Oct 6–7 | ✅ | Built and validated; tests frozen Oct 7. `dataset_plan.md`, `data/processed/groundone/DATACARD.md` |
-| 2 | Engine and benchmark harness | Verifier that reads the context once and scores each sentence, plus scripts that run all systems the same way | Oct 5 | ✅ | `Project/GroundOne` package: CLI, server (native + Jev-compatible API), YAML training configs, calibration, eval; tests pass |
-| 3 | Training 0.5B | Fine-tune the small model and check it beats its untrained version | Oct 7 | ✅ | g1-05b-b1 (design b, all answers, 5.4 h): T1 three-way 0.769, AUROC 0.905 |
+| 2 | Engine and benchmark harness | Verifier that reads the context once and scores each sentence, plus scripts that run all systems the same way | Oct 5 | ✅ | `Project/GroundOne` package: CLI, server on design (b) since Oct 10 (native + Jev-compatible API), YAML training configs, calibration, eval; tests pass |
+| 3 | Training 0.5B | Fine-tune the small model and check it beats its untrained version | Oct 7 | ✅ | g1-05b-b1 (design b, all answers, 5.5 h wall clock): T1 three-way 0.769, AUROC 0.905. Run 2 g1-05b-s3 (seed 777): 0.767 / 0.907; seed 4321 collapsed and was stopped (D26) |
 | 4 | Training 3B | Fine-tune the larger model overnight | Oct 7–9 | ✅ | g1-3b-b1 (6,500 answers, 12.25 h): T1 0.832, AUROC 0.940; T2 macro 74.8 |
-| 5 | Baselines | Run the comparison systems: terse and verbose generative judges, untrained models, encoders, Rizzo-Flow | Oct 7–8 | ✅ | All on the frozen tests (subsamples for Rizzo-Flow, untrained 3B on T1, judges); B2 open (§14 of the plan) |
-| 6 | Main benchmarks | Accuracy and latency of all systems on the test sets | Oct 7–9 | 🟡 | All accuracy runs and latency vs K done; missing: bootstrap CIs, energy (powermetrics), optional second seed |
-| 7 | Calibration and analysis | Calibration, ablations, error analysis | Oct 7–8 | 🟡 | Calibration (both models) and error analysis by word overlap done; ablations to decide |
+| 5 | Baselines | Run the comparison systems: terse and verbose generative judges, untrained models, encoders, Rizzo-Flow | Oct 7–10 | ✅ | All on the frozen tests (subsamples for Rizzo-Flow, untrained 3B on T1, judges); equal-output judge B0d (D25); control B2 on full T1 |
+| 6 | Main benchmarks | Accuracy and latency of all systems on the test sets | Oct 7–10 | ✅ | Accuracy, latency vs K, bootstrap CIs and paired tests, energy (powermetrics), second 0.5B run |
+| 7 | Calibration and analysis | Calibration, ablations, error analysis | Oct 7–10 | ✅ | Calibration (all runs) + served threshold τ (D27); error analysis by word overlap; A1 = B1 and A2 = B2 done, A3–A5 not run |
 | 8 | Demo | Local RAG chat (Qwen2.5-3B generator) with sentences coloured by GroundOne | Week 4 (Oct 26–30) | ⬜ | Max 2 days |
 | — | **Experiment freeze** | No new experiments after this date | **Oct 30** | ⬜ | |
 | 9 | Thesis writing | Chapters in `Thesis/`, in parallel from week 1 | Oct 5 – Nov 8 | 🟡 | First drafts of Ch. 3, 4, 5, 6 and summary; Ch. 1, 2, 7, 8 to write |
@@ -28,15 +28,15 @@ Update the status column and the to-do list as work progresses.
 
 | Chapter | Planned | Status |
 | --- | --- | --- |
-| 1 Introduction | Week 5 | ⬜ |
-| 2 Background and related work | Weeks 1–2 | ⬜ |
-| 3 Method (GroundOne) | Week 2 | ⬜ |
-| 4 Data and exploratory analysis | after Phase 1 | ⬜ skeleton |
-| 5 Experimental setup | Week 3 | ⬜ |
-| 6 Results (incl. ablations) | Weeks 3–4 | ⬜ |
-| 7 Discussion and limitations | Week 4 | ⬜ |
-| 8 Conclusion | Week 5 | ⬜ |
-| Abstract (final, with numbers) | Week 5 | ⬜ |
+| 1 Introduction | Week 5 | ⬜ skeleton (TODOs) |
+| 2 Background and related work | Weeks 1–2 | ⬜ skeleton (TODOs) |
+| 3 Method (GroundOne) | Week 2 | 🟡 first draft; to update (System One framing, served API, D27) |
+| 4 Data and exploratory analysis | after Phase 1 | 🟡 first draft |
+| 5 Experimental setup | Week 3 | 🟡 first draft; to update (B0d, B2, energy, run 2, bootstrap) |
+| 6 Results (incl. ablations) | Weeks 3–4 | 🟡 first draft; to update (B0d, B2, energy, run 2, CIs, fixes from the 2026-10-10 audit) |
+| 7 Discussion and limitations | Week 4 | ⬜ skeleton (TODOs) |
+| 8 Conclusion | Week 5 | ⬜ skeleton (TODOs) |
+| Abstract / summary (final, with numbers) | Week 5 | ⬜ `summary.tex` is still the pre-results version; `docs/abstract.md` has results |
 
 ## Results matrix
 
@@ -104,12 +104,12 @@ Update the status column and the to-do list as work progresses.
 - [x] HTTP API on design (b) with one coherent output rule (D27, 2026-10-10)
 - [x] Served threshold τ fitted on dev (2026-10-10): 0.935 / 0.895 / 0.925 (0.5B run 1, run 2, 3B); served rule = raw decision within 0.01 on T1
 - [ ] Demo on the design (b) API
-- [ ] B2 control: dev check done (generation ≠ readout at the token level, plan §2 H2a); run B2 on full T1? (awaiting go-ahead, plan §14)
+- [x] B2 control on full T1 (2026-10-10): generated token 0.521 / 0.761 vs readout 0.769 / 0.832 (0.5B / 3B)
 - [ ] Thesis: show one real output example per system (GroundOne JSON, terse and verbose judge text, encoders, Rizzo-Flow) on the same answer (author request, 2026-10-09)
 - [ ] **Pillar "full locality"** (all items approved by the author, 2026-10-08):
    - [ ] overview of local inference for Ch. 1–2: local vs remote, evolution of runtimes, hardware comparison with cited vendor specs
    - [ ] proof of independence: full evaluation with the network disabled (`HF_HUB_OFFLINE=1`, Wi-Fi off); report that it completes
-   - [ ] energy per verification with `powermetrics` (GPU/CPU/ANE power while verifying the latency answers, joules per answer for GroundOne vs the judges). `sudo -n powermetrics` enabled without password (sudoers rule + Claude Code allow rule, 2026-10-08; tested)
+   - [x] energy per verification with `powermetrics` (2026-10-10): GroundOne 5.5 J / 33 J per answer vs terse 8.9 / 43 and verbose 22.5 / 112
    - [ ] co-residence: peak memory of generator (3B) + GroundOne verifier + retriever running together, against the 16 GB budget
    - [ ] licences as part of independence: one table (models, datasets, baselines) with licence and allowed use
    - [ ] cost comparison with a hosted LLM judge for N answers (provider prices on a stated date, cited)
@@ -128,10 +128,6 @@ Update the status column and the to-do list as work progresses.
 
 ## Log
 
-- 2026-10-10: HTTP API on design (b) (D27): training segmentation, one pass, labels/flags/probabilities from one rule (calibrated P(supported) ≥ dev threshold τ); `calibrate-b` now fits τ and keeps the dev logits; playground updated; 3 new API tests (13 fast tests pass); real check on the 0.5B: 0.10 s, 0 output tokens
-- 2026-10-10 08:37: night-6 queue done. Second completed 0.5B run (seed 777; seed 4321 stopped after collapse, D26): T1 0.767 vs 0.769, T2 71.5 vs 70.1. B2 on full T1: generated token 0.521 / 0.761 vs readout 0.769 / 0.832 (0.5B / 3B). Energy per answer: GroundOne 5.5 J / 33 J vs terse 8.9 / 43 and verbose 22 / 112. Matrix extended (run 2, B2, energy)
-- 2026-10-09 16:30: bootstrap CIs and paired tests (`groundone bootstrap`, B = 2000, cluster by leakage group). All claimed differences significant except T2 macro 3B vs MiniCheck-RoBERTa (+0.8, CI −0.5 to +2.1): claim tempered in abstract, plan and Ch. 6. B2 check on dev: generation emits the spaced letter, agrees with the readout in 75 % / 92 %
-- 2026-10-09 15:12: equal-output judge B0d (D25) done, both variants, 0.5B + 3B (queue_day5, 1 h 48 min, no guard intervention). GroundOne wins at equal output: three-way 0.835 / 0.900 vs ≤ 0.41; AURC 0.009 / 0.005 vs 0.048–0.063. Judge table of the results matrix updated; details in thesis notes
 Add one line per significant event (date, what happened, impact on the plan).
 
 - 2026-10-05: wiki ingest completed (25 sources). Plan updated: threshold fixed at 0.5 as in the benchmark, success criterion focused on the 0.5B, MiniCheck training data reused.
@@ -146,9 +142,15 @@ Add one line per significant event (date, what happened, impact on the plan).
 - 2026-10-06: dataset built in one evening following `dataset_plan.md` v2 (RAGTruth only for training; tests RAGTruth, LLM-AggreFact, VitaminC). pysbd segmentation + checkable-content rule; C2 96.3 %, C3 98.75 %, leakage PASS. The sentence-only baseline reaches 0.66 on Data2txt (template sentences) and chance on QA/Summary. VitaminC ingested in the wiki.
 - 2026-10-06: EDA redone for the final dataset (`experiments/eda/report/eda_report.md`, part A sources, part B built dataset). ANLI/MiniCheck parts removed. Key findings: word overlap alone gives AUROC 0.74 on T1; the sentence-only cue is limited to Data2txt; T1 is cleaner than train; contradicted ≈ evident contradictions. Wiki updated.
 - 2026-10-07: readout design (b) adopted as default (author): one pass per answer, verdict at a marker after each scored sentence, class-weighted loss. Implemented and smoke-tested; validation run of the 0.5B (9,000 answers) started at 00:36 (`jobs/queue_night3.txt`).
-- 2026-10-07: validation run g1-05b-b1 (0.5B, design b, all 13,203 training answers, 802 steps, 5.4 h; best dev checkpoint step 600: three-way balanced accuracy 0.633 mean over tasks, 0.731 overall). **T1 (RAGTruth test): three-way macro recall 0.769** (QA 0.589, Summary 0.544, Data2txt 0.812), binary balanced accuracy 0.815, **AUROC 0.905 vs 0.737 for word overlap**, K >= 14: 0.723 (no collapse). Weak spots: contradicted recall in QA 0.03 / Summary 0.13 (few examples, contradictions concentrated in Data2txt); probabilities uncalibrated (ECE 0.30). **T3 (VitaminC): 0.442**, mostly 'not mentioned' predicted, AUROC 0.722 vs 0.698 overlap: weak transfer outside RAG. Dataset validation criteria on T1 all pass. T2 running.
+- 2026-10-07: validation run g1-05b-b1 (0.5B, design b, all 13,203 training answers, 802 steps, 5.5 h wall clock; best dev checkpoint step 600: three-way balanced accuracy 0.633 mean over tasks, 0.731 overall). **T1 (RAGTruth test): three-way macro recall 0.769** (QA 0.589, Summary 0.544, Data2txt 0.812), binary balanced accuracy 0.815, **AUROC 0.905 vs 0.737 for word overlap**, K >= 14: 0.723 (no collapse). Weak spots: contradicted recall in QA 0.03 / Summary 0.13 (few examples, contradictions concentrated in Data2txt); probabilities uncalibrated (ECE 0.30). **T3 (VitaminC): 0.442**, mostly 'not mentioned' predicted, AUROC 0.722 vs 0.698 overlap: weak transfer outside RAG. Dataset validation criteria on T1 all pass. T2 running.
 - 2026-10-07: g1-05b-b1 on T2 (LLM-AggreFact, 144 min): macro balanced accuracy 70.1 (earlier v1 model 72.0, MiniCheck-RoBERTa 74.0, zero-shot 0.5B 64.2, 7B 72.8); **RAG subset 74.4 (RoBERTa 74.6, v1 71.0); RAGTruth column 82.1 (RoBERTa 76.5)**. Lower on non-RAG columns (AggreFact-CNN/XSum, FactCheck-GPT, Reveal), as expected without pair-format training data. Night queue finished 09:00 without interruptions.
 - 2026-10-07: error analysis of g1-05b-b1 by word overlap. **T3:** supported recall 0.02 when overlap <= 0.4 vs 0.64 when > 0.7; contradicted recall 0 on claims without digits. The model falls back on lexical overlap for paraphrased support and small numeric edits. **T1:** robust at low/mid overlap (macro 0.77), but contradicted 0.24 and not-mentioned 0.43 recall when overlap > 0.7, i.e. hallucinations hidden in sentences that copy the source. Same weakness on both tests; the gap on T3 is that most VitaminC claims are of this kind.
 - 2026-10-08: day/night queue finished at 10:20 without interruptions: all baselines on the frozen tests, generative judges and latency (0.5B, 3B), GroundOne 3B (6,500 answers, 12.25 h; T1 0.832 / AUROC 0.940, T3 0.527), 3B calibration (T1 ECE 0.18 → 0.019). Results in `thesis_notes.md`.
 - 2026-10-08: Project/ restructured (author's approval): generated artefacts in `outputs/` (models, results, figures, logs); one-off studies in `experiments/` (feasibility = former phase0, eda); `jobs/` (queues, job scripts); `envs/` (hhem, feasibility venvs); results renamed consistently (`untrained-*`, latency inside each system folder); legacy results, queues and logs moved to `_archive/`; `Phases&ToDos.md` renamed `tracker.md`; new `Project/README.md` and `docs/README.md`. Verified: tests, dataset rebuild reproduces the frozen hashes, leakage check, all figures, model evaluation, calibrated engine, HHEM env, guard, EDA scripts.
 - 2026-10-09: full T2 for the 3B done (14.8 h, one 25-min pause): LLM-AggreFact macro 74.8 (0.5B 70.1, MiniCheck-RoBERTa 74.0, zero-shot 7B 72.8), RAG subset 76.9. Queue 4 (subsample + second seed) cancelled in favour of the full run.
+- 2026-10-09 15:12: equal-output judge B0d (D25) done, both variants, 0.5B + 3B (queue_day5, 1 h 48 min, no guard intervention). GroundOne wins at equal output: three-way 0.835 / 0.900 vs ≤ 0.41; AURC 0.009 / 0.005 vs 0.048–0.063. Judge table of the results matrix updated; details in thesis notes
+- 2026-10-09 16:30: bootstrap CIs and paired tests (`groundone bootstrap`, B = 2000, cluster by leakage group). All claimed differences significant except T2 macro 3B vs MiniCheck-RoBERTa (+0.8, CI −0.5 to +2.1): claim tempered in abstract, plan and Ch. 6. B2 check on dev: generation emits the spaced letter, agrees with the readout in 75 % / 92 %
+- 2026-10-10 08:37: night-6 queue done. Second completed 0.5B run (seed 777; seed 4321 stopped after collapse, D26): T1 0.767 vs 0.769, T2 71.5 vs 70.1. B2 on full T1: generated token 0.521 / 0.761 vs readout 0.769 / 0.832 (0.5B / 3B). Energy per answer: GroundOne 5.5 J / 33 J vs terse 8.9 / 43 and verbose 22 / 112. Matrix extended (run 2, B2, energy)
+- 2026-10-10: HTTP API on design (b) (D27): training segmentation, one pass, labels/flags/probabilities from one rule (calibrated P(supported) ≥ dev threshold τ); `calibrate-b` now fits τ and keeps the dev logits; playground updated; 3 new API tests (13 fast tests pass); real check on the 0.5B: 0.10 s, 0 output tokens
+- 2026-10-10 13:12: served threshold τ fitted on dev for all runs (queue_day6): 0.935 / 0.895 / 0.925; the served rule matches the evaluated raw decision within 0.01 on T1
+- 2026-10-10: general audit (docs, thesis, code): stale statements fixed in docs and code (bootstrap now drops items skipped by Rizzo-Flow on T2: macro 61.5; run-2 and B2 pairs added); thesis chapter updates listed in the chapter table

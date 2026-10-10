@@ -109,11 +109,11 @@ Numbers are from `thesis_notes.md`; T1 = RAGTruth test, T2 = LLM-AggreFact, T3 =
 | ID | Evidence so far | Status |
 | --- | --- | --- |
 | H1 specialisation | LLM-AggreFact macro: 3B **74.8** (on par with MiniCheck-RoBERTa 74.0: +0.8, 95 % CI −0.5 to +2.1; above the published zero-shot 7B 72.8), 0.5B 70.1 (zero-shot 64.2); RAG subset 76.9 (3B, +2.4 over RoBERTa, CI +1.4 to +3.3) / 74.4 (0.5B, on par) vs RoBERTa 74.6. T1 AUROC 0.905 (0.5B) and 0.940 (3B) vs 0.81–0.82 for the encoders. On T1 the 0.5B beats Rizzo-Flow 4B (three-way 0.80 vs 0.60 on the same answers) | **Supported in the RAG domain.** Weaker outside it (T3; non-RAG T2 columns) |
-| H2a readout vs single-token generation | Checked on 200 dev answers (2026-10-09): at the markers the full-vocabulary argmax is the *spaced* letter (" A") in 75 % (0.5B) / 99 % (3B) of cases, never the unspaced letter that the readout reads; mapped to a verdict, it agrees with the readout in 75 % / 92 %. The trained letters carry only 4–5 % of the probability mass: the restricted loss shapes their relative logits, not their absolute mass. Same forward pass, so same latency | Readout ≠ single-token generation at the token level; B2 on full T1 proposed (§14) |
+| H2a readout vs single-token generation | Checked on 200 dev answers (2026-10-09): at the markers the full-vocabulary argmax is the *spaced* letter (" A") in 75 % (0.5B) / 99 % (3B) of cases, never the unspaced letter that the readout reads; mapped to a verdict, it agrees with the readout in 75 % / 92 %. The trained letters carry only 4–5 % of the probability mass: the restricted loss shapes their relative logits, not their absolute mass. Same forward pass, so same latency. **B2 on full T1 (2026-10-10):** generated token 0.521 vs readout 0.769 (0.5B; 24.7 % format failures), 0.761 vs 0.832 (3B); +0.248 [+0.228, +0.269] and +0.071 [+0.059, +0.083] | **The restricted readout adds accuracy** at equal weights, pass and latency; more for the smaller model |
 | H2b speed vs generative judges | At K ≥ 14: 0.5B 0.41 s vs 0.80 s (terse) and 2.51 s (verbose); 3B 2.57 s vs 4.44 s and 15.86 s. The gain grows with K | **Supported** |
 | H2c format reliability | 0.5B judges: 23 % (terse) and 97 % (verbose) unparsable verdicts; 3B: 0.1 % and 7.6 %. System One: 0 % | **Supported** |
 | H3 calibration | Temperature + bias on dev: T1 binary ECE 0.30 → 0.019 (0.5B), 0.18 → 0.019 (3B); AURC 0.015 / 0.010. Does not transfer to T3 | **Supported in domain** |
-| H4 on-device cost | Training peak 2.6 GB (0.5B) and 5.9 GB (3B); verification 0.33 s / 1.99 s median per answer | **Supported** |
+| H4 on-device cost | Training peak 2.6 GB (0.5B) and 5.9 GB (3B); verification 0.33 s / 1.99 s median per answer (3B at K 5–8: 1.93 s, above the provisional < 1 s); energy 5.5 J / 33 J per answer. Co-resident memory with a generator not yet measured | **Partly supported** (0.5B yes; 3B slower than the target; co-residence pending) |
 | H5 beyond a binary score | Three-way 0.769 / 0.832 on T1; contradicted recall low outside data-to-text (QA and Summary 0.03 → 0.30 with the 3B) | **Partly supported** |
 
 ---
@@ -137,17 +137,16 @@ Numbers are from `thesis_notes.md`; T1 = RAGTruth test, T2 = LLM-AggreFact, T3 =
 | D13 | 7B not run; published leaderboard number used as reference | Memory and time; the number exists | Run 7B 4-bit zero-shot |
 | D14 | Engine scores the K questions in one **batched** pass (prefix KV cache replicated K times, short index-based suffixes) | Phase 0: sequential suffixes erased the System One advantage; Phase 0b: batched is exact (|Δp| = 0) and 2–6× faster than generative judges at K = 24 | Sequential suffixes with cache trimming |
 | D15 | *(Superseded by D20)* Three-way question and strict/lenient rules become part of GroundOne's question set and of its **training data** | Phase 0b: zero-shot models do not follow rules; this is the flexibility claim vs encoders | Drop flexibility; keep it zero-shot only |
+| D16 | Phase 1a: exploratory data analysis of ANLI and RAGTruth before building the training mix | Decide which dataset serves which question, length caps, label rules | Build the mix directly |
 | D17 | Fine-tune **both** 0.5B and 3B; compare at the end | Author's decision: let the results pick the better trade-off | 0.5B main + 3B zero-shot reference |
 | D18 | LLM-AggreFact is used only to evaluate: no training, and no fitting of temperature, threshold or model selection on any of its splits | Its HF gating condition forbids using it for pretraining or fine-tuning; fitting on it would also make our numbers incomparable with the leaderboard | Fit temperature on its dev |
 | D19 | GroundOne is an installable package with CLI and HTTP API (native `/v1/verify` + TypeSafe/Jev-compatible `/v1/systemone`, the contract Rizzo-Flow serves) | Author's requirement; evaluation, demo and server share one engine; drop-in replacement for Rizzo-Flow/Jev clients | Loose scripts |
-| D16 | Phase 1a: exploratory data analysis of ANLI and RAGTruth before building the training mix | Decide which dataset serves which question, length caps, label rules | Build the mix directly |
 | D20 | **Task redefined**: one three-way decision per answer sentence (supported / contradicted / not mentioned); K = number of sentences; binary score and strict/lenient rules derived from the three probabilities. Supersedes D15 and the four-question format | The four questions were deterministic functions of the three-way class (strict = binary, lenient = not contradicted): they inflated K artificially and gave conflicting targets for the same sentence. K must come from the task (sentences of the answer) | Keep four questions in the prompt |
 | D21 | **Dataset rebuilt from scratch** following `dataset_plan.md`, reduced to the strict minimum: RAGTruth is the only training source (plus dev and test T1); LLM-AggreFact (T2) and VitaminC (T3) are test-only. Test sets defined, validated and frozen **before** any training. Only the final dataset is described in the thesis | Author's decision (2026-10-06): without a reliable test set every later result is useless | Iterate on the previous dataset |
 | D22 | **Readout design (b) is the default**: one forward pass per answer, a marker " Verdict:" after every scored sentence, A/B/C logits read at the markers, output head applied only there; class-weighted loss (classes contribute equally). Design (a), with one question suffix per sentence, is kept as a fallback | Uses every labelled sentence of an answer in one training row (≈ 8× more supervision for the same cost) and one pass at inference. Validated on 2026-10-07: T1 three-way 0.769 (0.5B) | Design (a) as default |
 | D23 | **Validation run and 3B configuration**: 0.5B on all training answers (accumulation 4); 3B on 6,500 random answers (option A, one night; same LR 1e-4; ≈ 16 answers per step; dev on 200 answers) | Author's decisions 2026-10-06/07; one night per model on the M4 | 3B on the full set over two nights |
 | D24 | **Calibration per adapter = temperature + per-class bias on dev** (`groundone calibrate-b`). Primary classification metrics use the raw (balanced) decision; calibrated probabilities are used for ECE, thresholds and selective prediction | The bias restores base rates and moves the argmax towards "supported" (three-way 0.77 → 0.63 for the 0.5B) | Temperature only |
 | D25 | **Equal-output judge B0d** (2026-10-09): a zero-shot generative judge of the same size that must return the same content as GroundOne, i.e. per scored sentence a label and P(A), P(B), P(C). Two variants: **B0d-verbal** writes the probabilities in a JSON object (the stated label is the decision); **B0d-logit** is the terse judge with the three probabilities read from the logits at the generated letter. Both are calibrated with the same temperature + bias as GroundOne, fitted on 200 K-stratified dev answers (`judges-calibrate`); GroundOne is re-evaluated on the same latency subset with its own calibration. JSON prompt with placeholders, no numeric example (an example was copied verbatim by both sizes; chosen on 12 dev answers on format validity only). Lenient parsing (per-entry regex; a missing label is taken as the argmax of p) | Author's request: B0a/B0b give less information than GroundOne (no probabilities, so no ECE, thresholds or strict/lenient policy), so the comparison was not at equal output. B0d-logit is the strongest generative opponent and also answers the open B2 question at the judge level | Compare only with B0a/B0b; constrained (grammar) decoding, noted as a limitation |
-
 | D26 | **Seed runs of the 0.5B** (2026-10-09): seed 4321 (`g1-05b-s2`) collapsed (dev macro 0.369 → 0.333 → 0.444 at steps 150/300/450) and was stopped at step ≈ 470; replaced by seed 777 (`g1-05b-s3`), presented in the thesis as the second run. The stopped run is disclosed in one sentence (thesis notes), and its logs are kept | Incomplete runs cannot be compared with complete ones, but omitting them would be selective reporting; the collapse is evidence on the robustness of the recipe (no gradient clipping) | Let seed 4321 finish (≈ 3.5 h of training plus ≈ 3 h of tests on a collapsed model); hide the stopped run |
 | D27 | **HTTP API on design (b) with one coherent output rule** (2026-10-10): `/v1/verify` follows the adapter's design; with design (b) it segments with the training rule, runs one pass, and derives labels, strict/lenient flags and the shown probabilities from the calibrated probabilities: "supported" iff P(supported) ≥ τ, else the more probable of contradicted / not mentioned. τ is fitted on dev by `calibrate-b` (maximising three-way macro recall) and stored in `calibration.json`; a request may override it; without τ the label is the raw class-balanced argmax (D24). `/v1/systemone` stays on design (a) | The served output showed raw-argmax labels next to calibrated probabilities that contradicted them (thesis notes 2026-10-09); a single rule on calibrated probabilities with a dev threshold keeps labels, flags and probabilities consistent while approximating the evaluated balanced decision | Raw-argmax labels next to calibrated probabilities; argmax of calibrated probabilities (three-way 0.77 → 0.63, D24) |
 
@@ -156,6 +155,12 @@ Record future changes below (date, decision, reason).
 - 2026-10-04: D1 confirmed by the author (single task: sentence-level groundedness). D10, D11 added.
 - 2026-10-05: submission date 2026-11-10; experiment freeze 2026-10-30. Encoder baselines (B4) approved. CLM = related work only (not a baseline). D12–D16 added after Phase 0/0b.
 - 2026-10-05: **D17**: both the 0.5B and the 3B are fine-tuned and evaluated in parallel; the thesis reports which one is the better trade-off. The 3B is trained on a ~10K subset to fit one night.
+- 2026-10-06: **D20** (task redefined: three-way per sentence, K = sentences) and **D21** (dataset rebuilt from scratch, `dataset_plan.md`) decided with the author. The earlier datasets, models trained on them and their analysis were archived outside the repository.
+- 2026-10-07: **D22** (readout design b default), **D23** (validation run; 3B option A), test sets frozen. 2026-10-08: **D24** (calibration temperature + bias; decisions on raw output). First full round of results in `thesis_notes.md`.
+- 2026-10-09: full T2 for the 3B (macro 74.8, RAG subset 76.9); the subsample + second-seed queue was cancelled in favour of it (author). No decision changed.
+- 2026-10-09: **D25** (equal-output judge B0d), bootstrap CIs (T2 claim vs MiniCheck tempered to "on par").
+- 2026-10-09/10: **D26** (seed 4321 collapsed and stopped; seed 777 completed, presented as run 2); control B2 and energy measured.
+- 2026-10-10: **D27** (HTTP API on design b, one coherent output rule; served threshold fitted on dev).
 
 ---
 
@@ -163,7 +168,7 @@ Record future changes below (date, decision, reason).
 
 ### 4.1 Prompt format
 
-> **Current default: readout design (b)** (D22, `prompts.encode_marked`). The prompt is: system message, user turn with an instruction, `DOCUMENT:` and `ANSWER:`. Every sentence is written as `[k] sentence`, and every scored sentence is followed by the marker " Verdict:" (3 tokens). The A/B/C logits are read at the marker's last token, all K in one forward pass, and the sequence ends after the last marker. The format below (design a) is the fallback, and is also used by the untrained baseline B1 and by the current HTTP API.
+> **Current default: readout design (b)** (D22, `prompts.encode_marked`). The prompt is: system message, user turn with an instruction, `DOCUMENT:` and `ANSWER:`. Every sentence is written as `[k] sentence`, and every scored sentence is followed by the marker " Verdict:" (3 tokens). The A/B/C logits are read at the marker's last token, all K in one forward pass, and the sequence ends after the last marker. The format below (design a) is the fallback, and is also used by the untrained baseline B1 and by the compatible `/v1/systemone` route; the native `/v1/verify` serves design (b) since D27.
 
 Chat template of Qwen2.5 (ChatML). The prompt is split into a **shared prefix** and a **per-claim suffix** so that the prefix is encoded once.
 
@@ -223,8 +228,8 @@ Consequences to keep in mind:
 The thesis must report all three comparisons and not only the favourable one.
 
 ### 4.4 Calibration
-1. Train with cross-entropy on the restricted 2-way logits (§6).
-2. Fit a temperature `T` on a dev split that is disjoint from both train and test, by minimising NLL.
+1. Train with cross-entropy on the restricted logits (§6; design b: A/B/C at every marker, class-weighted).
+2. Fit a temperature `T` and a per-class bias on a dev split that is disjoint from both train and test, by minimising NLL (D24); fit the served threshold τ on dev (D27).
 3. Report ECE (15 bins and adaptive bins), Brier, NLL, reliability diagrams, before/after `T`.
 4. Optional: Platt scaling on the logit difference if `T` alone is insufficient.
 5. Selective prediction: accuracy vs coverage curve, AURC. This is what makes the probability useful (e.g. flag a sentence only if `P(supported) < τ`).
@@ -250,10 +255,10 @@ The dataset (sources, label mapping, splits, leakage rules, reliability checks, 
 - Training hardware: the M4 / 16 GB machine. Use gradient checkpointing, batch size 1 with gradient accumulation.
 
 ### 6.2 Loss
-- Position: last prompt token. Logits restricted to the allowed answer letters (`A`/`B`, or `A`/`B`/`C` for the three-way question). Loss = cross-entropy of that restricted softmax against the gold label.
+- Position: design (b), the default: the marker after every scored sentence, A/B/C logits, class-weighted cross-entropy over all markers (D22). Design (a): the last prompt token. In both, logits are restricted to the allowed answer letters and the loss is the cross-entropy of that restricted softmax against the gold label.
 - All prompt tokens are masked: the label is the only supervised signal.
 - Optional variants (ablation A3): soft labels where annotator agreement exists; full-vocabulary cross-entropy on the label token instead of the restricted softmax.
-- Implemented as a custom MLX loop (`groundone train --config train_0.5b.yaml`, `GroundOne/src/groundone/training/train.py`; hyper-parameters in `GroundOne/configs/*.yaml`, copied into each run): `mlx_lm.lora`'s data pipeline is incompatible with the installed `transformers` 5.x. Length-bucketed batches under a token budget, gradient accumulation, warm-up + cosine LR, dev evaluation every 250 steps, best checkpoint kept, adapters saved in MLX format.
+- Implemented as a custom MLX loop (`groundone train --config train_0.5b.yaml`, `GroundOne/src/groundone/training/train.py`; hyper-parameters in `GroundOne/configs/*.yaml`, copied into each run): `mlx_lm.lora`'s data pipeline is incompatible with the installed `transformers` 5.x. Length-bucketed batches under a token budget, gradient accumulation, warm-up + cosine LR, dev evaluation every `eval_every` steps (150 for the 0.5B, 80 for the 3B), best checkpoint kept, adapters saved in MLX format.
 
 ### 6.3 Memory and length
 The risk is long contexts. Rules of thumb *(to measure)*:
@@ -268,7 +273,7 @@ The risk is long contexts. Rules of thumb *(to measure)*:
 > - 0.5B: all 13,203 training answers, 802 steps, warm-up 3 %, accumulation 4, dev every 150 steps on the full dev set, 5.4 h.
 > - 3B: 6,500 answers, 403 steps, warm-up 5 %, ≈ 2 answers per micro-batch × accumulation 8, dev on 200 answers every 80 steps, 12.25 h.
 > - Best checkpoint on dev three-way balanced accuracy (mean over tasks).
-> - Configs: `GroundOne/configs/train_0.5b.yaml`, `train_3b.yaml`. Single seed per model (a limitation to state).
+> - Configs: `GroundOne/configs/train_0.5b.yaml`, `train_3b.yaml`. 0.5B: two completed runs (seeds 1234 and 777) plus one collapsed and stopped run (D26); 3B: one run.
 
 1. Sanity run: 0.5B on a small subset; loss must decrease; the engine's output must equal the training-time computation (same prompt, same logits within tolerance).
 2. Hyper-parameter sweep (small): learning rate, rank, epochs, on the 0.5B only; selection on dev only.
@@ -299,7 +304,7 @@ The risk is long contexts. Rules of thumb *(to measure)*:
 | B0d | **Equal-output judge** (D25): same content as GroundOne (label + three probabilities per sentence), either verbalised in JSON (B0d-verbal) or read from the logits at the generated letter (B0d-logit); calibrated on dev like GroundOne | Output parity: what a generative judge costs to give the same information, and how good its probabilities are |
 | B0c | Qwen2.5-7B-Instruct zero-shot, **published number only** (72.8 on LLM-AggreFact), not run (D13) | Larger-model reference for H1 |
 | B1 | Same base models, **single-token readout, no fine-tuning** | Readout alone, without specialisation |
-| B2 | Fine-tuned model used with `generate(max_tokens=1)` | **Honest control**: should equal GroundOne in accuracy and latency |
+| B2 | Fine-tuned model, verdict = the token greedy generation would emit at each marker (same pass; `groundone test --decision generate`) | Readout vs generation at equal weights and latency; run 2026-10-10: the readout is +0.25 (0.5B) / +0.07 (3B) better |
 | B3 | **Rizzo-Flow** (general-purpose System One) via its `/v1/systemone` or `/v1/decisions` API, boolean question per claim, shared state = context | General-purpose System One. Sizes available are Spark-X2.5 4B and 1.7B; whether a Qwen2.5 GGUF can be loaded with `--model` is **untested** and is checked in Phase 0. Report which weights (`flow` default fine-tune or `base`) |
 | B4 | **Encoders:** MiniCheck-RoBERTa and -DeBERTa, HHEM-2.1-open (separate env, `transformers` 4.46), run on the same machine (PyTorch MPS). MiniCheck-Flan-T5 does not fit the memory guard (published number used); AlignScore optional | Strongest cheap specialised alternative (RQ1, RQ5) |
 | B5 | Published numbers of larger systems on LLM-AggreFact (not re-run) | Context only |
@@ -312,7 +317,7 @@ Experiment matrix as run on the frozen tests (2026-10-07/08):
 - **T2**: GroundOne 0.5B and 3B (full test); RoBERTa (published protocol).
 - **Subsamples**: B1 untrained 3B on 600 T1 answers; B3 Rizzo-Flow 4B Q4 on 300 T1 answers and 600 T3 pairs; B0a / B0b terse and verbose judges (0.5B, 3B) on the 200 latency answers (50 per K band).
 - **Baselines that do not verify the sentence against the document**: word overlap (AUROC) and the sentence-only n-gram classifier.
-- **B2** not run (see §14).
+- **B2** on full T1, both sizes (2026-10-10). **B0d** equal-output judges on the latency subset (D25). Energy (powermetrics) on 100 latency answers. Second 0.5B run on T1, T2, T3 (D26).
 - Commands: `groundone test`, `groundone baselines frozen|judges`.
 
 ---
@@ -359,8 +364,8 @@ Experiment and thesis together. The machine trains or benchmarks **at night**; d
 | Week | Dates | Experiment | Writing (`Thesis/`) | Gate at end of week |
 | --- | --- | --- | --- | --- |
 | **1** ✅ (ahead) | Oct 5–11 | Phase 0 + 0b ✅ (Oct 5) → **Phase 1a EDA** of ANLI and RAGTruth (`Project/experiments/eda/`) → Phase 1 data pipeline + leakage check → engine + harness; first 0.5B training run overnight | Thesis skeleton (chapters, bib); Ch. 2 Background & related work (wiki ingest ✅); Ch. 4 Data and EDA (material ready) | Datasets frozen ✅ (Oct 7); 0.5B and 3B trained, baselines and latency done (Oct 8), i.e. most of weeks 2–3 |
-| **2** | Oct 12–18 | 0.5B final run(s); 3B training overnight; baselines B0a, B1, B2 on full test sets; B0b/B0c on subsample; B4 encoders; B3 Rizzo-Flow | Ch. 3 Method (task, prompt, engine, loss, calibration) | 0.5B beats B1 on dev; 3B adapter exists |
-| **3** | Oct 19–25 | GroundOne 3B eval; latency protocol (§8.3); calibration (temperature, reliability, risk-coverage); ablations A1/A2; error analysis | Ch. 5 Experimental setup; start Ch. 6 Results as numbers arrive | All main tables and figures generated from `outputs/results/` |
+| **2** ✅ (done by Oct 10) | Oct 12–18 | 0.5B final run(s); 3B training overnight; baselines B0a, B1, B2 on full test sets; B0b/B0c on subsample; B4 encoders; B3 Rizzo-Flow | Ch. 3 Method (task, prompt, engine, loss, calibration) | 0.5B beats B1 on dev; 3B adapter exists |
+| **3** ✅ (done by Oct 10; A3–A5 not run) | Oct 19–25 | GroundOne 3B eval; latency protocol (§8.3); calibration (temperature, reliability, risk-coverage); ablations A1/A2; error analysis | Ch. 5 Experimental setup; start Ch. 6 Results as numbers arrive | All main tables and figures generated from `outputs/results/` |
 | **4** | Oct 26–Nov 1 | Stretch ablations (A3–A5) if the main matrix is complete; minimal demo (2 days max); **feature freeze Fri Oct 30** | Ch. 6 Results, Ch. 7 Discussion | Experiments closed |
 | **5** | Nov 2–8 | Fixes and re-runs of already-defined experiments only; reproducibility package | Ch. 1 Introduction, Ch. 8 Conclusion, final abstract with numbers; complete draft to supervisor by ~Nov 5; revisions | Complete thesis |
 | **buffer** | Nov 9–10 | – | Formatting, proofreading | **Submission Nov 10** |
@@ -491,7 +496,7 @@ Stretch: verify each sentence while the generator is still producing the next on
 | Scope creep (demo, extra datasets, 7B fine-tune) | High | High | Anything not tied to RQ1–RQ5 or the demo is a stretch item; revisit at each gate |
 | **Schedule: one month for experiment and thesis** | High | High | Night-time runs, experiment freeze Oct 30, cut list in §9, writing in parallel from week 1, scripted figures |
 | 3B training too slow to finish overnight | High (≈17 h per full epoch, measured) | Medium | Train the 3B on a ~10K subset; fall back to 0.5B fine-tuned + 3B zero-shot |
-| The Mac freezes during unattended runs | Low (since the guard) | High | Every long job runs under `experiments/feasibility/scripts/watchdog.py` (kills a job when free memory < 2 GB) |
+| The Mac freezes during unattended runs | Low (since the guard) | High | Every long job runs under `groundone guard` (`tools/watchdog.py`: kills a job when free memory or swap growth crosses the limits in `outputs/logs/guard/thresholds.json`) |
 
 Threats to validity to discuss in the thesis: benchmark representativeness for *local* RAG, single hardware platform, few seeds for the 3B, prompt sensitivity of the baselines (mitigated by freezing prompts before testing), possible pre-training contamination.
 
@@ -510,18 +515,18 @@ Project/                     # experiment workspace (restructured 2026-10-08; ma
       prompts.py             # prompts: design (a) questions, design (b) encode_marked (training = inference)
       readout.py             # design (b): output head applied at marker positions only
       backend.py             # MLX model + adapter: score_positions (b), score_shared / score_many (a)
-      engine.py, api.py, schema.py, compat.py, cli.py, playground.html   # service, HTTP API (still design a), CLI, UI
+      engine.py, api.py, schema.py, compat.py, cli.py, playground.html   # service, HTTP API (design b, D27), CLI, UI
       calibration.py         # temperature + bias per key, bound to the model fingerprint
       data/                  # build.py (dataset + checks), segment.py (pysbd + content rule), leakage.py, shortcut.py, rows.py (design a)
       training/train.py      # LoRA loop, design (b) default
-      eval/                  # tests.py (frozen T1/T2/T3), calibrate_b.py, metrics.py; evaluate.py = legacy (v1 data)
+      eval/                  # tests.py (frozen T1/T2/T3, B2), calibrate_b.py, bootstrap.py, metrics.py; evaluate.py = legacy (v1 data)
       baselines/             # frozen.py (encoders, Rizzo-Flow), judges.py (generative judges + latency); encoders.py / rizzo.py legacy entry points
       figures/               # dataset, benchmarks, training, phase0 (+ legacy results, diagnostics)
-      tools/watchdog.py      # memory guard
+      tools/                 # watchdog.py (memory guard), matrix.py (results matrix), power.py (powermetrics)
     tests/
   data/                      # download.py + manifests; raw/ and processed/groundone/ (jsonl gitignored; manifest, reports, DATACARD tracked)
   outputs/                   # generated by the groundone commands
-    models/                  # trained adapters (gitignored): g1-05b-b1, g1-3b-b1
+    models/                  # trained adapters (gitignored): g1-05b-b1, g1-05b-s3 (run 2), g1-05b-s2 (stopped, D26), g1-3b-b1
     results/                 # metrics.json tracked, predictions gitignored; one folder per system (latency/ inside)
     figures/                 # thesis figures (PNG + captions)
     logs/                    # memory-guard logs (gitignored)
@@ -544,11 +549,11 @@ Answered: D1 confirmed; no hand-labelled set (D10); submission 2026-11-10, exper
 Also answered: Phase 0/0b run (GO); demo generator = 3B (D12); 7B not run (D13).
 
 
-Still open (2026-10-08):
-1. **B2 control** (single-token generation with the same weights). The earlier argument ("with design (b) it is the same computation") holds for the forward pass, not for the decision: the 2026-10-09 check (§2, H2a) shows that generation would emit the spaced letter and agree with the readout in only 75 % (0.5B) / 92 % (3B) of the markers. Proposed: run B2 on full T1 (one pass per answer, full-vocabulary argmax at the markers, spaced or unspaced letter mapped to a verdict, anything else = format failure); awaiting the author's go-ahead.
+Still open (updated 2026-10-10):
+1. ~~B2 control~~: done 2026-10-10 on full T1 (readout +0.25 / +0.07 over the generated token; §2 H2a).
 2. ~~T2 for the 3B~~: done 2026-10-09 (macro 74.8).
 3. ~~Bootstrap confidence intervals~~: done 2026-10-09 (`groundone bootstrap`, `results/bootstrap/`). Every claimed difference is significant except: T2 macro 3B vs MiniCheck-RoBERTa (+0.8, CI −0.5 to +2.1), T2 RAG subset 0.5B vs RoBERTa, T1 AUROC 0.5B vs Rizzo-Flow on its subsample.
-4. **HTTP API and demo** on design (b), plus the optional extension (grounded ingestion loop for an LLM wiki, `thesis_notes.md` Ch. 8).
+4. ~~HTTP API on design (b)~~: done 2026-10-10 (D27). Open: the **demo**, plus the optional extension (grounded ingestion loop for an LLM wiki, `thesis_notes.md` Ch. 8).
 5. Supervisor requirements (length/format, mandatory comparisons), if any.
 
 ---
@@ -597,6 +602,3 @@ Authors, years and venues were checked against arXiv, the ACL Anthology and AAAI
 **Inference background**
 - Pope et al. (2023). Efficiently Scaling Transformer Inference. MLSys 2023.
 - Kwon et al. (2023). Efficient Memory Management for Large Language Model Serving with PagedAttention. SOSP 2023.
-- 2026-10-06: **D20** (task redefined: three-way per sentence, K = sentences) and **D21** (dataset rebuilt from scratch, `dataset_plan.md`) decided with the author. The earlier datasets, models trained on them and their analysis were archived outside the repository.
-- 2026-10-07: **D22** (readout design b default), **D23** (validation run; 3B option A), test sets frozen. 2026-10-08: **D24** (calibration temperature + bias; decisions on raw output). First full round of results in `thesis_notes.md`.
-- 2026-10-09: full T2 for the 3B (macro 74.8, RAG subset 76.9); the subsample + second-seed queue was cancelled in favour of it (author). No decision changed.

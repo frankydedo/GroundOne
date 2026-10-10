@@ -1,7 +1,7 @@
 # Thesis abstract (draft v0.3.1)
 
-> **Status:** v0.3 (2026-10-08). It replaces v0.2 (2026-10-05) after the task was redefined (one three-way decision per sentence, D20), the dataset was rebuilt (D21) and the first complete round of experiments ran.
-> It includes **preliminary results** (0.5B and 3B, frozen test sets; updated 2026-10-09 with the 3B on LLM-AggreFact and the bootstrap intervals). Pending: energy measurements, the demo.
+> **Status:** v0.3.1 (2026-10-08, results updated 2026-10-09). It replaces v0.2 (2026-10-05) after the task was redefined (one three-way decision per sentence, D20), the dataset was rebuilt (D21) and the first complete round of experiments ran.
+> It includes **preliminary results** (0.5B and 3B, frozen test sets; updated 2026-10-09 with the 3B on LLM-AggreFact and the bootstrap intervals). Pending: the demo; the results added on 2026-10-09/10 (equal-output judge, control B2, energy, second run) are in `checkpoint_2026-10-10.md` and will enter the next version.
 > The thesis summary in `Thesis/content/summary.tex` follows this text; the numbers come from `docs/thesis_notes.md`.
 > Working system name: **GroundOne**.
 

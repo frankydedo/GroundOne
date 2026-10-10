@@ -1,6 +1,6 @@
 # Checkpoint 2: everything done so far and the results (2026-10-10)
 
-Replaces `checkpoint_2026-10-08.md` as the current summary. Every number below comes from `outputs/results/*/metrics.json`. The full reasoning behind each result is in `thesis_notes.md`, decisions are in `implementation_plan.md` §3 (D1–D26), and the dataset is described in `dataset_plan.md` and the data card. The live results matrix is in `tracker.md`.
+Replaces `checkpoint_2026-10-08.md` as the current summary. Every number below comes from `outputs/results/*/metrics.json`. The full reasoning behind each result is in `thesis_notes.md`, decisions are in `implementation_plan.md` §3 (D1–D27), and the dataset is described in `dataset_plan.md` and the data card. The live results matrix is in `tracker.md`.
 
 ---
 
@@ -20,7 +20,7 @@ Can a compact language model, specialised in one decision and used as a **System
 | Task (D20) | One three-way decision per sentence; binary score and strict/lenient policies derived from the 3 probabilities | Replaced a 4-question design that confused training |
 | Dataset (D21) | Rebuilt from scratch; RAGTruth as the only training source; 3 test sets built, checked and frozen **before** training | Labels agree 98.75 % with LLM-AggreFact's independent labels; leakage check by group passes |
 | Readout (D22) | Marker " Verdict:" after each sentence; all K verdicts read in **one pass**; output head only at the markers | Design (a), one question per sentence, kept as fallback |
-| Training (D23) | GroundOne 0.5B on all 13,203 answers (5.5 h); 3B on 6,500 answers (12.25 h) | LoRA r16 on all linear layers, class-weighted loss over the 3 letters, best checkpoint on dev |
+| Training (D23) | GroundOne 0.5B on all 13,203 answers (5.5 h wall clock); 3B on 6,500 answers (12.25 h) | LoRA r16 on all linear layers, class-weighted loss over the 3 letters, best checkpoint on dev |
 | Calibration (D24) | Temperature + per-class bias fitted on dev | Decisions use the raw output; probabilities are calibrated |
 | Baselines | Word overlap; sentence-only classifier; untrained models (B1); terse and verbose judges (B0a/B0b); Rizzo-Flow 4B (B3); MiniCheck-RoBERTa and HHEM (B4) | Same frozen tests and metrics; subsamples for the slow systems |
 | Latency | Seconds per answer vs K; 200 T1 answers, 50 per K band, in-process MLX | Claims only between MLX in-process systems |
@@ -55,7 +55,7 @@ There are two surface cues: word overlap (AUROC 0.737 on T1) and data-to-text te
 | Untrained 0.5B / 3B (B1) | 0.372 / 0.437 | 0.502 / 0.726 | – | 0.334 / 0.531 | 0.503 / 0.821 |
 | MiniCheck-RoBERTa (B4) | – | 0.814 | 74.0 / 74.6 | – | **0.968** (VitaminC is in its training lineage) |
 | HHEM-2.1 (B4) | – | 0.821 | – | – | 0.795 |
-| Rizzo-Flow 4B (B3), on its subsample | 0.603 | 0.894 | 60.9 (1,100 items) | **0.712** | 0.909 |
+| Rizzo-Flow 4B (B3), on its subsample | 0.603 | 0.894 | 61.5 / 58.2 (1,093 scored of 1,100 items) | **0.712** | 0.909 |
 | Word overlap | – | 0.737 | – | – | 0.698 |
 | Published zero-shot Qwen2.5-7B | – | – | 72.8 | – | – |
 
@@ -64,7 +64,8 @@ On Rizzo-Flow's 300 T1 answers, GroundOne scores 0.798 (0.5B) and 0.840 (3B).
 **Significance** (cluster bootstrap, B = 2000):
 - On T1, GroundOne beats every baseline. The 3B beats the 0.5B by +0.063 [+0.052, +0.076], and by +0.116 at K ≥ 14.
 - **On T2 the 3B is on par with MiniCheck** (+0.8, CI −0.5 to +2.1, not significant) and above it on the RAG subset (+2.4 [+1.4, +3.3]). The 0.5B is below MiniCheck on the T2 macro (−3.9).
-- On T3, Rizzo-Flow and MiniCheck beat GroundOne.
+- On T3, Rizzo-Flow and MiniCheck beat GroundOne. On Rizzo-Flow's 600 T3 pairs GroundOne scores 0.442 / 0.537 (AUROC 0.744 / 0.845).
+- **Run 1 vs run 2** differ significantly on T2 macro (−0.013) and T3 AUROC (−0.025) by the bootstrap: the data-resampling intervals do not include seed variance, so cross-system differences on T2/T3 smaller than the seed spread should not be claimed.
 
 **Latency of these systems** (median seconds per answer, K ≥ 14). The times were measured, but not under the same conditions, so only the first two rows are a fair comparison.
 
@@ -75,7 +76,7 @@ On Rizzo-Flow's 300 T1 answers, GroundOne scores 0.798 (0.5B) and 0.840 (3B).
 | MiniCheck-RoBERTa / HHEM | 2.59 / 2.52 | PyTorch MPS, **one sentence at a time** (document re-encoded K times, no batching); sum over the answer, latency subset | **no**: the timing is pessimistic for the encoders, since batching the K sentences would cut it substantially, and the runtime differs |
 | Rizzo-Flow 4B Q4 | 6.88 | HTTP to a llama.cpp server, Q4 weights, 4B model, its 300-answer subsample | **no**: different runtime, quantisation, model size and transport (HTTP) |
 
-No latency claim is made against the encoders or Rizzo-Flow. A fair comparison needs a batched encoder run (cheap) and an HTTP-vs-HTTP run after the API moves to design (b).
+No latency claim is made against the encoders or Rizzo-Flow. A fair comparison needs a batched encoder run (cheap) and an HTTP-vs-HTTP run against Rizzo-Flow (possible now that the API serves design b).
 
 ### 4.2 Speed, output parity, energy (latency subset, 200 T1 answers)
 

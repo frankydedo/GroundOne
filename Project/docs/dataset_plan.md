@@ -1,6 +1,6 @@
 # GroundOne dataset plan
 
-Status: v2.3 (2026-10-08). All steps done: the test sets are frozen (2026-10-07, `data/processed/groundone/tests_frozen.json`), and the dataset was validated by training (T1 three-way 0.769 for the 0.5B). Readout design (b) is the default (§8). Simplified to the strict minimum: one training source, three test sets. **Steps 1–3 and 5 of §7 are done** (`Project/data/processed/groundone/DATACARD.md`); the tests await the author's approval to be frozen (step 4). Decisions D20 and D21 are in `implementation_plan.md` §3.
+Status: v2.3 (2026-10-08). All steps done: the test sets are frozen (2026-10-07, `data/processed/groundone/tests_frozen.json`), and the dataset was validated by training (T1 three-way 0.769 for the 0.5B). Readout design (b) is the default (§8). Simplified to the strict minimum: one training source, three test sets. **All steps of §7 are done** (`Project/data/processed/groundone/DATACARD.md`). Where the estimates below differ from the built dataset, the data card is authoritative. Decisions D20 and D21 are in `implementation_plan.md` §3.
 
 This document specifies how the training, development and test data are built from scratch. Nothing is trained until the test sets of §4 are built, validated and frozen. The thesis (Ch. 4) describes only the dataset produced by this plan.
 
@@ -71,7 +71,7 @@ Only the document counts, not the real world. RAGTruth's `implicit_true` spans (
 
 ### T1: RAGTruth test, the primary test (in-domain, multi-sentence, K curves)
 
-**Content.** All quality-*good* answers of the official test split: 2,675 answers, 450 sources, 3 tasks. The 173 answers flagged `incorrect_refusal` or `truncated` are dropped.
+**Content.** All quality-*good* answers of the official test split: 2,675 answers, 450 sources, 3 tasks. The 173 answers flagged `incorrect_refusal` or `truncated` are dropped. After the token cap and the removal of answers without scored sentences, T1 has **2,647 answers** (data card).
 
 **Scoring.** Every scored sentence of an answer is a decision. The numbered answer shown to the model is the full answer.
 
@@ -83,7 +83,7 @@ Only the document counts, not the real world. RAGTruth's `implicit_true` spans (
 **Segmentation.**
 - One standard segmenter for test, dev, train and inference: **pysbd**. It is chosen a priori because it is rule-based and handles abbreviations and decimals.
 - Agreement with LLM-AggreFact is only reported (C2), never optimised, so nothing is tuned on a test set.
-- Measured with the current regex splitter: 76.5 % of its sentences are exactly an LLM-AggreFact claim. Of the rest, about half are fragments from splitting decimals ("rating of 4." + "0 stars"), and the others are sentences without checkable content.
+- Measured before the build with the earlier regex splitter: 76.5 % of its sentences are exactly an LLM-AggreFact claim (superseded: with pysbd and the content rule, check C2 passes at 96.3 %, data card). Of the rest, about half are fragments from splitting decimals ("rating of 4." + "0 stars"), and the others are sentences without checkable content.
 
 **Sentences without checkable content** ("Sure!", "Elements:", "Based on the provided passages, … is:", refusal formulas):
 - They stay in the numbered answer as context but are not decisions: no label, no score, `label: null` in the output JSON.
@@ -91,7 +91,7 @@ Only the document counts, not the real world. RAGTruth's `implicit_true` spans (
 - The same rule is applied everywhere.
 
 **Reported metrics.**
-- Three-way macro-F1 and per-class recall.
+- Three-way balanced accuracy (macro recall) and per-class recall.
 - Binary balanced accuracy at 0.5 and AUROC.
 - Strict and lenient rule accuracy.
 - All of the above per task and per K band (1–4, 5–8, 9–13, ≥ 14), and per answer (all K sentences correct).
@@ -137,7 +137,7 @@ Only the document counts, not the real world. RAGTruth's `implicit_true` spans (
 
 - **Use.** Checkpoint selection and calibration only, never training. Same format as T1.
 - **Construction.** 10 % of RAGTruth train sources, held out by `source_id`: about 1,500 answers with all their sentences.
-- **Selection metric** (fixed before training): three-way macro-F1 on dev.
+- **Selection metric** (fixed before training): mean three-way balanced accuracy over tasks on dev (`select: bacc`).
 - **Calibration.** Fitted on dev: temperature plus bias.
 
 ## 6. Training set
@@ -149,13 +149,13 @@ Only the document counts, not the real world. RAGTruth's `implicit_true` spans (
 
 **Content.** All remaining RAGTruth train answers (quality *good*, within the 2,048-token cap), full answers, all sentences.
 - **Class balance.** About 89 % of labels are *supported*. Balance by loss weighting, or by masking part of the *supported* sentences in the loss, never by cutting answers. The model always sees whole answers.
-- **K coverage.** 1,165 training answers have K ≥ 14. Weight them up if the dev set shows a drop at high K.
+- **K coverage.** 573 training answers have K ≥ 14 (data card; the pre-build estimate was 1,165). Weight them up if the dev set shows a drop at high K.
 
 **Checks.**
 - Leakage (R6) against T1–T3, including LLM-AggreFact documents and claims.
 - Claim-only shortcut baseline (sees only the sentence) on train and test, to expose label cues.
 
-### Estimated size of the final dataset
+### Estimated size of the final dataset (pre-build estimate; the actual sizes are in the data card)
 Measured on the raw data with the regex splitter, Qwen2.5 tokens, 10 % dev by source. pysbd and the content rule will lower the sentence counts by an estimated 10–20 %, mostly *supported* sentences.
 
 | Split | Entries (answers / pairs) | Sentence labels | contradicted | not_mentioned | Tokens |
@@ -205,9 +205,9 @@ The dataset is stored per answer, so it serves both designs.
 **(a) Fallback: one question per sentence.**
 - The prefix is read once, then K short question suffixes run in one batch. Already implemented.
 - Training rows: `groundone data rows` (one row per sentence, class-balanced sample).
-- Used only if (b) fails the validation criteria below.
+- Fallback if (b) failed the validation criteria below (it did not); also used by the untrained baseline B1 and the compatible `/v1/systemone` route.
 
-**Validation run (night 2026-10-06/07).** The 0.5B is trained on 9,000 random training answers (about 62K decisions) in design (b), then evaluated on T1, T3 and T2. The dataset is judged useful if all of these hold:
+**Validation run (night 2026-10-06/07).** The 0.5B was planned on 9,000 random training answers and was finally trained on all 13,203 (D23) in design (b), then evaluated on T1, T3 and T2. The dataset is judged useful if all of these hold:
 - three-way balanced accuracy on T1 > 0.57 (the sentence-only baseline);
 - the same metric clearly above 0.36 on QA and Summary;
 - AUROC supported vs not > 0.74 (word overlap);

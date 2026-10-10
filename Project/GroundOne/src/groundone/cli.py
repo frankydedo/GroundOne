@@ -11,7 +11,8 @@
   groundone test       --suite t1|t2|t3 --name NAME [--adapter RUN]   frozen GroundOne test sets (three-way)
   groundone matrix     [--print]                                  results matrix (all systems x test sets) -> docs/tracker.md
   groundone guard      QUEUE.txt                                  run long jobs one at a time under the memory guard
-  groundone figures    all | dataset | benchmarks | training RUN | eda | phase0   thesis figures -> Project/figures/
+  groundone figures    all | dataset | benchmarks | training RUN | eda | phase0   thesis figures -> Project/outputs/figures/
+                       (legacy: sweep | diagnostics | results)
   groundone baselines  frozen | judges | judges-calibrate [...]   baselines on the frozen tests; generative judges + latency
   groundone bootstrap  [--reps 2000]                              CIs and paired tests from saved predictions (CPU)
   legacy (earlier datasets, kept for reference): groundone eval | calibrate, groundone baselines encoder | rizzo
@@ -64,7 +65,9 @@ def main(argv=None):
         return getattr(__import__(f"groundone.data.{mod}", fromlist=[fn]), fn)(argv[2:])
 
     ap = argparse.ArgumentParser(prog="groundone", description="GroundOne: local System One groundedness verifier",
-                                 epilog="Also: data build|check|shortcut, train, calibrate, eval, guard (see --help of each)")
+                                 epilog="Also (own --help): data build|check|shortcut|freeze|rows, train, calibrate-b, test, "
+                                        "baselines frozen|judges|judges-calibrate, bootstrap, matrix, figures, guard; "
+                                        "legacy: eval, calibrate")
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("serve", help="start the HTTP API")
     _model_args(s)

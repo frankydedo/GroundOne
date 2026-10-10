@@ -25,9 +25,9 @@ class VerifyRequest(Strict):
                                                "strict / lenient = acceptable under that rule? (design b: views derived "
                                                "from the same three probabilities)")
     threshold: float | None = Field(default=None, ge=0.0, le=1.0,
-                                    description="Label 'supported' iff P(supported) >= threshold (design b) / flag if "
-                                                "P(supported) < threshold (design a). Default: the model's threshold "
-                                                "fitted on dev, or 0.5")
+                                    description="Design b: label 'supported' iff P(supported) >= threshold; default: the "
+                                                "model's threshold fitted on dev, else the raw class-balanced argmax. "
+                                                "Design a: flag if P(supported) < threshold; default 0.5")
 
     @model_validator(mode="after")
     def one_answer(self):

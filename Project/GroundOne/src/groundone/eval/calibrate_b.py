@@ -85,7 +85,7 @@ def evaluate_split(L, y, maps):
 def main(argv=None):
     from ..config import resolve_model
     from ..engine import Engine
-    from ..figures.style import INK2, NEUTRAL, SERIES, Group, plt
+    from ..figures.style import NEUTRAL, SERIES, Group, plt
     from .tests import score_b
     ap = argparse.ArgumentParser(prog="groundone calibrate-b")
     ap.add_argument("--size")
@@ -113,7 +113,10 @@ def main(argv=None):
     curves = {"dev": (L, y)}
     for suite in ("t1", "t3"):
         p = RESULTS_DIR / run / suite / "predictions.parquet"
-        if p.exists():
+        calibrated = json.loads((p.parent / "metrics.json").read_text()).get("calibrated") if p.exists() else None
+        if calibrated:  # probabilities already calibrated (test run with --calibration): raw logits not recoverable
+            print(f"  skip {suite}: its predictions are already calibrated; re-run `groundone test` without --calibration")
+        elif p.exists():
             df = pd.read_parquet(p)
             Lt = np.log(np.clip(np.array(df["p"].tolist()), 1e-12, 1))
             yt = np.array([CLASSES.index(c) for c in df["cls"]])

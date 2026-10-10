@@ -11,7 +11,7 @@ The thesis itself is in `../Thesis/`, the literature wiki in `../Vault/`.
 | `GroundOne/` | The software: installable Python package `groundone` (CLI, HTTP API, dataset builder, training, evaluation, baselines, figures), configs, tests. Usage: `GroundOne/README.md` | yes |
 | `docs/` | Plans, tracker, findings for the thesis (index: `docs/README.md`) | yes |
 | `data/` | `download.py` and `manifest.json`; `raw/` (downloaded datasets); `processed/groundone/` (the dataset: train, dev, frozen tests T1–T3, data card, check reports) | scripts, manifests, reports, data card |
-| `outputs/models/` | Trained adapters (`g1-05b-b1`, `g1-3b-b1`), each with `config.yaml`, `train_log.jsonl`, `best/` and `calibration.json` | no |
+| `outputs/models/` | Trained adapters (`g1-05b-b1`, `g1-05b-s3` = run 2, `g1-3b-b1`; `g1-05b-s2` stopped after collapse, D26), each with `config.yaml`, `train_log.jsonl`, `best/` and `calibration.json` | no |
 | `outputs/results/` | One folder per system: `t1/`, `t2/`, `t3/` (test sets), `latency/`, `calibration/`; `metrics.json` + `predictions.parquet` | `metrics.json` only |
 | `outputs/figures/` | Thesis figures (300-dpi PNG) with draft captions in each `index.md` | yes |
 | `outputs/logs/` | Memory-guard logs and job output (`guard/thresholds.json` sets the limits) | no |
@@ -31,8 +31,10 @@ GroundOne/.venv/bin/groundone data build                  # dataset + checks; th
 GroundOne/.venv/bin/groundone data check                  # leakage check
 GroundOne/.venv/bin/groundone guard jobs/queue_night3.txt # 0.5B: train, evaluate (one job at a time, memory guard)
 GroundOne/.venv/bin/groundone guard jobs/queue_day4.txt   # baselines, judges + latency, 3B
+GroundOne/.venv/bin/groundone guard jobs/queue_night5.txt # 3B on the full T2
 GroundOne/.venv/bin/groundone guard jobs/queue_day5.txt   # equal-output judge B0d (D25)
 GroundOne/.venv/bin/groundone guard jobs/queue_night6.txt # second seed, B2 control, energy
+GroundOne/.venv/bin/groundone guard jobs/queue_day6.txt   # served threshold τ on dev for every run (D27)
 GroundOne/.venv/bin/groundone figures all                 # all figures -> outputs/figures/
 GroundOne/.venv/bin/python experiments/eda/scripts/01_ragtruth.py   # EDA (then 02, 03, 04, make_report.py)
 ```

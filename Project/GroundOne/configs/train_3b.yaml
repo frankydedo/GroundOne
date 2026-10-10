@@ -17,8 +17,8 @@ scale: 2.0
 dropout: 0.05
 
 # --- optimisation ---------------------------------------------------------------------------------------------
-lr: 1.0e-4                   # same as the 0.5B (only ~250 steps: a lower LR would risk under-training)
-warmup: 0.05                 # ~12 steps
+lr: 1.0e-4                   # same as the 0.5B (only ~400 steps: a lower LR would risk under-training)
+warmup: 0.05                 # ~20 steps
 epochs: 1.0
 token_budget: 2304           # ~2 answers per micro-batch (longest answer ~2,100 tokens with markers)
 max_rows: 4

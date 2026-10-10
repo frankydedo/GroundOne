@@ -257,7 +257,7 @@ Source: `outputs/results/minicheck-roberta/{t1,t3}/metrics.json` (full T1 and T3
 | Verbose judge 3B | 4.65 | 8.74 | 13.78 | 15.86 | 10.23 | 0.402 | 7.6 % (248 generated tokens per answer) |
 
 - At K ≥ 14, GroundOne 0.5B is ≈ 2× faster than the terse 0.5B judge and ≈ 6× faster than the verbose one.
-- The 3B GroundOne latency run is pending (queue).
+- ~~The 3B GroundOne latency run is pending (queue).~~ Done: 2.57 s at K ≥ 14 (see below).
 
 ## Ch. 6: 3B calibration, latency and error analysis (2026-10-08)
 
@@ -418,7 +418,7 @@ Two real runs of GroundOne 0.5B (`g1-05b-b1/best` + calibration), design (b).
 
 **Smoke test, B0d-logit 0.5B** (4 answers): where the 0.5B writes letters, the probabilities are soft (e.g. 0.44 / 0.11 / 0.45), unlike the one-hot terse verdicts. On 3 of the 4 answers it echoed the sentences instead of letters (format failures, as for B0a).
 
-**Results:** pending (queue `jobs/queue_day5.txt`); judge table of the results matrix in `tracker.md`.
+**Results:** ~~pending~~ done 2026-10-09 15:12, see "B0d results" below.
 
 **For the thesis (author's request):** show one real output example per system on the same answer: GroundOne JSON, terse, verbose and equal-output judge texts, encoders, Rizzo-Flow. The judge predictions now store the generated text (`text` column of `predictions.parquet`, first sentence row of each answer).
 
@@ -521,7 +521,7 @@ Run `g1-05b-s2`: same config as `g1-05b-b1`, seed 4321 (LoRA initialisation and 
 - The run collapsed to a constant predictor. Seed 1 kept improving (0.731 at step 450).
 - The training loop has no gradient clipping: `training/train.py` contains no clipping or non-finite check. With lr 1e-4 and class weight 7.5 on "contradicted", one unlucky update can push the LoRA weights into a region the optimiser does not leave.
 - **For the thesis:** the recipe is not robust to the seed. This must be reported, not hidden by re-running until a seed works. How often it collapses needs at least a third seed. A fix (gradient clipping, lower lr, warm-up) is a declared change, to be checked on new seeds.
-- **Stopped at step ≈ 470 of 801 (21:54, author's decision), log kept; training curve in `figures/training-g1-05b-s2/`.** At step 450 it had moved off the constant predictor (0.444, still never predicting "not mentioned"), but the loss was still ≈ 1.07, far from seed 1. The decision was taken on the step-300 evaluation. Whether it would have recovered by the end of the epoch is unknown, and this must be stated.
+- **Stopped at step ≈ 470 of 801 (the seed-2 run had 801 steps; seed 1 had 802, seed 3 803: batch counts differ slightly with the seed) (21:54, author's decision), log kept; training curve in `figures/training-g1-05b-s2/`.** At step 450 it had moved off the constant predictor (0.444, still never predicting "not mentioned"), but the loss was still ≈ 1.07, far from seed 1. The decision was taken on the step-300 evaluation. Whether it would have recovered by the end of the epoch is unknown, and this must be stated.
 - Replaced by a third seed with the identical config (`g1-05b-s3`, seed 777, `jobs/queue_night6.txt`).
 - **Reporting decision (author, 2026-10-09 22:00).**
   - In the thesis the completed third-seed run (`g1-05b-s3`) is presented as the second run of the 0.5B. Tables show completed runs only.
@@ -610,7 +610,7 @@ Median seconds per answer at K ≥ 14, measured but under different conditions. 
 
 - No latency claim against the encoders or Rizzo-Flow.
 - The encoders (355M and ≈ 250M parameters) would probably be faster than GroundOne 0.5B if batched. Against them GroundOne's case is accuracy, not speed.
-- Fair options: a batched encoder run on the 200 latency answers (cheap), and HTTP vs HTTP against Rizzo-Flow after the API moves to design (b).
+- Fair options: a batched encoder run on the 200 latency answers (cheap), and HTTP vs HTTP against Rizzo-Flow (now possible: the API serves design b since D27).
 
 ## Ch. 3 / demo: the served output (D27, 2026-10-10)
 
@@ -619,7 +619,7 @@ Median seconds per answer at K ≥ 14, measured but under different conditions. 
 - **One coherent rule.** Labels, strict/lenient flags and the probabilities shown follow one rule: calibrated probabilities, "supported" iff P(supported) ≥ τ, otherwise the more probable of contradicted / not mentioned.
 - **The threshold τ.** It is fitted on dev by `calibrate-b`, maximising the three-way macro recall, and stored in `calibration.json`. A request may override it, which turns the choice of operating point into a user policy without retraining. Without τ, the label is the raw class-balanced argmax (D24), and the response says so in `decision_rule`.
 - **Why this rule.** It removes the incoherence seen on 2026-10-09 (labels "not mentioned" next to calibrated P(supported) = 0.54). It approximates the evaluated balanced decision rather than the calibrated argmax, which collapses towards "supported" (three-way 0.77 → 0.63).
-- **Still to do.** Re-run `calibrate-b` to fit τ for the trained runs, and report the three-way macro of the served rule on T1/T3 next to the raw decision. `calibrate-b` now writes it under `served_rule`.
+- **Still to do.** ~~Re-run `calibrate-b` to fit τ~~ done 2026-10-10 13:12, see "Served threshold τ" below.
 - **Real check** (0.5B, Acme example): 0.10 s, 139 input tokens, 0 output tokens. "Sure!" is unscored; the "Milan" and "CEO" sentences are labelled not mentioned (P = 0.80 / 0.64).
 
 
@@ -636,3 +636,17 @@ Median seconds per answer at K ≥ 14, measured but under different conditions. 
 - On T3 it is 0.02–0.04 lower, consistent with calibration not transferring to VitaminC.
 - The temperature and bias re-fitted identically (same ECE), so earlier calibration results are unchanged.
 - **API check:** `decision_rule` now reports the calibrated threshold rule with τ = 0.935 (0.5B run 1). On the Acme example, "founded in 2005" is supported (P = 0.988 ≥ τ) and "Milan" and "CEO" are not mentioned.
+
+## Audit of 2026-10-10 (docs, thesis, code)
+
+Findings that matter for the thesis (fixes in docs and code are in git):
+- **Rizzo-Flow on T2:** 61.5 macro / 58.2 RAG subset on the 1,093 items it scored (7 of 1,100 were over its context and skipped). The bootstrap had counted the skipped items as "unsupported" (60.9); it now drops them, as Rizzo-Flow's own metrics do. GroundOne − Rizzo-Flow on those items: 0.5B +0.062 [+0.001, +0.122] (p = 0.047), 3B +0.120 [+0.074, +0.165].
+- **Ch. 6 T3 comparison with Rizzo-Flow** must use GroundOne on the same 600 pairs: 0.442 / 0.537 three-way, 0.744 / 0.845 AUROC (not the full-T3 0.442 / 0.527, 0.722 / 0.817).
+- **Speed-ups** to quote with intervals: 1.95× [1.82, 2.14] and 6.16× [5.72, 6.67] (0.5B); 1.73× [1.65, 1.82] and 6.18× [5.88, 6.65] (3B). "Fastest system" only among the in-process MLX systems.
+- **Run 1 vs run 2 (bootstrap, same resamples):**
+  - T1 three-way +0.001 [−0.008, +0.011]; AUROC −0.002 (both n.s.); K ≥ 14 −0.023 [−0.069, +0.016] (n.s.).
+  - T2 macro −0.013 [−0.024, −0.003] and T3 AUROC −0.025 [−0.037, −0.012], both "significant".
+  - So the data-resampling intervals do not include seed variance. Differences between systems on T2 and T3 smaller than the seed spread (≈ 1.5 points T2 macro, ≈ 0.025 T3 AUROC, up to 10 points on single T2 datasets) should not be claimed.
+- **B2 in the bootstrap:** readout − generated token +0.248 [+0.228, +0.269] (0.5B) and +0.071 [+0.059, +0.083] (3B); at K ≥ 14 +0.346 and +0.066.
+- **0.5B training time:** 5.5 h wall clock (guard log 332 min; the train log reaches step 800 at 316 min). The "5.4 h" written earlier is the approximate training-loop time; use 5.5 h.
+

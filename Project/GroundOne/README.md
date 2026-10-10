@@ -93,15 +93,16 @@ Other routes: `GET /health` (model, adapter hash, prompt version, fingerprint, d
 Project/GroundOne/              the software (this folder)
 configs/          training hyper-parameters (train_0.5b.yaml, train_3b.yaml)
 src/groundone/
-  prompts.py      single source of truth for the prompt format and question set (training = inference)
+  prompts.py      single source of truth for the prompt formats (design b markers, design a questions; training = inference)
+  readout.py      logits at the marker positions only (design b)
   backend.py      MLX model + adapter; shared-prefix batched scoring and length-batched scoring
   engine.py       thread-safe service (one MLX thread, request lock); verify / systemone / predict
   schema.py       strict native API contract          compat.py   TypeSafe/Jev-compatible contract
-  api.py          FastAPI app                         cli.py      command-line interface
+  api.py          FastAPI app + playground.html       cli.py      command-line interface
   calibration.py  temperature + bias and the served threshold, bound to the model fingerprint
-  data/           dataset build, leakage check, shortcut baseline
+  data/           dataset build, segmentation (segment.py, shared with inference), leakage check, shortcut baseline
   training/       LoRA training loop with the restricted answer-letter loss
-  eval/           evaluation suites and metrics
+  eval/           frozen tests (tests.py, incl. B2), calibrate_b.py, bootstrap.py, metrics
   baselines/      encoders (B4), Rizzo-Flow (B3), generative judges incl. equal-output (B0, B0d), latency / energy
   figures/        thesis figures from every phase (fixed colour per system)
   tools/          memory guard, results matrix, powermetrics meter

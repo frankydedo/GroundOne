@@ -1,6 +1,6 @@
 # GroundOne LoRA fine-tuning — Qwen2.5-0.5B-Instruct (MLX 8-bit)
 # Run:   groundone train --config train_0.5b.yaml          (flags override, e.g. --run g1-05b-v2 --lr 2e-4)
-# The resolved config is copied to models/<run>/config.yaml.
+# The resolved config is copied to Project/outputs/models/<run>/config.yaml.
 
 # --- model and data -------------------------------------------------------------------------------------------
 size: "0.5b"                 # base model (GroundOne/src/groundone/config.py: BASE_MODELS)

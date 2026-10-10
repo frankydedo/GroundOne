@@ -1,8 +1,8 @@
 # GroundOne dataset: data card
 
-Built by `groundone data build` on 2026-10-06, following `Project/docs/dataset_plan.md` v2.0.
+Built by `groundone data build` on 2026-10-06, following `Project/docs/dataset_plan.md` (v2.0 at build time; current v2.3).
 - Numbers: `build_report.json`, `leakage_report.json`, `shortcut_report.json`.
-- Hashes: `manifest.json`; `tests_frozen.json` once the tests are frozen.
+- Hashes: `manifest.json`; `tests_frozen.json` (test sets frozen 2026-10-07).
 - Figures: `Project/outputs/figures/dataset/`.
 
 ## Task

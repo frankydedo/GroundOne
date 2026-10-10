@@ -152,7 +152,8 @@ def main(argv=None):
     ap.add_argument("--energy", action="store_true", help="sample SoC power with powermetrics during the loop")
     ap.add_argument("--idle-seconds", type=float, default=60)
     a = ap.parse_args(argv)
-    sd = RESULTS_DIR / a.name / ("energy" if a.energy else "latency" if a.split == "test" else "dev")
+    sd = RESULTS_DIR / a.name / (("energy" if a.split == "test" else "energy-dev") if a.energy
+                                 else "latency" if a.split == "test" else "dev")
     if sd.exists():
         sys.exit(f"{sd} exists: results are create-only")
     recs = k_stratified(load("test_ragtruth" if a.split == "test" else "dev"), a.per_band)
@@ -177,6 +178,8 @@ def main(argv=None):
             idle_m = Meter().start()
             time.sleep(a.idle_seconds)
             idle = idle_m.stop()
+            if not idle["samples"]:  # fail now, not after the whole measured loop
+                sys.exit("powermetrics returned no samples: check the NOPASSWD sudoers rule for /usr/bin/powermetrics")
             meter, t_loop = Meter().start(), time.perf_counter()
         idx = [i for i, y in enumerate(r["labels"]) if y is not None]
         labels = None
@@ -230,6 +233,8 @@ def main(argv=None):
     if meter is not None:
         loop_s = time.perf_counter() - t_loop
         tot = meter.stop()
+        if not tot["samples"]:
+            sys.exit("powermetrics stopped returning samples during the loop; energy not computed")
         n_ans, n_dec = len(recs), len(rows)
         # mean sampled power x wall time of the loop (the last partial sample is lost when powermetrics stops)
         gross_j = tot["mean_watts"] * loop_s
