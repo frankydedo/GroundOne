@@ -669,3 +669,32 @@ Findings that matter for the thesis (fixes in docs and code are in git):
   - These are the family "encoder + decision head" in Ch. 2.
 - **Core AI runs on an M4 Max** (mlboydaisuke dataset): the decision models re-prefill the whole state for every question, taking 40–220 s for a 3k-token state. This is measured evidence for GroundOne's one-pass design.
 - **Caveats:** the tag has no definition; many cards are LLM-written; DecideBench items were written by Claude; Nandakishore's independence from the Laya author cannot be verified.
+
+## Ch. 6 / Ch. 2: GroundOne on the scale of the Jev Decision Index (RAGTruth, response level; 2026-10-10)
+
+- **Source.** The community "Jev Decision Index" (Hugging Face Space multimodalart/jev-decision-index, v0.2.1; raw files in Vault/raw) has benchmark 59, "RAGTruth response-level hallucination": all 2,700 test responses, F1 of the class "hallucinated". The baseline of always answering "hallucinated" scores 0.518.
+- **Index results.** Jev 0.765; best entrant 0.803 (pplx-decider-v1-27b); every entrant under 1B scores ≤ 0.553; 31 of 70 entrants are at or below chance; all entrants ≥ 15B exceed 0.6.
+- **GroundOne, computed from the saved T1 predictions** (CPU only). Rule: a response is hallucinated if any scored sentence is not predicted "supported" (raw decision). Gold: any scored sentence labelled contradicted or not mentioned. 2,647 responses (35.4 % hallucinated); always-hallucinated baseline 0.523.
+
+| System | Response-level F1 |
+| --- | --- |
+| GroundOne 0.5B run 1 / run 2 | 0.657 / 0.680 |
+| GroundOne 3B | 0.725 |
+| B2 0.5B (generated token) | 0.612 |
+| Index: Jev | 0.765 |
+| Index: best entrant (27B) | 0.803 |
+| Index: best entrant < 1B | 0.553 |
+
+- **Reading.** The 0.5B specialist is far above every general decision model of its size (0.66–0.68 vs ≤ 0.55). The 3B is below Jev and the large entrants.
+- **Caveats** (state them if this is used):
+  1. GroundOne is trained on RAGTruth train (in-domain); the entrants are zero-shot general decision models.
+  2. 2,647 of the 2,700 responses (the token cap and answers without scored sentences were dropped).
+  3. The prompt and state format differ.
+  4. GroundOne was not tuned for response-level F1. "Any sentence flagged" with sentence decisions tuned for balanced accuracy over-flags long answers; a response-level threshold fitted on dev (e.g. on the minimum P(supported) over sentences) would be fairer. Not computed yet.
+- Other findings of the same survey (wiki page "Decision-Model Landscape (Hugging Face, 2026)"):
+  - Liquid AI d1-3B uses GroundOne's readout family at GroundOne's size (restricted letter logits, shared state).
+  - Cloudflare Clef is the first open decoder + dedicated-head model.
+  - Perplexity pplx-decider and the Strands decider train on VitaminC (and Perplexity on WiCE), so they would be contaminated on T3/T2.
+  - Li 2026: choosing the threshold by a lower confidence bound cuts the risk of a bad operating point (a cheap upgrade of D27).
+  - Deka 2026: the open RLCD recipe gives no calibration gain over cross-entropy after temperature scaling.
+  - llama.cpp merged a native `/v1/systemone` server (2026-10-02).
