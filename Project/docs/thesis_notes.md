@@ -622,3 +622,17 @@ Median seconds per answer at K ≥ 14, measured but under different conditions. 
 - **Still to do.** Re-run `calibrate-b` to fit τ for the trained runs, and report the three-way macro of the served rule on T1/T3 next to the raw decision. `calibrate-b` now writes it under `served_rule`.
 - **Real check** (0.5B, Acme example): 0.10 s, 139 input tokens, 0 output tokens. "Sure!" is unscored; the "Milan" and "CEO" sentences are labelled not mentioned (P = 0.80 / 0.64).
 
+
+**Served threshold τ, fitted on dev (2026-10-10 13:12; `results/g1-*/calibration/metrics.json` → `served_rule`).**
+
+| Run | τ | Three-way, served rule (dev / T1 / T3) | Three-way, raw decision (dev / T1 / T3) |
+| --- | --- | --- | --- |
+| 0.5B run 1 | 0.935 | 0.729 / 0.758 / 0.400 | 0.731 / 0.769 / 0.442 |
+| 0.5B run 2 | 0.895 | 0.742 / 0.769 / 0.413 | 0.736 / 0.767 / 0.434 |
+| 3B | 0.925 | 0.787 / 0.830 / 0.510 | 0.784 / 0.832 / 0.527 |
+
+- τ is high (0.90–0.94) because the calibrated probabilities reflect the base rate (91 % of RAGTruth sentences are supported): a sentence is served as "supported" only when the model is very confident.
+- In domain the served rule matches the evaluated raw decision within about 0.01 on T1, so the API delivers what the thesis measures, now with coherent probabilities.
+- On T3 it is 0.02–0.04 lower, consistent with calibration not transferring to VitaminC.
+- The temperature and bias re-fitted identically (same ECE), so earlier calibration results are unchanged.
+- **API check:** `decision_rule` now reports the calibrated threshold rule with τ = 0.935 (0.5B run 1). On the Acme example, "founded in 2005" is supported (P = 0.988 ≥ τ) and "Milan" and "CEO" are not mentioned.

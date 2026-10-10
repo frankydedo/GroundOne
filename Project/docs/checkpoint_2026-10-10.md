@@ -144,7 +144,7 @@ After " Verdict:" the model would write the *spaced* letter (" A"). The three re
   - licence table;
   - cost against a hosted judge;
   - overview of local inference in Ch. 1–2.
-- **Software.** ~~HTTP API on design (b)~~ done 2026-10-10 (D27); fit the served threshold on dev (re-run `calibrate-b`); then the demo. Optional: the grounded wiki-ingestion loop.
+- **Software.** ~~HTTP API on design (b)~~ done 2026-10-10 (D27), served threshold fitted on dev (τ ≈ 0.90–0.94; served rule within 0.01 of the evaluated decision on T1); then the demo. Optional: the grounded wiki-ingestion loop.
 - **Thesis.**
   - Update Ch. 3–6 with B0d, B2, energy, run 2, the CIs and the System One framing.
   - Add one output example per system.

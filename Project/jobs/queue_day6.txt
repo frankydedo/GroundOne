@@ -1,0 +1,7 @@
+# Day 2026-10-10 (author's go-ahead): fit the served threshold tau on dev (D27) for every trained run, then refresh.
+GroundOne/.venv/bin/groundone calibrate-b --adapter g1-05b-b1/best --name g1-05b-b1
+GroundOne/.venv/bin/groundone calibrate-b --adapter g1-05b-s3/best --name g1-05b-s3
+GroundOne/.venv/bin/groundone calibrate-b --adapter g1-3b-b1/best --name g1-3b-b1
+GroundOne/.venv/bin/groundone figures all
+GroundOne/.venv/bin/groundone matrix
+END

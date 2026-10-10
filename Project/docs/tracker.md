@@ -102,7 +102,7 @@ Update the status column and the to-do list as work progresses.
 
 **Later**
 - [x] HTTP API on design (b) with one coherent output rule (D27, 2026-10-10)
-- [ ] Fit the served threshold τ on dev: re-run `calibrate-b` for g1-05b-b1, g1-05b-s3 (≈ 8 min each) and g1-3b-b1 (≈ 48 min); until then the API falls back to the raw argmax (stated in the response)
+- [x] Served threshold τ fitted on dev (2026-10-10): 0.935 / 0.895 / 0.925 (0.5B run 1, run 2, 3B); served rule = raw decision within 0.01 on T1
 - [ ] Demo on the design (b) API
 - [ ] B2 control: dev check done (generation ≠ readout at the token level, plan §2 H2a); run B2 on full T1? (awaiting go-ahead, plan §14)
 - [ ] Thesis: show one real output example per system (GroundOne JSON, terse and verbose judge text, encoders, Rizzo-Flow) on the same answer (author request, 2026-10-09)
