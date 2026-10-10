@@ -543,6 +543,9 @@ Seed 1234 (`g1-05b-b1`) vs seed 777 (`g1-05b-s3`, presented as the second run, D
 | T3 three-way | 0.442 | 0.434 | −0.008 |
 | T3 AUROC | 0.722 | 0.747 | +0.025 |
 | T1 binary ECE raw → calibrated | 0.301 → 0.019 | 0.229 → 0.020 | |
+| T1 binary balanced accuracy at 0.5 | 0.815 | 0.832 | +0.017 |
+| T2 macro / RAG subset | 70.1 / 74.4 | 71.5 / 74.3 | +1.4 / −0.1 |
+| T2 per dataset, largest differences | | | WiCE +10.1, XSum +5.1, Reveal +2.7, ClaimVerify −2.7, MeetB −2.5, CNN −1.9 |
 
 **Reading.**
 - Aggregate metrics are reproducible: T1 three-way and AUROC differ by about 0.002, well inside the bootstrap intervals (±0.02).
@@ -591,3 +594,5 @@ B2 is biased towards "supported" (" A") compared with the readout.
 - **The energy advantage is smaller than the latency advantage.** GroundOne draws more power (16.2 W against 11–14 W) because a single long prefill is compute-bound and keeps the GPU busy. Autoregressive decoding is memory-bound and draws less power, but for much longer.
 - The thesis must not equate "N× faster" with "N× less energy". The honest figures are the ones above.
 - In absolute terms, 5.5 J is about 0.0015 Wh per verified answer for the 0.5B, and 33 J (≈ 0.009 Wh) for the 3B.
+- **T2 (added 2026-10-10 08:37).** The macro differs by 1.4 points and the RAG subset by 0.1. Individual non-RAG datasets move by up to 10 points (WiCE, 358 items). So single-dataset T2 differences between systems smaller than about 5 points should not be interpreted, even when the macro is stable.
+
