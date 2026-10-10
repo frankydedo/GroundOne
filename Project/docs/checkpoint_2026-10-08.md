@@ -1,3 +1,5 @@
+> **Superseded** by `checkpoint_2026-10-10.md` (kept as the record of checkpoint 1).
+
 # Checkpoint 1: where GroundOne stands (2026-10-08)
 
 A short account of what has been done, how, what came out, and what follows from it. Details and every number with
