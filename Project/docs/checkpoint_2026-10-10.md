@@ -150,5 +150,4 @@ After " Verdict:" the model would write the *spaced* letter (" A"). The three re
   - Update Ch. 3–6 with B0d, B2, energy, run 2, the CIs and the System One framing.
   - Add one output example per system.
   - Write Ch. 1, 2, 7 and 8.
-  - Fill in supervisors and degree programme.
 - **Possible, not planned.** A fix for the collapse (gradient clipping or lower LR, on new seeds); training the spaced letters. Either would be a declared change of recipe.

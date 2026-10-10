@@ -116,7 +116,7 @@ Update the status column and the to-do list as work progresses.
    - [ ] state in Ch. 5 that every baseline also ran on the same laptop
 - [x] ~~Second night of 3B training~~: not needed, the dev score plateaued (0.705 at step 320, 0.700 at the end)
 - [ ] Optional extension (week 4): grounded ingestion loop for an LLM wiki, evaluated with injected errors (`thesis_notes.md`, Ch. 8)
-- [ ] Ch. 2 (background), Ch. 1, 7, 8; supervisors + degree programme in `Thesis/common/thesis_info.tex`
+- [ ] Ch. 2 (background), Ch. 1, 7, 8
 
 ## Already done
 
