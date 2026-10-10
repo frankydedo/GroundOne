@@ -596,3 +596,18 @@ B2 is biased towards "supported" (" A") compared with the readout.
 - In absolute terms, 5.5 J is about 0.0015 Wh per verified answer for the 0.5B, and 33 J (≈ 0.009 Wh) for the 3B.
 - **T2 (added 2026-10-10 08:37).** The macro differs by 1.4 points and the RAG subset by 0.1. Individual non-RAG datasets move by up to 10 points (WiCE, 358 items). So single-dataset T2 differences between systems smaller than about 5 points should not be interpreted, even when the macro is stable.
 
+
+## Ch. 5 / Ch. 6: latency of the non-judge baselines (2026-10-10)
+
+Median seconds per answer at K ≥ 14, measured but under different conditions. Sources: `results/{untrained-*,g1-*}/latency/metrics.json`; `results/{minicheck-roberta,hhem}/t1/predictions.parquet` (`seconds` per sentence, summed per answer on the 200 latency answers); `results/rizzo-flow-4b-q4/t1/predictions.parquet` (`answer_seconds`).
+
+| System | K ≥ 14 | Conditions |
+| --- | --- | --- |
+| GroundOne 0.5B / 3B | 0.41 / 2.57 | MLX in-process, one pass per answer |
+| Untrained, design (a) 0.5B / 3B | 0.59 / 3.83 | Same runtime and subset; fair: design (b) is 1.4–1.5× faster than (a) |
+| MiniCheck-RoBERTa / HHEM | 2.59 / 2.52 | PyTorch MPS, sentence by sentence without batching (per sentence p50 0.17 / 0.15 s); pessimistic for the encoders |
+| Rizzo-Flow 4B Q4 | 6.88 | HTTP to llama.cpp, Q4, 4B, its 300-answer subsample (by band: 2.44 / 3.98 / 5.31 / 6.88) |
+
+- No latency claim against the encoders or Rizzo-Flow.
+- The encoders (355M and ≈ 250M parameters) would probably be faster than GroundOne 0.5B if batched. Against them GroundOne's case is accuracy, not speed.
+- Fair options: a batched encoder run on the 200 latency answers (cheap), and HTTP vs HTTP against Rizzo-Flow after the API moves to design (b).

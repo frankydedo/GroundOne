@@ -66,6 +66,17 @@ On Rizzo-Flow's 300 T1 answers, GroundOne scores 0.798 (0.5B) and 0.840 (3B).
 - **On T2 the 3B is on par with MiniCheck** (+0.8, CI −0.5 to +2.1, not significant) and above it on the RAG subset (+2.4 [+1.4, +3.3]). The 0.5B is below MiniCheck on the T2 macro (−3.9).
 - On T3, Rizzo-Flow and MiniCheck beat GroundOne.
 
+**Latency of these systems** (median seconds per answer, K ≥ 14). The times were measured, but not under the same conditions, so only the first two rows are a fair comparison.
+
+| System | s/answer K ≥ 14 | Conditions | Comparable with GroundOne? |
+| --- | --- | --- | --- |
+| GroundOne 0.5B / 3B | 0.41 / 2.57 | MLX in-process, one pass per answer, latency subset | reference |
+| Untrained 0.5B / 3B, design (a) | 0.59 / 3.83 | Same runtime and subset; one question per sentence (the time does not depend on the weights) | **yes**: design (b) is 1.4–1.5× faster than (a) |
+| MiniCheck-RoBERTa / HHEM | 2.59 / 2.52 | PyTorch MPS, **one sentence at a time** (document re-encoded K times, no batching); sum over the answer, latency subset | **no**: the timing is pessimistic for the encoders, since batching the K sentences would cut it substantially, and the runtime differs |
+| Rizzo-Flow 4B Q4 | 6.88 | HTTP to a llama.cpp server, Q4 weights, 4B model, its 300-answer subsample | **no**: different runtime, quantisation, model size and transport (HTTP) |
+
+No latency claim is made against the encoders or Rizzo-Flow. A fair comparison needs a batched encoder run (cheap) and an HTTP-vs-HTTP run after the API moves to design (b).
+
 ### 4.2 Speed, output parity, energy (latency subset, 200 T1 answers)
 
 | System | Three-way | Format failures | s/answer K ≥ 14 | Calibrated AURC | J/answer |
