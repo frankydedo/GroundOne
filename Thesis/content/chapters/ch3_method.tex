@@ -4,9 +4,10 @@
 % Source notes: Project/docs/thesis_notes.md (Ch. 3), Project/docs/dataset_plan.md §8, implementation_plan.md §4.
 
 GroundOne is a compact language model used as a System One: it reads a document and an answer once and returns a
-verdict for every sentence of the answer by reading the logits of a few answer letters, without generating text. This
-chapter describes the decision it makes, the prompt that carries all the decisions of one answer in a single forward
-pass, the training objective, the calibration of the output probabilities and the software that implements them.
+verdict for every scored sentence of the answer by reading the logits of a few answer letters, without generating text.
+This chapter describes the decision it makes, the prompt that carries all the decisions of one answer in a single
+forward pass, the training objective, the calibration of the output probabilities, the rule that turns probabilities
+into served labels, and the software that implements them.
 
 \section{Task and decision}
 \label{sec:method-task}
@@ -15,10 +16,9 @@ For every sentence of an answer GroundOne makes one decision among three classes
 Section~\ref{sec:data-task}: the sentence is \emph{supported}, \emph{contradicted} or \emph{not mentioned} with respect
 to the document. The three classes are mapped to the letters A, B and C, and the model outputs a probability for each
 of them. A binary groundedness score and the strict and lenient policies are not separate questions to the model; they
-are computed from these three probabilities, so that a single forward pass serves every use. An earlier design asked
-the model four different questions about each sentence, including the two policies written out in the prompt. Those
-questions were deterministic functions of the three-way class, so they inflated the number of decisions artificially
-and gave the model conflicting targets for the same sentence. The single three-way decision replaces them.
+are computed from these three probabilities, so that a single forward pass serves every use. Asking for the policies
+directly would add nothing: each of them is a deterministic function of the three-way class, so separate questions would
+multiply the decisions without adding information, and could give the model inconsistent targets for the same sentence.
 
 \section{Reading all verdicts in one forward pass}
 \label{sec:method-readout}
@@ -41,12 +41,32 @@ This design determines the cost of a verification. If $S$ is the length of the d
 decisions and $m$ the length of a marker in tokens, the System One costs one prefill of $S + K m$ tokens. A generative
 judge must also decode its verdicts: with $n$ tokens per verdict and a per-token decoding time $t_\mathrm{dec}$, its
 cost is roughly $\mathrm{prefill}(S) + K\, n\, t_\mathrm{dec}$. Since $m$ is three tokens and decoding is much slower
-per token than prefill on the target hardware, the gap widens as $K$ grows. An alternative design, used in earlier
-experiments and kept as a fallback, reads the shared prefix once and then appends one short question per sentence,
-scored in a batch; it needs a key-value cache replicated $K$ times, whereas the marker design needs a single pass.
+per token than prefill on the target hardware, the gap widens as $K$ grows. On the M4 used in this thesis, prefill costs
+about 0.37\,ms per token for the 0.5B model and 2.2\,ms for the 3B, whereas decoding costs 5.9 and 31.8\,ms per
+generated token: one decoded token is as expensive as fourteen to sixteen prefilled ones. The two phases also stress the
+hardware differently. Prefill processes many tokens at once and is limited by computation, while decoding produces one
+token at a time and is limited by the bandwidth needed to read the weights~\cite{pope2023scaling,patel2024splitwise}.
+This difference returns in the energy measurements of Chapter~\ref{sec:results}.
+
+A second design reads the shared prefix once and then appends one short question per sentence, scored in a batch. It
+needs a key-value cache replicated $K$ times, whereas the marker design needs a single pass. It is kept as a fallback
+and is the natural format for an untrained model, which understands an explicit question but has no reason to treat a
+marker as one; for this reason it is used by the untrained baseline (Section~\ref{sec:setup-baselines}).
+
+\paragraph{A classifier, not a faster generator.} The readout restricts the decision to three letters, and this
+restriction matters. After the marker, the fine-tuned model would not write the letter that is read: its most probable
+next token is the same letter preceded by a space, and the three readout letters together hold only about 4--5\,\% of
+the probability mass at the markers. Training with a loss restricted to these letters shapes their relative logits, not
+their absolute probability, so the readout behaves as a three-way classifier placed on top of the language model. This
+is what defines a System One: the answer is never decoded, it is chosen among the admissible options. It also echoes
+the observation that the probability of the first answer token and the answer a model actually writes can
+disagree~\cite{wang2024myanswerc}, and that letter choices carry selection biases~\cite{zheng2024mcq}, which a
+specialised and calibrated readout must absorb. A control experiment that takes, with the same weights and the same
+pass, the token that generation would emit instead of the restricted readout quantifies the difference
+(Section~\ref{sec:results-readout}).
 
 % Marker " Verdict:" = 3 tokens with the Qwen2.5 tokenizer (" Ver", "dict", ":"), verified 2026-10-07.
-% TODO: report the measured prefill / decode speeds per model size (Phase 0: prefill 0.37 / 2.2 ms per token, decode 5.9 / 31.8 ms per token for 0.5B / 3B).
+% Prefill / decode speeds: Phase 0 measurements (Project/docs/phase0_report.md). Readout mass: thesis_notes.md (B2 check).
 
 \section{Training objective}
 \label{sec:method-training}
@@ -64,8 +84,9 @@ for supported, 7.5 for contradicted and 4.4 for not-mentioned sentences. Without
 loss by answering ``supported'' almost always. A useful consequence is that a model which learned only the class
 frequencies would stay at a loss of $\ln 3 \approx 1.10$, so a loss below this value shows that the text is being used.
 
-Optimisation uses AdamW without weight decay, a learning rate of $10^{-4}$ reached after a linear warm-up over the first
-3\,\% of the steps and then decayed to zero with a cosine schedule, and one epoch over the training answers. Answers of
+Optimisation uses AdamW without weight decay and, as in the default configuration of MLX, without bias correction of
+the moment estimates; gradients are not clipped. The learning rate of $10^{-4}$ is reached after a linear warm-up over
+the first 3\,\% of the steps and then decayed to zero with a cosine schedule, over one epoch of the training answers. Answers of
 similar length are grouped into micro-batches under a budget of padded tokens, and gradients are accumulated so that
 each optimiser step sees about 16 answers, or about 110 decisions; this keeps a few contradicted sentences in every
 step despite their rarity. Gradient checkpointing keeps memory within the 16\,GB of the laptop. The model is evaluated
@@ -79,9 +100,13 @@ The class weights train the model as if the three classes were equally frequent,
 calibrated to the real frequency of errors. A post-hoc map is therefore fitted on the development set: the three
 logits are divided by a temperature $T$ and shifted by a bias per class, $\mathrm{softmax}(z / T + b)$ with the bias of
 the supported class fixed at zero, and $T$ and $b$ minimise the negative log-likelihood of the development
-labels~\cite{guo2017calibration}. A map of this kind changes the probabilities but not their ranking, so measures such
-as AUROC are unaffected. The bias, however, can change which class is most probable, which matters for how decisions
-and probabilities are used (Section~\ref{sec:results-calibration}).
+labels~\cite{guo2017calibration}. The bias plays the role of the contextual correction proposed for prompted language
+models~\cite{zhao2021calibrate}, fitted here on labelled data. A temperature alone changes the probabilities but neither
+the most probable class nor the ranking of the sentences. The bias, however, can change which class is most probable,
+and with three classes it can also reorder $P(\text{supported})$ slightly between sentences. For this reason the
+classification metrics and the AUROC are computed on the raw output, and the calibrated probabilities are used where a
+probability must mean a frequency: for the calibration metrics, for thresholds and for selective prediction
+(Section~\ref{sec:results-calibration}).
 
 Calibration is measured mainly with the expected calibration error (ECE)~\cite{naeini2015ece,guo2017calibration}. The
 predictions are divided into $M$ bins of equal width according to their confidence, with $M = 15$ in this thesis. For
@@ -96,7 +121,18 @@ observed frequency is the share of correct predictions. ECE does not compare the
 with that of the test set; it asks whether, among the sentences to which the model assigns a given confidence, that
 confidence matches reality. It depends on the choice of bins, and a constant predictor that always outputs the base
 rate has an ECE close to zero while discriminating nothing. For these reasons ECE is always reported together with the
-Brier score, the negative log-likelihood and reliability diagrams.
+Brier score, the negative log-likelihood and reliability diagrams, and the ability of the probabilities to separate
+correct from incorrect decisions is measured separately, with the AUROC and the area under the risk--coverage curve.
+
+\paragraph{From probabilities to served labels.} A user of the verifier sees a label and a probability for each
+sentence, and the two must agree. The raw decision, the most probable class of the uncalibrated output, is the one
+evaluated in this thesis, but it can disagree with the calibrated probability shown next to it: a sentence may be
+labelled ``not mentioned'' while its calibrated $P(\text{supported})$ is slightly above one half. The served output
+therefore derives every element from the calibrated probabilities with a single rule. A sentence is labelled supported if
+and only if $P(\text{supported}) \geq \tau$, and otherwise receives the more probable of the two remaining classes;
+the strict policy flags every sentence that is not supported, and the lenient policy flags only the contradicted ones.
+The threshold $\tau$ is fitted on the development set to maximise the three-way balanced accuracy, and a user can
+change it at request time to choose another operating point without retraining.
 
 \section{Software}
 \label{sec:method-software}
@@ -107,8 +143,10 @@ dataset builder and its checks, the training loop, the calibration, the evaluati
 baselines and a memory guard that runs long jobs one at a time and stops a job before the system runs out of memory.
 A command-line interface and an HTTP server expose the verifier; the server offers a native endpoint and an endpoint
 compatible with the interface used by other System One models, so that existing clients can use GroundOne by changing
-the address. All model computation runs on a single long-lived worker thread, because the Metal context of the GPU must
-not move between threads.
-
-% TODO: the HTTP endpoints still use the earlier batched-question engine; switch them to the marker readout (design b)
-% before the demo, then describe the request/response format (three probabilities, label, flagged under a policy).
+the address. The native endpoint receives a document and an answer, segments the answer with the same rule used to
+build the data, runs the single forward pass of Section~\ref{sec:method-readout} and returns, for every sentence, whether
+it was scored, the three calibrated probabilities, the served label, the strict and lenient flags, and the decision rule
+and threshold that produced them; it also reports the number of input tokens, the number of generated tokens, which is
+always zero, and the time spent. The compatible endpoint answers generic closed questions over a shared context with the
+question-per-sentence format. All model computation runs on a single long-lived worker thread, because the Metal context
+of the GPU must not move between threads, and nothing leaves the machine: models, data and requests stay local.

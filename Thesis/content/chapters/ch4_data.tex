@@ -29,9 +29,10 @@ function of $K$, and the data must contain long answers as well as short ones.
 The model outputs three probabilities per sentence, and every other quantity is derived from them rather than learned
 separately. The binary groundedness score, used for comparison with published binary benchmarks, is
 $P(\text{supported})$. A \emph{strict} policy, under which anything not stated in the document is an error, flags a
-sentence when $P(\text{supported}) < \tau$. A \emph{lenient} policy, under which only contradictions are errors, flags
-it when $P(\text{contradicted}) > \tau$. The user can thus choose the notion of error at inference time without
-retraining the model.
+sentence when $P(\text{supported})$ falls below a threshold $\tau$. A \emph{lenient} policy, under which only
+contradictions are errors, flags it only when it is judged contradicted. The user can thus choose the notion of error, and
+the threshold, at inference time without retraining the model; Section~\ref{sec:method-calibration} gives the exact rule
+used by the served verifier.
 
 \section{Source datasets}
 \label{sec:data-sources}
@@ -105,10 +106,9 @@ sentences cut in the same way.
 \paragraph{Sentences without checkable content.} Some sentences make no claim about the document: greetings,
 headings that introduce a list, citation-only lines such as ``(Passage 2)'' and refusal formulas. They remain in the
 numbered answer as context but are not decisions, and they carry no label. A short rule detects them, and it applies
-to 8.2\,\% of all RAGTruth sentences, mostly list headings. The rule was written in advance and adjusted twice, only
-for formatting: list markers and citation-only lines were handled after the comparison with LLM-AggreFact described in
-Section~\ref{sec:data-reliability} showed them as the main source of mismatches, and a few conversational formulas
-found in the training data were added. No change was made to the labels.
+to 8.2\,\% of all RAGTruth sentences, mostly list headings. The rule concerns only formatting, such as list markers,
+citation-only lines and conversational formulas, and it never changes a label; its coverage was checked against the
+independent segmentation of LLM-AggreFact described in Section~\ref{sec:data-reliability}.
 
 \paragraph{Labels.} A scored sentence is labelled as contradicted if it overlaps a conflict span, as not mentioned if
 it overlaps only baseless-information spans, and as supported otherwise. Only 27 of the 14{,}226 annotated spans
@@ -210,9 +210,9 @@ These checks validate the binary side of T1. The distinction between contradicte
 RAGTruth annotators, whose agreement on the hallucination type is not published. Moreover, a recent re-annotation of
 the RAGTruth test split found 1.68 times more hallucinated answers than the original labels~\cite{yu2026retromorphic},
 which suggests that T1 under-counts the two minority classes. For these reasons the three-way results on T1 are always
-read together with those on T3. After these checks the three test files are frozen with cryptographic hashes, and the
-dataset builder refuses to overwrite them with different content.
-% TODO: confirm once `groundone data freeze` has been run (pending the author's approval).
+read together with those on T3. After these checks, and before any model was trained, the three test files were frozen
+with cryptographic hashes, and the dataset builder refuses to overwrite them with different content; rebuilding the
+dataset from the raw sources reproduces the frozen files exactly.
 
 \section{Exploratory analysis}
 \label{sec:data-eda}

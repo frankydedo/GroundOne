@@ -1,43 +1,79 @@
 \chapter{Results}
 \label{sec:results}
 
-% Source notes: Project/docs/thesis_notes.md (Ch. 6). Numbers: Project/outputs/results/<run>/{t1,t2,t3,calibration,latency}/metrics.json,
-% Project/outputs/results/subset_comparisons.json. Figures: Project/outputs/figures/{benchmarks,training-*,calibration-*}/.
-% STATUS: first complete draft (2026-10-08). Missing: T2 for the 3B, bootstrap confidence intervals.
+% Source notes: Project/docs/thesis_notes.md (Ch. 6) and checkpoint_2026-10-10.md. Numbers:
+% Project/outputs/results/<run>/{t1,t2,t3,calibration,latency,energy}/metrics.json; bootstrap: results/bootstrap/summary.md.
+% Figures: Project/outputs/figures/{benchmarks,bootstrap,training-*,calibration-*}/ (copied to Thesis/images/results/).
 
-This chapter reports how GroundOne learns, what it achieves on the three frozen test sets, how it compares with the
-baselines, how well its probabilities are calibrated and how its latency grows with the number of decisions. It ends
-with an analysis of the errors that remain.
+This chapter reports how GroundOne learns and how stable its training is, what it achieves on the three frozen test sets,
+how it compares with the baselines, and what the System One readout contributes by itself. It then examines the quality
+of the probabilities, the time and energy needed to verify an answer, and the errors that remain. Intervals are 95\,\%
+cluster-bootstrap intervals computed as described in Section~\ref{sec:setup-statistics}.
 
 \section{Training}
 \label{sec:results-training}
 
 Both models learned the task. Before training, a model reading the marker format has no notion of what the marker asks
 and its verdicts are at chance: the 0.5B answers ``contradicted'' for 88\,\% of the development sentences and reaches a
-three-way balanced accuracy of 0.32. In both runs the training loss fell below the value of a model that learned only
-the class frequencies ($\ln 3 \approx 1.10$) within the first few dozen steps, and the development score then rose
-steadily (Figure~\ref{fig:results-dev}). The 0.5B, trained on all 13{,}203 answers, reached its best score at step 600
-of 802, with a balanced accuracy of 0.633 averaged over the three tasks, after which it stayed flat. The 3B, trained for
-12.25 hours on 6{,}500 answers, reached 0.705 at step 320 of 403 on its development subset. Measured on the full
-development set, the three-way balanced accuracy is 0.731 for the 0.5B and 0.784 for the 3B. All three classes were
-predicted throughout both runs, so neither model collapsed onto a single answer.
+three-way balanced accuracy of 0.32. In the completed runs the training loss fell below the value of a model that
+learned only the class frequencies ($\ln 3 \approx 1.10$) within the first hundred steps, and the development score then
+rose steadily (Figure~\ref{fig:results-dev}). The 0.5B, trained on all 13{,}203 answers, reached its best score at step
+600 of 802, with a balanced accuracy of 0.633 averaged over the three tasks, after which it stayed flat. The 3B, trained
+for 12.25 hours on 6{,}500 answers, reached 0.705 at step 320 of 403 on its development subset. Measured on the full
+development set, the three-way balanced accuracy is 0.731 for the 0.5B and 0.784 for the 3B, and all three classes were
+predicted throughout both runs.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/results/g1-05b-dev_bacc.png}
 \caption{Three-way balanced accuracy on the development set during training of the 0.5B model, overall (left) and per
-task (right). The dotted line marks chance. The 3B shows the same shape on its 200-answer development subset
-(\texttt{outputs/figures/training-g1-3b-b1}).}
+task (right). The dotted line marks chance. The 3B shows the same shape on its 200-answer development subset.}
 \label{fig:results-dev}
 \end{figure}
+
+\section{Variability across seeds}
+\label{sec:results-seeds}
+
+The 0.5B recipe was run again with a second seed, which changes the initialisation of the adapters and the order of the
+batches. When training converges, it converges to the same place (Figure~\ref{fig:results-seeds}): the second run
+reaches a three-way balanced accuracy of 0.767 on T1 against 0.769, an AUROC of 0.907 against 0.905, 71.5 against 70.1
+on LLM-AggreFact and 0.434 against 0.442 on VitaminC. On T1 the paired difference is $+0.001$ ($-0.008$ to $+0.011$) and
+is not significant. The variation lies in finer details. The errors are distributed differently between the classes, with
+the recall of supported and not-mentioned sentences moving by about 0.04 in opposite directions, and the smaller slices
+move more: the band with fourteen or more decisions by 0.023, the AUROC on VitaminC by 0.025 and single datasets of
+LLM-AggreFact by up to ten points, as on WiCE (67.9 against 78.0).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{images/results/seed_runs_05b.png}
+\caption{Development three-way balanced accuracy of the 0.5B during training with the same recipe and three seeds. Two
+runs converge to the same level; the third collapsed to a constant predictor and was stopped.}
+\label{fig:results-seeds}
+\end{figure}
+
+Two consequences follow. First, the bootstrap, which resamples the test data, does not capture this source of
+variability: on LLM-AggreFact and VitaminC the two runs of the same recipe differ by more than their intervals allow
+($-0.013$ on the macro of T2, $-0.025$ on the AUROC of T3). Differences between systems that are smaller than the spread
+between seeds, about 1.5 points on the macro of LLM-AggreFact and 0.025 in AUROC on VitaminC, are therefore not
+interpreted, and neither are single datasets of LLM-AggreFact unless the gap exceeds about five points.
+
+Second, training does not always converge. A run with a third seed stayed near chance: its development score was 0.369
+at step 150 and 0.333 at step 300, where it predicted ``supported'' for every sentence, and the training loss remained
+close to the value of a model without information. The run was stopped at step 470 of 801, when its score had climbed to
+0.444, so whether it would have recovered by the end of the epoch is unknown; being incomplete, it is excluded from the
+tables. The recipe has two features that are known to make fine-tuning fragile: gradients are not clipped, and the
+optimiser runs without bias correction, the default of the framework, a setting that has been identified as a main cause
+of failed fine-tuning runs~\cite{pascanu2013difficulty,mosbach2021stability}. One collapse in three runs does not
+measure a failure rate, but it shows that the recipe is not fully robust to initialisation.
 
 \section{Accuracy on the RAG test set (T1)}
 \label{sec:results-t1}
 
 On the 17{,}284 sentences of T1 the 0.5B model reaches a three-way balanced accuracy of 0.769 and the 3B model 0.832
-(Table~\ref{tab:results-t1}). On the binary decision the 0.5B reaches a balanced accuracy of 0.815 and an AUROC of
-0.905, and the 3B 0.874 and 0.940. Both are far above the cues that never verify a sentence against its document: word
-overlap reaches an AUROC of 0.737, and the sentence-only classifier a three-way balanced accuracy of 0.570.
+(Table~\ref{tab:results-t1}); the difference, $+0.063$ ($+0.052$ to $+0.076$), is the clearest effect of model size. On
+the binary decision the 0.5B reaches a balanced accuracy of 0.815 and an AUROC of 0.905, and the 3B 0.874 and 0.940.
+Both are far above the cues that never verify a sentence against its document: word overlap reaches an AUROC of 0.737,
+and the sentence-only classifier a three-way balanced accuracy of 0.570.
 
 \begin{table}[htbp]
 \centering
@@ -70,23 +106,26 @@ $K \geq 14$ & 1{,}637 & 0.723 & 0.50 & 0.908 & 0.839 & 0.68 & 0.957 \\
 Three observations stand out. First, accuracy does not degrade with the length of the answer: answers with fourteen or
 more decisions are among the best handled, with 0.723 for the 0.5B and 0.839 for the 3B, and the hardest band is the
 shortest, which mostly contains question-answering and summarisation answers. This matters because long answers are
-where a System One saves the most time. Second, contradictions are recognised mainly in data-to-text, where RAGTruth
-concentrates them. In question answering and summarisation the 0.5B separates supported from not-mentioned sentences
-well but finds almost no contradictions, with a recall of 0.03 and 0.13. The 3B raises both to 0.30, so model size
-compensates in part for the scarcity of such examples in the training data. Third, question answering and
-summarisation are the clearest evidence that the models read the document: there the sentence-only classifier stays at
-chance (0.36 and 0.35), while the two models reach 0.59--0.70 and 0.54--0.63.
+where a System One saves the most time; on these answers the gain of the 3B over the 0.5B is $+0.116$ ($+0.050$ to
+$+0.180$). Second, contradictions are recognised mainly in data-to-text, where RAGTruth concentrates them. In question
+answering and summarisation the 0.5B separates supported from not-mentioned sentences well but finds almost no
+contradictions, with a recall of 0.03 and 0.13. The 3B raises both to 0.30, so model size compensates in part for the
+scarcity of such examples in the training data. Third, question answering and summarisation are the clearest evidence
+that the models read the document: there the sentence-only classifier stays at chance (0.36 and 0.35), while the two
+models reach 0.59--0.70 and 0.54--0.63.
 
 \section{Comparison with the baselines}
 \label{sec:results-baselines}
 
 Figure~\ref{fig:results-comparison} compares all systems on T1. The specialised encoders reach an AUROC of 0.814
-(MiniCheck-RoBERTa) and 0.821 (HHEM), above word overlap but well below both GroundOne models. The comparison by task
-qualifies this result: GroundOne's advantage comes mostly from data-to-text, where it is trained in domain and where
+(MiniCheck-RoBERTa) and 0.821 (HHEM), above word overlap but below both GroundOne models: the 0.5B exceeds them by
+$+0.091$ ($+0.074$ to $+0.107$) and $+0.083$ ($+0.066$ to $+0.099$), the 3B by $+0.126$ and $+0.119$. The comparison by
+task qualifies this result. GroundOne's advantage comes mostly from data-to-text, where it is trained in domain and where
 the encoders are weakest (AUROC 0.71--0.75), while on summarisation MiniCheck-RoBERTa is better than the 0.5B model
-(0.872 against 0.775) and level with the 3B (0.873). The untrained models confirm that specialisation, not the readout mechanism, produces the
-accuracy: the 0.5B is at chance because it never answers ``supported'', and the 3B, asked the same question, reaches
-0.437 against 0.818 after training on the same answers.
+(0.872 against 0.775) and level with the 3B (0.873). The untrained models show how much of the accuracy training
+provides: the 0.5B is at chance because it never answers ``supported'', and the 3B, asked the same question, reaches
+0.437 against 0.818 after training, measured on the same answers. How much the restricted readout contributes on top of
+training is measured separately in Section~\ref{sec:results-readout}.
 
 \begin{figure}[htbp]
 \centering
@@ -98,46 +137,77 @@ with a three-way output (right). Rizzo-Flow is evaluated on 300 answers and the 
 
 The general-purpose System One is the most instructive comparison. On the same 300 answers of T1, Rizzo-Flow, a 4B
 model fine-tuned for generic decisions, reaches a three-way balanced accuracy of 0.603, against 0.798 for the 0.5B
-GroundOne and 0.840 for the 3B; its AUROC (0.894) is close to that of the 0.5B (0.916) because it ranks sentences well
-but predicts ``supported'' for 90\,\% of them. A specialist eight times smaller therefore outperforms the generalist on
-the task it was built for.
+GroundOne and 0.840 for the 3B; the differences, $+0.195$ ($+0.136$ to $+0.249$) and $+0.237$ ($+0.184$ to $+0.285$), are
+large. Its AUROC (0.894) is close to that of the 0.5B on these answers (0.916; the difference is not significant) because
+it ranks sentences well but predicts ``supported'' for 90\,\% of them; the 3B ranks them better ($+0.056$, $+0.034$ to
+$+0.079$). A specialist eight times smaller therefore outperforms the generalist on the decision it was built for, while
+matching it in the ability to rank sentences.
 
 On LLM-AggreFact (T2) the 0.5B model reaches a macro-averaged balanced accuracy of 70.1 over the eleven datasets,
-against 64.2 for the same model used zero-shot and 72.8 for the zero-shot 7B model on the public leaderboard. On the four
-datasets closest to retrieval-augmented generation the average is 74.4, equal to MiniCheck-RoBERTa (74.6); on the
-RAGTruth column it is 82.1 against 76.5, a comparison that favours GroundOne because it was trained on RAGTruth training
-answers. Outside retrieval-augmented generation GroundOne is weaker than the encoder by eight to nine points on
-AggreFact-CNN, AggreFact-XSum, FactCheck-GPT and REVEAL, the expected cost of training on RAG data only.
+against 64.2 for the same model used zero-shot and 72.8 for the zero-shot 7B model on the public leaderboard. It remains
+below MiniCheck-RoBERTa (74.0) by 3.9 points, a significant difference. On the four datasets closest to
+retrieval-augmented generation the two are on par (74.4 against 74.6), and on the RAGTruth column GroundOne leads, 82.1
+against 76.5, a comparison that favours it because it was trained on RAGTruth training answers. Outside
+retrieval-augmented generation the 0.5B is weaker than the encoder by seven to nine points on AggreFact-CNN,
+AggreFact-XSum, FactCheck-GPT and REVEAL, the expected cost of training on RAG data only.
 
-The 3B model, evaluated on the full test set, closes this gap. Its macro-averaged balanced accuracy is 74.8, on par with
-MiniCheck-RoBERTa (74.0; paired cluster-bootstrap difference $+0.8$ points, 95\,\% interval $-0.5$ to $+2.1$) and above
-the published zero-shot score of the 7B model (72.8, for which no interval can be computed). On the RAG datasets it
-reaches 76.9, 2.4 points above the encoder (interval $+1.4$ to $+3.3$). Its gain over the 0.5B is broad,
+The 3B model, evaluated on the full test set, closes most of this gap. Its macro-averaged balanced accuracy is 74.8, on
+par with MiniCheck-RoBERTa (74.0; paired difference $+0.8$ points, interval $-0.5$ to $+2.1$) and above the published
+zero-shot score of the 7B model (72.8, for which no interval can be computed). On the RAG datasets it reaches 76.9, 2.4
+points above the encoder (interval $+1.4$ to $+3.3$). Its gain over the 0.5B, $+4.7$ points ($+3.4$ to $+5.9$), is broad,
 with the largest improvements on REVEAL, WiCE, FactCheck-GPT and XSum, so model size improves transfer beyond the
-training domain. The 3B remains below the encoder on news summarisation (AggreFact-CNN, 59.3 against 67.1) and on
-ClaimVerify.
+training domain. The 3B remains clearly below the encoder only on news summarisation (AggreFact-CNN, 59.3 against 67.1).
+Rizzo-Flow, on the 1{,}093 items of its subsample, reaches 61.5; there the 3B GroundOne is 12.0 points better ($+7.4$ to
+$+16.5$).
 
 \section{Transfer to a different domain (T3)}
 \label{sec:results-t3}
 
-On VitaminC the picture reverses. The 0.5B reaches a three-way balanced accuracy of 0.442 and the 3B 0.527, with
-AUROCs of 0.722 and 0.817, while Rizzo-Flow reaches 0.712 and 0.909 on the same 600 pairs and MiniCheck-RoBERTa an AUROC
-of 0.968. Two facts put these numbers in context. MiniCheck-RoBERTa starts from the AlignScore model, whose training
-data include VitaminC~\cite{zha2023alignscore}, so T3 belongs to its training distribution, whereas for GroundOne it
-measures transfer from RAGTruth. Moreover, the gain of the 3B over the 0.5B on T3 comes from model size rather than
-from the RAG training: the untrained 3B already reaches 0.531 and an AUROC of 0.821. Specialisation on RAG answers
-therefore improves the RAG task substantially but does not, by itself, produce a general fact checker.
+On VitaminC the picture reverses. On the full test set the 0.5B reaches a three-way balanced accuracy of 0.442 and the 3B
+0.527, with AUROCs of 0.722 and 0.817, and MiniCheck-RoBERTa reaches an AUROC of 0.968. On the 600 pairs evaluated with
+Rizzo-Flow, the general-purpose model reaches 0.712 and an AUROC of 0.909, against 0.442 and 0.744 for the 0.5B and 0.537
+and 0.845 for the 3B. Two facts put these numbers in context. MiniCheck-RoBERTa starts from the AlignScore model, whose
+training data include VitaminC~\cite{zha2023alignscore}, so T3 belongs to its training distribution, whereas for
+GroundOne it measures transfer from RAGTruth. Moreover, the gain of the 3B over the 0.5B on T3 comes from model size
+rather than from the RAG training: the untrained 3B already reaches 0.531 and an AUROC of 0.821. Specialisation on RAG
+answers therefore improves the RAG task substantially but does not, by itself, produce a general fact checker.
 Section~\ref{sec:results-errors} shows which cases are missed.
+
+\section{Readout versus generation}
+\label{sec:results-readout}
+
+The control B2 isolates the readout. With the same fine-tuned weights, the same prompt and the same single pass, the
+verdict at each marker is either read from the three answer letters, as GroundOne does, or taken as the token that
+greedy generation would emit (Figure~\ref{fig:results-readout}). For the 0.5B the generated token gives a three-way
+balanced accuracy of 0.521 against 0.769 for the readout, a difference of $+0.248$ ($+0.228$ to $+0.269$): in a quarter
+of the markers (24.7\,\%) the model would not emit a letter at all, but most often a bare space, the beginning of a
+longer answer. For the 3B the generated token is almost always a letter (1.2\,\% failures) and agrees with the readout in
+92\,\% of the markers, yet the readout is still better, 0.832 against 0.761 ($+0.071$, $+0.059$ to $+0.083$). On answers
+with fourteen or more decisions the gap is largest for the small model, $+0.346$.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/readout_vs_generation.png}
+\caption{Control B2 on the full T1: with the same weights and the same forward pass, the verdict is read from the three
+answer letters (GroundOne) or taken as the token that greedy generation would emit (format failures counted as errors).}
+\label{fig:results-readout}
+\end{figure}
+
+The latency of the two options is the same, since both use one pass; what differs is the decision rule. Restricting the
+choice to the admissible options removes format failures by construction and, since the model is trained only to order
+the three letters, also gives the more accurate decision (Section~\ref{sec:method-readout}). The smaller the model, the
+more this restriction matters. The often repeated expectation that reading answer logits and generating a single answer
+token are equivalent therefore holds for the cost but not for the accuracy of a fine-tuned verifier.
 
 \section{Calibration and selective prediction}
 \label{sec:results-calibration}
 
 The raw probabilities underestimate support. In the reliability diagram (Figure~\ref{fig:results-reliability}) the raw
 curve lies above the diagonal, because the class weights train the model as if the classes were balanced; the binary
-ECE on T1 is 0.30 for the 0.5B and 0.18 for the 3B, whose raw probabilities are already better calibrated. The
-temperature and bias fitted on the development set bring the ECE on T1 to 0.019 for both models and reduce the negative
-log-likelihood from 0.55 to 0.21 (0.5B) and from 0.36 to 0.17 (3B), while the AUROC is unchanged. The map fitted on
-development data therefore transfers to the test set of the same domain.
+ECE on T1 is 0.30 for the 0.5B and 0.18 for the 3B. The temperature and bias fitted on the development set bring the ECE
+on T1 to 0.019 for both models, and to 0.020 for the second run of the 0.5B, and reduce the negative log-likelihood from
+0.55 to 0.21 (0.5B) and from 0.36 to 0.17 (3B), while the AUROC is practically unchanged. The map fitted on development
+data therefore transfers to the test set of the same domain.
 
 \begin{figure}[htbp]
 \centering
@@ -148,13 +218,18 @@ for the development set, T1 and T3. Points are bins with at least 20 sentences.}
 \end{figure}
 
 Calibration has a consequence that must be kept in mind. The bias restores the true frequency of each class, so the most
-probable class becomes ``supported'' more often: for the 0.5B on T1 the accuracy rises from 0.82 to 0.93, but the
-three-way balanced accuracy falls from 0.77 to 0.63. Decisions and probabilities therefore serve different purposes. When
-the three kinds of error matter equally, decisions are taken on the raw output or with a threshold chosen on development
-data; when a probability is used as a confidence, for a policy threshold or to decide which sentences to defer, the
-calibrated value is the right one. Used in this way, calibrated probabilities make selective prediction effective:
-deferring the least confident sentences lowers the error rate of the binary decision quickly, with an area under the
-risk--coverage curve of 0.015 (0.5B) and 0.010 (3B) on T1 (Figure~\ref{fig:results-risk}).
+probable calibrated class becomes ``supported'' more often: for the 0.5B on T1 the accuracy rises from 0.82 to 0.93, but
+the three-way balanced accuracy falls from 0.77 to 0.63. Taking the most probable calibrated class is therefore not a
+good decision rule when the three kinds of error matter equally. The served rule of
+Section~\ref{sec:method-calibration} resolves this: with the threshold fitted on development data, $\tau$ = 0.935 for the
+0.5B, 0.895 for its second run and 0.925 for the 3B, it reaches 0.758, 0.769 and 0.830 on T1, within 0.01 of the raw
+decision evaluated throughout this chapter, while keeping labels and calibrated probabilities consistent. The thresholds
+are high because 91\,\% of the RAGTruth sentences are supported: a sentence is served as supported only when the model is
+very confident.
+
+Used as confidences, calibrated probabilities make selective prediction effective: deferring the least confident
+sentences lowers the error rate of the binary decision quickly, with an area under the risk--coverage curve of 0.015
+(0.5B) and 0.010 (3B) on T1 (Figure~\ref{fig:results-risk}).
 
 \begin{figure}[htbp]
 \centering
@@ -165,21 +240,55 @@ confident sentences are deferred.}
 \end{figure}
 
 Calibration does not transfer to VitaminC, where the binary ECE rises from 0.17 to 0.21 for the 0.5B and from 0.14 to
-0.19 for the 3B. The bias encodes the base rate of RAGTruth, where about 88\,\% of sentences are supported, while
-VitaminC is balanced by construction. A calibration is valid for the distribution it was fitted on, so a deployment needs
-a small labelled sample of its own data.
+0.19 for the 3B, and where the served rule loses 0.02--0.04 with respect to the raw decision. The bias encodes the base
+rate of RAGTruth, while VitaminC is balanced by construction. A calibration is valid for the distribution it was fitted
+on, so a deployment needs a small labelled sample of its own data.
+
+\section{Probabilities at equal output}
+\label{sec:results-equal-output}
+
+The equal-output judges answer whether a generative judge of the same size, asked for the same content as GroundOne, can
+match the quality of its probabilities. It cannot (Figure~\ref{fig:results-equal}). On the 200 answers of the latency
+subset, with every system calibrated on development data in the same way, the AUROC of $P(\text{supported})$ is 0.94 and
+0.97 for GroundOne, 0.48 and 0.68 for the judge whose probabilities are read from the logits, and 0.47 and 0.58 for the
+judge that writes them, for the 0.5B and the 3B respectively. The area under the risk--coverage curve is 0.009 and 0.005
+for GroundOne against 0.048 to 0.063 for the judges, five to twelve times larger. The accuracy of the decisions follows the
+same pattern: 0.835 and 0.900 for GroundOne against at most 0.41 for any judge.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/equal_output_judges.png}
+\caption{Equal-output comparison on the 200 latency answers: generative judges of the same size asked for GroundOne's
+output, with probabilities read from the logits of the generated letter or written in JSON; all systems calibrated on
+development data with the same map. Sentences with a valid verdict only.}
+\label{fig:results-equal}
+\end{figure}
+
+Two further observations matter for practice. Probabilities written in words carry almost no information: the 3B writes
+a vector with all the mass on one class for 93\,\% of the sentences, using only sixteen distinct vectors, and the 0.5B
+writes uninformative ties such as equal probabilities for all classes; counting the ties without a label as failures,
+its balanced accuracy falls from 0.234 to 0.081. This agrees with the finding that verbalised confidence of small models
+is coarse and poorly informative~\cite{xiong2024uncertainty,tian2023justask}. Second, the ECE alone would hide all of
+this: after calibration every system, including the judges, reaches a binary ECE between 0.03 and 0.05, because a
+calibration map can match the average confidence to the base rate even when the probabilities do not separate the
+classes. Discrimination must be measured separately, with the AUROC and the risk--coverage curve.
+
+Asking for the probabilities also has a cost. The judge that reads them from logits is as fast as the terse judge, since
+it generates the same letters, but the judge that writes the JSON object needs 17.0 seconds per answer with fourteen or
+more decisions on the 3B, as much as the verbose judge, for an accuracy no better than that of the terse one.
 
 \section{Latency as a function of K}
 \label{sec:results-latency}
 
 Figure~\ref{fig:results-latency} shows the central measurement of the thesis: the time needed to verify one answer, on
-the same 200 answers of T1, as the number of decisions grows. GroundOne is the fastest system at every size and in every
-band of $K$, and its advantage grows with $K$. For answers with fourteen or more decisions, the 0.5B GroundOne needs
-0.41 seconds, against 0.80 for the terse judge and 2.51 for the verbose judge of the same size, which is 2.0 and 6.1
-times faster; the 3B GroundOne needs 2.57 seconds, against 4.44 and 15.86, which is 1.7 and 6.2 times faster. Reading
-all verdicts in one pass is also faster than asking one question per sentence in a batch, by a factor of 1.4--1.5 at
-the highest $K$. Model size is the other lever: the 0.5B GroundOne verifies an answer about six times faster than the
-3B (0.33 against 1.99 seconds at the median).
+the same 200 answers of T1, as the number of decisions grows. Among the systems that run in process on MLX, GroundOne is
+the fastest at every size and in every band of $K$, and its advantage grows with $K$. For answers with fourteen or more
+decisions, the 0.5B GroundOne needs 0.41 seconds, against 0.80 for the terse judge and 2.51 for the verbose judge of the
+same size: it is 1.95 times faster than the first (1.82 to 2.14) and 6.16 times faster than the second (5.72 to 6.67).
+The 3B GroundOne needs 2.57 seconds, against 4.44 and 15.86, which is 1.73 times (1.65 to 1.82) and 6.18 times (5.88 to
+6.65) faster. Reading all verdicts in one pass is also faster than asking one question per sentence in a batch, by a
+factor of 1.4--1.5 at the highest $K$. Model size is the other lever: the 0.5B GroundOne verifies an answer about six
+times faster than the 3B (0.33 against 1.99 seconds at the median).
 
 \begin{figure}[htbp]
 \centering
@@ -205,6 +314,29 @@ whose verdict could not be parsed.}
 \label{fig:results-judges}
 \end{figure}
 
+\section{Energy per verification}
+\label{sec:results-energy}
+
+The energy measurement adds a qualification that latency alone hides (Figure~\ref{fig:results-energy}). GroundOne uses
+the least energy at both sizes: 5.5 joules per answer for the 0.5B and 33 for the 3B, against 8.9 and 43 for the terse
+judge and 22.5 and 112 for the verbose judge. Its advantage, however, is smaller than its advantage in time: 1.6 and 1.3
+times less energy than the terse judge, and 4.1 and 3.4 times less than the verbose one. The reason is the power drawn
+during the computation. GroundOne spends its time in a single long prefill, which keeps the GPU busy and draws about
+16\,W above idle, while autoregressive decoding is limited by memory bandwidth and draws 11--14\,W, but for much longer.
+This is the behaviour expected from the two phases of transformer inference~\cite{patel2024splitwise}, and it means that
+a speed-up should never be read as an equal saving of energy~\cite{samsi2023words,luccioni2024power}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/energy_per_answer.png}
+\caption{Energy per verified answer on 100 latency answers (powermetrics, CPU, GPU and Neural Engine, net of idle power),
+with the mean net power during the run.}
+\label{fig:results-energy}
+\end{figure}
+
+In absolute terms the numbers are small: 5.5 joules is about 0.0015 watt-hours, so the 0.5B GroundOne could verify
+roughly six hundred answers with the energy of one watt-hour, entirely on the laptop.
+
 \section{Error analysis}
 \label{sec:results-errors}
 
@@ -220,4 +352,4 @@ document it falls to 0.54, with a recall of 0.24 for contradicted and 0.43 for n
 this blind spot without removing it: on the same sentences its recall is 0.36 and 0.56, and its balanced accuracy 0.63.
 Hallucinations hidden in sentences that otherwise copy the source remain the main limitation of both models. VitaminC is
 not harder in absolute terms: it consists mostly of such cases, paraphrased support and minimal edits, which RAGTruth
-contains in smaller numbers.
+contains in smaller numbers. Appendix~\ref{app:examples} shows the output of every system on the same answer.

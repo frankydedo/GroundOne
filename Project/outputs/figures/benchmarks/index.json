@@ -1,5 +1,25 @@
 [
   {
+    "file": "seed_runs_05b.png",
+    "caption": "Development three-way balanced accuracy during training of the 0.5B with the same recipe and three seeds. Two runs converge to the same level; the third collapsed to a constant predictor after step 150 and was stopped at step \u2248 470.",
+    "source": "models/g1-05b-{b1,s3,s2}/train_log.jsonl"
+  },
+  {
+    "file": "energy_per_answer.png",
+    "caption": "Energy per verified answer on 100 latency answers (powermetrics, CPU + GPU + Neural Engine, net of idle power), with the mean net power during the run. GroundOne uses the least energy, but its single long prefill draws more power than autoregressive decoding, so the energy advantage is smaller than the speed advantage.",
+    "source": "results/energy-*/energy/metrics.json"
+  },
+  {
+    "file": "equal_output_judges.png",
+    "caption": "Equal-output comparison on the 200 latency answers: generative judges of the same size asked for GroundOne's output (a label and three probabilities per sentence), with probabilities read from the logits of the generated letter or written in JSON; all systems calibrated on dev with the same map. Sentences with a valid verdict only.",
+    "source": "results/{g1-*,judge-tlogit-*,judge-json-*}/latency/calibration.json"
+  },
+  {
+    "file": "readout_vs_generation.png",
+    "caption": "Control B2 on the full T1: with the same fine-tuned weights and the same forward pass, the verdict is either read from the three answer letters (GroundOne) or taken as the token that greedy generation would emit at the marker (failures counted as errors).",
+    "source": "results/b2-*/t1/metrics.json"
+  },
+  {
     "file": "comparison_t1.png",
     "caption": "T1 RAGTruth test: AUROC of P(supported) for every system, and three-way balanced accuracy for systems with a three-way output. Word overlap and the sentence-only classifier never verify the sentence against the document. Rizzo-Flow and the untrained 3B are evaluated on subsamples (see metrics files).",
     "source": "results/*/t1/metrics.json"

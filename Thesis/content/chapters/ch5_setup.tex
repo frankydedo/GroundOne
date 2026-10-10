@@ -1,26 +1,35 @@
 \chapter{Experimental Setup}
 \label{sec:setup}
 
-% Source notes: Project/docs/thesis_notes.md; configs Project/GroundOne/configs/train_0.5b.yaml, train_3b.yaml;
-% queues Project/jobs/queue_night3.txt, queue_day4.txt.
+% Source notes: Project/docs/thesis_notes.md; checkpoint_2026-10-10.md; configs Project/GroundOne/configs/train_0.5b.yaml,
+% train_3b.yaml; queues Project/jobs/queue_night3.txt, queue_day4.txt, queue_night5.txt, queue_day5.txt, queue_night6.txt.
 
-This chapter describes the models that were trained, the systems they are compared with, the metrics and the
-measurement protocol. All experiments run on one machine, a MacBook Pro with an Apple M4 chip and 16\,GB of unified
-memory, so that every result reflects what a verifier can do on the device where a local assistant runs.
+This chapter describes the models that were trained, the systems they are compared with, the metrics, the statistical
+protocol and the way time and energy are measured. All experiments run on one machine, a MacBook Pro with an Apple M4
+chip (10-core CPU, 10-core GPU, 120\,GB/s of memory bandwidth) and 16\,GB of unified memory~\cite{apple2024m4specs}, so
+that every result reflects what a verifier can do on the device where a local assistant runs. Every baseline, including
+the encoders and the general-purpose System One, also runs on this laptop; no result depends on a remote service.
 
 \section{Models}
 \label{sec:setup-models}
 
 Both GroundOne models start from the instruction-tuned Qwen2.5 checkpoints~\cite{qwen2024qwen25} converted to MLX with
 8-bit weights, and both are trained with the recipe of Section~\ref{sec:method-training}. They differ only in size, in
-the number of training answers and in how micro-batches are formed, which memory dictates. The 0.5B model is trained
-on all 13{,}203 training answers: one epoch of 802 optimiser steps took 5.4 hours, with an evaluation on the full
-development set every 150 steps. The 3B model is about six times slower per token, so it is trained for one night on
-a random subset of 6{,}500 answers (about 45{,}000 decisions); its development evaluation uses a fixed subset of 200
-answers, because a full pass would take about an hour. In both cases the checkpoint with the best development score is
-kept and then calibrated as described in Section~\ref{sec:method-calibration}.
+the number of training answers and in how micro-batches are formed, which memory dictates.
 
-% TODO: 3B run statistics (steps, hours, best step, peak memory) once g1-3b-b1 has finished.
+The 0.5B model is trained on all 13{,}203 training answers. One epoch of 802 optimiser steps took 5.5 hours of
+wall-clock time, with an evaluation on the full development set every 150 steps, and training used at most 2.6\,GB of
+memory. The 3B model is about six times slower per token, so it is trained for one night on a random subset of 6{,}500
+answers (about 45{,}000 decisions): 403 steps in 12.25 hours, with a peak of 5.9\,GB. Its development evaluation, every
+80 steps, uses a fixed subset of 200 answers, because a full pass would take about an hour. In both cases the checkpoint
+with the best development score is kept and then calibrated as described in Section~\ref{sec:method-calibration}; for
+the 3B this is step 320.
+
+To measure how much the results depend on the random seed, which sets the initialisation of the adapters and the order
+of the batches, the 0.5B recipe is repeated with a second seed. Fine-tuning outcomes are known to vary with both
+factors~\cite{dodge2020finetuning}. One further run with a third seed collapsed early to a constant prediction and was
+stopped at about 60\,\% of the epoch; being incomplete, it is excluded from the tables, and it is discussed in
+Section~\ref{sec:results-seeds}. The completed second run is evaluated on all three test sets exactly like the first.
 
 \section{Baselines}
 \label{sec:setup-baselines}
@@ -34,32 +43,54 @@ Section~\ref{sec:data-eda}.
 
 \paragraph{Untrained readout (B1).} The same Qwen2.5 models, without fine-tuning, are asked the three-way question for
 each sentence and their answer-letter logits are read. Because an untrained model has no reason to treat the
-\texttt{Verdict:} marker as a question, this baseline uses the alternative format with one explicit question per
-sentence (Section~\ref{sec:method-readout}). It measures what the System One mechanism gives before any specialisation.
+\texttt{Verdict:} marker as a question, this baseline uses the format with one explicit question per sentence
+(Section~\ref{sec:method-readout}). It measures what the System One mechanism gives before any specialisation.
 
 \paragraph{Generative judges (B0a, B0b).} The untrained models are also used in the way that is common in practice:
 they receive the document, the numbered answer and the list of sentences to check, and they write a verdict for each
 sentence, with greedy decoding. The \emph{terse} judge writes one line ``\texttt{<number>: <letter>}'' per sentence;
 the \emph{verbose} judge writes one short sentence of reasoning followed by the verdict. A verdict that cannot be
-parsed is a format failure; it is counted as an error in accuracy and reported separately. These judges are the main
-reference for latency.
+parsed is a format failure; it is counted as an error in accuracy and reported separately.
+
+\paragraph{Equal-output judges (B0d).} The terse and verbose judges return less than GroundOne: a letter per sentence
+and no probability, so they offer no calibration, no adjustable threshold and no choice of policy. Two further judges
+are therefore asked for exactly GroundOne's content, a label and three probabilities per sentence. The first writes them
+as a JSON object, with the probabilities expressed in words, which is what a developer would obtain from a prompt alone.
+The second is the terse judge whose three probabilities are read from the logits at the letter it generates; it obtains
+the same content at the cost of the terse judge and is the strongest generative opponent. Both judges are calibrated
+with the same temperature and bias as GroundOne, fitted on 200 development answers, so that their probabilities receive
+the same treatment. The JSON prompt was chosen on twelve development answers for format validity only: a numeric example
+in the prompt was copied verbatim by the models and was replaced by placeholders. Parsing is lenient, in the judges'
+favour: complete entries of a truncated object are kept, and a missing label is taken from the probabilities. Decoding
+is not constrained by a grammar~\cite{willard2023outlines}, so that the protocol stays that of the other judges; this
+choice affects mainly the format failures of the smallest model.
+
+\paragraph{Readout versus generation (B2).} The fine-tuned GroundOne models are run with the same prompt and the same
+single pass, but the verdict at each marker is the token with the highest probability over the whole vocabulary, which is
+what greedy generation of one token would produce. The three letters, with or without a leading space, map to the three
+classes, and any other token is a format failure. This control keeps weights, prompt and cost identical and changes only
+whether the decision is restricted to the admissible options.
 
 \paragraph{A general-purpose System One (B3).} Rizzo-Flow~\cite{rizzoflow} is an open re-implementation of the System
-One idea with a 4B model fine-tuned on generic typed decisions. It is queried through its own interface with the
-document and the numbered answer as shared state and one three-way choice question per sentence, using a 4-bit
-quantised model because the 8-bit one does not fit in memory beside the operating system.
+One idea with a 4B model fine-tuned on generic typed decisions. It runs in its own server, based on
+llama.cpp~\cite{llamacpp}, and is queried over HTTP with the document and the numbered answer as shared state and one
+three-way choice question per sentence. A 4-bit quantised model is used because the 8-bit one does not fit in memory
+beside the operating system.
 
 \paragraph{Specialised encoders (B4).} MiniCheck-RoBERTa~\cite{tang2024minicheck} and HHEM-2.1-open~\cite{vectara2024hhem}
 are the strongest small verifiers available. They score each (document, sentence) pair independently and return one
 probability of support; long documents are split into chunks of about 400 words and the maximum over chunks is kept, as
-in MiniCheck. They have no three-way output, so they are compared on the binary decision only.
+in MiniCheck. They have no three-way output, so they are compared on the binary decision only. They run with PyTorch on
+the GPU of the laptop.
 
 \paragraph{Published results.} For LLM-AggreFact, the scores of larger systems from the public leaderboard, such as
 Qwen2.5-7B used zero-shot, are reported as given and not re-run.
 
-The slower systems are evaluated on stratified subsamples of the test sets: Rizzo-Flow on 300 answers of T1 and 600
-pairs of T3, the untrained 3B on 600 answers of T1, and the generative judges on the 200 answers of the latency
-protocol below. Every other system is evaluated on the complete test sets.
+The slower systems are evaluated on stratified subsamples of the test sets: Rizzo-Flow on 300 answers of T1, 600 pairs
+of T3 and 1{,}100 items of T2, of which it scored 1{,}093 (seven exceeded its context); the untrained 3B on 600 answers
+of T1; and the generative judges on the 200 answers of the latency protocol below. GroundOne, the untrained 0.5B and the
+encoders are evaluated on the complete test sets, and the comparisons with a subsampled system are always made on the
+items that both systems scored.
 
 \section{Metrics}
 \label{sec:setup-metrics}
@@ -69,22 +100,50 @@ Because the share of hallucinated sentences differs between the development set 
 metric is the balanced accuracy, that is the mean recall over the three classes, together with the recall of each class
 and the share of each predicted class, which reveals a model that collapses onto one answer. For the binary decision
 the metrics are the balanced accuracy at a threshold of 0.5, as in the LLM-AggreFact leaderboard, and the AUROC of
-$P(\text{supported})$, which does not depend on any threshold. The lenient policy is evaluated with the balanced
-accuracy and AUROC of $1 - P(\text{contradicted})$. Calibration is measured with the ECE defined in
+$P(\text{supported})$, which does not depend on any threshold. Calibration is measured with the ECE defined in
 Section~\ref{sec:method-calibration}, the Brier score and the negative log-likelihood, and selective prediction with
 risk--coverage curves and the area under them (AURC)~\cite{geifman2017selective}. All metrics on T1 are also reported
 per task and per band of $K$.
 
-% TODO: 95 % confidence intervals by bootstrap over answers, and paired bootstrap for system differences.
+\section{Statistical protocol}
+\label{sec:setup-statistics}
 
-\section{Latency protocol and hardware}
+Every difference between two systems is accompanied by a 95\,\% confidence interval from a paired bootstrap with 2{,}000
+resamples~\cite{koehn2004significance,bergkirkpatrick2012significance,dror2018hitchhiker}. The resampling unit is not the
+sentence but the group that the leakage check uses: the source document in RAGTruth, the document in LLM-AggreFact and
+the Wikipedia page in VitaminC. Sentences of the same answer, and answers about the same document, are strongly
+correlated, and resampling them independently would produce intervals that are too narrow. On LLM-AggreFact the groups
+are resampled within each of the eleven datasets, because the macro average gives each dataset the same weight. Both
+systems of a comparison are evaluated on the same resamples, and the reported $p$-value is the two-sided share of
+resamples in which the difference changes sign.
+
+Two limits of this protocol are stated in advance. First, about fifty comparisons are tested and no correction for
+multiple comparisons is applied; the conclusions therefore rest on intervals that lie far from zero, and a difference
+with a $p$-value near 0.05 is not claimed. Second, resampling the data does not capture the variability due to training:
+the two runs of the 0.5B provide that information separately (Section~\ref{sec:results-seeds}).
+
+\section{Latency, energy and hardware}
 \label{sec:setup-protocol}
 
 Latency is measured on 200 answers of T1, 50 from each band of $K$, so that long answers are as well represented as
-short ones. Every system runs in process on MLX, one answer at a time, as a verifier would in a local assistant. The
-first three answers serve as warm-up and are excluded. For the System One variants each answer is timed three times and
-the median is kept; the generative judges are timed once, since greedy decoding is deterministic and each run is much
-longer. The reported time is the wall-clock time of the model call for one answer, from which the time per decision
-follows. Only one model runs at a time, and a memory guard runs every long job and records the free memory and the swap
+short ones. GroundOne, the question-per-sentence readout and all generative judges run in process on MLX, one answer at a
+time, as a verifier would in a local assistant. The first three answers serve as warm-up and are excluded. For the
+System One variants each answer is timed three times and the median is kept; the generative judges are timed once,
+since greedy decoding is deterministic and each run is much longer. The reported time is the wall-clock time of the
+model call for one answer, from which the time per decision follows.
+
+Times were also recorded for the encoders and for Rizzo-Flow, but under conditions that do not allow a fair comparison:
+the encoders ran with PyTorch and scored each sentence separately, re-reading the document every time, which penalises
+them, and Rizzo-Flow ran in a different inference engine, with 4-bit weights and behind an HTTP interface. No latency
+claim is therefore made against them.
+
+Energy is measured with the \texttt{powermetrics} tool of macOS, which reports the power of the CPU, the GPU and the
+Neural Engine every 200 milliseconds. For each system, 100 answers of the latency subset (25 per band of $K$) are
+verified once, after 60 seconds of idle measurement with the model already loaded; the energy of a verification is the
+mean power during the run, minus the idle power, multiplied by the run time and divided by the number of answers. The
+measurement covers the computing units of the chip but not the memory, the display or the storage, and it was taken
+overnight with the machine otherwise idle.
+
+Only one model runs at a time, and a memory guard runs every long job and records the free memory and the swap
 throughout. Results are written once and never overwritten, and each run stores its configuration, so every number in
 Chapter~\ref{sec:results} can be traced to the run that produced it.

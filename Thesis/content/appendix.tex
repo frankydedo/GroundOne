@@ -1,25 +1,141 @@
-% appendix
-\chapter{Galileo}
-\label{sec:appendix_galileo}
+\chapter{Output of every system on one answer}
+\label{app:examples}
 
-\lstdefinelanguage{JavaScript}{
-  keywords={break, case, catch, continue, debugger, default, delete, do, else, finally, for, function, if, in, const, instanceof, new, return, switch, this, throw, try, typeof, var, void, while, with},
-  morecomment=[l]{//},
-  morecomment=[s]{/*}{*/},
-  morestring=[b]',
-  morestring=[b]",
-  sensitive=true
-}
+% Source: Project/outputs/results/*/predictions.parquet (judge texts stored by the latency and energy runs),
+% GroundOne served output via `groundone verify` (calibration + dev threshold, D27). Answer rt-7784 of T1, chosen
+% because every system scored it and it contains all three classes; it was not chosen for any system's performance.
 
-%\lstinputlisting[]{} % for source code files directly
-% lstlisting environment for direct inclusion
-\begin{lstlisting}[language=JavaScript]
-    const test = test;
-\end{lstlisting}
+This appendix shows what each system returns for the same answer of T1, so that the numbers of
+Chapter~\ref{sec:results} can be related to concrete outputs. The answer (identifier \texttt{rt-7784}) is a data-to-text
+answer written by a language model from a structured description of a restaurant: a JSON record with its name, address,
+categories, opening hours (Tuesday to Sunday, 11:00--21:00), attributes, an average rating of 4.5 stars and two customer
+reviews. It was chosen because every system scored it and because it contains all three classes; it was not selected
+for the performance of any system. Its six sentences and their reference labels are:
 
-% for computational complexity
-$\mathcal{O}\left(n\log{n}\right)$
+\begin{enumerate}
+\item \emph{Mesa Verde is a popular business located in Santa Barbara, CA.} --- supported.
+\item \emph{It offers a variety of services including Garage Door Services, Restaurants, Live/Raw Food, \dots, Vegan, and
+Salad.} --- supported.
+\item \emph{The business is open seven days a week from 11 am to 9 pm.} --- contradicted (it is closed on Mondays).
+\item \emph{Mesa Verde has a rating of 4.5 stars on Google and has received multiple positive reviews.} --- not mentioned
+(the record gives no source for the rating and contains two reviews, one of them negative).
+\item \emph{One customer praised the restaurant's fresh, delicious, and inventive cuisine, while another was
+disappointed by the taste and price of the food.} --- supported.
+\item \emph{Despite this, many customers have had positive experiences at Mesa Verde and recommend it for its fusion and
+vegan food options.} --- supported.
+\end{enumerate}
 
-% verbatim
-\verb+numpy+
+\section{Verdicts sentence by sentence}
 
+Table~\ref{tab:app-examples} lists the verdict of every system. For GroundOne the label is the served one, derived from
+the calibrated probabilities with the threshold fitted on development data ($\tau$ = 0.935 for the 0.5B and 0.925 for the
+3B), and the number is the calibrated $P(\text{supported})$. For the encoders the number is their probability of support
+and the decision is taken at 0.5. S, C and N stand for supported, contradicted and not mentioned; a dash marks a format
+failure.
+
+\begin{table}[htbp]
+\centering
+\caption{Verdicts on answer \texttt{rt-7784}. Errors with respect to the reference are in bold.}
+\label{tab:app-examples}
+\small
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+System & 1 & 2 & 3 & 4 & 5 & 6 \\
+\midrule
+Reference & S & S & C & N & S & S \\
+\midrule
+GroundOne 0.5B (served, $P_\mathrm{sup}$) & S 0.96 & S 0.98 & C 0.50 & N 0.05 & S 0.98 & S 0.97 \\
+GroundOne 3B (served, $P_\mathrm{sup}$) & S 0.96 & S 0.99 & C 0.58 & N 0.21 & S 0.99 & \textbf{N 0.85} \\
+B2 0.5B (generated token) & S & S & C & N & S & \textbf{--} \\
+B2 3B (generated token) & S & S & C & \textbf{--} & S & S \\
+Untrained 0.5B (readout) & \textbf{C} & \textbf{C} & C & \textbf{C} & \textbf{C} & \textbf{C} \\
+Terse judge 0.5B & S & S & \textbf{S} & \textbf{S} & S & S \\
+Terse judge 3B & \textbf{C} & S & \textbf{S} & \textbf{S} & \textbf{N} & S \\
+Verbose judge 0.5B & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} \\
+Verbose judge 3B & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} \\
+Equal-output judge 3B, logits & \textbf{C} & S & \textbf{S} & \textbf{S} & \textbf{N} & S \\
+Equal-output judge 3B, verbalised & S & \textbf{C} & \textbf{N} & \textbf{S} & \textbf{C} & \textbf{N} \\
+MiniCheck-RoBERTa ($P_\mathrm{sup}$) & 0.78 & 0.90 & 0.09 & 0.03 & \textbf{0.43} & \textbf{0.03} \\
+HHEM-2.1-open ($P_\mathrm{sup}$) & 0.75 & 0.95 & 0.01 & 0.09 & 0.73 & \textbf{0.24} \\
+Rizzo-Flow 4B & S & S & \textbf{S} & \textbf{S} & S & S \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+The 0.5B GroundOne gets all six sentences right. The contradiction in sentence~3 is caught with a calibrated
+$P(\text{supported})$ of 0.50: well below the threshold, but far from certain, which is what a calibrated probability
+should express for a sentence that is correct except for one day of the week. The 3B GroundOne also catches both errors
+but serves sentence~6, a generalisation over the two reviews, as not mentioned: its $P(\text{supported})$ of 0.85 is
+below the high threshold that the base rate of RAGTruth imposes, a case where a user who prefers fewer flags would lower
+the threshold. With the same weights, the generated token (B2) gives the right letter on five of the six sentences, but
+on the remaining one it produces a space (0.5B) or the word ``We'' (3B) instead of a verdict. The binary encoders separate the two errors
+well but also reject sentences~5 or~6, which summarise the reviews in different words; Rizzo-Flow accepts every
+sentence. The generative judges fail in the ways that Chapter~\ref{sec:results} quantifies, as the raw outputs below
+show.
+
+\section{Raw outputs}
+
+\paragraph{GroundOne 0.5B (served JSON, abridged).} One forward pass over 1{,}193 input tokens, no generated token,
+0.47 seconds (2.6 seconds for the 3B):
+\begin{verbatim}
+{"design": "b", "threshold": 0.935, "n_decisions": 6,
+ "usage": {"input_tokens": 1193, "output_tokens": 0},
+ "sentences": [
+  {"index": 2, "text": "The business is open seven days a week ...",
+   "scored": true, "labels": {"three": "contradicted"},
+   "answers": {"three": {"supported": 0.502, "contradicted": 0.462,
+                         "not_mentioned": 0.036}},
+   "flag_strict": true, "flag_lenient": true},
+  {"index": 3, "text": "Mesa Verde has a rating of 4.5 stars on Google ...",
+   "scored": true, "labels": {"three": "not_mentioned"},
+   "answers": {"three": {"supported": 0.051, "contradicted": 0.003,
+                         "not_mentioned": 0.946}},
+   "flag_strict": true, "flag_lenient": false}, ...]}
+\end{verbatim}
+
+\paragraph{Terse judge 3B.} One line per sentence, as requested, but with the wrong letters for four sentences:
+\begin{verbatim}
+1: B
+2: A
+3: A
+4: A
+5: C
+6: A
+\end{verbatim}
+
+\paragraph{Verbose judge 3B (first three verdicts).} The reasoning restates the sentence and cites the document as
+support even for the contradicted and the unsupported sentence, and every verdict is ``A''. The verdicts are written on
+a separate line instead of on the same line, as the instruction asked, so the protocol counts them as format failures:
+\begin{verbatim}
+1: Mesa Verde is located in Santa Barbara, CA, as stated in the document.
+Verdict: A
+
+2: Mesa Verde offers a variety of services including Garage Door Services,
+   [...], as mentioned in the categories provided.
+Verdict: A
+
+3: The business is open seven days a week from 11 am to 9 pm, as indicated
+   by the hours provided.
+Verdict: A
+\end{verbatim}
+
+\paragraph{Verbose judge 0.5B.} It copies the six sentences back, numbered, without any verdict.
+
+\paragraph{Equal-output judge 3B, verbalised.} The probabilities are all one-hot, and for sentences~3 and~6 the stated
+label (C) contradicts the stated probabilities, which put all the mass on A:
+\begin{verbatim}
+{"1": {"label": "A", "p": [1.0, 0.0, 0.0]},
+ "2": {"label": "B", "p": [0.0, 1.0, 0.0]},
+ "3": {"label": "C", "p": [1.0, 0.0, 0.0]},
+ "4": {"label": "A", "p": [1.0, 0.0, 0.0]},
+ "5": {"label": "B", "p": [0.0, 1.0, 0.0]},
+ "6": {"label": "C", "p": [1.0, 0.0, 0.0]}}
+\end{verbatim}
+
+\paragraph{Equal-output judge 0.5B, verbalised.} The same vector for every sentence:
+\begin{verbatim}
+{"1": {"label": "A", "p": [0.3, 0.3, 0.3]}, "2": {"label": "A", "p": [0.3, 0.3, 0.3]},
+ ... "6": {"label": "A", "p": [0.3, 0.3, 0.3]}}
+\end{verbatim}
