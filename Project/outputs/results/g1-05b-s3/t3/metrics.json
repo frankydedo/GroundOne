@@ -1,0 +1,98 @@
+{
+  "all": {
+    "n": 3000,
+    "macro_recall": 0.43366666666666664,
+    "recall": {
+      "supported": 0.286,
+      "contradicted": 0.062,
+      "not_mentioned": 0.953
+    },
+    "predicted_share": {
+      "supported": 0.1173,
+      "contradicted": 0.042,
+      "not_mentioned": 0.8407
+    },
+    "binary": {
+      "n": 3000,
+      "pos_rate": 0.3333,
+      "bacc": 0.6154999999999999,
+      "auroc": 0.7471782499999999,
+      "ece15": 0.16671856427396717,
+      "brier": 0.20984592060925752,
+      "nll": 0.6598355872281766
+    },
+    "lenient_auroc": 0.674007,
+    "lenient_bacc": 0.49975
+  },
+  "by_task": {
+    "VitaminC": {
+      "n": 3000,
+      "macro_recall": 0.43366666666666664,
+      "recall": {
+        "supported": 0.286,
+        "contradicted": 0.062,
+        "not_mentioned": 0.953
+      },
+      "predicted_share": {
+        "supported": 0.1173,
+        "contradicted": 0.042,
+        "not_mentioned": 0.8407
+      },
+      "binary": {
+        "n": 3000,
+        "pos_rate": 0.3333,
+        "bacc": 0.6154999999999999,
+        "auroc": 0.7471782499999999,
+        "ece15": 0.16671856427396717,
+        "brier": 0.20984592060925752,
+        "nll": 0.6598355872281766
+      },
+      "lenient_auroc": 0.674007,
+      "lenient_bacc": 0.49975
+    }
+  },
+  "by_K_band": {
+    "1-4": {
+      "n": 3000,
+      "macro_recall": 0.43366666666666664,
+      "recall": {
+        "supported": 0.286,
+        "contradicted": 0.062,
+        "not_mentioned": 0.953
+      },
+      "predicted_share": {
+        "supported": 0.1173,
+        "contradicted": 0.042,
+        "not_mentioned": 0.8407
+      },
+      "binary": {
+        "n": 3000,
+        "pos_rate": 0.3333,
+        "bacc": 0.6154999999999999,
+        "auroc": 0.7471782499999999,
+        "ece15": 0.16671856427396717,
+        "brier": 0.20984592060925752,
+        "nll": 0.6598355872281766
+      },
+      "lenient_auroc": 0.674007,
+      "lenient_bacc": 0.49975
+    }
+  },
+  "baseline_word_overlap_auroc": 0.6982060000000001,
+  "n_answers": 3000,
+  "design": "b",
+  "model": {
+    "name": "groundone-0.5b-best",
+    "base_model": "lmstudio-community/Qwen2.5-0.5B-Instruct-MLX-8bit",
+    "adapter": "/Users/francescodedominicis/Desktop/THESIS/Project/outputs/models/g1-05b-s3/best",
+    "adapter_sha256": "16700c46ae124d3cbb1c32a03d65b390cfa84af5bd9e29a907e7fef536b95f48",
+    "prompt_version": "groundone-v1",
+    "runtime": "mlx",
+    "load_seconds": 0.75,
+    "fingerprint": "b01af91f476290a3"
+  },
+  "calibrated": false,
+  "test_file": "test_vitaminc",
+  "limit": 0,
+  "wall_minutes": 2.42
+}

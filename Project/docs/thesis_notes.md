@@ -528,3 +528,24 @@ Run `g1-05b-s2`: same config as `g1-05b-b1`, seed 4321 (LoRA initialisation and 
   - The stopped run (`g1-05b-s2`) is disclosed in one sentence (footnote or limitations), not hidden. Draft: *"A further run was stopped at 60 % of the epoch after its dev accuracy collapsed to the constant-predictor level (0.33 at step 300, 0.44 at step 450); it is excluded from the tables because it is incomplete, and it indicates that the recipe, which has no gradient clipping, is not fully robust to initialisation."*
   - Logs, notes and figures of the stopped run stay in the repository.
 
+
+## Ch. 6: run-to-run variance of the 0.5B (2026-10-10, two completed runs)
+
+Seed 1234 (`g1-05b-b1`) vs seed 777 (`g1-05b-s3`, presented as the second run, D26). Same config. `results/g1-05b-{b1,s3}/{t1,t3,calibration}/metrics.json`.
+
+| Metric | Run 1 | Run 2 | Difference |
+| --- | --- | --- | --- |
+| Dev macro (best checkpoint) | 0.735 | 0.736 | +0.001 |
+| T1 three-way | 0.769 | 0.767 | −0.002 |
+| T1 AUROC | 0.905 | 0.907 | +0.002 |
+| T1 recall supported / contradicted / not mentioned | 0.825 / 0.675 / 0.806 | 0.868 / 0.663 / 0.772 | |
+| T1 three-way at K ≥ 14 | 0.723 | 0.746 | +0.023 |
+| T3 three-way | 0.442 | 0.434 | −0.008 |
+| T3 AUROC | 0.722 | 0.747 | +0.025 |
+| T1 binary ECE raw → calibrated | 0.301 → 0.019 | 0.229 → 0.020 | |
+
+**Reading.**
+- Aggregate metrics are reproducible: T1 three-way and AUROC differ by about 0.002, well inside the bootstrap intervals (±0.02).
+- The run-to-run variation sits in how errors are distributed across classes (supported vs not-mentioned recall ±0.04) and in the smaller slices (K ≥ 14, T3 AUROC, ±0.025).
+- Per-class and per-band claims should be stated with that margin.
+- Together with the stopped run (D26): when training converges, it converges to the same place. The risk is an early collapse, not a different optimum.
