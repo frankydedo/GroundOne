@@ -650,3 +650,11 @@ Findings that matter for the thesis (fixes in docs and code are in git):
 - **B2 in the bootstrap:** readout − generated token +0.248 [+0.228, +0.269] (0.5B) and +0.071 [+0.059, +0.083] (3B); at K ≥ 14 +0.346 and +0.066.
 - **0.5B training time:** 5.5 h wall clock (guard log 332 min; the train log reaches step 800 at 316 min). The "5.4 h" written earlier is the approximate training-loop time; use 5.5 h.
 
+
+## Ch. 3 / Ch. 7: optimiser details behind the collapsed seed (2026-10-10)
+
+- `training/train.py` builds `optim.AdamW(learning_rate=sched, weight_decay=0.0)`. In MLX 0.29.3, `AdamW` defaults to **`bias_correction=False`** (checked with `inspect.signature`), so the recipe is Adam **without bias correction**.
+- Effect: in the first steps the moment estimates are not de-biased. The first update is about (1 − β1) / √(1 − β2) ≈ 0.1 / 0.032 ≈ 3× larger than with bias correction. The warm-up of 3 % (≈ 24 steps) limits but does not remove this, and gradient norms are not logged.
+- Mosbach et al. (2021, ICLR) identify exactly this setup (Adam without bias correction, as in the original BERT optimiser) as a main cause of failed fine-tuning runs, through vanishing gradients early in training. It is a second plausible cause of the seed-4321 collapse, next to the missing gradient clipping (Pascanu et al., 2013).
+- **For the thesis:** Ch. 3 must state "AdamW without bias correction (the MLX default) and without gradient clipping". Ch. 7 should give both as plausible causes of the collapse, without claiming either is proven. A recipe fix (bias correction on, clipping at norm 1, gradient-norm logging) would be a declared change, tested on several seeds; not planned.
+- **Multiple comparisons:** the bootstrap p-values are not corrected for the ~50 pairs tested. Claims rest on the 95 % intervals and on effects far from zero. The one borderline result, GroundOne 0.5B vs Rizzo-Flow on T2 (p = 0.047), would not survive a correction and must not be claimed as significant.
