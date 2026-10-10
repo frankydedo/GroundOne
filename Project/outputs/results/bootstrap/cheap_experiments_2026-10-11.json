@@ -1,0 +1,188 @@
+{
+ "g1-05b-b1": {
+  "E1_response_level": {
+   "theta": 0.6909416990392668,
+   "dev_f1": 0.7728337236533958,
+   "t1_f1": 0.7325102880658436,
+   "t1_any_rule_f1": null,
+   "t1_responses": 2647
+  },
+  "E2_selective_threshold": {
+   "0.95": {
+    "point": {
+     "c": 0.7751187367847098,
+     "t1_accuracy_accepted": 0.968733681462141,
+     "t1_coverage": 0.8863688960888683
+    },
+    "lcb95": {
+     "c": 0.8292885528979758,
+     "t1_accuracy_accepted": 0.9732907435095827,
+     "t1_coverage": 0.8513075676926637
+    },
+    "risk_missing_target_on_T1": {
+     "point": 0.0,
+     "lcb95": 0.0
+    },
+    "n_resamples": 200
+   },
+   "0.97": {
+    "point": {
+     "c": 0.9155105700097731,
+     "t1_accuracy_accepted": 0.9809268600252207,
+     "t1_coverage": 0.7340893311733395
+    },
+    "lcb95": {
+     "c": 0.9418847823764265,
+     "t1_accuracy_accepted": 0.9851760345892526,
+     "t1_coverage": 0.6556931265910669
+    },
+    "risk_missing_target_on_T1": {
+     "point": 0.0,
+     "lcb95": 0.0
+    },
+    "n_resamples": 200
+   },
+   "0.98": {
+    "point": {
+     "c": 0.9576860277973042,
+     "t1_accuracy_accepted": 0.9877367896311067,
+     "t1_coverage": 0.5803054848414719
+    },
+    "lcb95": {
+     "c": 0.973872337109394,
+     "t1_accuracy_accepted": 0.990379746835443,
+     "t1_coverage": 0.4570701226567924
+    },
+    "risk_missing_target_on_T1": {
+     "point": 0.0,
+     "lcb95": 0.0
+    },
+    "n_resamples": 200
+   }
+  }
+ },
+ "g1-05b-s3": {
+  "E1_response_level": {
+   "theta": 0.7141234120655748,
+   "dev_f1": 0.7775211701308699,
+   "t1_f1": 0.7427701674277016,
+   "t1_any_rule_f1": null,
+   "t1_responses": 2647
+  },
+  "E2_selective_threshold": {
+   "0.95": {
+    "point": {
+     "c": 0.7597005372094944,
+     "t1_accuracy_accepted": 0.9661736334405144,
+     "t1_coverage": 0.8996760009257116
+    },
+    "lcb95": {
+     "c": 0.8068360916330287,
+     "t1_accuracy_accepted": 0.9700431750249087,
+     "t1_coverage": 0.8710367970377227
+    },
+    "risk_missing_target_on_T1": {
+     "point": 0.0,
+     "lcb95": 0.0
+    },
+    "n_resamples": 200
+   },
+   "0.97": {
+    "point": {
+     "c": 0.8968837548563173,
+     "t1_accuracy_accepted": 0.9797927461139896,
+     "t1_coverage": 0.7816477667206665
+    },
+    "lcb95": {
+     "c": 0.9368815364305166,
+     "t1_accuracy_accepted": 0.9848673817244533,
+     "t1_coverage": 0.6958458690118028
+    },
+    "risk_missing_target_on_T1": {
+     "point": 0.0,
+     "lcb95": 0.0
+    },
+    "n_resamples": 200
+   },
+   "0.98": {
+    "point": {
+     "c": 0.9550846003585725,
+     "t1_accuracy_accepted": 0.9876140808344198,
+     "t1_coverage": 0.6212682249479288
+    },
+    "lcb95": {
+     "c": 0.9705898018801253,
+     "t1_accuracy_accepted": 0.9898074745186863,
+     "t1_coverage": 0.5108771117796806
+    },
+    "risk_missing_target_on_T1": {
+     "point": 0.0,
+     "lcb95": 0.0
+    },
+    "n_resamples": 200
+   }
+  }
+ },
+ "g1-3b-b1": {
+  "E1_response_level": {
+   "theta": 0.757357646948032,
+   "dev_f1": 0.8148148148148148,
+   "t1_f1": 0.783625730994152,
+   "t1_any_rule_f1": null,
+   "t1_responses": 2647
+  },
+  "E2_selective_threshold": {
+   "0.95": {
+    "point": {
+     "c": 0.67131868353248,
+     "t1_accuracy_accepted": 0.9660152409046214,
+     "t1_coverage": 0.9414487387178894
+    },
+    "lcb95": {
+     "c": 0.716973043530532,
+     "t1_accuracy_accepted": 0.9698734811474383,
+     "t1_coverage": 0.9237445035871326
+    },
+    "risk_missing_target_on_T1": {
+     "point": 0.0,
+     "lcb95": 0.0
+    },
+    "n_resamples": 200
+   },
+   "0.97": {
+    "point": {
+     "c": 0.8445447599304816,
+     "t1_accuracy_accepted": 0.9822827938671209,
+     "t1_coverage": 0.8490511455681555
+    },
+    "lcb95": {
+     "c": 0.9010862463671084,
+     "t1_accuracy_accepted": 0.9857744229931775,
+     "t1_coverage": 0.7971534367044666
+    },
+    "risk_missing_target_on_T1": {
+     "point": 0.0,
+     "lcb95": 0.0
+    },
+    "n_resamples": 200
+   },
+   "0.98": {
+    "point": {
+     "c": 0.933915009976477,
+     "t1_accuracy_accepted": 0.9890710382513661,
+     "t1_coverage": 0.7517357093265448
+    },
+    "lcb95": {
+     "c": 0.9657826159701741,
+     "t1_accuracy_accepted": 0.9920818505338078,
+     "t1_coverage": 0.6503124276787781
+    },
+    "risk_missing_target_on_T1": {
+     "point": 0.0,
+     "lcb95": 0.0
+    },
+    "n_resamples": 200
+   }
+  }
+ }
+}

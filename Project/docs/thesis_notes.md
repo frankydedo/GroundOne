@@ -698,3 +698,30 @@ Findings that matter for the thesis (fixes in docs and code are in git):
   - Li 2026: choosing the threshold by a lower confidence bound cuts the risk of a bad operating point (a cheap upgrade of D27).
   - Deka 2026: the open RLCD recipe gives no calibration gain over cross-entropy after temperature scaling.
   - llama.cpp merged a native `/v1/systemone` server (2026-10-02).
+
+## Ch. 6: two CPU-only experiments (2026-10-11; `results/bootstrap/cheap_experiments_2026-10-11.json`, script in the session scratchpad)
+
+**E1. Response-level verdicts with a dev-fitted threshold (Decision Index protocol).**
+- Rule: response score = minimum calibrated P(supported) over its scored sentences; the response is hallucinated iff the score < θ, with θ fitted on dev to maximise the response-level F1 of the class "hallucinated".
+- Results on T1 (2,647 responses):
+
+| System | θ | F1 dev | F1 T1 | "Any sentence flagged" rule (2026-10-10) |
+| --- | --- | --- | --- | --- |
+| GroundOne 0.5B run 1 | 0.69 | 0.773 | **0.733** | 0.657 |
+| GroundOne 0.5B run 2 | 0.71 | 0.778 | **0.743** | 0.680 |
+| GroundOne 3B | 0.76 | 0.815 | **0.784** | 0.725 |
+
+- Index references (zero-shot general decision models, 2,700 responses):
+  - Jev 0.765;
+  - best entrant 0.803 (pplx-decider-v1-27b, which trains on VitaminC and WiCE);
+  - best entrant < 1B 0.553;
+  - always-hallucinated baseline 0.518.
+- **Reading.** With an aggregation fitted on dev, the 3B specialist (0.784) is above Jev and close to the best 27B entrant. The 0.5B (0.73–0.74) is far above any general decision model of its size.
+- **Caveats:** in-domain training vs zero-shot entrants; 2,647 of 2,700 responses; different prompt format. Context, not a leaderboard claim.
+
+**E2. Li-2026-style threshold for selective binary decisions.**
+- Rule: accept a sentence verdict iff confidence max(p, 1 − p) ≥ c. The point estimate takes the smallest c whose dev accuracy reaches the target; the LCB rule takes the smallest c whose one-sided 95 % cluster-bootstrap lower bound reaches it.
+- Results on T1:
+  - **The point estimate never misses the target** (targets 0.95 / 0.97 / 0.98; risk 0 over 200 dev resamples for every run).
+  - The LCB rule raises realised accuracy slightly (e.g. 0.5B, target 0.97: 0.981 → 0.985) but **costs 3–12 points of coverage** (0.734 → 0.656).
+- **Reading.** In domain, T1 is cleaner than dev, so the point estimate is already safe and the conservative rule only defers more. Its value is under distribution shift (new workloads, VitaminC), where calibration is known not to transfer. Report as a negative/neutral finding: the current served threshold (D27) needs no change for the RAGTruth domain; a deployment on a new domain should use the LCB rule with a small local labelled sample (Li et al. 2026).
