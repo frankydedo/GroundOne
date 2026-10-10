@@ -24,11 +24,12 @@ from .tests import CLASSES, overlap
 
 LEGACY = PROJECT / "_archive" / "results-legacy-v1"
 T1_SYSTEMS = {"GroundOne 0.5B": "g1-05b-b1", "GroundOne 0.5B, run 2": "g1-05b-s3", "GroundOne 3B": "g1-3b-b1", "Untrained 0.5B": "untrained-05b",
-              "Untrained 3B": "untrained-3b", "Rizzo-Flow 4B": "rizzo-flow-4b-q4", "MiniCheck-RoBERTa": "minicheck-roberta",
+              "Untrained 3B": "untrained-3b", "Rizzo-Flow 4B": "rizzo-flow-4b-q4", "d1-3B": "d1-3b", "MiniCheck-RoBERTa": "minicheck-roberta",
               "HHEM": "hhem"}
 T2_SYSTEMS = {"GroundOne 0.5B": RESULTS_DIR / "g1-05b-b1", "GroundOne 0.5B, run 2": RESULTS_DIR / "g1-05b-s3",
               "GroundOne 3B": RESULTS_DIR / "g1-3b-b1",
-              "MiniCheck-RoBERTa": LEGACY / "minicheck-roberta", "Rizzo-Flow 4B": LEGACY / "rizzo-flow-4b-q4"}
+              "MiniCheck-RoBERTa": LEGACY / "minicheck-roberta", "Rizzo-Flow 4B": LEGACY / "rizzo-flow-4b-q4",
+              "d1-3B": RESULTS_DIR / "d1-3b"}
 JUDGES = {"Terse judge": "judge-terse", "Verbose judge": "judge-verbose", "Equal-output, logits": "judge-tlogit",
           "Equal-output, verbalised": "judge-json"}
 PAIRS = [  # (test, metric, A, B): difference A - B
@@ -49,6 +50,12 @@ PAIRS = [  # (test, metric, A, B): difference A - B
     ("t1", "bacc", "GroundOne 3B", "MiniCheck-RoBERTa"), ("t1", "bacc", "GroundOne 3B", "HHEM"),
     ("t1", "three_way", "GroundOne 0.5B", "Rizzo-Flow 4B"), ("t1", "three_way", "GroundOne 3B", "Rizzo-Flow 4B"),
     ("t1", "auroc", "GroundOne 0.5B", "Rizzo-Flow 4B"), ("t1", "auroc", "GroundOne 3B", "Rizzo-Flow 4B"),
+    ("t1", "three_way", "GroundOne 0.5B", "d1-3B"), ("t1", "three_way", "GroundOne 3B", "d1-3B"),
+    ("t1", "auroc", "GroundOne 0.5B", "d1-3B"), ("t1", "auroc", "GroundOne 3B", "d1-3B"),
+    ("t1_k14", "three_way", "GroundOne 3B", "d1-3B"),
+    ("t3", "three_way", "GroundOne 3B", "d1-3B"), ("t3", "auroc", "GroundOne 3B", "d1-3B"),
+    ("t2", "macro_bacc", "GroundOne 3B", "d1-3B"), ("t2", "macro_bacc", "GroundOne 0.5B", "d1-3B"),
+    ("t2", "rag_bacc", "GroundOne 3B", "d1-3B"),
     ("t2", "macro_bacc", "GroundOne 3B", "MiniCheck-RoBERTa"), ("t2", "rag_bacc", "GroundOne 3B", "MiniCheck-RoBERTa"),
     ("t2", "macro_bacc", "GroundOne 0.5B", "MiniCheck-RoBERTa"), ("t2", "rag_bacc", "GroundOne 0.5B", "MiniCheck-RoBERTa"),
     ("t2", "macro_bacc", "GroundOne 3B", "GroundOne 0.5B"),
@@ -197,7 +204,8 @@ def main(argv=None):
                                         .query("kband == '>=14'")["id"])] for k, v in F["t1"].items()}
     g2 = groups_of("test_aggrefact")
     for label, path in T2_SYSTEMS.items():
-        F["t2"][label] = frame_t2(path, g2)
+        if (path / ("aggrefact" if "legacy" in str(path) else "t2") / "predictions.parquet").exists():
+            F["t2"][label] = frame_t2(path, g2)
     for s, tag in (("0.5B", "05b"), ("3B", "3b")):
         F["lat"][f"GroundOne {s}"] = frame_latency(RESULTS_DIR / f"g1-{tag}-b1" / "latency" / "predictions.parquet", t1r)
         for j, name in JUDGES.items():
@@ -227,6 +235,8 @@ def main(argv=None):
                                                          for m in ms), flush=True)
     # paired differences
     for test, metric, A, B in PAIRS:
+        if A not in F[test] or B not in F[test]:
+            continue
         fa, fb = F[test][A], F[test][B]
         common = set(fa["id"]) & set(fb["id"])
         fa = fa[fa["id"].isin(common)].sort_values("id").reset_index(drop=True)

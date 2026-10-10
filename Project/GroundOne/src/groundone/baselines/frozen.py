@@ -86,7 +86,9 @@ def d1_caller():
     import torch
     from transformers import AutoModel
     dev = "mps" if torch.backends.mps.is_available() else "cpu"
-    model = AutoModel.from_pretrained(D1[0], revision=D1[1], trust_remote_code=True,
+    from huggingface_hub import snapshot_download
+    path = snapshot_download(D1[0], revision=D1[1])  # local path: the model's code reloads its tokenizer by path
+    model = AutoModel.from_pretrained(path, trust_remote_code=True,
                                       dtype=torch.bfloat16 if dev != "cpu" else torch.float32).to(dev).eval()
 
     def call(state, qs):

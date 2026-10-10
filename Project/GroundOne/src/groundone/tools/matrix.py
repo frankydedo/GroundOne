@@ -21,6 +21,7 @@ SYSTEMS = [  # (label, results folder, note)
     ("MiniCheck-RoBERTa", "minicheck-roberta", "binary only; T2 from the earlier run on the same test; T3 in its training lineage"),
     ("HHEM-2.1-open", "hhem", "binary only"),
     ("Rizzo-Flow 4B Q4", "rizzo-flow-4b-q4", "T1 300 answers, T3 600 pairs; T2 earlier run on 1,100 items"),
+    ("Liquid AI d1-3B (zero-shot)", "d1-3b", "general-purpose open decision model, GroundOne's size; PyTorch MPS; T2 on a 6,000-item subsample"),
 ]
 LEGACY_T2 = {"minicheck-roberta": "minicheck-roberta", "rizzo-flow-4b-q4": "rizzo-flow-4b-q4"}  # same frozen T2 file
 JUDGES = [("GroundOne 0.5B", "g1-05b-b1"), ("Terse judge 0.5B", "judge-terse-05b"), ("Verbose judge 0.5B", "judge-verbose-05b"),

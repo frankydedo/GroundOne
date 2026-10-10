@@ -1,0 +1,10 @@
+# Night 2026-10-11 (author's go-ahead): general-purpose open decision model of GroundOne's size (Liquid AI d1-3B, B3b),
+# zero-shot, same state and questions as Rizzo-Flow, in process (PyTorch MPS bf16), offline (HF_HUB_OFFLINE=1).
+HF_HUB_OFFLINE=1 GroundOne/.venv/bin/groundone baselines frozen --system d1 --suite t1 --name d1-3b
+HF_HUB_OFFLINE=1 GroundOne/.venv/bin/groundone baselines frozen --system d1 --suite t3 --name d1-3b
+# T2 on a 6,000-item random subsample (full T2 would take ~12 h); compared with GroundOne on the same items
+HF_HUB_OFFLINE=1 GroundOne/.venv/bin/groundone baselines frozen --system d1 --suite t2 --limit 6000 --name d1-3b
+GroundOne/.venv/bin/groundone bootstrap
+GroundOne/.venv/bin/groundone figures all
+GroundOne/.venv/bin/groundone matrix
+END
