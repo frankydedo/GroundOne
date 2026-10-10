@@ -1,0 +1,100 @@
+{
+  "system": "verbose",
+  "size": "0.5b",
+  "adapter": null,
+  "split": "test",
+  "answers": 100,
+  "decisions": 879,
+  "label_disagrees_with_argmax_p": null,
+  "format_failure_rate": 0.9658703071672355,
+  "macro_recall_failures_wrong": 0.009225832330525471,
+  "recall_failures_wrong": {
+    "supported": 0.027677496991576414,
+    "contradicted": 0.0,
+    "not_mentioned": 0.0
+  },
+  "parsed_only": {
+    "n": 30,
+    "macro_recall": 0.7666666666666667,
+    "recall": {
+      "supported": 0.7666666666666667
+    },
+    "predicted_share": {
+      "supported": 0.7667,
+      "contradicted": 0.1667,
+      "not_mentioned": 0.0667
+    },
+    "binary": {
+      "n": 30,
+      "pos_rate": 1.0,
+      "bacc": 0.7666666666666667,
+      "auroc": null,
+      "ece15": 0.2333333866666669,
+      "brier": 0.23333328666667666,
+      "nll": 3.7608890618902797
+    }
+  },
+  "latency_by_K_band": {
+    "1-4": {
+      "answers": 25,
+      "median_s": 0.7895367909804918,
+      "p90_s": 1.0034424830053468,
+      "median_s_per_decision": 0.25703474999560666
+    },
+    "5-8": {
+      "answers": 25,
+      "median_s": 1.4440328750060871,
+      "p90_s": 2.5377377832075583,
+      "median_s_per_decision": 0.24250060000340454
+    },
+    "9-13": {
+      "answers": 25,
+      "median_s": 2.0883715829986613,
+      "p90_s": 2.568961050407961,
+      "median_s_per_decision": 0.19568000699897917
+    },
+    ">=14": {
+      "answers": 25,
+      "median_s": 2.5520288749830797,
+      "p90_s": 3.842504950187868,
+      "median_s_per_decision": 0.1711704672135446
+    }
+  },
+  "latency_all": {
+    "median_s": 1.7404382500099018,
+    "p90_s": 2.8858902332984147,
+    "p99_s": 8.47293864684936,
+    "mean_generated_tokens": 257.72,
+    "mean_K": 8.79
+  },
+  "protocol": "energy run: in-process MLX, one answer at a time, 3 warm-up answers excluded, 1 repetition per answer, powermetrics at 200 ms",
+  "energy": {
+    "idle": {
+      "samples": 278,
+      "seconds": 59.67266,
+      "joules": 11.16331924,
+      "mean_watts": 0.18707594466209485
+    },
+    "loop": {
+      "samples": 927,
+      "seconds": 193.4557,
+      "joules": 2277.6681880700003,
+      "mean_watts": 11.773590481283312
+    },
+    "loop_wall_seconds": 193.97143845900428,
+    "answers": 100,
+    "decisions": 879,
+    "joules_per_answer": 22.837402814817647,
+    "net_joules_per_answer": 22.47452891394581,
+    "joules_per_decision": 2.5981118105594594,
+    "net_joules_per_decision": 2.556829227980183,
+    "net_watts": 11.586514536621218,
+    "scope": "powermetrics Combined Power (CPU + GPU + ANE); no DRAM, display, SSD",
+    "net_joules_per_answer_by_K_band_est": {
+      "1-4": 9.147979505892737,
+      "5-8": 16.731307897616958,
+      "9-13": 24.196947704280653,
+      ">=14": 29.569119657868548
+    }
+  }
+}

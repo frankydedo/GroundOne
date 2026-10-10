@@ -1,0 +1,67 @@
+{
+  "decision": "generate (full-vocabulary argmax at the markers; B2)",
+  "n": 17284,
+  "n_answers": 2647,
+  "macro_recall_generate_failures_wrong": 0.7611929109960854,
+  "macro_recall_readout": 0.832111652797462,
+  "format_failure_rate": 0.01151353853274705,
+  "agreement_with_readout": 0.9229923628789632,
+  "spaced_letter_rate": 0.9884864614672529,
+  "top_tokens": {
+    " A": 15125,
+    " C": 1134,
+    " B": 826,
+    " No": 99,
+    " We": 65,
+    " \n": 13,
+    " The": 10,
+    " Not": 6
+  },
+  "by_task": {
+    "Data2txt": {
+      "generate": 0.8115297224479874,
+      "readout": 0.8728619201579391
+    },
+    "QA": {
+      "generate": 0.6116554360182546,
+      "readout": 0.6987885178289975
+    },
+    "Summary": {
+      "generate": 0.5601379099207833,
+      "readout": 0.6285521345118535
+    }
+  },
+  "by_K_band": {
+    "1-4": {
+      "generate": 0.6139275610741809,
+      "readout": 0.676899814652229
+    },
+    "5-8": {
+      "generate": 0.7540654994472603,
+      "readout": 0.8290736605101587
+    },
+    "9-13": {
+      "generate": 0.7896993312508722,
+      "readout": 0.8625707241056314
+    },
+    ">=14": {
+      "generate": 0.7729721669457409,
+      "readout": 0.8389553834284739
+    }
+  },
+  "design": "b",
+  "model": {
+    "name": "groundone-3b-best",
+    "base_model": "lmstudio-community/Qwen2.5-3B-Instruct-MLX-8bit",
+    "adapter": "/Users/francescodedominicis/Desktop/THESIS/Project/outputs/models/g1-3b-b1/best",
+    "adapter_sha256": "7bd9fd756613445dd1eaf2cd053fd90a963a673da1c204bb5b396e979a17771f",
+    "prompt_version": "groundone-v1",
+    "runtime": "mlx",
+    "load_seconds": 1.67,
+    "fingerprint": "72a54a5507933e8a"
+  },
+  "calibrated": false,
+  "test_file": "test_ragtruth",
+  "limit": 0,
+  "wall_minutes": 84.77
+}

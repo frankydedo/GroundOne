@@ -549,3 +549,45 @@ Seed 1234 (`g1-05b-b1`) vs seed 777 (`g1-05b-s3`, presented as the second run, D
 - The run-to-run variation sits in how errors are distributed across classes (supported vs not-mentioned recall ±0.04) and in the smaller slices (K ≥ 14, T3 AUROC, ±0.025).
 - Per-class and per-band claims should be stated with that margin.
 - Together with the stopped run (D26): when training converges, it converges to the same place. The risk is an early collapse, not a different optimum.
+
+## Ch. 5 / Ch. 6: control B2 on full T1 (2026-10-10)
+
+`groundone test --decision generate`, `results/b2-{05b,3b}/t1/metrics.json`. Same weights and the same single pass as GroundOne. The verdict is the full-vocabulary argmax at each marker, i.e. what greedy single-token generation would emit there. "A"/"B"/"C" with or without a leading space map to the classes; anything else is a format failure (counted as wrong).
+
+| | 0.5B readout | 0.5B B2 | 3B readout | 3B B2 |
+| --- | --- | --- | --- | --- |
+| T1 three-way (17,284 sentences) | 0.769 | 0.521 | 0.832 | 0.761 |
+| Format failures | 0 % | 24.7 % | 0 % | 1.2 % |
+| Agreement with the readout | | 74.4 % | | 92.3 % |
+| K ≥ 14 | 0.723 | 0.377 | 0.839 | 0.773 |
+
+What B2 emits:
+- 0.5B: " A" 11,407; " " 3,739; " C" 1,048; " B" 487; "1" 190; " The" 154.
+- 3B: " A" 15,125; " C" 1,134; " B" 826; " No" 99; " We" 65.
+
+B2 is biased towards "supported" (" A") compared with the readout.
+
+**Reading.**
+- With identical weights, latency and pass, deciding by the restricted 3-letter readout instead of the generated token is worth +0.25 (0.5B) and +0.07 (3B) three-way. The gap is largest on long answers for the 0.5B.
+- The smaller the model, the more the System One readout matters: the 0.5B often does not even emit a letter.
+- This quantifies H2a: the readout is not equivalent to single-token generation, and the restriction to the admissible options is itself a source of accuracy and of format robustness.
+
+## Ch. 5 / Ch. 6 / locality pillar: energy per verification (2026-10-10)
+
+`groundone baselines judges --energy`, `results/energy-*/energy/metrics.json`.
+- **Protocol.** 100 latency answers (25 per K band), one run per answer. powermetrics Combined Power (CPU + GPU + ANE) at 200 ms, minus idle power measured for 60 s with the model loaded. Idle was about 0.2 W, so net ≈ gross. Measured overnight, Mac otherwise idle. Scope: SoC compute only, no DRAM, display or SSD.
+
+| System | Three-way | Median s/answer | Net J/answer | Net J/decision | Net power | J/answer at K ≥ 14 (est.) |
+| --- | --- | --- | --- | --- | --- | --- |
+| GroundOne 0.5B | 0.823 | 0.34 | **5.5** | 0.63 | 16.2 W | 6.6 |
+| Terse judge 0.5B | 0.231 | 0.65 | 8.9 | 1.01 | 13.5 W | 10.5 |
+| Verbose judge 0.5B | 0.009 | 1.74 | 22.5 | 2.56 | 11.6 W | 29.6 |
+| GroundOne 3B | 0.894 | 2.07 | **33.1** | 3.77 | 16.2 W | 40.5 |
+| Terse judge 3B | 0.355 | 3.13 | 43.3 | 4.92 | 14.2 W | 61.3 |
+| Verbose judge 3B | 0.381 | 10.01 | 111.7 | 12.71 | 10.9 W | 166.4 |
+
+**Reading.**
+- GroundOne uses the least energy per verification at both sizes. Against the terse judge: 1.6× less (0.5B) and 1.3× less (3B), or 1.5× at K ≥ 14. Against the verbose judge: 4.1× and 3.4× less (4.5× and 4.1× at K ≥ 14).
+- **The energy advantage is smaller than the latency advantage.** GroundOne draws more power (16.2 W against 11–14 W) because a single long prefill is compute-bound and keeps the GPU busy. Autoregressive decoding is memory-bound and draws less power, but for much longer.
+- The thesis must not equate "N× faster" with "N× less energy". The honest figures are the ones above.
+- In absolute terms, 5.5 J is about 0.0015 Wh per verified answer for the 0.5B, and 33 J (≈ 0.009 Wh) for the 3B.
