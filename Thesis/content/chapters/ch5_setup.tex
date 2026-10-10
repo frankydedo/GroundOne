@@ -71,8 +71,8 @@ what greedy generation of one token would produce. The three letters, with or wi
 classes, and any other token is a format failure. This control keeps weights, prompt and cost identical and changes only
 whether the decision is restricted to the admissible options.
 
-\paragraph{A general-purpose System One (B3).} Rizzo-Flow~\cite{rizzoflow} is an open re-implementation of the System
-One idea with a 4B model fine-tuned on generic typed decisions. It runs in its own server, based on
+\paragraph{A general-purpose System One (B3).} The open Rizzo-Flow~\cite{rizzoflow} implements the System One
+idea with a 4B model fine-tuned on generic typed decisions. It runs in its own server, based on
 llama.cpp~\cite{llamacpp}, and is queried over HTTP with the document and the numbered answer as shared state and one
 three-way choice question per sentence. A 4-bit quantised model is used because the 8-bit one does not fit in memory
 beside the operating system.

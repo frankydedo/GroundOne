@@ -39,6 +39,15 @@ tags: [concept, on-device, local-inference, privacy, runtimes, llama-cpp, mlx, a
 - The recipe matches the industrial pattern for on-device language features: a small quantised base model plus a task-specific LoRA adapter on all linear layers (Apple: ~3B, rank 16; GroundOne: Qwen2.5 0.5B/3B, 8-bit, r16) ([[Gunter 2024 - Apple Intelligence Foundation Language Models]]).
 - A local System One also keeps **full logit access**, which a hosted judge usually does not offer; GroundOne's calibration and served threshold depend on it ([[Calibration]]).
 
+## Third-party on-device measurements of decision models (ingest 2026-10-10)
+- **Core AI on an Apple M4 Max (128 GB), int8** ([[mlboydaisuke 2026 - Decision models on Core AI (JevBench public231) dataset card]]). Eight models (six decision models, two chat models) ran fully locally behind a Jev-compatible server on JevBench's 231 public items, one question per request.
+  - The Qwen3.5-family decision models prefill one token at a time (S = 1) and **re-prefill the whole state for every question**: a 3k-token state costs **40–220 s per question**. p95 latency over 231 requests: 29 s (decider-0.8b), 93 s (qwen3.5-2b-decision), 142 s (apus-decision-v1-4b, on a GPU shared with two other servers).
+  - The fast encoder (laya-multilingual, p50 0.02 s) reads only 256 input tokens, which cut 95 of 111 hard items.
+  - Latency was measured on a contended GPU (solo runs about 2× faster); answers were bit-identical solo vs concurrent.
+  - Hard-tier accuracy stays below the hosted Jev row (0.559 best local vs 0.730).
+- **Laya on Apple MPS** (M5 Max): p50 19.2 ms per decision ([[Nandakishore 2026 - Laya as a Typed Probabilistic Assessor (arXiv 2609.33843)|Nandakishore 2026]]); 42.9 ms in morrenhale's serial probe. The multilingual checkpoint needs about 1.7 s for a 4,000-token input on an Apple GPU (vendor card).
+- **What this shows for the thesis.** On-device decision models are feasible, but the dominant cost on long documents is **prefill repeated per question**. GroundOne's design (b) prefills the document once per answer and reads K verdicts at markers in the same pass: 0.41 s (0.5B) / 2.57 s (3B) per answer at K ≥ 14 on a 16 GB M4 ([[GroundOne Results]]). This is evidence for one-pass multi-question scoring, not a benchmark claim: hardware, runtime, documents and models all differ. The alternative of reading a short window of the state, as truncating encoders do, is not acceptable for grounded verification.
+
 ## Open items for the locality pillar (from the thesis plan)
 - Offline proof: rerun an evaluation with `HF_HUB_OFFLINE=1` and the network off.
 - Memory when co-resident with a generator (training peaks so far: 2.6 GB for 0.5B, 5.9 GB for 3B).

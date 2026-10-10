@@ -658,3 +658,14 @@ Findings that matter for the thesis (fixes in docs and code are in git):
 - Mosbach et al. (2021, ICLR) identify exactly this setup (Adam without bias correction, as in the original BERT optimiser) as a main cause of failed fine-tuning runs, through vanishing gradients early in training. It is a second plausible cause of the seed-4321 collapse, next to the missing gradient clipping (Pascanu et al., 2013).
 - **For the thesis:** Ch. 3 must state "AdamW without bias correction (the MLX default) and without gradient clipping". Ch. 7 should give both as plausible causes of the collapse, without claiming either is proven. A recipe fix (bias correction on, clipping at norm 1, gradient-norm logging) would be a declared change, tested on several seeds; not planned.
 - **Multiple comparisons:** the bootstrap p-values are not corrected for the ~50 pairs tested. Claims rest on the 95 % intervals and on effects far from zero. The one borderline result, GroundOne 0.5B vs Rizzo-Flow on T2 (p = 0.047), would not survive a correction and must not be claimed as significant.
+
+## Ch. 2 / Ch. 6: external context from the Hugging Face decision-models literature (2026-10-10)
+
+- **Deußer et al. 2026** (arXiv 2609.37647, verified in the PDF): Jev evaluated on 37 datasets. On LLM-AggreFact (test, 29,320 items, mean per-source balanced accuracy, i.e. the same metric as T2) Jev reaches **78.6** [77.6, 79.6]; Qwen3.8-27B read through its answer letters 76.9; Gemma-4-E4B 75.6. Prompts differ from ours, so no paired comparison is possible.
+  - GroundOne 3B (74.8) is on par with MiniCheck-RoBERTa but **below** the closed state of the art and much larger open models on this broad benchmark. Stated in Ch. 6, Ch. 7 and the summary.
+  - Jev's choice probabilities are well calibrated. Its binary probabilities rank well but are poorly placed w.r.t. a fixed 0.5 threshold; thresholds tuned on training data help a lot. This supports GroundOne's dev-fitted threshold (D27).
+- **Laya** (convaiinnovations/laya, Apache-2.0): a ModernBERT-large encoder (421M) with a per-option [MASK] decision head. Each question is encoded with its own copy of the context, in one batched call; there is no shared context.
+  - Vendor claims are contradicted by independent results: morrenhale accuracy 0.590 vs Jev 0.775; DecideBench 59.8 % vs 98.0 %; under- rather than over-confidence, fixed by one temperature (Nandakishore 2026); fragility to option order and key renaming; label-over-definition bias (Azizi 2026).
+  - These are the family "encoder + decision head" in Ch. 2.
+- **Core AI runs on an M4 Max** (mlboydaisuke dataset): the decision models re-prefill the whole state for every question, taking 40–220 s for a 3k-token state. This is measured evidence for GroundOne's one-pass design.
+- **Caveats:** the tag has no definition; many cards are LLM-written; DecideBench items were written by Claude; Nandakishore's independence from the Laya author cannot be verified.

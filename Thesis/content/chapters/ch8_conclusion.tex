@@ -1,11 +1,52 @@
 \chapter{Conclusion and Future Work}
 \label{sec:conclusion}
 
-% STATUS: skeleton. Each section lists what it must contain (TODO notes, not thesis text).
-
 \section{Summary of findings}
-% TODO: One paragraph per research question.
+\label{sec:concl-summary}
+
+This thesis asked whether a compact language model, specialised in a single decision and used as a System One, can
+verify retrieval-augmented answers sentence by sentence on a laptop, and where any advantage comes from. GroundOne, a
+fine-tuned Qwen2.5 model that reads the verdicts of a whole answer in one forward pass, gives a positive but qualified
+answer.
+
+Specialisation works where it was aimed. On the RAGTruth test set GroundOne reaches a three-way balanced accuracy of
+0.769 with 0.5B parameters and 0.832 with 3B, far above the same models untrained, above the specialised encoders in
+ranking supported sentences and well above a general-purpose System One eight times larger. On LLM-AggreFact the 3B is on
+par with the best small encoder, and on VitaminC the gain disappears: a specialist is not a general fact checker.
+
+The System One mechanism pays off in two ways. Reading all verdicts in one pass makes verification about two times
+faster than a terse and six times faster than a verbose generative judge of the same size on long answers, with output
+that is always valid; and restricting the decision to the admissible answers is, by itself, more accurate than letting
+the same model generate its verdict. At equal output, generative judges cannot provide probabilities of comparable
+quality: their probabilities barely separate correct from incorrect decisions, and verbalised ones are almost always
+all-or-nothing.
+
+The probabilities of GroundOne can be calibrated with a temperature and a bias fitted on development data, and a
+threshold chosen on the same data turns them into labels that agree with the probabilities and with the evaluated
+decision. The expected calibration error alone, however, does not distinguish good probabilities from useless ones, and
+discrimination must be measured separately.
+
+The whole system runs on a 16\,GB laptop. A long answer is verified in 0.41 seconds and 5.5 joules with the 0.5B, and in
+2.57 seconds and 33 joules with the 3B. The energy saved with respect to a judge is real but smaller than the time saved,
+because a single long prefill draws more power than decoding.
+
+The main limitations are the narrow training data, which leave contradictions outside data-to-text and hallucinations
+hidden in copied sentences only partly learned, and a training recipe that is not fully robust to the random seed.
 
 \section{Future work}
-% TODO: Streaming verification while generating; more rules (implicit truth); larger models; two-token labels beyond 26 options.
+\label{sec:concl-future}
 
+Several directions follow directly from these limits. The training recipe should be made robust, by enabling bias
+correction and gradient clipping, logging gradient norms and repeating the runs over several seeds, including for the 3B.
+Training data with more varied contradictions, and with paraphrased support and minimal edits of the kind VitaminC
+contains, should address both the weak recall outside data-to-text and the blind spot on copied sentences. Training the
+readout on the letter that the model would naturally write after the marker could align readout and generation, with
+effects on accuracy that remain to be measured.
+
+On the systems side, the remaining measurements of the locality pillar are the memory used when the verifier runs next
+to a generator and a retriever, and a complete evaluation with the network disabled. A fair latency comparison with the
+encoders requires running them in batches, and one with the general-purpose System One requires comparing both systems
+through the same HTTP interface. Verification could also run while the answer is being generated, flagging each sentence
+as soon as it is complete, which the marker design makes natural. Finally, a local assistant built on the served
+interface would let users choose the policy and the threshold that suit their documents, which is where calibrated
+probabilities show their value.

@@ -1,0 +1,613 @@
+{
+  "seed": 20260927,
+  "resamples": 20000,
+  "nll_clip": 1e-12,
+  "decisions_per_engine": 19776,
+  "datasets": {
+    "typed-decisions": {
+      "jev": {
+        "n": 2000,
+        "correct": 1464,
+        "accuracy": 0.732,
+        "failures": 0,
+        "latency_p50_ms": 316.785,
+        "latency_p95_ms": 367.64789999999994,
+        "macro_f1": 0.6386027509193627,
+        "brier": 0.3656060277930823,
+        "nll": 0.7413045704876587,
+        "p_gold_zero": 9,
+        "ece": 0.037638030303030284,
+        "latency_source": "serial probe n=50"
+      },
+      "laya": {
+        "n": 2000,
+        "correct": 723,
+        "accuracy": 0.3615,
+        "failures": 0,
+        "latency_p50_ms": 56.1195,
+        "latency_p95_ms": 65.95795,
+        "macro_f1": 0.21339804916358052,
+        "brier": 0.7439949086295496,
+        "nll": 1.3073524854669636,
+        "p_gold_zero": 0,
+        "ece": 0.17206840788384514,
+        "latency_source": "serial probe n=50"
+      },
+      "julia-onnx": {
+        "n": 2000,
+        "correct": 1451,
+        "accuracy": 0.7255,
+        "failures": 0,
+        "latency_p50_ms": 26.647,
+        "latency_p95_ms": 28.665899999999997,
+        "macro_f1": 0.5971957280861073,
+        "brier": 0.49449281455960414,
+        "nll": 1.926445217767318,
+        "p_gold_zero": 0,
+        "ece": 0.231425823102472,
+        "latency_source": "serial probe n=50"
+      }
+    },
+    "agnews": {
+      "jev": {
+        "n": 7600,
+        "correct": 6782,
+        "accuracy": 0.8923684210526316,
+        "failures": 0,
+        "latency_p50_ms": 316.7235,
+        "latency_p95_ms": 391.9296,
+        "macro_f1": 0.8921066472851501,
+        "brier": 0.1811434693264382,
+        "nll": 1.1368656733775362,
+        "p_gold_zero": 258,
+        "ece": 0.06709801967038807,
+        "latency_source": "serial probe n=50"
+      },
+      "laya": {
+        "n": 7600,
+        "correct": 7048,
+        "accuracy": 0.9273684210526316,
+        "failures": 0,
+        "latency_p50_ms": 39.174,
+        "latency_p95_ms": 62.714399999999955,
+        "macro_f1": 0.9273366691491731,
+        "brier": 0.11315510075144655,
+        "nll": 0.2230294370726025,
+        "p_gold_zero": 0,
+        "ece": 0.014799353490112877,
+        "latency_source": "serial probe n=50"
+      },
+      "julia-onnx": {
+        "n": 7600,
+        "correct": 6530,
+        "accuracy": 0.8592105263157894,
+        "failures": 0,
+        "latency_p50_ms": 15.8645,
+        "latency_p95_ms": 27.30154999999997,
+        "macro_f1": 0.8555778238947769,
+        "brier": 0.23035588566827114,
+        "nll": 0.5310587318613462,
+        "p_gold_zero": 0,
+        "ece": 0.08610693145553952,
+        "latency_source": "serial probe n=50"
+      }
+    },
+    "emotion": {
+      "jev": {
+        "n": 2000,
+        "correct": 1177,
+        "accuracy": 0.5885,
+        "failures": 0,
+        "latency_p50_ms": 328.902,
+        "latency_p95_ms": 406.83799999999997,
+        "macro_f1": 0.5077831297365577,
+        "brier": 0.6736424421895724,
+        "nll": 5.177222732010405,
+        "p_gold_zero": 322,
+        "ece": 0.2829817171717173,
+        "latency_source": "serial probe n=50"
+      },
+      "laya": {
+        "n": 2000,
+        "correct": 1197,
+        "accuracy": 0.5985,
+        "failures": 0,
+        "latency_p50_ms": 27.5825,
+        "latency_p95_ms": 38.11044999999999,
+        "macro_f1": 0.5069474731129463,
+        "brier": 0.6886295026399013,
+        "nll": 2.163428545548395,
+        "p_gold_zero": 23,
+        "ece": 0.29704832238117285,
+        "latency_source": "serial probe n=50"
+      },
+      "julia-onnx": {
+        "n": 2000,
+        "correct": 1851,
+        "accuracy": 0.9255,
+        "failures": 0,
+        "latency_p50_ms": 9.948,
+        "latency_p95_ms": 14.3767,
+        "macro_f1": 0.8827221340895003,
+        "brier": 0.10903688168160003,
+        "nll": 0.19325396056439226,
+        "p_gold_zero": 0,
+        "ece": 0.031313499999650135,
+        "latency_source": "serial probe n=50"
+      }
+    },
+    "banking77": {
+      "jev": {
+        "n": 3076,
+        "correct": 2461,
+        "accuracy": 0.8000650195058517,
+        "failures": 0,
+        "latency_p50_ms": 328.166,
+        "latency_p95_ms": 408.39549999999997,
+        "macro_f1": 0.7926594935628327,
+        "brier": 0.3107049623330015,
+        "nll": 2.139606353047758,
+        "p_gold_zero": 194,
+        "ece": 0.09074381657931721,
+        "latency_source": "serial probe n=50"
+      },
+      "laya": {
+        "n": 3076,
+        "correct": 1157,
+        "accuracy": 0.37613784135240574,
+        "failures": 0,
+        "latency_p50_ms": 100.86349999999999,
+        "latency_p95_ms": 106.06309999999999,
+        "macro_f1": 0.32574862565217755,
+        "brier": 1.096948966957908,
+        "nll": 9.666299644537165,
+        "p_gold_zero": 863,
+        "ece": 0.5060729349263504,
+        "latency_source": "serial probe n=50"
+      },
+      "julia-onnx": {
+        "n": 3076,
+        "correct": 2485,
+        "accuracy": 0.8078673602080624,
+        "failures": 0,
+        "latency_p50_ms": 95.84,
+        "latency_p95_ms": 104.26925,
+        "macro_f1": 0.80704194117137,
+        "brier": 0.30084475335617966,
+        "nll": 1.7757887808378854,
+        "p_gold_zero": 144,
+        "ece": 0.09836132616571616,
+        "latency_source": "serial probe n=50"
+      }
+    },
+    "massive": {
+      "jev": {
+        "n": 5100,
+        "correct": 3451,
+        "accuracy": 0.6766666666666666,
+        "failures": 0,
+        "latency_p50_ms": 328.2265,
+        "latency_p95_ms": 391.5119499999999,
+        "macro_f1": 0.6844058579481792,
+        "brier": 0.46157021255134023,
+        "nll": 2.054289412444798,
+        "p_gold_zero": 235,
+        "ece": 0.13529698950287183,
+        "latency_source": "serial probe n=50"
+      },
+      "laya": {
+        "n": 5100,
+        "correct": 1538,
+        "accuracy": 0.3015686274509804,
+        "failures": 0,
+        "latency_p50_ms": 39.258,
+        "latency_p95_ms": 45.530699999999996,
+        "macro_f1": 0.3353296099224883,
+        "brier": 1.0168397523957546,
+        "nll": 3.970849736521228,
+        "p_gold_zero": 164,
+        "ece": 0.3940601832216293,
+        "latency_source": "serial probe n=50"
+      },
+      "julia-onnx": {
+        "n": 5100,
+        "correct": 2051,
+        "accuracy": 0.40215686274509804,
+        "failures": 0,
+        "latency_p50_ms": 12.4945,
+        "latency_p95_ms": 15.34535,
+        "macro_f1": 0.39946629875949385,
+        "brier": 0.9294251955291054,
+        "nll": 3.083202999080951,
+        "p_gold_zero": 0,
+        "ece": 0.3787184636760548,
+        "latency_source": "serial probe n=50"
+      }
+    }
+  },
+  "overall": {
+    "jev": {
+      "n": 19776,
+      "correct": 15335,
+      "accuracy": 0.7754348705501618,
+      "failures": 0,
+      "latency_p50_ms": 322.8695,
+      "latency_p95_ms": 399.58205,
+      "macro_f1": 0.732879560907919,
+      "brier": 0.3420774603051369,
+      "nll": 1.8980349346737853,
+      "p_gold_zero": 1018,
+      "ece": 0.1048247339903893,
+      "latency_source": "serial probe n=250",
+      "latency_protocol": {
+        "accuracy_rows_per_engine": 19776,
+        "note": "accuracy phase: laya+julia uncontended serial pair concurrent with the network-bound jev API; jev accuracy rows partly 6-way concurrent. Speed numbers come only from the dedicated serial probes when present."
+      }
+    },
+    "laya": {
+      "n": 19776,
+      "correct": 11663,
+      "accuracy": 0.5897552588996764,
+      "failures": 0,
+      "latency_p50_ms": 42.900999999999996,
+      "latency_p95_ms": 102.9994,
+      "macro_f1": 0.32626530103891543,
+      "brier": 0.6212239759218633,
+      "nll": 2.9642727117029275,
+      "p_gold_zero": 1050,
+      "ece": 0.22231996171686053,
+      "latency_source": "serial probe n=250",
+      "latency_protocol": {
+        "accuracy_rows_per_engine": 19776,
+        "note": "accuracy phase: laya+julia uncontended serial pair concurrent with the network-bound jev API; jev accuracy rows partly 6-way concurrent. Speed numbers come only from the dedicated serial probes when present."
+      }
+    },
+    "julia-onnx": {
+      "n": 19776,
+      "correct": 14368,
+      "accuracy": 0.7265372168284789,
+      "failures": 0,
+      "latency_p50_ms": 16.1195,
+      "latency_p95_ms": 100.40375,
+      "macro_f1": 0.7092082499761893,
+      "brier": 0.4360452610276757,
+      "nll": 1.4897909741090127,
+      "p_gold_zero": 144,
+      "ece": 0.17236493831015415,
+      "latency_source": "serial probe n=250",
+      "latency_protocol": {
+        "accuracy_rows_per_engine": 19776,
+        "note": "accuracy phase: laya+julia uncontended serial pair concurrent with the network-bound jev API; jev accuracy rows partly 6-way concurrent. Speed numbers come only from the dedicated serial probes when present."
+      }
+    }
+  },
+  "bootstrap_accuracy": {
+    "typed-decisions": {
+      "jev-minus-laya": {
+        "delta": 0.3705,
+        "ci95": [
+          0.3465,
+          0.3945
+        ]
+      },
+      "jev-minus-julia-onnx": {
+        "delta": 0.0065,
+        "ci95": [
+          -0.0155,
+          0.0285
+        ]
+      },
+      "laya-minus-julia-onnx": {
+        "delta": -0.364,
+        "ci95": [
+          -0.387,
+          -0.3405
+        ]
+      }
+    },
+    "agnews": {
+      "jev-minus-laya": {
+        "delta": -0.035,
+        "ci95": [
+          -0.041842105263157896,
+          -0.028157894736842104
+        ]
+      },
+      "jev-minus-julia-onnx": {
+        "delta": 0.03315789473684211,
+        "ci95": [
+          0.026973684210526316,
+          0.039473684210526314
+        ]
+      },
+      "laya-minus-julia-onnx": {
+        "delta": 0.06815789473684211,
+        "ci95": [
+          0.060657894736842105,
+          0.07552631578947368
+        ]
+      }
+    },
+    "emotion": {
+      "jev-minus-laya": {
+        "delta": -0.01,
+        "ci95": [
+          -0.0305,
+          0.0105
+        ]
+      },
+      "jev-minus-julia-onnx": {
+        "delta": -0.337,
+        "ci95": [
+          -0.359,
+          -0.3145
+        ]
+      },
+      "laya-minus-julia-onnx": {
+        "delta": -0.327,
+        "ci95": [
+          -0.3485,
+          -0.3055
+        ]
+      }
+    },
+    "banking77": {
+      "jev-minus-laya": {
+        "delta": 0.42392717815344605,
+        "ci95": [
+          0.40897269180754225,
+          0.43855656697009104
+        ]
+      },
+      "jev-minus-julia-onnx": {
+        "delta": -0.007802340702210663,
+        "ci95": [
+          -0.021456436931079324,
+          0.005851755526657998
+        ]
+      },
+      "laya-minus-julia-onnx": {
+        "delta": -0.4317295188556567,
+        "ci95": [
+          -0.4479843953185956,
+          -0.4157997399219766
+        ]
+      }
+    },
+    "massive": {
+      "jev-minus-laya": {
+        "delta": 0.3750980392156863,
+        "ci95": [
+          0.36137254901960786,
+          0.3892156862745098
+        ]
+      },
+      "jev-minus-julia-onnx": {
+        "delta": 0.27450980392156865,
+        "ci95": [
+          0.2603921568627451,
+          0.28823529411764703
+        ]
+      },
+      "laya-minus-julia-onnx": {
+        "delta": -0.10058823529411764,
+        "ci95": [
+          -0.11450980392156863,
+          -0.08647058823529412
+        ]
+      }
+    }
+  },
+  "slices": {
+    "typed-choice": {
+      "jev": {
+        "n": 600,
+        "correct": 438,
+        "accuracy": 0.73,
+        "failures": 0,
+        "latency_p50_ms": 325.4245,
+        "latency_p95_ms": 400.6640999999999,
+        "macro_f1": 0.6170731785040369,
+        "brier": 0.3586033832602116,
+        "nll": 0.6635274303998545,
+        "p_gold_zero": 1,
+        "ece": 0.03946178451178449
+      },
+      "laya": {
+        "n": 600,
+        "correct": 173,
+        "accuracy": 0.28833333333333333,
+        "failures": 0,
+        "latency_p50_ms": 91.876,
+        "latency_p95_ms": 140.79674999999997,
+        "macro_f1": 0.18785112386976763,
+        "brier": 0.8079424170749828,
+        "nll": 1.5603184707137188,
+        "p_gold_zero": 0,
+        "ece": 0.16754738937279645
+      },
+      "julia-onnx": {
+        "n": 600,
+        "correct": 426,
+        "accuracy": 0.71,
+        "failures": 0,
+        "latency_p50_ms": 43.116,
+        "latency_p95_ms": 72.38539999999999,
+        "macro_f1": 0.5661574121148812,
+        "brier": 0.5410313743549774,
+        "nll": 2.1817160030479505,
+        "p_gold_zero": 0,
+        "ece": 0.2535598684166785
+      }
+    },
+    "typed-score": {
+      "jev": {
+        "n": 800,
+        "correct": 559,
+        "accuracy": 0.69875,
+        "failures": 0,
+        "latency_p50_ms": 325.701,
+        "latency_p95_ms": 408.83009999999996,
+        "macro_f1": 0.6903645378654384,
+        "brier": 0.4358745320375472,
+        "nll": 1.028407900106682,
+        "p_gold_zero": 8,
+        "ece": 0.1016914141414142
+      },
+      "laya": {
+        "n": 800,
+        "correct": 258,
+        "accuracy": 0.3225,
+        "failures": 0,
+        "latency_p50_ms": 97.6385,
+        "latency_p95_ms": 127.62645,
+        "macro_f1": 0.24129818605373515,
+        "brier": 0.8131361226176372,
+        "nll": 1.5010678932611479,
+        "p_gold_zero": 0,
+        "ece": 0.19426107269551393
+      },
+      "julia-onnx": {
+        "n": 800,
+        "correct": 542,
+        "accuracy": 0.6775,
+        "failures": 0,
+        "latency_p50_ms": 44.7635,
+        "latency_p95_ms": 65.8756,
+        "macro_f1": 0.6694743731538809,
+        "brier": 0.57062167642236,
+        "nll": 2.2098662546217813,
+        "p_gold_zero": 0,
+        "ece": 0.26523309603264317
+      }
+    },
+    "typed-noul": {
+      "jev": {
+        "n": 600,
+        "correct": 467,
+        "accuracy": 0.7783333333333333,
+        "failures": 0,
+        "latency_p50_ms": 325.44849999999997,
+        "latency_p95_ms": 412.10184999999996,
+        "macro_f1": 0.7783179387457462,
+        "brier": 0.2789173333333333,
+        "nll": 0.4362772710834318,
+        "p_gold_zero": 0,
+        "ece": 0.0827333333333334
+      },
+      "laya": {
+        "n": 600,
+        "correct": 292,
+        "accuracy": 0.4866666666666667,
+        "failures": 0,
+        "latency_p50_ms": 90.255,
+        "latency_p95_ms": 115.43584999999989,
+        "macro_f1": 0.46298427311085544,
+        "brier": 0.5878591148666668,
+        "nll": 0.7960992898279635,
+        "p_gold_zero": 0,
+        "ece": 0.15282699999999994
+      },
+      "julia-onnx": {
+        "n": 600,
+        "correct": 483,
+        "accuracy": 0.805,
+        "failures": 0,
+        "latency_p50_ms": 43.1755,
+        "latency_p95_ms": 59.810599999999994,
+        "macro_f1": 0.8044780650569994,
+        "brier": 0.3464491056138897,
+        "nll": 1.2932797166807335,
+        "p_gold_zero": 0,
+        "ece": 0.1675155402135908
+      }
+    },
+    "massive-en": {
+      "jev": {
+        "n": 100,
+        "correct": 80,
+        "accuracy": 0.8,
+        "failures": 0,
+        "latency_p50_ms": 323.4065,
+        "latency_p95_ms": 374.52264999999994,
+        "macro_f1": 0.7575344952795933,
+        "brier": 0.294225960208142,
+        "nll": 1.3291938672074175,
+        "p_gold_zero": 3,
+        "ece": 0.09385050505050503
+      },
+      "laya": {
+        "n": 100,
+        "correct": 54,
+        "accuracy": 0.54,
+        "failures": 0,
+        "latency_p50_ms": 39.507999999999996,
+        "latency_p95_ms": 40.65,
+        "macro_f1": 0.5455230348204204,
+        "brier": 0.7632079241608818,
+        "nll": 5.1146545802547125,
+        "p_gold_zero": 13,
+        "ece": 0.34563591975828867
+      },
+      "julia-onnx": {
+        "n": 100,
+        "correct": 57,
+        "accuracy": 0.57,
+        "failures": 0,
+        "latency_p50_ms": 10.1805,
+        "latency_p95_ms": 12.953749999999998,
+        "macro_f1": 0.55376456714176,
+        "brier": 0.6821766062696413,
+        "nll": 1.9146824186936013,
+        "p_gold_zero": 0,
+        "ece": 0.25074817752277345
+      }
+    },
+    "massive-non-en": {
+      "jev": {
+        "n": 5000,
+        "correct": 3371,
+        "accuracy": 0.6742,
+        "failures": 0,
+        "latency_p50_ms": 322.4015,
+        "latency_p95_ms": 383.74129999999997,
+        "macro_f1": 0.682630933575359,
+        "brier": 0.4649170975982042,
+        "nll": 2.0687913233495463,
+        "p_gold_zero": 232,
+        "ece": 0.13656191919191918
+      },
+      "laya": {
+        "n": 5000,
+        "correct": 1484,
+        "accuracy": 0.2968,
+        "failures": 0,
+        "latency_p50_ms": 18.551499999999997,
+        "latency_p95_ms": 42.12505000000001,
+        "macro_f1": 0.33042498815750293,
+        "brier": 1.0219123889604522,
+        "nll": 3.947973639646559,
+        "p_gold_zero": 151,
+        "ece": 0.39502866849089613
+      },
+      "julia-onnx": {
+        "n": 5000,
+        "correct": 1994,
+        "accuracy": 0.3988,
+        "failures": 0,
+        "latency_p50_ms": 10.821,
+        "latency_p95_ms": 14.20205,
+        "macro_f1": 0.3958606557836402,
+        "brier": 0.9343701673142947,
+        "nll": 3.1065734106886977,
+        "p_gold_zero": 0,
+        "ece": 0.38127786939912045
+      }
+    },
+    "massive-locale-macro-accuracy": {
+      "jev": 0.6766666666666666,
+      "laya": 0.3015686274509804,
+      "julia-onnx": 0.40215686274509804
+    }
+  }
+}

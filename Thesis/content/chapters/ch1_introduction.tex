@@ -1,20 +1,98 @@
 \chapter{Introduction}
 \label{sec:introduction}
 
-% STATUS: skeleton. Each section lists what it must contain (TODO notes, not thesis text).
+% Source notes: Project/docs/implementation_plan.md §1–2 (research questions), checkpoint_2026-10-10.md (results).
 
 \section{Motivation}
-% TODO: Trustworthy local RAG: retrieval does not remove hallucination; verification must run on the same constrained device, on every answer. Cost of generative judges on-device.
+\label{sec:intro-motivation}
+
+Retrieval-augmented generation has become the standard way to let a language model answer questions about documents it
+was never trained on: a retriever selects relevant passages and the model writes an answer with those passages in its
+context~\cite{lewis2020rag}. Because compact open models and efficient runtimes now run on consumer
+hardware~\cite{llamacpp,mlx2023}, the whole pipeline can stay on the user's own device. This matters whenever the
+documents are private, whenever the assistant must work without a network, and whenever its behaviour must not change
+with a provider's update.
+
+Retrieval does not remove hallucination. Answers still contain sentences that the retrieved passages do not support, or
+that contradict them~\cite{niu2024ragtruth,huang2025hallucination}, and a user cannot be expected to check every
+sentence against its source. A trustworthy local assistant therefore needs a verifier that checks every answer, sentence
+by sentence, on the same machine that generated it. Such a verifier competes for the same memory, time and battery as
+the generator. The common solution, asking a language model to judge the answer, is expensive precisely where a laptop is
+weakest: a judge writes its verdicts token by token, and on local hardware each generated token costs far more than
+reading one. Small judges also break the required output format, and the confidence they express is rarely usable as a
+probability.
 
 \section{System One models}
-% TODO: Decisions read from logits instead of generated text (Jev, SemIf, Rizzo-Flow, CLM); open question: when is it worth it, and is a specialist better than a generalist?
+\label{sec:intro-systemone}
+
+A different way to use a language model for decisions has recently attracted attention under the name of \emph{System
+One models}~\cite{typesafe2026jev}. Instead of generating an answer, such a model reads the question and the context once
+and returns a probability for each admissible answer, for example by reading the logits of the option letters at the end
+of the prompt~\cite{semif,rizzoflow}. No text is generated, the output is always valid, and many questions about the same
+context can share one pass over it. The idea fits verification well: an answer of $K$ sentences poses $K$ closed
+questions about the same document, and a probability per sentence can be thresholded and calibrated.
+
+The evidence for System One models, however, comes mostly from their authors, and the open implementations are
+general-purpose systems that answer any typed question. Whether the approach is worth it for a specific task, how a
+model specialised for that task compares with a general-purpose one, with generative judges and with dedicated
+verifiers, and where any advantage actually comes from are open questions.
 
 \section{Research questions}
-% TODO: RQ1 specialisation; RQ2 System One mechanism vs generative judges (K decisions per context); RQ3 calibration; RQ4 on-device cost; RQ5 beyond a binary score (three-way decision per sentence, strict/lenient policies derived at inference, whole answer as context).
+\label{sec:intro-rq}
+
+This thesis designs, trains and evaluates GroundOne, a compact System One specialised in one decision: for every
+sentence of a RAG answer, whether the retrieved document supports it, contradicts it or does not mention it. Five
+research questions guide the work.
+
+\begin{description}
+\item[RQ1, specialisation.] Can a fine-tuned System One of 0.5B or 3B parameters match larger zero-shot models and the
+specialised encoders on sentence-level groundedness?
+\item[RQ2, readout versus generation.] What does the System One mechanism contribute at the same model size, against
+generative judges that write their verdicts and against the same model deciding by the token it would generate, and how
+does the difference grow with the number of decisions per answer?
+\item[RQ3, calibration.] Are the probabilities usable as confidence, for thresholds and for deferring uncertain
+decisions, and how do they compare with the probabilities that a generative judge can provide?
+\item[RQ4, cost on the device.] Does the verifier fit within the memory, time and energy budget of a 16\,GB laptop, and
+how does its cost compare with that of a judge on the same machine?
+\item[RQ5, beyond a binary score.] What does a three-way decision per sentence give that a binary verifier does not?
+\end{description}
 
 \section{Contributions}
-% TODO: GroundOne (open, local, installable, native + Jev-compatible API); controlled decomposition of where a System One wins; a task-driven dataset with a validated, frozen test set and leakage control; calibration study; demo.
+\label{sec:intro-contributions}
+
+The thesis makes four contributions.
+\begin{enumerate}
+\item \textbf{GroundOne}, an open specialist System One for sentence-level groundedness verification that runs entirely
+on a laptop. It reads all the verdicts of an answer in one forward pass, through a marker placed after every sentence,
+and it is released as an installable package with a command-line interface and a local HTTP API, including an interface
+compatible with existing System One clients.
+\item \textbf{A task-driven dataset} built from public human annotations, with three test sets that were validated
+without new annotation and frozen before any model was trained, and with leakage controlled by document.
+\item \textbf{A controlled decomposition of the gains.} The comparison separates the contribution of specialisation, of
+the restricted readout and of model size, against cues that never verify a sentence, untrained models, generative judges
+with and without probabilities, a general-purpose System One and specialised encoders, all on the same hardware and with
+cluster-bootstrap intervals.
+\item \textbf{A study of calibration, time and energy}: how the probabilities can be calibrated and turned into
+consistent labels, how much they help in deferring uncertain decisions, and how time and energy per verification grow
+with the length of the answer.
+\end{enumerate}
+
+In brief, the results show that specialisation works in the RAG domain: on the RAGTruth test set GroundOne reaches a
+three-way balanced accuracy of 0.769 with 0.5B parameters and 0.832 with 3B, above the specialised encoders and well
+above a general-purpose System One eight times larger, and on LLM-AggreFact the 3B is on par with the best small encoder.
+It verifies long answers about two times faster than a terse and six times faster than a verbose judge of the same size,
+with always valid output, much better probabilities and less energy. The restriction of the readout to the admissible
+answers adds accuracy by itself. The limits are equally clear: transfer to a different domain is weak, hallucinations
+hidden in sentences that otherwise copy the source remain hard, and the training recipe is not fully robust to the
+random seed.
 
 \section{Thesis structure}
-% TODO: One paragraph per chapter.
+\label{sec:intro-structure}
 
+Chapter~\ref{sec:background} reviews transformer inference, local inference, System One models, hallucination in
+retrieval-augmented generation, verification methods and calibration. Chapter~\ref{sec:method} describes GroundOne: the
+decision, the single-pass readout, the training objective, the calibration and the served output.
+Chapter~\ref{ch:data} defines the labels and describes how the training and test sets were built, checked and frozen.
+Chapter~\ref{sec:setup} presents the trained models, the baselines, the metrics and the measurement protocol.
+Chapter~\ref{sec:results} reports the results, Chapter~\ref{sec:discussion} discusses what they mean and where they stop,
+and Chapter~\ref{sec:conclusion} concludes. Appendix~\ref{app:examples} shows the output of every system on one answer.

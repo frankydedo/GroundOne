@@ -10,7 +10,8 @@ Knowledge base for the MSc thesis **[[GroundOne]]**: a specialist System One mod
 ## System One models
 - [[System One Models]] (definition and taxonomy), [[Letter-Token Readout]] (letter logits vs generated answer)
 - [[Jev]], [[TypeSafe AI]], [[Jev Input and Output Format]], [[Reinforcement Learning with Calibrated Decisions]], [[Jev vs LLMs Cost Comparison]]
-- Open implementations: [[SemIf]], [[Rizzo-Flow]], [[CLM]], [[Jevlike]]
+- Open implementations: [[SemIf]], [[Rizzo-Flow]], [[CLM]], [[Jevlike]], [[Laya]]
+- Ecosystem and evaluation: [[Hugging Face decision-models Tag]], [[Decision-Model Benchmarks]]
 - [[Mixture of Experts]], [[LangChain]]
 
 ## RAG, hallucination and verification
@@ -44,6 +45,11 @@ Knowledge base for the MSc thesis **[[GroundOne]]**: a specialist System One mod
 **System One (grey literature)**
 - [[jev_simone_rizzo]], [[JEV Video Description]], [[Jevs Architecture Unmasked]], [[Che cos'e Jev Spiegazione]], [[Introducing System One Models and Jev]], [[What Is Jev A Guide to TypeSafe AI]], [[Can Jev replace your LLM judge]]
 - [[Kwok 2026 - Contrastive Language Models]], [[CLM README]], [[Rizzo-Flow README]], [[Rizzo-Flow training]], [[SemIf README]], [[SemIf RESULTS]]
+
+**System One (2026 papers, cards and benchmarks; `decision-models` tag)**
+- Papers: [[Deusser 2026 - Evaluating and Benchmarking the System One Model Jev (arXiv 2609.37647)]], [[Nandakishore 2026 - Laya as a Typed Probabilistic Assessor (arXiv 2609.33843)]], [[Azizi 2026 - Labels Override Definitions in Jev-Style Typed Decision Models (arXiv 2610.02586)]], [[Robles-Fernandez 2026 - Sciev Typed Scientific Decisions Without Generation (manuscript, sciev.org)]]
+- Model cards: [[Convai Innovations 2026 - Laya model card]], [[Robles-Fernandez 2026 - Sciev model card]]
+- Benchmarks and data: [[Yong 2026 - DecideBench dataset card]], [[Benchmark Heaven 2026 - JevBench v1.6.1 dataset card]], [[morrenhale 2026 - Decision benchmark Jev vs Laya vs Julia-1 dataset card]], [[pranaysuyash 2026 - Laya Formatting Fragility dataset card]], [[mlboydaisuke 2026 - Decision models on Core AI (JevBench public231) dataset card]], [[Sileo 2026 - tasksource-jev-typed-decisions dataset card]]
 
 **RAG, verification, judges**
 - [[Lewis 2020 - Retrieval-Augmented Generation]], [[Niu 2024 - RAGTruth]], [[Tang 2024 - MiniCheck]], [[Tang 2024 - LLM-AggreFact Leaderboard]], [[Zha 2023 - AlignScore]], [[Vectara 2024 - HHEM-2.1-Open model card]], [[Ravi 2024 - Lynx]]

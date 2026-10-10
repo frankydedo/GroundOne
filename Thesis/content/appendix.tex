@@ -79,6 +79,7 @@ show.
 
 \paragraph{GroundOne 0.5B (served JSON, abridged).} One forward pass over 1{,}193 input tokens, no generated token,
 0.47 seconds (2.6 seconds for the 3B):
+{\footnotesize
 \begin{verbatim}
 {"design": "b", "threshold": 0.935, "n_decisions": 6,
  "usage": {"input_tokens": 1193, "output_tokens": 0},
@@ -88,14 +89,16 @@ show.
    "answers": {"three": {"supported": 0.502, "contradicted": 0.462,
                          "not_mentioned": 0.036}},
    "flag_strict": true, "flag_lenient": true},
-  {"index": 3, "text": "Mesa Verde has a rating of 4.5 stars on Google ...",
+  {"index": 3, "text": "Mesa Verde has a rating of 4.5 stars ...",
    "scored": true, "labels": {"three": "not_mentioned"},
    "answers": {"three": {"supported": 0.051, "contradicted": 0.003,
                          "not_mentioned": 0.946}},
    "flag_strict": true, "flag_lenient": false}, ...]}
 \end{verbatim}
+}
 
 \paragraph{Terse judge 3B.} One line per sentence, as requested, but with the wrong letters for four sentences:
+{\footnotesize
 \begin{verbatim}
 1: B
 2: A
@@ -104,10 +107,12 @@ show.
 5: C
 6: A
 \end{verbatim}
+}
 
 \paragraph{Verbose judge 3B (first three verdicts).} The reasoning restates the sentence and cites the document as
 support even for the contradicted and the unsupported sentence, and every verdict is ``A''. The verdicts are written on
 a separate line instead of on the same line, as the instruction asked, so the protocol counts them as format failures:
+{\footnotesize
 \begin{verbatim}
 1: Mesa Verde is located in Santa Barbara, CA, as stated in the document.
 Verdict: A
@@ -120,11 +125,13 @@ Verdict: A
    by the hours provided.
 Verdict: A
 \end{verbatim}
+}
 
 \paragraph{Verbose judge 0.5B.} It copies the six sentences back, numbered, without any verdict.
 
 \paragraph{Equal-output judge 3B, verbalised.} The probabilities are all one-hot, and for sentences~3 and~6 the stated
 label (C) contradicts the stated probabilities, which put all the mass on A:
+{\footnotesize
 \begin{verbatim}
 {"1": {"label": "A", "p": [1.0, 0.0, 0.0]},
  "2": {"label": "B", "p": [0.0, 1.0, 0.0]},
@@ -133,9 +140,14 @@ label (C) contradicts the stated probabilities, which put all the mass on A:
  "5": {"label": "B", "p": [0.0, 1.0, 0.0]},
  "6": {"label": "C", "p": [1.0, 0.0, 0.0]}}
 \end{verbatim}
+}
 
 \paragraph{Equal-output judge 0.5B, verbalised.} The same vector for every sentence:
+{\footnotesize
 \begin{verbatim}
-{"1": {"label": "A", "p": [0.3, 0.3, 0.3]}, "2": {"label": "A", "p": [0.3, 0.3, 0.3]},
- ... "6": {"label": "A", "p": [0.3, 0.3, 0.3]}}
+{"1": {"label": "A", "p": [0.3, 0.3, 0.3]},
+ "2": {"label": "A", "p": [0.3, 0.3, 0.3]},
+ ...
+ "6": {"label": "A", "p": [0.3, 0.3, 0.3]}}
 \end{verbatim}
+}

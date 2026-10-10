@@ -1,11 +1,44 @@
-% STATUS: draft (updated 2026-10-06 for the redefined task and dataset; no results yet). TODO: final version with numbers (week 5).
+% STATUS: version with results (2026-10-10). Numbers: Project/docs/checkpoint_2026-10-10.md.
 
-Retrieval-Augmented Generation (RAG) is the standard way to give language models access to private documents, and running the whole pipeline on the user's own device is now practical on consumer hardware, which helps with privacy, offline use and cost. Retrieval does not, however, eliminate hallucination: generated answers still contain claims that the retrieved context does not support. Detecting such unfaithful claims as the answer is produced is a prerequisite for trustworthy local assistants. Since the check must run on every answer, it has to fit on the same constrained machine as the generator.
+Retrieval-augmented generation (RAG) is the standard way to give language models access to private documents, and
+running the whole pipeline on the user's own device is now practical on consumer hardware, which helps with privacy,
+offline use and cost. Retrieval does not, however, eliminate hallucination: generated answers still contain sentences
+that the retrieved context does not support or that contradict it. Detecting them is a prerequisite for trustworthy
+local assistants, and since the check must run on every answer, it has to fit on the same constrained machine as the
+generator.
 
-Automatic faithfulness verification currently follows two main paradigms. \emph{Encoder-based checkers} (NLI and fact-verification models such as AlignScore, MiniCheck and HHEM) are small and fast, but they are fixed-function classifiers: their context window is limited and they cannot take instructions or policies expressed in natural language. \emph{LLM-as-a-judge} approaches (e.g. RAGAS, ARES, Lynx) are far more flexible, but they are autoregressive. The verdict is generated token by token, so latency and cost grow with the length of the output. Small models often fail to respect the output format, and the confidence they express is rarely well calibrated. A third family has recently emerged: \textbf{System One models} (the proprietary Jev and the open re-implementations SemIf and Rizzo-Flow). These answer closed-form questions in a single forward pass, reading the probability of each answer option directly from the logits instead of generating text. The evidence for their advantage is mostly vendor-reported or small-scale, and the open implementations are general-purpose.
+Verification currently follows two paradigms. Encoder-based checkers such as AlignScore, MiniCheck and HHEM are small
+and fast, but return one fixed score per pair of document and sentence. Generative judges are flexible but write their
+verdicts token by token, so their cost grows with what they write; small judges often break the output format, and the
+confidence they express is rarely usable as a probability. A third family has recently emerged: \textbf{System One
+models}, such as the proprietary Jev and the open SemIf and Rizzo-Flow, answer closed questions in a single forward pass
+by reading the probability of each answer option from the logits. The evidence for them is mostly reported by their
+authors, and the open implementations are general-purpose. Whether a compact System One specialised in one task can match
+generative judges and dedicated encoders, where its advantage comes from, and whether its probabilities are usable, all
+on a laptop, had not been studied in a controlled way.
 
-Three questions therefore remain open. The first is whether a \textbf{task-specialised, fine-tuned compact System One} can match the accuracy of larger generative judges and of dedicated verification encoders on a real task. The second is how much of its advantage comes from specialisation, how much from the single-pass readout, and how much from evaluating several claims over one shared context. The third is whether it delivers probabilities that are usable because they are calibrated. All three have to be answered \textbf{under the memory and latency constraints of consumer hardware} (16 GB of unified memory). No independent, controlled study appears to address them. In particular, the fairest control, a same-size LLM that emits a single answer token, is rarely included in comparisons.
+This thesis designs, trains and evaluates \textbf{GroundOne}, a System One specialised in one decision: for each sentence
+of an answer, whether the retrieved document supports it, contradicts it or does not mention it. A marker follows every
+sentence of the answer, and the verdicts for all $K$ sentences are read from the logits of three answer letters in one
+forward pass, without generating any text. Qwen2.5 models with 0.5B and 3B parameters are fine-tuned with LoRA on the
+human-labelled answers of RAGTruth, with a class-weighted loss restricted to the three letters; a temperature and a bias
+fitted on development data calibrate the probabilities, and a threshold chosen on the same data turns them into
+consistent labels and strict or lenient flags. Everything, from training to serving, runs with MLX on an Apple M4 laptop
+with 16\,GB of memory. The evaluation uses three test sets built and frozen before training (the RAGTruth test split,
+LLM-AggreFact and VitaminC) and compares GroundOne with cues that never read the document, the untrained models,
+generative judges of the same size with and without probabilities, a general-purpose System One and specialised encoders,
+reporting cluster-bootstrap intervals.
 
-This thesis designs, trains and evaluates \textbf{GroundOne}, a System One specialised in \emph{one} decision: for each sentence of an answer, whether the retrieved context supports it, contradicts it or does not mention it. Compact open models (Qwen2.5 0.5B and 3B) are fine-tuned with LoRA on human-labelled answers of RAGTruth, with a training loss restricted to the logits of the three answer options. At inference, the context and the answer are encoded \textbf{once}, and the decisions for all $K$ sentences of the answer are then read \textbf{in parallel}, without generating text and without parsing any output. Each decision yields three probabilities, from which everything else follows: a binary groundedness score, and a strict or a lenient notion of error that the user can choose without retraining, whereas binary encoders such as MiniCheck and HHEM provide a single score. A post-hoc calibration is applied on top. The model is implemented on MLX and runs entirely on a 16 GB Apple Silicon laptop, where it is integrated in an end-to-end local RAG demo that flags unsupported sentences in real time.
-
-The system is evaluated on three human-labelled test sets that are built and frozen before any training, with strict separation from the training data and automated leakage checks: the RAGTruth test split, for the three-way decision and for results as a function of $K$; LLM-AggreFact, for the binary task and comparison with published systems; and VitaminC, a balanced test of the distinction between contradicted and unmentioned content whose labels have a known inter-annotator agreement. To isolate each source of gain, GroundOne is compared against a ladder of baselines: (1) generative LLM judges of the same size, in a terse and a verbose variant, together with published results of larger models; (2) the same models with single-token readout but without fine-tuning; (3) a general-purpose System One (Rizzo-Flow); (4) specialised verification encoders (MiniCheck and HHEM); and (5) simple cues that never verify the sentence against the document, namely word overlap and the wording of the sentence alone. Latency is measured as a function of the number of decisions per context. The metrics cover discrimination (balanced accuracy, macro recall, AUROC), calibration (ECE, Brier score, selective-prediction curves), latency (p50/p90/p99 per answer, throughput), peak memory and output-format failure rate. All claims are stated as falsifiable hypotheses, and negative results will be reported.
+On the RAGTruth test set GroundOne reaches a three-way balanced accuracy of 0.769 with 0.5B parameters and 0.832 with 3B,
+against 0.37 and 0.44 for the untrained models; its AUROC (0.905 and 0.940) exceeds that of the encoders (about 0.82),
+and on the same answers it clearly outperforms the general-purpose System One, a model eight times larger. On
+LLM-AggreFact the 3B is on par with MiniCheck-RoBERTa (74.8 against 74.0, a difference that is not significant), above
+the published zero-shot 7B model and below the closed System One Jev as measured independently (78.6). For answers with fourteen or more sentences GroundOne is about two times faster than a
+terse and six times faster than a verbose judge of the same size, with always valid output; it uses less energy (5.5 and
+33 joules per answer), though by a smaller factor than in time, because a long prefill draws more power than decoding.
+Asked for the same output, generative judges provide probabilities that barely separate correct from incorrect decisions,
+while calibration brings GroundOne's expected calibration error on the test set to 0.019. With the same weights,
+restricting the decision to the three letters is more accurate than taking the token the model would generate, by 0.25
+for the 0.5B and 0.07 for the 3B. The limits are equally clear: transfer to a different domain is weak, hallucinations
+hidden in sentences that otherwise copy the source remain hard, and the training recipe is not fully robust to the random
+seed.

@@ -13,10 +13,10 @@ Given a "State" (unstructured text data) and "Instructions" (natural language), 
 - **Categorical choices** (selecting an option from a predefined list)
 
 ## Advantages
-> **Evidence note (lint 2026-10-05):** the speed, cost and calibration figures below are **vendor claims** (TypeSafe, launch material and videos). The only independent measurement in this wiki is the 30-example MLflow test ([[Jev vs LLMs Cost Comparison]]). Treat them as claims, not results.
+> **Evidence note (lint 2026-10-05):** the speed, cost and calibration figures below are **vendor claims** (TypeSafe, launch material and videos). The only independent measurement in this wiki is the 30-example MLflow test ([[Jev vs LLMs Cost Comparison]]). Treat them as claims, not results. *(Superseded 2026-10-10: large independent evaluations now exist; see "Independent evaluations" below. Speed and cost ratios remain vendor claims.)*
 
 - **Fast and cheap (claimed)**: Because it doesn't autoregressively generate output tokens, TypeSafe reports response times of 70–500 ms and a price of $0.042 / MTok input, marketed as "up to 193x faster and 444x cheaper" than traditional LLMs. The comparison baseline behind these ratios is not specified.
-- **Calibrated confidence (claimed)**: TypeSafe states that RL with Calibrated Decisions makes the probabilities reflect true confidence, enabling thresholds. No public calibration measurement (e.g. [[Expected Calibration Error]]) is available; open reproductions did not reproduce RLCD ([[SemIf]], [[Rizzo-Flow]]).
+- **Calibrated confidence (claimed)**: TypeSafe states that RL with Calibrated Decisions makes the probabilities reflect true confidence, enabling thresholds. No public calibration measurement (e.g. [[Expected Calibration Error]]) is available *(superseded 2026-10-10: Deußer 2026 and morrenhale measure it, see below)*; open reproductions did not reproduce RLCD ([[SemIf]], [[Rizzo-Flow]]).
 - **Zero Schema Hallucinations**: Since outputs are type-safe by design, Jev cannot generate an invalid type (though it can still make incorrect decisions).
 
 ## Use Cases & Integrations
@@ -35,9 +35,20 @@ Jev is closed: everything below except the team is **inferred** by third parties
 - **Parallel Sampling**: Jev generates all outputs in a single query.
 - Trained using Supervised Fine-Tuning (SFT) followed by [[Reinforcement Learning with Calibrated Decisions]].
 
+## Independent evaluations (ingest 2026-10-10)
+All on the pinned `jev-1.13.0`; see [[Decision-Model Benchmarks]] for protocol quality.
+- **[[Deusser 2026 - Evaluating and Benchmarking the System One Model Jev (arXiv 2609.37647)|Deußer 2026]]** (University of Bonn): 37 datasets, 346,009 requests, US$9.15. Zero-shot 95–99 % on IMDB, SST-2, HellaSwag, ARC. Above Qwen3.8-27B (letter readout on identical requests) on 27 of 37 datasets and above Gemma-4-E4B on all 37. **[[LLM-AggreFact]] 78.6** mean balanced accuracy (Qwen3.8-27B 76.9). Choice probabilities well calibrated (pooled ECE 0.028); single `noul` probabilities slightly under-confident; multi-label `noul` over-predicts yes. Binary probabilities rank well but sit badly against a fixed 0.5 threshold: thresholds tuned on training data raise UNFAIR-ToS micro-F1 from 0.50 to 0.75. Possible contamination: Jev is better on MMLU's calculation-heavy subjects than on the rest, unlike the open models.
+- **[[morrenhale 2026 - Decision benchmark Jev vs Laya vs Julia-1 dataset card|morrenhale]]**: 19,776 decisions on five public datasets. Accuracy **0.775**, ECE **0.105** (Laya 0.590 / 0.222; Julia-1 0.727 / 0.172). typed-decisions 0.732 with ECE 0.038. Hosted p50 322.9 ms including network.
+- **[[Yong 2026 - DecideBench dataset card|DecideBench]]**: **98.0 %** on 400 Claude-written contrastive items (pair accuracy 96.0 %, zero-shot 98.2 %), the cheapest model above 95 % ($32.26 per million tasks); p50 639 ms through a gateway. General LLMs score 99.2–99.8 % at 6–14× the cost.
+- **[[Benchmark Heaven 2026 - JevBench v1.6.1 dataset card|JevBench v1.6.1]]**: capability rank 4, composite rank 2 of 94 systems; intelligence 63.6, calibration 90.6. Quyet-1.0-Large (open, Gemma-4-31B letter readout) ranks first on capability.
+- **[[pranaysuyash 2026 - Laya Formatting Fragility dataset card|Formatting fragility]]**: the most format-stable system tested (2.9–8.3 % flips; accuracy 90.2 % vs Laya 72.7 %).
+- **[[Azizi 2026 - Labels Override Definitions in Jev-Style Typed Decision Models (arXiv 2610.02586)|Azizi 2026]]** did not run Jev; it cites Sun et al. (2026), who found that renaming Jev's options changes its answers.
+- **Reading.** Jev's accuracy and calibration hold up independently on short, well-scoped decisions. Weak spots are long or multi-step inputs, low-resource languages, noisy labels and rubric judgments of generated text. Jev figures quoted on third-party vendor cards (e.g. ECE 0.144 or 0.246 on the [[Laya]] card) disagree with direct measurement.
+
 ## Related Concepts
 - [[When System One Beats an LLM]]
-- Open alternatives: [[SemIf]], [[Rizzo-Flow]], [[CLM]], [[Jevlike]]
+- Open alternatives: [[SemIf]], [[Rizzo-Flow]], [[CLM]], [[Jevlike]], [[Laya]]
+- [[Decision-Model Benchmarks]], [[Hugging Face decision-models Tag]]
 - [[Groundedness Verification]] (the thesis task; the MLflow test used Jev for a similar factual-correctness judgement)
 - [[System One Models]]
 - [[Reinforcement Learning with Calibrated Decisions]]

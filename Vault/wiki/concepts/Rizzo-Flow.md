@@ -47,6 +47,11 @@ Only Apple number: MLX on M4 Pro, Q8, older prompt v2: 254 ms per short decision
 - **Reading.** In the RAG domain the specialist wins clearly, even the 0.5B against an 8× larger general-purpose System One. Out of domain (VitaminC) the general-purpose model is better: GroundOne's in-domain training does not transfer (the trained 3B is no better than the untrained 3B on T3); Rizzo-Flow's broader training mixture is a plausible but untested explanation for its advantage. Rizzo-Flow predicts "supported" for 90% of T1 sentences. Paired cluster-bootstrap tests: on T1 three-way GroundOne 0.5B +0.195 [+0.136, +0.249]; on T1 AUROC the 0.5B's +0.023 is not significant (p = 0.15); on T3 Rizzo-Flow beats the 3B by +0.175 three-way.
 - **Latency: no claim.** Rizzo-Flow's median is 6.88 s per answer at K ≥ 14 (3.75 s over all T1 answers), but runtime (llama.cpp vs MLX), quantisation (Q4 vs 8-bit), model size (4B vs 0.5B/3B) and transport (HTTP vs in-process) all differ. A fair comparison would need an HTTP-vs-HTTP run, now possible because GroundOne's API serves design (b).
 
+## Training data lineage (ingest 2026-10-10)
+- Rizzo-Flow's fine-tune draws on **`tasksource/procedural-typed-decisions`** (11 configs, rule-exact labels), plus `ZefanCai/Open-Jev` and 12 `Praveenrajus/jev-bench` configs ([[Rizzo-Flow training]], [[Rizzo-Flow README]]).
+- It does **not** use the larger sibling **`tasksource/tasksource-jev-typed-decisions`** (2.5M decisions from 670 sources; [[Sileo 2026 - tasksource-jev-typed-decisions dataset card]]). That corpus weights its sources with Jev and Liquid D1 probabilities. Its card points to `procedural-typed-decisions` as the companion for counting, arithmetic, retrieval and routing.
+- Consequence for the thesis: Rizzo-Flow's labels come from rule-exact generators and human-labelled public sets, not from Jev outputs, and its training mix is not shaped by Jev's probabilities. Its out-of-domain advantage on T3 cannot be attributed to the 670-source corpus.
+
 ## Stated limitations
 - Uncalibrated by default; `status: ok` ≠ correct; Jev confidence thresholds do not transfer.
 - Under-uses abstention; 5–6 confident wrong answers of 36 on missing evidence (SemIf 1).

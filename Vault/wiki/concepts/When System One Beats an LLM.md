@@ -38,6 +38,17 @@ A System One model wins when the task is a **closed-form decision over a given s
 | **[[GroundOne]]** (this thesis, [[GroundOne Results]]) | Same-size comparison on the same M4: at K ≥ 14, 1.95× (0.5B) / 1.73× (3B) faster than a terse and ≈ 6.2× than a verbose judge; always-valid output vs 23–97 % judge format failures (0.5B); 1.3–4.1× less energy; T1 three-way 0.769 / 0.832 vs ≤ 0.41 for the judges | Own measurement, 200 answers, bootstrap CIs; in-process MLX only |
 | Earlier abandoned experiment: LoRA tool routing (`Project_old/LoRA_Finetuning`) | Qwen2.5 0.5B logit-routing: 86.5% accuracy at ~166 ms/prompt; 3B 8-bit: 87.8% at ~602 ms. Wrong tool picked only 6/304 times; errors are almost all abstain (`Z`) decisions | Own measurement, on-device (Apple Silicon); routing thesis abandoned |
 | Earlier abandoned experiment: routing hypothesis (`Project_old/Benchmark&Results/expected_results.md`) | O(1) flat latency vs O(L) for generative router | Hypothesis, never confirmed (abandoned) |
+| [[Deusser 2026 - Evaluating and Benchmarking the System One Model Jev (arXiv 2609.37647)\|Deußer 2026]] (independent, 2026-09) | Jev zero-shot on 37 datasets (346,009 requests, US$9.15): above a Qwen3.8-27B letter readout on 27 of 37 datasets (11 significant, none of Qwen's 9 leads significant), above Gemma-4-E4B on all 37; LLM-AggreFact 78.6 vs 76.9 / 75.6; choice ECE 0.028 pooled | Academic, full splits, bootstrap CIs, raw responses released. Against open LLMs read **without generation** in one pass, so it shows Jev's quality, not a decode-vs-readout speed gain. Contamination not excluded |
+| [[morrenhale 2026 - Decision benchmark Jev vs Laya vs Julia-1 dataset card\|morrenhale]] (independent, 2026-09) | 19,776 decisions: Jev 0.775 / ECE 0.105, Laya (open encoder, zero-shot) 0.590 / 0.222, Julia-1 0.727 / 0.172; Laya wins only AG News | Auditable (manifests, predictions, paired bootstrap). System One vs System One: says nothing about System One vs LLM |
+| [[Yong 2026 - DecideBench dataset card\|DecideBench]] (independent, 2026-10) | Jev 98.0 % at $32 per million tasks vs general LLMs 99.2–99.8 % at 6–14× the cost; self-hosted decoder decision models 63–95 %; encoders 35–60 % (Laya 59.8 %) | The only board that prices LLMs and System Ones together. 400 Claude-written items; LLMs **are more accurate**, so the System One gain here is cost and latency, not accuracy |
+| [[mlboydaisuke 2026 - Decision models on Core AI (JevBench public231) dataset card\|Core AI on M4 Max]] (independent, 2026-09) | Local decoder System Ones that re-prefill the state per question take 40–220 s per question on 3k-token states; a truncating encoder answers in 0.02 s but reads only 256 tokens | On-device evidence that the **shared-context design**, not the System One label, decides cost on long documents. Contended GPU |
+
+
+**Critical reading of the 2026 independent evidence (ingest 2026-10-10).**
+1. The independent boards confirm that a strong System One (Jev) is accurate and calibrated on short, closed decisions, and much cheaper than a general LLM at similar accuracy (DecideBench).
+2. They do **not** show that System Ones beat LLMs on accuracy. On DecideBench three general LLMs are more accurate. On Deußer's suite the reference LLMs are scored *as System Ones* (letter readout, one pass), and a 27B readout is within intervals of Jev where it leads.
+3. Small open System Ones are far weaker zero-shot than Jev. Encoders lose most: Laya 0.590 vs 0.775 (morrenhale), 59.8 % vs 98.0 % (DecideBench).
+4. On LLM-AggreFact a closed System One (Jev 78.6) and a zero-shot 27B readout (76.9) are above GroundOne 3B (74.8). GroundOne's case rests on in-domain specialisation (T1), full locality on 16 GB, and per-answer cost with K sentences, not on beating every System One on T2 ([[Decision-Model Benchmarks]]).
 
 ## When it is NOT advantageous (use an LLM)
 - **You need an explanation/rationale.** System One returns no text. For debugging, iterating on prompts or audit trails an LLM judge is better ([[LLM-as-a-Judge]]).
@@ -80,7 +91,7 @@ The thesis studies **[[GroundOne]]**: a specialist System One verifier that, for
 - Can open models reach usable calibration without RLCD data? (Partial evidence: soft-CE fine-tuning + temperature scaling, see [[Rizzo-Flow]], [[SemIf]].)
 
 ## Sources
-- [[System One Models]], [[Jev]], [[Jev Input and Output Format]], [[Jev vs LLMs Cost Comparison]]
+- [[System One Models]], [[Jev]], [[Jev Input and Output Format]], [[Jev vs LLMs Cost Comparison]], [[Laya]], [[Decision-Model Benchmarks]], [[Hugging Face decision-models Tag]]
 - [[Jevs Architecture Unmasked]], [[Can Jev replace your LLM judge]], [[Che cos'e Jev Spiegazione]], [[jev_simone_rizzo]]
 - [[SemIf README]], [[SemIf RESULTS]], [[Rizzo-Flow README]], [[Rizzo-Flow training]], [[CLM README]], [[Kwok 2026 - Contrastive Language Models]]
 - Project material outside the wiki: `SystemOne_repos/SemIf/docs/RESULTS.md`, `SystemOne_repos/CLM/examples/t_rex/results/`; earlier abandoned routing thesis: `Project_old/LoRA_Finetuning/training_results/v1/results.md`, `Project_old/Benchmark&Results/expected_results.md`, `Project_old/docs/PlanB/abstract_thesis_eng.md`

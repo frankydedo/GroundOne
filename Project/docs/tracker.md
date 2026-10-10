@@ -28,15 +28,15 @@ Update the status column and the to-do list as work progresses.
 
 | Chapter | Planned | Status |
 | --- | --- | --- |
-| 1 Introduction | Week 5 | ⬜ skeleton (TODOs) |
-| 2 Background and related work | Weeks 1–2 | ⬜ skeleton (TODOs) |
-| 3 Method (GroundOne) | Week 2 | 🟡 first draft; to update (System One framing, served API, D27) |
-| 4 Data and exploratory analysis | after Phase 1 | 🟡 first draft |
-| 5 Experimental setup | Week 3 | 🟡 first draft; to update (B0d, B2, energy, run 2, bootstrap) |
-| 6 Results (incl. ablations) | Weeks 3–4 | 🟡 first draft; to update (B0d, B2, energy, run 2, CIs, fixes from the 2026-10-10 audit) |
-| 7 Discussion and limitations | Week 4 | ⬜ skeleton (TODOs) |
-| 8 Conclusion | Week 5 | ⬜ skeleton (TODOs) |
-| Abstract / summary (final, with numbers) | Week 5 | ⬜ `summary.tex` is still the pre-results version; `docs/abstract.md` has results |
+| 1 Introduction | Week 5 | 🟡 first full draft (2026-10-10) |
+| 2 Background and related work | Weeks 1–2 | 🟡 first full draft (2026-10-10; incl. local inference, decision-models literature) |
+| 3 Method (GroundOne) | Week 2 | 🟡 revised 2026-10-10 (System One framing, served rule, optimiser) |
+| 4 Data and exploratory analysis | after Phase 1 | 🟡 revised 2026-10-10 |
+| 5 Experimental setup | Week 3 | 🟡 rewritten 2026-10-10 (B0d, B2, seeds, statistics, energy) |
+| 6 Results (incl. ablations) | Weeks 3–4 | 🟡 rewritten 2026-10-10 (all results, CIs, audit fixes) |
+| 7 Discussion and limitations | Week 4 | 🟡 first full draft (2026-10-10) |
+| 8 Conclusion | Week 5 | 🟡 first full draft (2026-10-10) |
+| Abstract / summary (final, with numbers) | Week 5 | 🟡 `summary.tex` with results (2026-10-10); appendix with output examples |
 
 ## Results matrix
 
@@ -154,3 +154,4 @@ Add one line per significant event (date, what happened, impact on the plan).
 - 2026-10-10: HTTP API on design (b) (D27): training segmentation, one pass, labels/flags/probabilities from one rule (calibrated P(supported) ≥ dev threshold τ); `calibrate-b` now fits τ and keeps the dev logits; playground updated; 3 new API tests (13 fast tests pass); real check on the 0.5B: 0.10 s, 0 output tokens
 - 2026-10-10 13:12: served threshold τ fitted on dev for all runs (queue_day6): 0.935 / 0.895 / 0.925; the served rule matches the evaluated raw decision within 0.01 on T1
 - 2026-10-10: general audit (docs, thesis, code): stale statements fixed in docs and code (bootstrap now drops items skipped by Rizzo-Flow on T2: macro 61.5; run-2 and B2 pairs added); thesis chapter updates listed in the chapter table
+- 2026-10-10: wiki lint + 22 + 12 sources ingested (incl. the Hugging Face decision-models tag); whole thesis revised chapter by chapter: Ch. 1, 2, 7, 8 written, Ch. 3–6 revised, summary with results, output-examples appendix, 5 new figures, 26 new bibliography entries; compiles cleanly (68 pages)
