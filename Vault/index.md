@@ -11,7 +11,7 @@ Knowledge base for the MSc thesis **[[GroundOne]]**: a specialist System One mod
 - [[System One Models]] (definition and taxonomy), [[Letter-Token Readout]] (letter logits vs generated answer)
 - [[Jev]], [[TypeSafe AI]], [[Jev Input and Output Format]], [[Reinforcement Learning with Calibrated Decisions]], [[Jev vs LLMs Cost Comparison]]
 - Open implementations: [[SemIf]], [[Rizzo-Flow]], [[CLM]], [[Jevlike]], [[Laya]]
-- Ecosystem and evaluation: [[Hugging Face decision-models Tag]], [[Decision-Model Benchmarks]]
+- Ecosystem and evaluation: [[Decision-Model Landscape (Hugging Face, 2026)]] (survey of the `decision-model` tag: families, catalogue, on-device ports, red flags), [[Hugging Face decision-models Tag]], [[Decision-Model Benchmarks]]
 - [[Mixture of Experts]], [[LangChain]]
 
 ## RAG, hallucination and verification
@@ -50,6 +50,12 @@ Knowledge base for the MSc thesis **[[GroundOne]]**: a specialist System One mod
 - Papers: [[Deusser 2026 - Evaluating and Benchmarking the System One Model Jev (arXiv 2609.37647)]], [[Nandakishore 2026 - Laya as a Typed Probabilistic Assessor (arXiv 2609.33843)]], [[Azizi 2026 - Labels Override Definitions in Jev-Style Typed Decision Models (arXiv 2610.02586)]], [[Robles-Fernandez 2026 - Sciev Typed Scientific Decisions Without Generation (manuscript, sciev.org)]]
 - Model cards: [[Convai Innovations 2026 - Laya model card]], [[Robles-Fernandez 2026 - Sciev model card]]
 - Benchmarks and data: [[Yong 2026 - DecideBench dataset card]], [[Benchmark Heaven 2026 - JevBench v1.6.1 dataset card]], [[morrenhale 2026 - Decision benchmark Jev vs Laya vs Julia-1 dataset card]], [[pranaysuyash 2026 - Laya Formatting Fragility dataset card]], [[mlboydaisuke 2026 - Decision models on Core AI (JevBench public231) dataset card]], [[Sileo 2026 - tasksource-jev-typed-decisions dataset card]]
+
+**System One (2026, `decision-model` tag: industry entrants, ports, papers)**
+- Model cards: [[Cloudflare 2026 - Clef model card]], [[LiquidAI 2026 - d1-3B model card]], [[Perplexity 2026 - pplx-decider-v1.1-27b model card]], [[Strands Agents (Amazon) 2026 - strands-decider-2B-qwen3.5-v1 model card]], [[KR Labs and vLLM Semantic Router 2026 - Vela 2.0 9B model card]] (hallucination spans), [[Palmer 2026 - Kev-4B model card]], [[tokimoa 2026 - uratori-ja-4b model card]] (grounding, Japanese)
+- On-device: [[mlx-community 2026 - clef-flash-4bit model card]], [[FluidInference 2026 - d1-omni-600M Core ML model card]], [[ggml-org 2026 - llama.cpp PR 29818 systemone API]]
+- Leaderboard and data: [[multimodalart 2026 - Jev Decision Index (Hugging Face Space)]], [[Hugging Face 2026 - decision-model tag listing (2026-10-10)]]
+- Papers: [[Li 2026 - JEV-as-a-Judge (arXiv 2609.26550)]], [[Guo 2026 - Just Ask Jev (arXiv 2609.29429)]], [[Deka 2026 - From Retrieval to Typed Decisions SBERT2S1 (arXiv 2610.02486)]]
 
 **RAG, verification, judges**
 - [[Lewis 2020 - Retrieval-Augmented Generation]], [[Niu 2024 - RAGTruth]], [[Tang 2024 - MiniCheck]], [[Tang 2024 - LLM-AggreFact Leaderboard]], [[Zha 2023 - AlignScore]], [[Vectara 2024 - HHEM-2.1-Open model card]], [[Ravi 2024 - Lynx]]

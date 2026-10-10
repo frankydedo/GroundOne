@@ -44,6 +44,9 @@ tags: [concept, dataset, benchmark, rag, hallucination, span-level, training-dat
 | GPT-4 06-13 zero-shot | BAcc RAGTruth-QA / -Summ | 74.11 / 62.62 | HHEM card |
 | Lynx 70B / GPT-4o | accuracy (HaluBench RAGTruth subset) | 80.2 / 84.3 | [[Ravi 2024 - Lynx]] Table 3 |
 | Claude-3.5 Sonnet / Bespoke-MiniCheck-7B / MiniCheck-FT5 / AlignScore / HHEM-2.1 / Qwen2.5-0.5B-Instruct | BAcc (LLM-AggreFact column) | 86.1 / 84.0 / 78.0 / 71.7 / 69.9 / 51.6 | [[Tang 2024 - LLM-AggreFact Leaderboard]] |
+| Decision Index 0.2.1 (2,700 test responses, zero-shot decision models): Jev / pplx-decider-v1-27b / Laya / best entrant < 1B (JPT-0.8B) | response F1, hallucinated class (chance 0.518) | 0.765 / 0.803 / 0.488 / 0.553 | [[multimodalart 2026 - Jev Decision Index (Hugging Face Space)]] |
+| Clef / Clef-flash (vendor run of the same Index task) | response F1, hallucinated class (×100) | 79.4 / 35.6 | [[Cloudflare 2026 - Clef model card]] |
+| Vela 2.0 9B / 0.3B; LettuceDetect v2 qwen-2b / mmBERT (same 2,700 rows) | example-level F1 | 0.774 / 0.706; 0.817 / 0.743 | [[KR Labs and vLLM Semantic Router 2026 - Vela 2.0 9B model card]] (self-reported, LettuceDetect re-scored) |
 
 **Caution**: these figures use different metrics, units (response, sentence or claim) and subsets. Compare only within a row group.
 
@@ -89,3 +92,5 @@ Measured by [[GroundOne 2026 - EDA report]] (Qwen2.5 tokens, rule-based sentence
 
 ## GroundOne results on T1 (2026-10-10)
 Three-way balanced accuracy on 17,284 sentences: 0.769 (0.5B), 0.767 (0.5B run 2), 0.832 (3B); binary AUROC 0.905 / 0.907 / 0.940, against 0.814 / 0.821 for [[MiniCheck]] / [[HHEM]] and 0.737 for word overlap. Contradicted recall stays low outside data-to-text. Details: [[GroundOne Results]]; EDA: [[GroundOne 2026 - EDA report (dataset)]].
+
+**Response-level comparison (open, 2026-10-10).** GroundOne's T1 covers 2,647 of these 2,700 test responses. Aggregating its sentence verdicts to a response label would allow a like-for-like F1 against the rows above (specialists trained on RAGTruth: LettuceDetect, Vela, GroundOne; generalists: Jev, Clef, pplx-decider). See [[Groundedness Verification]] and [[Decision-Model Landscape (Hugging Face, 2026)]].

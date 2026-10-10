@@ -49,6 +49,13 @@ From the [[MLX README (ml-explore)|README]]:
 - Long jobs run under a memory guard (kill if free memory < 2 GB or swap grows > 3 GB): on 16 GB of unified memory, memory pressure is the operational risk.
 - Latency claims are made only between systems measured in-process in MLX. [[Rizzo-Flow]] runs on [[llama.cpp README (ggml-org)|llama.cpp]] (Metal backend, Q4, over HTTP), so no latency claim is made against it.
 
+## MLX and Core ML ports of decision models (ingest 2026-10-10)
+- 163 models in the `decision-model` tag are tagged `mlx` and 103 `apple-silicon` ([[Hugging Face 2026 - decision-model tag listing (2026-10-10)]]).
+- **mlx-community/clef-flash-4bit** (9B, `mlx_vlm.convert` 4-bit, group size 64; joint head kept in bf16): 6.2 GB download, peak 7.0 GB at 1k tokens, "minimum Mac RAM 16 GB" because macOS lets the GPU use only about 70–75 % of RAM by default; 96.4 % same top answer as bf16 on a 2,000-request Index sample ([[mlx-community 2026 - clef-flash-4bit model card]]).
+- **Kev** switches to MLX automatically on Apple Silicon; on an M5 (32 GB, bf16, 8.4 GB of weights) an 8k-token state peaks at 10.2 GB in MLX and stays within 0.018 of the fp32 path on 60 questions ([[Palmer 2026 - Kev-4B model card]]).
+- **Core ML / ANE**: d1-omni-600M (text path) runs 1,140 of 1,150 ops on the Neural Engine after replacing the ANE's fused SiLU, which had flipped 41 of 492 decisions ([[FluidInference 2026 - d1-omni-600M Core ML model card]]).
+- **Lesson for GroundOne's 8-bit models**: the ports report agreement with the reference on a fixed set (top-answer agreement, max |Δp|). GroundOne should report the same for its MLX 8-bit checkpoints against a bf16 reference if it claims quantisation is harmless.
+
 ## Links
 - Concepts: [[On-Device Inference]], [[Prefill and Decode]], [[KV Cache]], [[Energy of LLM Inference]], [[Qwen2.5]], [[LoRA]], [[GroundOne]]
-- Sources: [[Apple 2024 - MacBook Pro 14-inch M4 tech specs]], [[MLX README (ml-explore)]], [[llama.cpp README (ggml-org)]], [[Alizadeh 2024 - LLM in a flash]], [[Gunter 2024 - Apple Intelligence Foundation Language Models]], [[Pope 2023 - Efficiently Scaling Transformer Inference]]
+- Sources: [[Apple 2024 - MacBook Pro 14-inch M4 tech specs]], [[MLX README (ml-explore)]], [[llama.cpp README (ggml-org)]], [[mlx-community 2026 - clef-flash-4bit model card]], [[Palmer 2026 - Kev-4B model card]], [[FluidInference 2026 - d1-omni-600M Core ML model card]], [[Alizadeh 2024 - LLM in a flash]], [[Gunter 2024 - Apple Intelligence Foundation Language Models]], [[Pope 2023 - Efficiently Scaling Transformer Inference]]

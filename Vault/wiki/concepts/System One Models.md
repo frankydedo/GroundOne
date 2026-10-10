@@ -45,6 +45,7 @@ Notes:
 - [[CLM]]: contrastive bi-encoder from Stanford/NVIDIA (family c).
 - [[Laya]]: open encoder with one `[MASK]` per option (family d, below).
 - Sciev ([[Robles-Fernandez 2026 - Sciev model card]]): typed heads on a frozen diffusion LM (family e, below).
+- Industry entrants (2026-10): Cloudflare [[Cloudflare 2026 - Clef model card|Clef]] (open family a), Liquid AI [[LiquidAI 2026 - d1-3B model card|d1]] (family b at 3B), [[Perplexity 2026 - pplx-decider-v1.1-27b model card|pplx-decider]] (family b, 27B), [[Strands Agents (Amazon) 2026 - strands-decider-2B-qwen3.5-v1 model card|Strands decider]]; see the section at the end and [[Decision-Model Landscape (Hugging Face, 2026)]].
 
 ## Broadened taxonomy (ingest 2026-10-10)
 The 2026 wave of open decision models under the [[Hugging Face decision-models Tag]] adds two families to (a)–(c). Their independent results are collected in [[Decision-Model Benchmarks]].
@@ -57,4 +58,24 @@ The 2026 wave of open decision models under the [[Hugging Face decision-models T
 - **Family (b) is the strongest open family on the one large leaderboard.** On JevBench v1.6.1 the top open systems are large decoders with option-letter readouts: Quyet-1.0-Large (Gemma-4-31B) has capability rank 1, above Jev (rank 4); torchcast-decision-12b has rank 5 ([[Benchmark Heaven 2026 - JevBench v1.6.1 dataset card]]). GroundOne belongs to this family at a much smaller scale.
 - **"One forward pass" means different things.** Jev answers all questions of a request in parallel, each independently ([[Deusser 2026 - Evaluating and Benchmarking the System One Model Jev (arXiv 2609.37647)|Deußer 2026]]). Laya batches one sequence per question. Sciev runs one pass per decision. Some on-device decoder System Ones re-prefill the whole state for every question (40–220 s for a 3k-token state on an M4 Max; [[mlboydaisuke 2026 - Decision models on Core AI (JevBench public231) dataset card]]). **GroundOne** reads K verdicts at K markers in a single pass over one shared context. That design choice, not the encoder/decoder distinction, decides the cost of many decisions per document.
 - **Option-label bias is a rendering property, not a head property.** Writing `"{label}: {definition}"` into the input makes encoders and LM readouts follow the label. Writing only the definition removes the effect exactly (Azizi 2026). Every typed head tested ignores negated yes/no questions.
+
+
+## Industry entrants and new readout variants (ingest 2026-10-10, `decision-model` tag)
+Within three weeks of Jev, established organisations released open-weight decision models under the singular `decision-model` tag ([[Decision-Model Landscape (Hugging Face, 2026)]]). What their cards and code add to the taxonomy:
+
+| System | Family | Readout, as released | Multiple questions on one state | Source |
+|---|---|---|---|---|
+| **Cloudflare Clef** (27B / 9B / 30B-A3B) | **(a), now open** | Frozen Qwen backbone + rank-256 LoRA; a joint schema head pools question and option spans, routes evidence by cross-attention, lets fields attend to each other, scores options (cosine + MLP + lexical prior); trained with label-smoothed CE + Brier | One prefill over state + all questions, all fields scored jointly | [[Cloudflare 2026 - Clef model card]] |
+| **Liquid AI d1-3B** | (b) | LM-head logits of single-token option codes (letters, digits, yes/no), max over token forms, softmax | One tree-masked pass: state = trunk, each question = branch | [[LiquidAI 2026 - d1-3B model card]] |
+| **Perplexity pplx-decider-v1.1** (27B) | (b), trained head | 255-row letter head mapped to vocabulary ids; last-token pooling; full-attention layers made **noncausal** | One row per question | [[Perplexity 2026 - pplx-decider-v1.1-27b model card]] |
+| **Strands decider** (2B, Amazon org mirror) | (b') | LoRA + small readout head; three-seed soup | Per-question scoring | [[Strands Agents (Amazon) 2026 - strands-decider-2B-qwen3.5-v1 model card]] |
+| **Kev** (0.5B–27B) | (a)-like | Frozen backbone + LoRA; pointer head scores each option's closing token against the question's final token | State computed once and cached; one row per question | [[Palmer 2026 - Kev-4B model card]] |
+| **Vela 2.0** (0.3B–9B) | (b') + spans | Decision heads plus a word-by-label span head (PII, unsupported claims) | One request; span questions may need extra sequences | [[KR Labs and vLLM Semantic Router 2026 - Vela 2.0 9B model card]] |
+| **Liquid AI d1-omni-600M** | (d) | Encoder, one logit per option marker | Batched | [[FluidInference 2026 - d1-omni-600M Core ML model card]] |
+
+- *Superseded (row (a) of the first taxonomy table):* "architecture inferred … not disclosed; closed, hosted". The architecture of Jev is still undisclosed, but family (a) is **no longer closed-only**: Clef releases a decoder + dedicated joint head with code and weights. The head attends across all questions, so Clef's answers are not independent per question, unlike Kev, d1, Laya or GroundOne.
+- **"Single forward pass" now covers five implementations**: joint head over one prefill (Clef); shared trunk with one branch per question (d1-3B); cached state plus one row per question (Kev, GroundOne design a); one sequence per question (Laya, pplx-decider); and GroundOne's design (b), K verdicts read at K markers inside one linear sequence. Only the last exploits the fact that GroundOne's questions are the answer's own sentences.
+- **Not every "decision model" avoids the LM head**: Together's Tev1 keeps the standard next-token head and reads the generated letter ("not a non-autoregressive Jev runtime"); llama.cpp's maintainers describe decision models as "embedding models plus a head" ([[ggml-org 2026 - llama.cpp PR 29818 systemone API]]).
+- **Calibration is a training or fitting choice, not a property of the family**: Clef adds a Brier loss, Kev and Strands fit temperatures, RLCD brings no advantage over cross-entropy once temperature-scaled ([[Deka 2026 - From Retrieval to Typed Decisions SBERT2S1 (arXiv 2610.02486)]]), and Jev is calibrated pooled but not per benchmark ([[Guo 2026 - Just Ask Jev (arXiv 2609.29429)]]).
+- **Grounding needs capacity.** On the Decision Index's response-level RAGTruth task no entrant under 1B parameters gets meaningfully above chance, and all entrants of 15B or more exceed 0.6 F1 ([[multimodalart 2026 - Jev Decision Index (Hugging Face Space)]]). A general decision model of GroundOne's size is not a groundedness checker without task training.
 

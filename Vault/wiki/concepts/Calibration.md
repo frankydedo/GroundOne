@@ -75,6 +75,13 @@ Vendor claims of "calibrated by training" (RLCD) do not remove the need for post
 
 **What this supports in GroundOne's recipe.** A parametric map (temperature + per-class bias) fitted on a dev split disjoint from training, a **decision threshold fitted on dev** rather than a fixed 0.5 (D27), per-domain reporting (calibration stated not to transfer to T3), and AUROC/AURC and reliability diagrams alongside ECE. GroundOne's dev split (9,996 decisions) is ten times larger than the 1,000-decision fitting half in which Laya's isotonic calibrator and gate overfit.
 
+## More evidence that calibration is workload-relative (ingest 2026-10-10)
+- Jev: pooled ECE 0.047 over alignment benchmarks, median per-benchmark ECE 0.168 (null 0.074), caused by base-rate mismatch while ranking stays good (median within-file AUROC 0.905) ([[Guo 2026 - Just Ask Jev (arXiv 2609.29429)]]).
+- Temperatures fitted on small selection sets point in different directions per workload (0.65, 2.15, 4.45) and improve NLL on one task while worsening it on two: "every fit needs held-out validation" ([[Li 2026 - JEV-as-a-Judge (arXiv 2609.26550)]]).
+- Kev-4B with one temperature: ECE 0.017–0.029 on held-out public suites, 0.084–0.101 on trained skill and document families ([[Palmer 2026 - Kev-4B model card]]). Strands decider: one temperature per primitive, "measure on your own traffic before you trust a threshold" ([[Strands Agents (Amazon) 2026 - strands-decider-2B-qwen3.5-v1 model card]]).
+- Training-time calibration terms: Clef adds a Brier loss ([[Cloudflare 2026 - Clef model card]]); the open RLCD recipe gives no calibration gain over cross-entropy after temperature scaling ([[Deka 2026 - From Retrieval to Typed Decisions SBERT2S1 (arXiv 2610.02486)]]).
+- This is the same failure GroundOne observes when its RAGTruth-fitted calibration is applied to VitaminC.
+
 ## Links
 - [[Expected Calibration Error]], [[Selective Prediction]], [[Reinforcement Learning with Calibrated Decisions]]
 - [[GroundOne]], [[Groundedness Verification]], [[Hallucination Detection]], [[LLM-as-a-Judge]], [[System One Models]], [[When System One Beats an LLM]], [[Jev]], [[Qwen2.5]]

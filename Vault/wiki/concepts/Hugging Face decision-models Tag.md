@@ -22,5 +22,9 @@ tags: [hugging-face, decision-models, system-one, ecosystem, evidence-quality]
 
 **Relevance to GroundOne.** The tag is the ecosystem GroundOne would be published into. It also shows the gap the thesis fills: none of these benchmarks measures sentence-level groundedness of RAG answers ([[Decision-Model Benchmarks]]).
 
+## The singular `decision-model` tag is the big one (ingest 2026-10-10, second pass)
+*Correction: this page describes the plural tag `decision-models`. The main ecosystem tag is the singular **`decision-model`**, which held 1,529 models from 610 authors on 2026-10-10 (API: `api/models?filter=decision-model`; the web filter is `?other=decision-model`).* The "What is under it" list above covers only the plural tag and should not be read as the model side of the ecosystem: under the singular tag sit Cloudflare Clef, Liquid AI d1, Perplexity pplx-decider, Strands decider, vLLM-SR Decision/Vela, Kev and hundreds of community fine-tunes and quantisations. The survey, catalogue, on-device ports and red flags are in **[[Decision-Model Landscape (Hugging Face, 2026)]]**; the raw listing is [[Hugging Face 2026 - decision-model tag listing (2026-10-10)]]. The community leaderboard used by most cards is the [[multimodalart 2026 - Jev Decision Index (Hugging Face Space)|Decision Index]].
+- *Superseded statement:* "none of these benchmarks measures sentence-level groundedness of RAG answers" still holds for *sentence-level*, but the Decision Index does measure **response-level RAGTruth** for 70 entrants ([[Decision-Model Benchmarks]]).
+
 ## Links
-[[System One Models]], [[Decision-Model Benchmarks]], [[Laya]], [[Jev]], [[GroundOne]]
+[[System One Models]], [[Decision-Model Benchmarks]], [[Decision-Model Landscape (Hugging Face, 2026)]], [[Laya]], [[Jev]], [[GroundOne]]

@@ -55,6 +55,9 @@ Exploding and vanishing gradients are different mechanisms with different remedi
   6. an automatic early-stop-and-restart rule when dev macro recall is still ≤ 0.40 at step 300 (Dodge §5).
 - **For the thesis.** State that one of three 0.5B seeds collapsed, that the recipe has no clipping and uses Adam without bias correction, and that the collapse rate is not estimable from three runs. Present run 1 and run 2 side by side. Treat their spread as a floor for meaningful differences on T2 and T3.
 
+## Seed soups in released decision models (ingest 2026-10-10)
+The Strands decider (2B, LoRA + head) is released as the exact average of three seeds' LoRA updates, with the three heads stacked so the option score is their mean, then recalibrated. The card reports each seed and the mean ± SD next to the soup (JevBench 179.7 ± 3.8 tasks right; soup 180) ([[Strands Agents (Amazon) 2026 - strands-decider-2B-qwen3.5-v1 model card]]). For GroundOne, a soup of the converged seeds (1234 and 777) is a cheap robustness option; a collapsed seed would have to be excluded first, since averaging it in would not be meaningful. The open RLCD recipe also shows a fourfold larger seed SD than cross-entropy ([[Deka 2026 - From Retrieval to Typed Decisions SBERT2S1 (arXiv 2610.02486)]]).
+
 ## Links
 - Sources: [[Dodge 2020 - Fine-Tuning Pretrained LMs (weight init, data order, early stopping)]], [[Mosbach 2021 - On the Stability of Fine-tuning BERT]], [[Pascanu 2013 - On the difficulty of training RNNs (gradient clipping)]], [[Berg-Kirkpatrick 2012 - An Empirical Investigation of Statistical Significance in NLP]], [[Hu 2022 - LoRA]]
 - Concepts: [[Statistical Significance and Bootstrap]], [[LoRA]], [[Qwen2.5]], [[Calibration]]

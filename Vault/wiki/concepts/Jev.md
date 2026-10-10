@@ -45,6 +45,13 @@ All on the pinned `jev-1.13.0`; see [[Decision-Model Benchmarks]] for protocol q
 - **[[Azizi 2026 - Labels Override Definitions in Jev-Style Typed Decision Models (arXiv 2610.02586)|Azizi 2026]]** did not run Jev; it cites Sun et al. (2026), who found that renaming Jev's options changes its answers.
 - **Reading.** Jev's accuracy and calibration hold up independently on short, well-scoped decisions. Weak spots are long or multi-step inputs, low-resource languages, noisy labels and rubric judgments of generated text. Jev figures quoted on third-party vendor cards (e.g. ECE 0.144 or 0.246 on the [[Laya]] card) disagree with direct measurement.
 
+## More independent evaluations and open alternatives (ingest 2026-10-10, `decision-model` tag)
+- **As a judge** (CMU): 8th of 15 LLM judges, 1.7 points behind GPT-6 at 277× lower fee and 0.15 s median latency; HaluEval QA 87.3 % vs 88.4 %; large gaps where verdicts must be derived (logic −27.6) ([[Li 2026 - JEV-as-a-Judge (arXiv 2609.26550)]]).
+- **As an alignment-failure detector**: median AUROC 0.886 zero-shot over 31 benchmarks; pooled ECE 0.047 but per-benchmark ECE 0.168 ([[Guo 2026 - Just Ask Jev (arXiv 2609.29429)]]).
+- **On the Decision Index 0.2.1** (Jev 1.13.0): response-level RAGTruth F1 0.765, ANLI macro-F1 0.748, ContractNLI 0.717, HoVer 0.729 ([[multimodalart 2026 - Jev Decision Index (Hugging Face Space)]]).
+- **Open-weight competitors from established organisations** now match or beat it on parts of that index (vendor-reported): Perplexity's pplx-decider-v1.1 (61.56 vs 57.9 overall), Cloudflare's Clef (RAGTruth 79.4 vs 76.5 in Cloudflare's run). Clef also gives an open, inspectable version of the decoder-plus-head design attributed to Jev ([[Cloudflare 2026 - Clef model card]], [[Perplexity 2026 - pplx-decider-v1.1-27b model card]], [[Decision-Model Landscape (Hugging Face, 2026)]]).
+- **Distilled clones**: autotrust's "JEV" models are trained on Jev 1.13 output distributions and disclaim affiliation with TypeSafe; their headline metrics measure agreement with Jev, not accuracy.
+
 ## Related Concepts
 - [[When System One Beats an LLM]]
 - Open alternatives: [[SemIf]], [[Rizzo-Flow]], [[CLM]], [[Jevlike]], [[Laya]]

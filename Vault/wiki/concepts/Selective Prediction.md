@@ -50,6 +50,12 @@ In the equal-output comparison, zero-shot same-size judges and GroundOne receive
 - **Rule for the thesis:** report the RC curve / AURC and AUROC next to ECE; never ECE alone.
 - **Served threshold (D27).** The HTTP API labels a sentence "supported" iff calibrated P(supported) ≥ τ, with τ fitted on dev by maximising three-way macro recall (τ ≈ 0.90–0.94). This is a cost-agnostic operating point. A target-risk threshold (SGR-style, above) remains the principled alternative for a "System One gate, System Two fallback" deployment.
 
+## Threshold choice with few labels: lower confidence bounds (ingest 2026-10-10)
+- In a confidence-gated cascade (accept the System One's verdict if its confidence q ≥ τ, else escalate to a reasoning judge), choosing the most permissive τ whose **one-sided 95 % lower confidence bound** on the per-item accuracy difference (cascade minus strong judge) stays above −2 points, instead of requiring only the mean difference to do so, cut the risk of losing more than two points against the strong judge from about 45 % to about 5 % with about 100 local labels, and to under 1 % with a per-workload threshold ([[Li 2026 - JEV-as-a-Judge (arXiv 2609.26550)]]).
+- With ten labels a fitted threshold already lifts Jev's median F1 from 0.706 (t = 0.5) to 0.793 ([[Guo 2026 - Just Ask Jev (arXiv 2609.29429)]]).
+- Selective accuracy as reported by a groundedness decision model: 0.983 on the 30 % most confident items, 0.872 on all ([[tokimoa 2026 - uratori-ja-4b model card]]).
+- **For GroundOne**: τ is fitted on the RAGTruth dev split (0.90–0.94). Reporting the lower-bound variant, or a bootstrap interval on accepted accuracy at τ, would make the served rule more defensible.
+
 ## Links
 - [[Verbalised vs Logit Confidence]], [[Statistical Significance and Bootstrap]]
 - [[Calibration]], [[Expected Calibration Error]], [[GroundOne]], [[Groundedness Verification]], [[Hallucination Detection]], [[LLM-as-a-Judge]], [[System One Models]], [[When System One Beats an LLM]], [[Reinforcement Learning with Calibrated Decisions]], [[Jev]]

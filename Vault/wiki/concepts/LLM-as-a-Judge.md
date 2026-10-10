@@ -75,5 +75,8 @@ Zero-shot Qwen2.5 judges of the same size as GroundOne (0.5B, 3B), MLX in-proces
 - **Fairness caveat.** The judges are zero-shot, while GroundOne is fine-tuned in domain (RAGTruth). The comparison measures what a same-size generative judge offers out of the box, not the readout alone.
 - Letter-based judges inherit **option-ID token bias** ([[Zheng 2024 - LLMs Are Not Robust Multiple Choice Selectors]]). First-token and text answers of instruction-tuned judges can disagree ([[Wang 2024 - My Answer is C (first-token probabilities vs text answers)]]).
 
+## Decision-only judges and cascades (ingest 2026-10-10)
+Li 2026 compares Jev, used as a decision-only judge (label probabilities, no rationale), with sixteen judges answering under the same output contract: comparable to GPT-6 where "a verdict can be read off the text" (chat quality, refusals, HaluEval factuality 87.3 vs 88.4), far behind on math, code and logic. A cascade that escalates low-confidence verdicts with a pre-frozen threshold beats GPT-6 alone by 0.9 points at 41 % of its fee ([[Li 2026 - JEV-as-a-Judge (arXiv 2609.26550)]]). The equal-output contract matches GroundOne's B0d baseline.
+
 ## Related
 [[Verbalised vs Logit Confidence]], [[Constrained Decoding]], [[Letter-Token Readout]], [[Statistical Significance and Bootstrap]], [[RAG Evaluation Frameworks]], [[Retrieval-Augmented Generation]], [[Groundedness Verification]], [[Hallucination Detection]], [[LLM-AggreFact]], [[RAGTruth]], [[Calibration]]

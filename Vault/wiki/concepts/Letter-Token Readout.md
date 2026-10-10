@@ -69,6 +69,11 @@ The two agree only when the model already puts most of its mass on the labels. T
 
 **For GroundOne.** Its labels are already arbitrary letters with a fixed, trained mapping ("Answer A for supported, B for contradicted, C for not mentioned"), and the definitions are fixed rather than caller-supplied, so option-label bias in Azizi's sense does not arise. The residual letter prior (+0.03 at 7B zero-shot) is what the per-class bias in GroundOne's calibration absorbs; the untrained B1 keeps it uncorrected. Azizi's zero-shot scoring-vs-generation result is mixed. GroundOne's fine-tuned B2 gap (+0.07 to +0.25 for the readout) is a different regime: the gap comes from the restricted training loss.
 
+## Industrial letter readouts (ingest 2026-10-10)
+- **Liquid AI d1-3B** reads the LM head at the answer slot over single-token option codes (letters, then digits; yes/no forms; digits for scores), takes the max over each option's token forms and softmaxes; questions share the state through a tree-masked single pass ([[LiquidAI 2026 - d1-3B model card]]).
+- **Perplexity pplx-decider-v1.1** replaces the vocabulary head with a 255-row head mapped to the token ids of option codes A, B, …, AA, …, with last-token pooling and noncausal full attention; logits are normalised over the valid candidates of each decision ([[Perplexity 2026 - pplx-decider-v1.1-27b model card]]).
+- Both confirm GroundOne's B2 lesson from the other side: the decision is a restricted softmax over option tokens, not free generation; a full-vocabulary head is only a source of initial weights.
+
 ## Links
 - Sources: [[Wang 2024 - My Answer is C (first-token probabilities vs text answers)]], [[Zheng 2024 - LLMs Are Not Robust Multiple Choice Selectors]], [[Zhao 2021 - Calibrate Before Use]], [[Kadavath 2022 - Language Models (Mostly) Know What They Know]], [[Willard 2023 - Efficient Guided Generation for LLMs (Outlines)]], [[Asai 2024 - Self-RAG]]
 - Concepts: [[System One Models]], [[Constrained Decoding]], [[Calibration]], [[Verbalised vs Logit Confidence]], [[LLM-as-a-Judge]], [[When System One Beats an LLM]], [[Prefill and Decode]]
