@@ -1,7 +1,8 @@
 """Local HTTP API: one resident model, serialised GPU access, no external calls.
 
 Routes
-  POST /v1/verify      native: document + answer -> per-sentence verdicts (sup / three / strict / lenient)
+  POST /v1/verify      native: document + answer -> per-sentence verdicts; design (b) adapters: one pass, three-way
+                       label + calibrated probabilities + strict/lenient flags from one rule (D27)
   POST /v1/systemone   TypeSafe/Jev-compatible (same contract as Rizzo-Flow): state + noul/choice/score questions
   GET  /v1/models      model list for the compatible API
   GET  /health         readiness + model metadata (base model, adapter hash, prompt version, fingerprint)
@@ -50,8 +51,9 @@ def create_app(engine, api_key=None):
 
     @app.get("/health")
     def health():
-        return {"status": "ready", "version": __version__, "model": engine.backend.metadata,
-                "calibrated": engine.calibration is not None}
+        cal = engine.calibration
+        return {"status": "ready", "version": __version__, "model": engine.backend.metadata, "design": engine.design,
+                "calibrated": cal is not None, "threshold": cal.thresholds.get("three") if cal else None}
 
     @app.post("/v1/verify", response_model=VerifyResponse)
     def verify(request: VerifyRequest):

@@ -611,3 +611,14 @@ Median seconds per answer at K ≥ 14, measured but under different conditions. 
 - No latency claim against the encoders or Rizzo-Flow.
 - The encoders (355M and ≈ 250M parameters) would probably be faster than GroundOne 0.5B if batched. Against them GroundOne's case is accuracy, not speed.
 - Fair options: a batched encoder run on the 200 latency answers (cheap), and HTTP vs HTTP against Rizzo-Flow after the API moves to design (b).
+
+## Ch. 3 / demo: the served output (D27, 2026-10-10)
+
+`/v1/verify` follows the adapter's design. With design (b):
+- **Segmentation and pass.** The answer is segmented with the training rule (`data/segment.py`); sentences without checkable content get `scored: false` and no verdict. All verdicts come from one pass.
+- **One coherent rule.** Labels, strict/lenient flags and the probabilities shown follow one rule: calibrated probabilities, "supported" iff P(supported) ≥ τ, otherwise the more probable of contradicted / not mentioned.
+- **The threshold τ.** It is fitted on dev by `calibrate-b`, maximising the three-way macro recall, and stored in `calibration.json`. A request may override it, which turns the choice of operating point into a user policy without retraining. Without τ, the label is the raw class-balanced argmax (D24), and the response says so in `decision_rule`.
+- **Why this rule.** It removes the incoherence seen on 2026-10-09 (labels "not mentioned" next to calibrated P(supported) = 0.54). It approximates the evaluated balanced decision rather than the calibrated argmax, which collapses towards "supported" (three-way 0.77 → 0.63).
+- **Still to do.** Re-run `calibrate-b` to fit τ for the trained runs, and report the three-way macro of the served rule on T1/T3 next to the raw decision. `calibrate-b` now writes it under `served_rule`.
+- **Real check** (0.5B, Acme example): 0.10 s, 139 input tokens, 0 output tokens. "Sure!" is unscored; the "Milan" and "CEO" sentences are labelled not mentioned (P = 0.80 / 0.64).
+

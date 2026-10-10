@@ -29,7 +29,7 @@ Can a compact language model, specialised in one decision and used as a **System
 | Control B2 | Same weights and pass, verdict = token the model would generate | Quantifies the value of the restricted readout |
 | Energy | Joules per answer with powermetrics, net of idle | First measurement for the locality pillar |
 | Seeds (D26) | Second 0.5B run. Seed 4321 collapsed and was stopped; seed 777 completed | The stopped run is disclosed, not hidden |
-| Software | Package `groundone`: CLI, HTTP API (still design a), memory guard, figures, matrix, bootstrap | All long runs under the guard; no time limits |
+| Software | Package `groundone`: CLI, HTTP API (design b since 2026-10-10, D27), memory guard, figures, matrix, bootstrap | All long runs under the guard; no time limits |
 | Thesis | Drafts of Ch. 3–6 and the summary; abstract v0.3.1 | Ch. 1, 2, 7, 8 pending |
 
 ## 3. Data
@@ -144,7 +144,7 @@ After " Verdict:" the model would write the *spaced* letter (" A"). The three re
   - licence table;
   - cost against a hosted judge;
   - overview of local inference in Ch. 1–2.
-- **Software.** HTTP API on design (b) with coherent output (labels and flags from one rule), then the demo. Optional: the grounded wiki-ingestion loop.
+- **Software.** ~~HTTP API on design (b)~~ done 2026-10-10 (D27); fit the served threshold on dev (re-run `calibrate-b`); then the demo. Optional: the grounded wiki-ingestion loop.
 - **Thesis.**
   - Update Ch. 3–6 with B0d, B2, energy, run 2, the CIs and the System One framing.
   - Add one output example per system.

@@ -38,7 +38,7 @@
       <label><input type="checkbox" value="lenient"> lenient rule</label>
     </div>
     <div class="row">
-      <label for="thr" style="margin:0">Flag below P(supported) =</label>
+      <label for="thr" style="margin:0">Supported if P(supported) &ge;</label>
       <input id="thr" type="range" min="0" max="1" step="0.05" value="0.5"><span id="thrv">0.50</span>
       <button id="go">Verify</button>
     </div>
@@ -52,17 +52,30 @@
 <script>
 const $ = (s) => document.querySelector(s);
 let last = null;
-fetch('/health').then(r => r.json()).then(h => { $('#model').textContent = '· model: ' + h.model.name + (h.calibrated ? ' (calibrated)' : ''); });
+fetch('/health').then(r => r.json()).then(h => {
+  $('#model').textContent = '· model: ' + h.model.name + ' · design ' + h.design + (h.calibrated ? ' (calibrated)' : '');
+  if (h.threshold !== null && h.threshold !== undefined) { $('#thr').value = h.threshold; $('#thrv').textContent = Number(h.threshold).toFixed(2); }
+});
 $('#thr').oninput = () => { $('#thrv').textContent = Number($('#thr').value).toFixed(2); if (last) render(last); };
 function cls(p, t) { if (p === null) return ''; return p >= t ? 'ok' : (p >= t - 0.2 ? 'warn' : 'bad'); }
+// design (b): same rule as the server (D27): supported iff P(supported) >= t, else the larger of the other two
+function label3(s, t) {
+  const p = s.answers.three; if (!p) return null;
+  return p.supported >= t ? 'supported' : (p.contradicted >= p.not_mentioned ? 'contradicted' : 'not mentioned');
+}
 function render(r) {
   const t = Number($('#thr').value);
   $('#out').innerHTML = r.sentences.map(s => {
+    const txt = `${s.index + 1}. ${s.text.replace(/</g, '&lt;')}`;
+    if (r.design === 'b' && !s.scored) return `<div class="sent">${txt}<div class="meta">no checkable content: no verdict</div></div>`;
     const parts = Object.entries(s.answers).map(([q, ps]) => q + ': ' + Object.entries(ps).map(([k, v]) => k + ' ' + v.toFixed(2)).join(' / '));
-    const p = s.p_supported;
-    return `<div class="sent ${cls(p, t)}">${s.index + 1}. ${s.text.replace(/</g, '&lt;')}<div class="meta">${parts.join(' · ')}</div></div>`;
+    const lab = r.design === 'b' ? `<b>${label3(s, t)}</b> · ` : '';
+    const c = r.design === 'b' ? (label3(s, t) === 'supported' ? 'ok' : label3(s, t) === 'contradicted' ? 'bad' : 'warn') : cls(s.p_supported, t);
+    return `<div class="sent ${c}">${txt}<div class="meta">${lab}${parts.join(' · ')}</div></div>`;
   }).join('');
-  $('#stats').textContent = `${r.n_decisions} decisions in ${(r.timing.total_seconds * 1000).toFixed(0)} ms (prefill ${(r.timing.prefill_seconds * 1000).toFixed(0)} ms, batch ${(r.timing.batch_seconds * 1000).toFixed(0)} ms) · ${r.usage.input_tokens} input tokens, 0 generated`;
+  const tm = r.timing, ms = (x) => (x * 1000).toFixed(0);
+  const detail = r.design === 'b' ? `one pass ${ms(tm.forward_seconds)} ms` : `prefill ${ms(tm.prefill_seconds)} ms, batch ${ms(tm.batch_seconds)} ms`;
+  $('#stats').textContent = `${r.n_decisions} decisions in ${ms(tm.total_seconds)} ms (${detail}) · ${r.usage.input_tokens} input tokens, 0 generated · design ${r.design}; ${r.decision_rule}`;
 }
 $('#go').onclick = async () => {
   const questions = [...document.querySelectorAll('input[type=checkbox]:checked')].map(c => c.value);

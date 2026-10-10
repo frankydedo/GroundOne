@@ -101,7 +101,9 @@ Update the status column and the to-do list as work progresses.
 **Standing rules:** every phase leaves figures (`groundone figures all` → `Project/outputs/figures/`); every result or insight goes into `docs/thesis_notes.md`.
 
 **Later**
-- [ ] HTTP API on readout design (b), then demo; the served output must be coherent (labels and strict/lenient flags from one rule, e.g. calibrated probabilities with dev-tuned thresholds; see thesis notes 2026-10-09)
+- [x] HTTP API on design (b) with one coherent output rule (D27, 2026-10-10)
+- [ ] Fit the served threshold τ on dev: re-run `calibrate-b` for g1-05b-b1, g1-05b-s3 (≈ 8 min each) and g1-3b-b1 (≈ 48 min); until then the API falls back to the raw argmax (stated in the response)
+- [ ] Demo on the design (b) API
 - [ ] B2 control: dev check done (generation ≠ readout at the token level, plan §2 H2a); run B2 on full T1? (awaiting go-ahead, plan §14)
 - [ ] Thesis: show one real output example per system (GroundOne JSON, terse and verbose judge text, encoders, Rizzo-Flow) on the same answer (author request, 2026-10-09)
 - [ ] **Pillar "full locality"** (all items approved by the author, 2026-10-08):
@@ -126,6 +128,7 @@ Update the status column and the to-do list as work progresses.
 
 ## Log
 
+- 2026-10-10: HTTP API on design (b) (D27): training segmentation, one pass, labels/flags/probabilities from one rule (calibrated P(supported) ≥ dev threshold τ); `calibrate-b` now fits τ and keeps the dev logits; playground updated; 3 new API tests (13 fast tests pass); real check on the 0.5B: 0.10 s, 0 output tokens
 - 2026-10-10 08:37: night-6 queue done. Second completed 0.5B run (seed 777; seed 4321 stopped after collapse, D26): T1 0.767 vs 0.769, T2 71.5 vs 70.1. B2 on full T1: generated token 0.521 / 0.761 vs readout 0.769 / 0.832 (0.5B / 3B). Energy per answer: GroundOne 5.5 J / 33 J vs terse 8.9 / 43 and verbose 22 / 112. Matrix extended (run 2, B2, energy)
 - 2026-10-09 16:30: bootstrap CIs and paired tests (`groundone bootstrap`, B = 2000, cluster by leakage group). All claimed differences significant except T2 macro 3B vs MiniCheck-RoBERTa (+0.8, CI −0.5 to +2.1): claim tempered in abstract, plan and Ch. 6. B2 check on dev: generation emits the spaced letter, agrees with the readout in 75 % / 92 %
 - 2026-10-09 15:12: equal-output judge B0d (D25) done, both variants, 0.5B + 3B (queue_day5, 1 h 48 min, no guard intervention). GroundOne wins at equal output: three-way 0.835 / 0.900 vs ≤ 0.41; AURC 0.009 / 0.005 vs 0.048–0.063. Judge table of the results matrix updated; details in thesis notes

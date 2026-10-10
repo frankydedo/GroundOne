@@ -3,6 +3,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from groundone.api import create_app
+from groundone.calibration import Calibration, softmax
 from groundone.engine import Engine
 from groundone.prompts import label_for
 
@@ -35,6 +36,15 @@ class FakeBackend:
 
     def score_many(self, prompts, letters_list):
         return [[2.0] + [0.0] * (len(L) - 1) for L in letters_list]
+
+    def score_positions(self, seqs, positions, letters=("A", "B", "C")):
+        """Design (b): marker j gets logits LOGITS_B[j % len]; one call per request is recorded."""
+        self.calls.append(("b", sum(len(p) for p in positions)))
+        return [[LOGITS_B[j % len(LOGITS_B)] for j in range(len(p))] for p in positions]
+
+
+# raw logits per marker: clear supported; borderline (raw argmax = not mentioned, softmax P(supported) = 0.45); contradicted
+LOGITS_B = [[3.0, 0.0, 0.0], [0.0, -2.0, 0.2], [0.0, 2.0, 0.0]]
 
 
 @pytest.fixture
@@ -107,3 +117,49 @@ def test_label_mapping_from_three_way_classes():
     assert [label_for(q, "contradicted") for q in ("sup", "three", "strict", "lenient")] == ["B", "B", "B", "B"]
     assert [label_for(q, "not_mentioned") for q in ("sup", "three", "strict", "lenient")] == ["B", "C", "B", "A"]
     assert label_for("sup", binary=1) == "A" and label_for("sup", binary=0) == "B"
+
+
+# ---------------------------------------------------------------- design (b), served since D27
+@pytest.fixture
+def client_b():
+    engine = Engine(FakeBackend(), design="b")
+    return TestClient(create_app(engine, api_key="")), engine
+
+
+ANSWER_B = "Sure! Paris is the capital of France. It has 90 million inhabitants. It is in Germany."
+
+
+def test_verify_b_one_pass_and_unscored_sentences(client_b):
+    c, engine = client_b
+    r = c.post("/v1/verify", json={"document": "Paris is the capital of France.", "answer": ANSWER_B})
+    assert r.status_code == 200, r.text
+    j = r.json()
+    assert j["design"] == "b" and j["usage"]["output_tokens"] == 0
+    scored = [s for s in j["sentences"] if s["scored"]]
+    assert engine.backend.calls == [("b", len(scored))] and j["n_decisions"] == len(scored) == 3   # one forward pass
+    unscored = [s for s in j["sentences"] if not s["scored"]]
+    assert [s["text"] for s in unscored] == ["Sure!"] and unscored[0]["answers"] == {} and unscored[0]["p_supported"] is None
+
+
+def test_verify_b_labels_flags_and_probabilities_are_coherent(client_b):
+    c, engine = client_b
+    engine.calibration = Calibration({"three": 1.0}, "f" * 16, biases={"three": [0.0, 0.0, 0.0]}, thresholds={"three": 0.4})
+    j = c.post("/v1/verify", json={"document": "d", "answer": ANSWER_B, "questions": ["three", "strict", "lenient"]}).json()
+    assert j["threshold"] == 0.4 and "threshold" in j["decision_rule"]
+    for s in (s for s in j["sentences"] if s["scored"]):
+        p, lab = s["answers"]["three"], s["labels"]["three"]
+        assert (lab == "supported") == (p["supported"] >= j["threshold"])          # label follows the shown probability
+        assert s["flag_strict"] == (lab != "supported") == s["flagged"]
+        assert s["flag_lenient"] == (lab == "contradicted")
+        assert s["labels"]["strict"] == ("acceptable" if lab == "supported" else "error")
+    assert [s["labels"]["three"] for s in j["sentences"] if s["scored"]] == ["supported", "supported", "contradicted"]
+    j2 = c.post("/v1/verify", json={"document": "d", "answer": ANSWER_B, "threshold": 0.6}).json()   # request override
+    assert [s["labels"]["three"] for s in j2["sentences"] if s["scored"]] == ["supported", "not_mentioned", "contradicted"]
+
+
+def test_verify_b_without_threshold_uses_raw_argmax(client_b):
+    c, _ = client_b
+    j = c.post("/v1/verify", json={"document": "d", "answer": ANSWER_B}).json()
+    assert j["threshold"] is None and "raw" in j["decision_rule"]
+    assert [s["labels"]["three"] for s in j["sentences"] if s["scored"]] == ["supported", "not_mentioned", "contradicted"]
+    assert abs(j["sentences"][2]["p_supported"] - softmax(LOGITS_B[1])[0]) < 1e-9

@@ -2,7 +2,9 @@
 
 1. Score the dev set (answer-level records) and keep the raw A/B/C logits at every marker.
 2. Fit, by minimising dev NLL, (i) a temperature and (ii) a temperature + per-class bias (affine).
-3. Save calibration.json next to the adapter (key "three"; the affine map is the one used).
+3. Save calibration.json next to the adapter (key "three"; the affine map is the one used), together with the decision
+   threshold tau of the served label (D27): "supported" iff calibrated P(supported) >= tau, else the more probable of
+   the other two; tau maximises the dev three-way macro recall. The raw dev logits are kept (calibration/dev_logits.npz).
 4. Re-apply both maps to the saved test predictions (log-probabilities are logits up to a constant, which neither map
    changes), so no test set is scored again. T2 is reported uncalibrated if its predictions hold only P(supported).
 5. Report, before and after: three-way macro recall and accuracy, top-label ECE, NLL, Brier; binary P(supported)
@@ -16,7 +18,7 @@ import json
 import numpy as np
 import pandas as pd
 
-from ..calibration import Calibration, fit_affine, fit_temperature
+from ..calibration import Calibration, decide_three, fit_affine, fit_temperature
 from ..config import RESULTS_DIR
 from ..data.build import OUT
 from .metrics import binary, ece
@@ -52,6 +54,24 @@ def risk_coverage(y_bin, p_sup):
     return cov, risk, float(risk.mean())
 
 
+def fit_tau(P, y):
+    """Threshold on calibrated P(supported) that maximises three-way macro recall with `decide_three` (grid 0.005)."""
+    best = (-1.0, 0.5)
+    for tau in np.arange(0.05, 0.9501, 0.005):
+        pred = np.array([decide_three(p, tau) for p in P])
+        m = float(np.mean([(pred[y == k] == k).mean() for k in range(3) if (y == k).any()]))
+        if m > best[0] + 1e-12:
+            best = (m, float(round(tau, 3)))
+    return best[1], best[0]
+
+
+def served_metrics(P, y, tau):
+    pred = np.array([decide_three(p, tau) for p in P])
+    rec = [float((pred[y == k] == k).mean()) for k in range(3) if (y == k).any()]
+    return {"tau": tau, "macro_recall": float(np.mean(rec)), "recall": rec,
+            "predicted_share": [round(float((pred == k).mean()), 4) for k in range(3)]}
+
+
 def evaluate_split(L, y, maps):
     out = {}
     for name, (t, b) in maps.items():
@@ -81,11 +101,14 @@ def main(argv=None):
     t_only = fit_temperature(rows)
     t_aff, b_aff = fit_affine(rows)
     maps = {"raw": (1.0, [0.0, 0.0, 0.0]), "temperature": (t_only, [0.0, 0.0, 0.0]), "affine": (t_aff, b_aff)}
+    tau, dev_served = fit_tau(apply(L, t_aff, b_aff), y)
     adir = __import__("pathlib").Path(resolve_model(a.size, a.adapter)[1])
     Calibration({"three": t_aff}, engine.backend.metadata["fingerprint"],
-                {"fitted_on": "dev (answer-level, design b)", "design": "b", "temperature_only": t_only},
-                {"three": b_aff}).save(adir / "calibration.json")
+                {"fitted_on": "dev (answer-level, design b)", "design": "b", "temperature_only": t_only,
+                 "threshold_rule": "supported iff calibrated P(supported) >= tau, else argmax(contradicted, not mentioned)"},
+                {"three": b_aff}, {"three": tau}).save(adir / "calibration.json")
     report = {"maps": {k: {"temperature": round(t, 4), "bias": [round(x, 4) for x in b]} for k, (t, b) in maps.items()},
+              "served_rule": {"tau": tau, "dev": served_metrics(apply(L, t_aff, b_aff), y, tau)},
               "dev": evaluate_split(L, y, maps)}
     curves = {"dev": (L, y)}
     for suite in ("t1", "t3"):
@@ -95,12 +118,14 @@ def main(argv=None):
             Lt = np.log(np.clip(np.array(df["p"].tolist()), 1e-12, 1))
             yt = np.array([CLASSES.index(c) for c in df["cls"]])
             report[suite] = evaluate_split(Lt, yt, maps)
+            report["served_rule"][suite] = served_metrics(apply(Lt, t_aff, b_aff), yt, tau)
             curves[suite] = (Lt, yt)
     p2 = RESULTS_DIR / run / "t2" / "metrics.json"
     if p2.exists():
         report["t2_uncalibrated_pooled"] = json.loads(p2.read_text())["pooled"]
     out = RESULTS_DIR / run / "calibration"
     out.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(out / "dev_logits.npz", logits=L, labels=y)
     (out / "metrics.json").write_text(json.dumps(report, indent=2, default=float))
 
     g = Group(f"calibration-{run}")
@@ -138,7 +163,7 @@ def main(argv=None):
     short = {s: {m: {"macro": round(v[m]["three_way"]["macro_recall"], 4), "ece_bin": round(v[m]["binary"]["ece15"], 4),
                      "ece_top": round(v[m]["three_way"]["ece_top_label"], 4), "nll": round(v[m]["three_way"]["nll"], 4)}
                  for m in maps} for s, v in report.items() if s in ("dev", "t1", "t3")}
-    print(json.dumps({"maps": report["maps"], "summary": short}, indent=1))
+    print(json.dumps({"maps": report["maps"], "served_rule": report["served_rule"], "summary": short}, indent=1))
 
 
 if __name__ == "__main__":

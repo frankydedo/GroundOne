@@ -8,9 +8,9 @@ It runs fully on-device on Apple Silicon (MLX) with fine-tuned Qwen2.5 0.5B or 3
 | | |
 | --- | --- |
 | Models | Qwen2.5-0.5B-Instruct, Qwen2.5-3B-Instruct (MLX 8-bit) + GroundOne LoRA adapters |
-| Decision | one per sentence: A supported · B contradicted · C not mentioned (training and evaluation: design b; the HTTP API still uses the earlier per-question format, design a) |
+| Decision | one per sentence: A supported · B contradicted · C not mentioned (design b in training, evaluation and the HTTP API; design a only for base models and the compatible API) |
 | APIs | native `POST /v1/verify`; TypeSafe/Jev-compatible `POST /v1/systemone` (same contract as Rizzo-Flow) |
-| Output | three probabilities per sentence, 0 generated tokens, optional calibration (temperature + bias) |
+| Output | per sentence: label, three calibrated probabilities, strict / lenient flags (one coherent rule, D27); 0 generated tokens |
 
 ## Install
 
@@ -24,8 +24,8 @@ source .venv/bin/activate              # or prefix commands with .venv/bin/
 ## Command-line interface
 
 ```bash
-# serving (HTTP API, still design a)
-groundone serve --size 0.5b --adapter <run>      # HTTP API on 127.0.0.1:8019 (+ /playground)
+# serving (HTTP API, design b with a design-(b) adapter)
+groundone serve --adapter <run>/best             # HTTP API on 127.0.0.1:8019 (+ /playground); uses <run>/best/calibration.json
 groundone verify request.json --adapter <run>    # one request, no server
 groundone systemone request.json                 # one Jev-compatible request, no server
 groundone schema [--response | --compat]         # JSON Schema of the API
@@ -39,7 +39,7 @@ groundone data rows                              # design (a) training rows (fal
 
 # training, calibration, evaluation (design b)
 groundone train --config train_0.5b.yaml [--run <run>]   # hyper-parameters in configs/*.yaml; flags override
-groundone calibrate-b --adapter <run>/best --name <results-name>   # temperature + bias on dev; reliability figures
+groundone calibrate-b --adapter <run>/best --name <results-name>   # temperature + bias + served threshold on dev; reliability figures
 groundone test --suite t1|t2|t3 --adapter <run>/best --name <results-name> [--limit N] [--design a]
 groundone guard queue.txt                        # run long jobs one at a time under a memory guard
 groundone figures all | dataset | benchmarks | training <run>   # thesis figures -> Project/outputs/figures/<group>/
@@ -48,7 +48,11 @@ groundone figures all | dataset | benchmarks | training <run>   # thesis figures
 groundone test --suite t1 --size 0.5b --design a --name <name>               # B1 untrained readout (no adapter)
 groundone baselines frozen --system encoder --model minicheck-roberta|hhem --suite t1 --name <name>   # B4
 groundone baselines frozen --system rizzo --url http://127.0.0.1:8017 --suite t1 --limit 300 --name <name>   # B3
-groundone baselines judges --system terse|verbose|groundone|readout-a --size 0.5b [--adapter <run>/best] --name <name>   # B0 + latency
+groundone baselines judges --system terse|verbose|json|terse-logits|groundone|readout-a --size 0.5b [--adapter <run>/best] [--split dev] [--energy] --name <name>   # B0, B0d + latency / energy
+groundone baselines judges-calibrate --name <name> [--calibration FILE]   # calibrate a judge on its dev run (D25)
+groundone test --suite t1 --adapter <run>/best --decision generate --name <name>   # control B2: verdict = generated token
+groundone bootstrap                              # CIs and paired tests from saved predictions
+groundone matrix                                 # results matrix -> Project/docs/tracker.md
 ```
 
 - `baselines frozen --system rizzo` queries a running Rizzo-Flow server (B3, general-purpose System One) through the Jev-compatible API.
@@ -64,17 +68,24 @@ groundone baselines judges --system terse|verbose|groundone|readout-a --size 0.5
 ```bash
 curl -s localhost:8019/v1/verify -H 'Content-Type: application/json' -d '{
   "document": "The Eiffel Tower is in Paris. It was completed in 1889 and is 330 metres tall.",
-  "answer": "The Eiffel Tower is in Paris. It was finished in 1889. It is 500 metres tall.",
-  "questions": ["sup", "three"],
-  "threshold": 0.5
+  "answer": "Sure! The Eiffel Tower is in Paris. It was finished in 1889. It is 500 metres tall."
 }'
 ```
 
-The answer is split into sentences (or pass `sentences: [...]`). For each sentence the response gives `p_supported`, `flagged` (`p_supported < threshold`), the probabilities of every answer per question, the most likely labels, and `n_decisions`, `usage` (input tokens, 0 output tokens) and `timing`.
+With a design (b) adapter (served since D27):
+- **Segmentation.** The answer is segmented with the rule used for training (`data/segment.py`), or you can pass `sentences: [...]`. Sentences without checkable content ("Sure!") come back with `scored: false` and no verdict.
+- **One pass.** All verdicts are read in one forward pass at the markers.
+- **Per scored sentence:** `labels.three` (supported / contradicted / not_mentioned), the three probabilities in `answers.three`, `p_supported`, and the flags `flag_strict` (= `flagged`, not supported) and `flag_lenient` (contradicted). `questions` (`sup`, `strict`, `lenient`) adds derived views of the same three probabilities.
+- **One coherent rule.** Labels, flags and the probabilities shown come from a single rule. The probabilities are calibrated (`<run>/best/calibration.json`), and the label is "supported" iff `p_supported >= threshold`, otherwise the more probable of the other two. The threshold is the one fitted on dev by `calibrate-b`, or the request's `threshold`. With no threshold at all, the label is the argmax of the raw class-balanced logits, the decision used in the evaluation.
+- **Response metadata:** `design`, `decision_rule`, `threshold`, `n_decisions`, `usage` (input tokens, 0 output tokens) and `timing`.
+
+Base models and design (a) adapters use the earlier per-question format: one question per sentence over a shared prefix, `flagged` iff P(supported) < threshold (default 0.5).
 
 **Compatible: `POST /v1/systemone`, `GET /v1/models`.** These follow the public TypeSafe/Jev API, the contract Rizzo-Flow also serves (`noul`, `choice` and `score` questions over a shared `state`). A client written for them works by changing the base URL. The response `model` always names the local GroundOne model. Generic questions are answered by the same engine, but GroundOne is trained only for groundedness questions. Bearer auth is enforced on these routes when `GROUNDONE_API_KEY` is set.
 
-Other routes: `GET /health` (model, adapter hash, prompt version, fingerprint), `GET /playground` (web UI), `GET /docs` (OpenAPI).
+The compatible API answers generic questions with the per-question format (design a).
+
+Other routes: `GET /health` (model, adapter hash, prompt version, fingerprint, design, served threshold), `GET /playground` (web UI: labels follow the threshold slider with the same rule as the server), `GET /docs` (OpenAPI).
 
 ## Layout
 
@@ -87,17 +98,17 @@ src/groundone/
   engine.py       thread-safe service (one MLX thread, request lock); verify / systemone / predict
   schema.py       strict native API contract          compat.py   TypeSafe/Jev-compatible contract
   api.py          FastAPI app                         cli.py      command-line interface
-  calibration.py  temperature scaling bound to the model fingerprint
+  calibration.py  temperature + bias and the served threshold, bound to the model fingerprint
   data/           dataset build, leakage check, shortcut baseline
   training/       LoRA training loop with the restricted answer-letter loss
   eval/           evaluation suites and metrics
-  baselines/      Rizzo-Flow client (B3) and encoder fact-checkers (B4)
+  baselines/      encoders (B4), Rizzo-Flow (B3), generative judges incl. equal-output (B0, B0d), latency / energy
   figures/        thesis figures from every phase (fixed colour per system)
-  tools/          memory guard for unattended runs
+  tools/          memory guard, results matrix, powermetrics meter
 tests/            fast tests with a fake backend; `pytest -m model` runs the real-model tests
 
 Project/                        the experiment workspace (one level up)
-  data/  models/  results/  runs/  EDA/  phase0/  docs/
+  data/  outputs/{models,results,figures,logs}/  experiments/  jobs/  envs/  docs/
 ```
 
 ## Tests

@@ -7,6 +7,11 @@ different model raises. Two maps are fitted on dev predictions by minimising NLL
                boundary, which temperature alone cannot do (probabilities squeezed and shifted per task in early runs)
 Keys are a question type ("sup") or a question type in one prompt format ("sup@pair", "sup@multi": the format is known
 at inference, K = 1 or K > 1). Lookup falls back from "q@format" to "q" to no calibration.
+
+Decision threshold (D27, design b): the served three-way label is derived from the calibrated probabilities with one
+rule, `decide_three`: "supported" iff P(supported) >= tau, otherwise the more probable of contradicted / not mentioned.
+tau is fitted on dev (`calibrate-b`, maximising three-way macro recall) and stored under "thresholds", so labels, flags
+and the probabilities shown next to them are always consistent.
 """
 import json
 import math
@@ -39,6 +44,11 @@ def fit_temperature(rows, lo=0.05, hi=20.0, iters=60):
     return math.exp((a + b) / 2)
 
 
+def decide_three(p, tau):
+    """Index of the served label: 0 supported iff p[0] >= tau, else 1 contradicted or 2 not mentioned (larger p)."""
+    return 0 if p[0] >= tau else (1 if p[1] >= p[2] else 2)
+
+
 def affine_probs(logits, t=1.0, bias=None):
     bias = bias or [0.0] * len(logits)
     return softmax([x / t + b for x, b in zip(logits, bias)])
@@ -67,9 +77,10 @@ def fit_affine(rows):
 
 
 class Calibration:
-    def __init__(self, temperatures, fingerprint, meta=None, biases=None):
+    def __init__(self, temperatures, fingerprint, meta=None, biases=None, thresholds=None):
         self.temperatures, self.fingerprint, self.meta = dict(temperatures), fingerprint, meta or {}
         self.biases = dict(biases or {})
+        self.thresholds = dict(thresholds or {})
 
     def key(self, qtype, multi=None):
         if multi is not None and f"{qtype}@{'multi' if multi else 'pair'}" in self.temperatures:
@@ -85,11 +96,12 @@ class Calibration:
 
     def save(self, path):
         Path(path).write_text(json.dumps({"fingerprint": self.fingerprint, "temperatures": self.temperatures,
-                                          "biases": self.biases, "meta": self.meta}, indent=2))
+                                          "biases": self.biases, "thresholds": self.thresholds, "meta": self.meta},
+                                         indent=2))
 
     @classmethod
     def load(cls, path, fingerprint=None):
         d = json.loads(Path(path).read_text())
         if fingerprint and d["fingerprint"] != fingerprint:
             raise ValueError(f"Calibration {path} was fitted for model {d['fingerprint']}, not {fingerprint}")
-        return cls(d["temperatures"], d["fingerprint"], d.get("meta"), d.get("biases"))
+        return cls(d["temperatures"], d["fingerprint"], d.get("meta"), d.get("biases"), d.get("thresholds"))
