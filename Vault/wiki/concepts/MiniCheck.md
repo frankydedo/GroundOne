@@ -32,14 +32,17 @@ tags: [concept, model, fact-checker, baseline, small-model, grounding]
 
 ## How to run (incl. Mac)
 - The code is at `github.com/Liyan06/MiniCheck`, and checkpoints are on Hugging Face (IDs above, from the leaderboard).
-- MPS and Apple-Silicon support, and the licence of models and synthetic data, are **not stated** in the sources.
+- MPS and Apple-Silicon support, and the licence of models and synthetic data, are **not stated** in the sources. *(Measured: MiniCheck-RoBERTa runs on PyTorch MPS on the M4; it was the baseline used. Flan-T5 did not fit the memory guard; its published number is used.)*
 - Flan-T5-L (770M) should fit in memory on a 16 GB Mac. This is an expectation, not something tested.
 
 ## Relevance to GroundOne
 - It is the **closest design**: a small, single-score, sentence-level checker. The difference is that GroundOne uses a **decoder** ([[Qwen2.5]] 0.5B/3B with [[LoRA]]) with a **logit readout of answer letters** and a long context window, so it does not need chunking.
-- The **training recipe** is directly reusable: the ANLI hard subset plus C2D/D2C. See [[Natural Language Inference]].
-- **Targets**: the 0.5B model should beat MiniCheck-RBTA/DBTA (about 73) to justify the decoder approach. Matching FT5 (75.0) would be a strong result. The 3B model can aim for Bespoke-7B (77.4).
+- *(Superseded: GroundOne does not reuse the recipe; it trains on RAGTruth only, D21.)* The training recipe is the ANLI hard subset plus C2D/D2C. See [[Natural Language Inference]].
+- **Targets** (set before training): the 0.5B model should beat MiniCheck-RBTA/DBTA (about 73); matching FT5 (75.0) would be strong; the 3B could aim for Bespoke-7B (77.4). **Outcome:** on LLM-AggreFact the 0.5B is below RoBERTa (70.1 vs 74.0) and the 3B on par (74.8, n.s.); on RAGTruth (T1) both GroundOne models beat it clearly (AUROC 0.905 / 0.940 vs 0.814).
 - **Measure what MiniCheck does not**: ECE and calibration ([[Calibration]], [[Expected Calibration Error]]), and on-device latency ([[When System One Beats an LLM]]).
 
 ## Links
 [[Tang 2024 - MiniCheck]], [[Tang 2024 - LLM-AggreFact Leaderboard]], [[LLM-AggreFact]], [[AlignScore]], [[HHEM]], [[Groundedness Verification]], [[Hallucination Detection]], [[System One Models]], [[GroundOne]]
+
+## Measured in the thesis (2026-10-10)
+MiniCheck-RoBERTa: T1 AUROC 0.814, T2 macro 74.0 (reproduces the published 73.5 within 1.5 points), T3 AUROC **0.968**. VitaminC is in its training lineage (via AlignScore data), so its T3 number is not a transfer result. No latency claim: it was run sentence by sentence without batching on PyTorch MPS. See [[GroundOne Results]], [[VitaminC]], [[RAGTruth]], [[Datasets for GroundOne]].

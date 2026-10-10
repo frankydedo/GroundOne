@@ -26,7 +26,7 @@ Only the **ranking** produced by $\kappa$ matters. So **temperature scaling does
 - Confidence function: **softmax response** (max class probability) was as good as or better than MC-dropout in Geifman's experiments (Fig. 2), and costs nothing extra.
 
 ## Link to abstention in GroundOne
-- Per sentence, $\kappa = \max(p_A,p_B)$ after the 2-way softmax, or asymmetric thresholds on $P(\text{supported})$:
+- Per sentence, $\kappa = \max(p_A,p_B)$ after the 2-way softmax *(superseded: the readout is now 3-way A/B/C, so $\kappa = \max(p_A,p_B,p_C)$ after calibration)*, or asymmetric thresholds on $P(\text{supported})$:
   - $P(\text{supported})\ge\theta_{hi}$ → mark green (auto-accept);
   - $P(\text{supported})\le\theta_{lo}$ → mark red (likely hallucination);
   - in between → **abstain / escalate** to a generative [[LLM-as-a-Judge]] or a human.
@@ -36,6 +36,21 @@ Only the **ranking** produced by $\kappa$ matters. So **temperature scaling does
 - For hallucination detection the costs are asymmetric. A missed unsupported sentence is usually worse than a false alarm. Consider risk defined as the *false-accept rate* among accepted sentences, rather than plain 0/1 error.
 - Earlier thesis routing work had an explicit abstain class (`Z`). For GroundOne, abstention is derived from the threshold instead, which avoids the "none of the above" bias [[Kadavath 2022 - Language Models (Mostly) Know What They Know|Kadavath]] found (§3.1).
 
+## Evidence from GroundOne: AURC separates systems that ECE cannot (B0d, 2026-10-09)
+In the equal-output comparison, zero-shot same-size judges and GroundOne received the **same** temperature + per-class bias calibration, fitted on 200 dev answers. They were evaluated on the 200-answer T1 latency subset:
+
+| System | ECE after calibration | Binary AUROC | AURC (calibrated) |
+| --- | --- | --- | --- |
+| GroundOne 0.5B / 3B | 0.034 / 0.030 | 0.940 / 0.969 | **0.009 / 0.005** |
+| Equal-output judge, logits, 0.5B / 3B | 0.039 / 0.041 | 0.483 / 0.681 | 0.063 / 0.048 |
+| Equal-output judge, verbalised, 0.5B / 3B | 0.051 / 0.044 | 0.470 / 0.576 | 0.061 / 0.062 |
+
+- Every system lands at ECE 0.03–0.05. A calibration map can match average confidence to the base rate even when the probabilities do not separate correct from wrong verdicts: the 0.5B judges have AUROC below 0.5. **AURC is 5–12× lower for GroundOne**, which is the number that matters for abstention and escalation.
+- The same pattern appears in the literature: GPT-4 reaches ECE 0.064 on GSM8K by giving 100 % confidence to every answer, at chance-level failure prediction ([[Xiong 2024 - Can LLMs Express Their Uncertainty]] §5.2). See also [[Verbalised vs Logit Confidence]].
+- **Rule for the thesis:** report the RC curve / AURC and AUROC next to ECE; never ECE alone.
+- **Served threshold (D27).** The HTTP API labels a sentence "supported" iff calibrated P(supported) ≥ τ, with τ fitted on dev by maximising three-way macro recall (τ ≈ 0.90–0.94). This is a cost-agnostic operating point. A target-risk threshold (SGR-style, above) remains the principled alternative for a "System One gate, System Two fallback" deployment.
+
 ## Links
+- [[Verbalised vs Logit Confidence]], [[Statistical Significance and Bootstrap]]
 - [[Calibration]], [[Expected Calibration Error]], [[GroundOne]], [[Groundedness Verification]], [[Hallucination Detection]], [[LLM-as-a-Judge]], [[System One Models]], [[When System One Beats an LLM]], [[Reinforcement Learning with Calibrated Decisions]], [[Jev]]
-- Sources: [[Geifman 2017 - Selective Classification for Deep Neural Networks]], [[Tian 2023 - Just Ask for Calibration]], [[Guo 2017 - On Calibration of Modern Neural Networks]]
+- Sources: [[Geifman 2017 - Selective Classification for Deep Neural Networks]], [[Tian 2023 - Just Ask for Calibration]], [[Guo 2017 - On Calibration of Modern Neural Networks]], [[Xiong 2024 - Can LLMs Express Their Uncertainty]]

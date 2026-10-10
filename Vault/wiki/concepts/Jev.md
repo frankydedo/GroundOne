@@ -43,3 +43,4 @@ Jev is closed: everything below except the team is **inferred** by third parties
 - [[Reinforcement Learning with Calibrated Decisions]]
 - [[TypeSafe AI]]
 - [[LangChain]]
+- Sources: [[What Is Jev A Guide to TypeSafe AI]], [[Introducing System One Models and Jev]], [[JEV Video Description]], [[Jevs Architecture Unmasked]], [[Can Jev replace your LLM judge]]

@@ -75,3 +75,15 @@
 - Added `raw/GroundOne 2026 - EDA report (dataset)_ingested.md` and source page `GroundOne 2026 - EDA report (dataset)`.
 - Marked `GroundOne 2026 - EDA report` (Phase 1a, four-question design) as superseded.
 - Updated `Datasets for GroundOne` (EDA consequences) and `index.md`.
+
+## [2026-10-10] lint | full health check against the project state of 2026-10-10
+- Project pages were stale (frozen at the 2026-10-06 dataset choice). Rewrote [[GroundOne]]; created [[GroundOne Results]]; added the outcome of H1–H4 to [[When System One Beats an LLM]] (H2 "≈ 0 gain vs single-token generation" refuted by control B2).
+- Updated with measured results and marked superseded statements (nothing deleted): [[Datasets for GroundOne]] (actual sizes; ANLI rules void), [[LLM-AggreFact]] (dev not used, D18; T2 results), [[RAGTruth]], [[VitaminC]], [[MiniCheck]], [[HHEM]], [[LoRA]] (as run; no gradient clipping), [[Qwen2.5]] (spaced-letter finding), [[Natural Language Inference]], [[AlignScore]], [[ANLI]], [[Groundedness Verification]] (D18; GroundOne rows in the reference table), [[Jev]] (links to its source pages).
+- Fixed the only broken link (`[[Archer Hume]]` in a frontmatter); added the missing `**Raw file**` pointer to nine older source pages; fixed two stale lines in [[GroundOne 2026 - EDA report]].
+
+## [2026-10-10] ingest | 22 sources for the thesis update
+- **Readout, confidence, statistics, stability** (11): Wang 2024, Zheng 2024, Zhao 2021, Xiong 2024, Koehn 2004, Berg-Kirkpatrick 2012, Dror 2018, Dodge 2020, Mosbach 2021, Pascanu 2013, Willard 2023. New concepts: [[Letter-Token Readout]], [[Verbalised vs Logit Confidence]], [[Statistical Significance and Bootstrap]], [[Fine-tuning Instability and Seeds]], [[Constrained Decoding]]. Updated [[Calibration]], [[LLM-as-a-Judge]], [[System One Models]], [[Selective Prediction]], [[Expected Calibration Error]].
+- **Local inference, energy, hallucination** (11): Patel 2024 (Splitwise), Samsi 2023, Luccioni 2024, Alizadeh 2024, Gunter 2024, MLX README, llama.cpp README, Apple M4 MacBook Pro tech specs, Laban 2022 (SummaC), Min 2023 (FActScore), Huang 2023 (survey). New concepts: [[On-Device Inference]], [[Energy of LLM Inference]], [[Apple Silicon and MLX]]. Updated [[Prefill and Decode]], [[KV Cache]], [[Hallucination Detection]], [[Groundedness Verification]], [[Rizzo-Flow]], [[Retrieval-Augmented Generation]].
+- Finding raised during ingest: GroundOne's optimiser is MLX `AdamW` with its default `bias_correction=False`; with Mosbach 2021 this is a second plausible cause of the collapsed seed (recorded in `Project/docs/thesis_notes.md`).
+- Raw files renamed `_ingested`; `index.md` updated (new sections: evaluation methodology, local inference).
+

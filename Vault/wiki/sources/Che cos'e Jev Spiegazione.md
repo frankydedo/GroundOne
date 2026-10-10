@@ -6,6 +6,8 @@ tags: [jev, system-one-models, ai, architecture, typesafe-ai]
 ---
 # Che cos'è Jev? Spiegazione dei modelli decisionali per agenti di IA
 
+**Raw file**: `raw/Che cos'è Jev? Spiegazione dei modelli decisionali per agenti di IA_ingested.md`
+
 ## Summary
 A blog post explaining Jev, the System One Model by TypeSafe AI, optimized for rapid, structured software decisions rather than conversational text generation.
 

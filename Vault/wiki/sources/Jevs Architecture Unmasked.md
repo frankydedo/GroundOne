@@ -1,10 +1,12 @@
 ---
 type: source
-author: "[[Archer Hume]]"
+author: "Archer Hume"
 date: 2026-09-22
 tags: [source, article, architecture, jev]
 ---
 # Jev’s Architecture Unmasked
+
+**Raw file**: `raw/Jev’s Architecture Unmasked_ingested.md`
 
 **Source URL**: https://archerhume.com/posts/jevs-architecture-unmasked/
 

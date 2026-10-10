@@ -36,7 +36,7 @@ From [[GroundOne 2026 - EDA report]] (Qwen2.5 tokens):
 - **Overlap shortcut**: not-mentioned claims share fewer words with the premise (median overlap 0.50 vs 0.64–0.67).
 - **No overlap** with [[LLM-AggreFact]] premises.
 
-## Role in GroundOne
+## Role in GroundOne *(superseded: ANLI is not used in the final dataset, D21; kept as the record of the earlier plan)*
 - **Mapping**: entailment → *supported*, neutral → *not mentioned*, contradiction → *contradicted*. For the binary task, neutral + contradiction → unsupported (MiniCheck's mapping).
 - **X1 training**: the ~21K MiniCheck "hard" subset ([[MiniCheck Synthetic Data]] recipe), restricted to premises not in dev/test, three-way labels kept.
 - **X4 three-way question**: primary dataset (balanced human labels; RAGTruth test has almost no contradictions in QA).

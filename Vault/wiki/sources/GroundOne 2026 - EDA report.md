@@ -45,7 +45,7 @@ Experiments the data must serve:
 - The 419 disagreements are attributed to "a different overlap rule or segmentation" (likely cause, not verified).
 - The reversed negation pattern is attributed to ANLI's adversarial collection.
 - A **2,048-token cap** keeps 99 % of RAGTruth; 1,024 would drop about a fifth (mostly Summary and Data2txt).
-- With three questions per sentence, K = 15–27 per answer is realistic, the regime where Phase 0b measured a 2–6× gain.
+- With three questions per sentence, K = 15–27 per answer is realistic, the regime where the feasibility test (Phase 0b, `Project/docs/phase0_report.md`, historical) measured a 2–6× gain.
 - First proposed training mix: all 14,395 MiniCheck synthetic pairs + ~21K ANLI hard subset (premises not in dev/test) + rebalanced RAGTruth train (quality = good). Budget ≈35K examples for 0.5B (≈3–4 h), ~10K for 3B (one night).
 - Phase 1 should add a claim-only baseline for ANLI and extend the leakage check to LLM-AggreFact test claims.
 
@@ -56,7 +56,7 @@ Experiments the data must serve:
 - Minor internal inconsistency: a figure caption gives the MiniCheck median document length as "≈ 290 tokens", while the text gives 186–188.
 
 ## Relevance to GroundOne
-This is the empirical basis of the thesis data chapter and of Phase 1 data building. It fixes the dataset-to-experiment mapping, the leakage rules and the length cap. See [[Datasets for GroundOne]].
+This is the empirical basis of the thesis data chapter and of Phase 1 data building. It fixed the dataset-to-experiment mapping, the leakage rules and the length cap *for the earlier four-question design (superseded, see the banner above)*. See [[Datasets for GroundOne]].
 
 ## Links
 - Concepts: [[Datasets for GroundOne]], [[ANLI]], [[RAGTruth]], [[LLM-AggreFact]], [[LLM-AggreFact Sub-datasets]], [[MiniCheck Synthetic Data]], [[Natural Language Inference]], [[GroundOne]]

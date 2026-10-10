@@ -37,7 +37,7 @@ This is MiniCheck's mapping for ANLI ([[Tang 2024 - MiniCheck]] §3.3). It match
 - T5-NLI-Mixed (11B, trained on many NLI sets) is near the bottom of LLM-AggreFact at 61.1 on the leaderboard. Model size does not make up for a mismatch between the training data and the task.
 - Hypothesis-only artefacts are strong in SNLI and MNLI and weaker in ANLI ([[Nie 2020 - Adversarial NLI]] Table 6). This is another reason to prefer ANLI.
 
-## Implications for GroundOne training data
+## Implications for GroundOne training data *(superseded 2026-10-06: GroundOne trains on RAGTruth only, D21; ANLI and MiniCheck data are not used; nothing is selected on LLM-AggreFact, D18)*
 1. Use the **ANLI hard subset** (or all rounds, downweighted) as the NLI component, mapped to binary.
 2. Use MNLI at most as a warm-up or auxiliary source, given its single-sentence premises.
 3. Add long-context, LLM-style data, either [[MiniCheck]]'s C2D/D2C synthetic data or the [[RAGTruth]] training split, which is what moves performance on LLM-AggreFact.
@@ -45,3 +45,6 @@ This is MiniCheck's mapping for ANLI ([[Tang 2024 - MiniCheck]] §3.3). It match
 
 ## Links
 [[Groundedness Verification]], [[Hallucination Detection]], [[MiniCheck]], [[AlignScore]], [[HHEM]], [[RAGTruth]], [[LLM-AggreFact]], [[LoRA]], [[Qwen2.5]]
+
+## Related
+- Final data choice: [[Datasets for GroundOne]]; the three-way NLI-style labels survive as GroundOne's classes (supported / contradicted / not mentioned), tested out of domain on [[VitaminC]].

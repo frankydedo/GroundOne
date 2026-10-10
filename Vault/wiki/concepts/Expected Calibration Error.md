@@ -42,14 +42,22 @@ $$\boxed{\mathrm{ECE}=\sum_{m=1}^{M}\frac{|B_m|}{n}\,\bigl|\mathrm{acc}(B_m)-\ma
 5. **Temperature scaling can lower ECE without changing ranking.** Reporting ECE after TS ("ECE-t", Tian) separates fixable miscalibration from poor discrimination.
 6. **Domain shift.** ECE measured on in-domain validation data says little about ECE on another benchmark. Evaluate on each test domain.
 7. **Reliability diagrams hide bin counts** (Guo §2). Show a confidence histogram alongside, as in Guo Fig. 1.
+8. **After post-hoc calibration, ECE stops discriminating between systems.** Measured in GroundOne's equal-output comparison (B0d, 200 T1 answers, the same temperature + per-class bias fitted on dev for every system):
+   - all systems reach ECE 0.03–0.05: GroundOne 0.034 / 0.030, judges 0.039–0.051;
+   - binary AUROC spans 0.47–0.68 for the judges and 0.94–0.97 for GroundOne;
+   - AURC is 0.048–0.063 vs 0.005–0.009.
+
+   An affine map can always pull mean confidence onto the base rate, even when the scores do not rank correct above wrong. The same effect in the literature: GPT-4 gets ECE 0.064 on GSM8K by stating 100 % for every answer ([[Xiong 2024 - Can LLMs Express Their Uncertainty|Xiong 2024]] §5.2). **Report AUROC and AURC next to ECE, always.** See [[Verbalised vs Logit Confidence]] and [[Selective Prediction]].
 
 ## GroundOne reporting checklist
 - ECE on $P(\text{supported})$: equal-width (M = 15) **and** equal-mass (10 bins); MCE.
 - Brier, NLL; AUROC; balanced accuracy.
 - All of the above **before and after** temperature scaling, with $T$ fitted on a separate calibration split.
 - Reliability diagram + confidence histogram per model (0.5B, 3B) and per benchmark.
-- Bootstrap 95% CIs.
+- Bootstrap 95% CIs. GroundOne uses a **cluster** bootstrap by source document (B = 2000), because sentences of one answer are not independent. See [[Statistical Significance and Bootstrap]].
+- Status (2026-10-10): binary ECE on T1 0.30 → 0.019 (0.5B) and 0.18 → 0.019 (3B) after temperature + per-class bias on dev; it does not transfer to VitaminC (T3). AUROC/AURC are reported alongside (pitfall 8).
 
 ## Links
 - [[Calibration]], [[Selective Prediction]], [[GroundOne]], [[Groundedness Verification]], [[Hallucination Detection]], [[LLM-as-a-Judge]], [[Reinforcement Learning with Calibrated Decisions]], [[System One Models]]
-- Sources: [[Naeini 2015 - Obtaining Well Calibrated Probabilities Using Bayesian Binning]], [[Guo 2017 - On Calibration of Modern Neural Networks]], [[Kadavath 2022 - Language Models (Mostly) Know What They Know]], [[Tian 2023 - Just Ask for Calibration]]
+- Sources: [[Naeini 2015 - Obtaining Well Calibrated Probabilities Using Bayesian Binning]], [[Guo 2017 - On Calibration of Modern Neural Networks]], [[Kadavath 2022 - Language Models (Mostly) Know What They Know]], [[Tian 2023 - Just Ask for Calibration]], [[Xiong 2024 - Can LLMs Express Their Uncertainty]]
+- Related concepts: [[Verbalised vs Logit Confidence]], [[Statistical Significance and Bootstrap]]

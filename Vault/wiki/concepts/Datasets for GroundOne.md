@@ -45,10 +45,22 @@ The task was redefined: one three-way decision per answer sentence, with K = the
 
 **Dropped:**
 - [[ANLI]]: adversarial, short premises, far from RAG.
-- [[MiniCheck Synthetic Data]]: binary only. Accepted cost: probably a lower LLM-AggreFact score outside the RAG sub-datasets.
+- [[MiniCheck Synthetic Data]]: binary only. Accepted cost: probably a lower LLM-AggreFact score outside the RAG sub-datasets. *Measured (2026-10-10):* the 3B reaches 74.8 macro, on par with MiniCheck-RoBERTa (74.0, difference not significant); the 0.5B reaches 70.1 and is 7–9 points below the encoder on the non-RAG sub-datasets ([[GroundOne Results]]).
 - Verified but not adopted: ANAH, Trivia++, RAGBench. Rejected outright: HaluBench (contains RAGTruth test answers), ANAH-v2 (model-generated labels).
 
-**Expected size** (regex splitter; the final segmenter will be pysbd plus a rule that excludes sentences without checkable content, expected to remove about 10–20 % of sentences, mostly *supported*):
+**Actual sizes (built and frozen 2026-10-07; data card `Project/data/processed/groundone/DATACARD.md`):**
+
+| Split | Answers / pairs | Decisions | contradicted | not mentioned |
+|---|---|---|---|---|
+| train | 13,203 answers | 90,795 | 4,039 | 6,858 |
+| dev | 1,468 answers | 9,996 | 410 | 759 |
+| T1 test | 2,647 answers | 17,284 | 584 | 955 |
+| T2 test | 29,320 pairs | 29,320 (binary: 6,488 unsupported) | – | – |
+| T3 test | 3,000 pairs | 3,000 | 1,000 | 1,000 |
+
+Checks: no leakage by group (RAGTruth source, document hash); label agreement with LLM-AggreFact's independent RAGTruth labels 98.75 % on the final segmentation; segmentation with pysbd + checkable-content rule (C2 passes at 96.3 %).
+
+*Superseded pre-build estimate* (regex splitter; the final segmenter will be pysbd plus a rule that excludes sentences without checkable content, expected to remove about 10–20 % of sentences, mostly *supported*):
 
 | Split | Answers | Sentence labels | contradicted | not mentioned | Tokens |
 |---|---|---|---|---|---|
@@ -91,3 +103,7 @@ From the EDA report §2. ✅ suitable · ⚠️ usable with care · ❌ not suit
 
 ## Links
 [[GroundOne]], [[GroundOne 2026 - EDA report]], [[ANLI]], [[RAGTruth]], [[MiniCheck Synthetic Data]], [[LLM-AggreFact]], [[LLM-AggreFact Sub-datasets]], [[VitaminC]], [[Schuster 2021 - VitaminC]], [[Natural Language Inference]], [[MiniCheck]], [[Calibration]], [[Selective Prediction]], [[Nguyen 2016 - MS MARCO]], [[Hermann 2015 - Teaching Machines to Read and Comprehend]], [[See 2017 - Get To The Point]], [[Yelp Open Dataset]]
+
+## Update 2026-10-10
+- The rules that referred to [[ANLI]] (premise filtering, ANLI dev for the temperature, the ANLI claim-only baseline) no longer apply: ANLI is not used. Calibration and the served threshold are fitted on the RAGTruth dev split; [[LLM-AggreFact]] is never used for fitting (D18).
+- Results on these splits: [[GroundOne Results]]. Surface cues measured on the final data: word overlap AUROC 0.737 (T1) / 0.698 (T3); a sentence-only classifier reaches 0.570 three-way on T1.

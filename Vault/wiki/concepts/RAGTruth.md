@@ -4,7 +4,7 @@ tags: [concept, dataset, benchmark, rag, hallucination, span-level, training-dat
 ---
 # RAGTruth
 
-**RAGTruth** ([[Niu 2024 - RAGTruth]]) is a corpus of about 18K responses that LLMs **naturally generated** in [[Retrieval-Augmented Generation|RAG]] settings, with **span-level** human labels for hallucinated content. It is GroundOne's RAG-specific benchmark, and its training portion is a candidate source of in-domain training data. It also appears as a column in [[LLM-AggreFact]] and as a subset of HaluBench ([[Ravi 2024 - Lynx]]).
+**RAGTruth** ([[Niu 2024 - RAGTruth]]) is a corpus of about 18K responses that LLMs **naturally generated** in [[Retrieval-Augmented Generation|RAG]] settings, with **span-level** human labels for hallucinated content. It is GroundOne's RAG-specific benchmark, and its training portion is GroundOne's **only training source** (D21). It also appears as a column in [[LLM-AggreFact]] and as a subset of HaluBench ([[Ravi 2024 - Lynx]]).
 
 ## Composition
 - **Tasks**:
@@ -57,7 +57,7 @@ tags: [concept, dataset, benchmark, rag, hallucination, span-level, training-dat
 
 ## Relevance to GroundOne
 - It is the most realistic RAG evaluation available: the errors are natural, the generators are modern, and the subtle "baseless info" cases are exactly what a strict verifier must catch.
-- **Training use**: RAGTruth train gives in-domain negatives that NLI data lacks. Watch for leakage, since the [[LLM-AggreFact]] RAGTruth column likely comes from the RAGTruth test split. Its provenance is not stated in the sources.
+- **Training use**: RAGTruth train gives in-domain negatives that NLI data lacks. Watch for leakage, since the [[LLM-AggreFact]] RAGTruth column likely comes from the RAGTruth test split. Its provenance is not stated in the sources *(resolved below: the overlap was checked and removed)*.
 - Report per task (QA vs data-to-text vs summarization). Data-to-text, with JSON input and a 68.6% hallucination rate, behaves very differently from the other two.
 
 ## EDA findings (GroundOne Phase 1a)
@@ -86,3 +86,6 @@ Measured by [[GroundOne 2026 - EDA report]] (Qwen2.5 tokens, rule-based sentence
 
 ## Links
 [[Niu 2024 - RAGTruth]], [[Hallucination Detection]], [[Groundedness Verification]], [[LLM-AggreFact]], [[HHEM]], [[MiniCheck]], [[Ravi 2024 - Lynx]], [[GroundOne]], [[Datasets for GroundOne]], [[GroundOne 2026 - EDA report]], [[Dataset card - RAGTruth README]], [[ANLI]]
+
+## GroundOne results on T1 (2026-10-10)
+Three-way balanced accuracy on 17,284 sentences: 0.769 (0.5B), 0.767 (0.5B run 2), 0.832 (3B); binary AUROC 0.905 / 0.907 / 0.940, against 0.814 / 0.821 for [[MiniCheck]] / [[HHEM]] and 0.737 for word overlap. Contradicted recall stays low outside data-to-text. Details: [[GroundOne Results]]; EDA: [[GroundOne 2026 - EDA report (dataset)]].

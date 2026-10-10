@@ -9,6 +9,8 @@ tags:
 ---
 # Can Jev replace your LLM judge?
 
+**Raw file**: `raw/Can Jev replace your LLM judge? Evaluating quality, cost, and latency_ingested.md`
+
 ## Overview
 This article evaluates [[Jev]] as an [[LLM-as-a-Judge]] using MLflow. It compares Jev against traditional LLMs like GPT-5.6, Claude 4.6/4.8, and DeepSeek-V4.1-Flash across quality (human-label agreement), cost, and latency on a dataset of 30 MLflow QA examples.
 

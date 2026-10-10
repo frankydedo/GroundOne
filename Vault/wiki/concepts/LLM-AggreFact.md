@@ -38,7 +38,7 @@ tags: [concept, benchmark, fact-checking, grounding, evaluation, sentence-level]
 
 - **Yes, there is a dev set.** AggreFact, TofuEval, WiCE and ClaimVerify keep their original validation and test splits. REVEAL, FactCheck-GPT, ExpertQA and LFQA were split 50/50, with no query shared between dev and test (§4.1).
 - The sizes of the RAGTruth subset on the leaderboard are **not stated** in the available sources.
-- The data is **test-only for training purposes**: the authors say it is "largely test-only" (§3). Do not train GroundOne on it. Use dev only for threshold tuning and model selection.
+- The data is **test-only for training purposes**: the authors say it is "largely test-only" (§3). Do not train GroundOne on it. *(Superseded by D18: GroundOne uses no split of LLM-AggreFact for threshold tuning, calibration or model selection; see the licence note below.)*
 - **Label unification (App. C.2)**: the binary labels of AggreFact, TofuEval and ClaimVerify are kept as they are. Elsewhere, only *supported / fully attributable / completely support / complete* map to supported, and **partial support is mapped to unsupported**.
 
 ## Protocol
@@ -99,3 +99,6 @@ Test split, measured by [[GroundOne 2026 - EDA report]] in Qwen2.5 tokens (the p
 
 ## Links
 [[MiniCheck]], [[HHEM]], [[AlignScore]], [[RAGTruth]], [[Groundedness Verification]], [[Hallucination Detection]], [[LLM-as-a-Judge]], [[Qwen2.5]], [[GroundOne]], [[LLM-AggreFact Sub-datasets]], [[Dataset card - LLM-AggreFact]], [[Datasets for GroundOne]], [[GroundOne 2026 - EDA report]]
+
+## GroundOne results on T2 (2026-10-10)
+Macro balanced accuracy over the 11 sub-datasets at threshold 0.5 / RAG subset: GroundOne 0.5B 70.1 / 74.4 (run 2: 71.5 / 74.3), GroundOne 3B **74.8 / 76.9**, [[MiniCheck]]-RoBERTa 74.0 / 74.6 (our run reproduces its published score), [[Rizzo-Flow]] 4B 61.5 on its 1,093-item subsample; published zero-shot Qwen2.5-7B 72.8. The 3B vs MiniCheck macro difference is **not significant** (+0.8 [−0.5, +2.1]); on the RAG subset it is (+2.4 [+1.4, +3.3]). Single sub-datasets move by up to 10 points between two seeds, so per-dataset differences under ≈ 5 points are not interpreted. See [[GroundOne Results]], [[VitaminC]].

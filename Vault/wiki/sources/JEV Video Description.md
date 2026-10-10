@@ -6,6 +6,8 @@ tags: [source, video, description]
 ---
 # JEV Video Description
 
+**Raw file**: `raw/jev_video_description_ingested.txt`
+
 This is the description accompanying the video on [[Jev]] and [[System One Models]].
 
 ## Key Information Extracted

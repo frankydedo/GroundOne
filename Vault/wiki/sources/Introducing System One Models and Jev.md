@@ -6,6 +6,8 @@ tags: [jev, typesafe-ai, system-one-models]
 ---
 # Introducing System One Models & Jev (TypeSafe AI Blog)
 
+**Raw file**: `raw/Introducing System One Models & Jev - TypeSafe AI Blog_ingested.md`
+
 ## Summary
 The official launch announcement of Jev by Diogo Almeida, founder of TypeSafe AI. It introduces System One Models as a new class of frontier models designed to make fast, structured decisions for automation.
 

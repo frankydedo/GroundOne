@@ -6,6 +6,8 @@ tags: [jev, system-one-models, ai, architecture]
 ---
 # Jev - System One Models (by Simone Rizzo)
 
+**Raw file**: `raw/jev_video_transcript_ingested.txt`
+
 This is a transcript of a YouTube video by Simone Rizzo explaining the new "System One Model" architecture, specifically focusing on a model called **Jev**. 
 
 ## Summary

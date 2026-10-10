@@ -55,3 +55,6 @@ From the local HF `config.json` files (thesis machine): **0.5B** hidden 896, hea
 ## Links
 - [[LoRA]], [[KV Cache]], [[Prefill and Decode]], [[Calibration]], [[GroundOne]], [[System One Models]], [[Groundedness Verification]]
 - Sources: [[Qwen Team 2024 - Qwen2.5 Technical Report]], [[Hu 2022 - LoRA]], [[Dettmers 2023 - QLoRA]]
+
+## Observed in GroundOne (2026-10-10)
+After the marker " Verdict:", the fine-tuned model's most likely next token is the **spaced** letter (" A", " B", " C"), not the unspaced letters GroundOne reads; the three readout letters hold only about 4–5 % of the probability mass. Training with a loss restricted to the readout letters shapes their relative logits, not their absolute mass, so the readout behaves as a three-way classifier ([[Letter-Token Readout]]). Generating the token instead (control B2) loses 0.25 (0.5B) / 0.07 (3B) three-way accuracy.

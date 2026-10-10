@@ -30,6 +30,10 @@ Assumptions: both reuse the prefix cache (a fair baseline). The judge's per-sent
 $$\frac{T_{gen}-\mathrm{prefill}(S)}{T_{S1}-\mathrm{prefill}(S)}\approx\frac{n\,t_{dec}}{t_{suffix}}\;\approx\;n \text{ (order of magnitude)}.$$
 If the generative baseline does **not** reuse the prefix (a new prompt per sentence), $T_{gen}\approx K\cdot\mathrm{prefill}(S)+K n t_{dec}$ and the gap widens further. Possible extension: score all $K$ suffixes in **one batched pass** against the shared prefix (Jev-style parallel branches), giving $T_{S1}\approx\mathrm{prefill}(S)+t_{batch}(K)$.
 
+*Update 2026-10-10.* The formula for $T_{S1}$ above describes **design (a)** (shared prefix + one question suffix per sentence), now the fallback. The default **design (b)** writes a short marker " Verdict:" after each of the $K$ sentences and reads all verdicts from **one** forward pass over the answer, so
+$$T_{S1}^{(b)}\;\approx\;\mathrm{prefill}(S + K\,m)$$
+where $m$ is the marker length (a few tokens). There is no per-sentence suffix pass and no decode step; the whole cost is one compute-bound prefill. Measured: design (b) is 1.4–1.5× faster than design (a) at K ≥ 14 on the same runtime.
+
 ## Thesis preliminary measurement (own, not from a paper)
 > **Preliminary measurement by the thesis author**, MLX, 8-bit weights, MacBook Pro M4 16 GB, batch 1. To be repeated with the final benchmark harness (p50/p90/p99, warm-up, several runs).
 
@@ -42,9 +46,9 @@ Derived (arithmetic on the numbers above):
 - Prefill throughput: 0.5B ≈ 0.33–0.36 ms/token (about 2.8–3.0k tok/s). 3B ≈ 2.1–2.25 ms/token (about 450–470 tok/s). Prefill is close to linear in length over this range.
 - **One decode step ≈ prefilling about 17–21 tokens** for both sizes. 0.5B: 7 / 0.34 ≈ 20. 3B: 37–42 / 2.15 ≈ 17–20.
 - Decode rate: 0.5B ≈ 140 tok/s; 3B ≈ 24–27 tok/s.
-- Sanity check against memory bandwidth (approximate; the M4 bandwidth is an Apple spec of about 120 GB/s and is not taken from the wiki sources): 8-bit weights are about 0.5 GB for 0.5B and about 3.3 GB for 3B, giving lower bounds of about 4 ms and about 27 ms per token. The measured 7 ms and 37–42 ms fit decode being **memory-bound** with overhead.
+- Sanity check against memory bandwidth (approximate; ~~the M4 bandwidth is an Apple spec of about 120 GB/s and is not taken from the wiki sources~~ *superseded 2026-10-10: the 120 GB/s figure is now cited from [[Apple 2024 - MacBook Pro 14-inch M4 tech specs]]; see [[Apple Silicon and MLX]]*): 8-bit weights are about 0.5 GB for 0.5B and about 3.3 GB for 3B, giving lower bounds of about 4 ms and about 27 ms per token. The measured 7 ms and 37–42 ms fit decode being **memory-bound** with overhead.
 
-**Illustrative example** ($S$ = 637, $K$ = 5 sentences; $t_{suffix}$ is an *assumption* ≈ 10 ms for 0.5B and ≈ 50 ms for 3B, still to be measured):
+**Illustrative example** ($S$ = 637, $K$ = 5 sentences; $t_{suffix}$ is an *assumption* ≈ 10 ms for 0.5B and ≈ 50 ms for 3B, still to be measured). *Superseded 2026-10-10: GroundOne now uses design (b), one pass per answer, and the measured latencies are in the section "GroundOne measured latency and energy" below. The example is kept as the original reasoning.*
 | Scenario | 0.5B | 3B |
 |---|---|---|
 | Generative judge, terse ($n$ = 1) | 211 + 5·1·7 ≈ **246 ms** | 1362 + 5·1·40 ≈ **1.56 s** |
@@ -53,10 +57,31 @@ Derived (arithmetic on the numbers above):
 
 Reading: with a one-letter judge the two are equivalent, as the theory predicts. With any verdict longer than a few tokens, the System One is about 4–5× faster at $K$ = 5, and the gap grows linearly in $n$ and $K$. Prefill sets a floor that **no** architecture removes. For 3B at 637 tokens that floor is about 1.4 s, a demo-UX argument for the 0.5B verifier.
 
+## Splitwise: the two phases at datacenter scale
+[[Patel 2024 - Splitwise (prefill vs decode phases)|Splitwise]] (Patel et al., ISCA 2024) characterises the phases on production Azure traces with Llama2-70B and BLOOM-176B on H100/A100 (§III):
+- **Compute- vs memory-bound.** "Batching during the prompt phase is compute-bound, whereas the token phase is limited by memory capacity" (Insight V). TTFT grows almost linearly with prompt length because prefill keeps the GPU busy (Fig. 5a).
+- **Decode dominates end-to-end time** even for long prompts and short outputs: for BLOOM-176B a 1,500-token prompt phase takes as long as 6 output tokens (Insight III).
+- **Power.** Prefill power rises with batch size towards TDP; decode power stays flat because the phase is memory-bound (Insight VI, Fig. 8). Power-capping slows prefill a lot and decode hardly at all (Fig. 9).
+- **Hardware.** Decode does not need the newest GPU (Insight VII), which motivates running the phases on different machines with KV-cache transfer.
+
+## GroundOne measured latency and energy (2026-10-10)
+Final measurements (MLX in-process, M4 16 GB, 200 T1 answers for latency, 100 for energy; [[GroundOne Results]]):
+
+| System | s/answer at K ≥ 14 | J/answer | Net power |
+| --- | --- | --- | --- |
+| GroundOne 0.5B / 3B (design b, one prefill) | **0.41 / 2.57** | **5.5 / 33.1** | 16.2 W |
+| Terse judge 0.5B / 3B (prefill + short decode) | 0.80 / 4.44 | 8.9 / 43.3 | 13.5 / 14.2 W |
+| Verbose judge 0.5B / 3B (prefill + rationale decode) | 2.51 / 15.86 | 22.5 / 111.7 | 11.6 / 10.9 W |
+
+- **Speed** follows the theory: the System One removes decoding, so it is ≈2× faster than the terse and ≈6× faster than the verbose judge at K ≥ 14, and the gap grows with K.
+- **Energy** follows Splitwise's power characterisation: GroundOne's single long prefill is compute-bound and draws more power (16 W) than the judges' memory-bound decoding (11–14 W). Its energy advantage over the terse judge (1.3–1.6×) is therefore **smaller than its speed advantage**. See [[Energy of LLM Inference]].
+- **Hardware bound.** On the M4 (120 GB/s), decode is bounded below by weight bytes / bandwidth (≈4 ms/token for 0.5B, ≈27 ms/token for 3B, 8-bit); prefill is not ([[Apple Silicon and MLX]]).
+
 ## Levers that act on each phase
 - **Prefill**: shorter prompts, **prefix caching / reuse** across questions ([[KV Cache]], [[Kwon 2023 - PagedAttention vLLM|vLLM shared prefix]]), smaller model.
 - **Decode**: fewer generated tokens (the System One idea), weight quantization (int8 lowered PaLM 540B decode from 36.9 to 28.5 ms/token, Pope §4.4), GQA/MQA for long contexts (Pope §3.3), batching (raises throughput, not single-request latency).
 
 ## Links
 - [[KV Cache]], [[System One Models]], [[When System One Beats an LLM]], [[GroundOne]], [[Jev]], [[Jevs Architecture Unmasked]], [[Qwen2.5]], [[LoRA]], [[LLM-as-a-Judge]], [[Groundedness Verification]]
-- Sources: [[Pope 2023 - Efficiently Scaling Transformer Inference]], [[Kwon 2023 - PagedAttention vLLM]]
+- Sources: [[Pope 2023 - Efficiently Scaling Transformer Inference]], [[Kwon 2023 - PagedAttention vLLM]], [[Patel 2024 - Splitwise (prefill vs decode phases)]], [[Alizadeh 2024 - LLM in a flash]], [[Apple 2024 - MacBook Pro 14-inch M4 tech specs]]
+- Also: [[Energy of LLM Inference]], [[On-Device Inference]], [[Apple Silicon and MLX]], [[GroundOne Results]]

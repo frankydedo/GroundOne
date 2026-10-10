@@ -6,6 +6,8 @@ tags: [jev, langchain, typesafe-ai, agents]
 ---
 # What Is Jev? A Guide to TypeSafe AI’s System One Model
 
+**Raw file**: `raw/What Is Jev? A Guide to TypeSafe AI’s System One Model_ingested.md`
+
 ## Summary
 A LangChain blog post detailing how Jev fits into the agent loop and how to use it via the `langchain-typesafe` integration.
 

@@ -38,7 +38,7 @@ tags: [concept, model, factual-consistency, encoder, roberta, baseline]
 ## Relevance to GroundOne
 - It is the **classic encoder baseline**. It shows the chunk-and-aggregate workaround for short context windows, which a long-context decoder does not need.
 - **Evidence for the data mix**: diverse alignment data beats NLI-only data, and QA-derived data matters most. This suggests GroundOne's training mix should not be dominated by MNLI-style short premises.
-- **Gap**: AlignScore is about 4.5 BAcc behind the best small checkers on LLM-AggreFact. GroundOne should clearly beat it.
+- **Gap**: AlignScore is about 4.5 BAcc behind the best small checkers on LLM-AggreFact. GroundOne should clearly beat it. *(Not run in the thesis; it remains related work. Its training data include VitaminC, which is why [[MiniCheck]]-RoBERTa, trained from it, is in-distribution on GroundOne's T3.)*
 
 ## Links
 [[Zha 2023 - AlignScore]], [[MiniCheck]], [[HHEM]], [[LLM-AggreFact]], [[Natural Language Inference]], [[Hallucination Detection]], [[Groundedness Verification]], [[GroundOne]]

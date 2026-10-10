@@ -6,9 +6,18 @@ tags: [concept, groundedness, faithfulness, rag, evaluation-protocol, groundone]
 
 **Groundedness verification** checks whether each statement in a generated answer is **supported by the retrieved context** that the generator was given. It is the "fact-checking on grounding documents" primitive of [[Tang 2024 - MiniCheck|MiniCheck]], and the core task of [[GroundOne]]. It is the context-faithfulness, sentence-level slice of [[Hallucination Detection]].
 
-## Task definition (as used for GroundOne)
+## Task definition (current, 2026-10-10)
+GroundOne is a **sentence-level groundedness verifier with three classes** (decision D20):
+- **Input**: the retrieved document D (with the question) and the generated answer, segmented into sentences c_1..c_K (pysbd plus a checkable-content rule shared by training and inference; sentences without checkable content get no verdict).
+- **Output**: for every c_i, P(supported), P(contradicted), P(not mentioned), read from the logits of the letters A/B/C at a " Verdict:" marker after the sentence. All K verdicts come from **one forward pass** per answer, with no generated text ([[System One Models|System One]] readout, [[Prefill and Decode]]).
+- **Classes**: *supported* (D entails c_i), *contradicted* (D conflicts with c_i; ≈ intrinsic hallucination / NLI contradiction), *not mentioned* (D neither supports nor contradicts c_i; ≈ extrinsic hallucination / NLI neutral). A binary support score and strict / lenient error policies are derived from the three probabilities. In the taxonomy of [[Huang 2023 - A Survey on Hallucination in LLMs|Huang et al.]] this is detection of *faithfulness hallucination, context inconsistency*.
+- **Served label**: "supported" iff calibrated P(supported) ≥ τ, with τ fitted on dev (0.90–0.94).
+
+The binary definition below is the original (pre-D20) version and is kept for history.
+
+## Task definition (as used for GroundOne; superseded by the three-class definition above)
 - **Input**: a context D (the retrieved passages for a [[Retrieval-Augmented Generation|RAG]] query, possibly with the question) and one sentence c_i of the generated answer.
-- **Output**: P(supported | D, c_i). It is read from the logits of two answer letters after a single forward pass (a [[System One Models|System One]] readout), with no generated text.
+- **Output**: P(supported | D, c_i). It is read from the logits of two answer letters after a single forward pass (a [[System One Models|System One]] readout), with no generated text. *(Superseded: three letters, one pass per answer.)*
 - **Labels**:
   - *supported*: all the information in c_i is present in D and does not contradict it. This matches AlignScore's definition of "aligned".
   - *unsupported*: everything else. This covers both **contradiction (conflict)** and **neutral (baseless)**, following MiniCheck's mapping of ANLI neutral and contradiction to unsupported (§3.3), and Kamoi et al. / Sanyal et al. as cited there.
@@ -28,11 +37,16 @@ tags: [concept, groundedness, faithfulness, rag, evaluation-protocol, groundone]
   1. **No tuning**: a fixed threshold t = midpoint of the score range (0.5). This is the **LLM-AggreFact headline protocol**, meant to measure zero-shot deployability (MiniCheck §4.1).
   2. **Per-dataset tuning on the validation split**, then BAcc on test. This is the SummaC and AlignScore protocol, and MiniCheck's Table 7. It helps weaker metrics a lot (SummaC-CV +9.2) and MiniCheck-FT5 only a little (+0.4).
 
-  Recommendation for GroundOne: report (1) as the headline and (2) as analysis, and **never tune on test**. LLM-AggreFact has dev splits for this. RAGTruth has none, so a dev split must be carved out of its train split.
+  Recommendation for GroundOne: report (1) as the headline and (2) as analysis, and **never tune on test**. LLM-AggreFact has dev splits for this *(but GroundOne does not use them: no fitting of any kind on LLM-AggreFact, D18; calibration and thresholds are fitted on the RAGTruth dev split)*. RAGTruth has none, so a dev split must be carved out of its train split.
 - **AUROC**: threshold-free ranking quality. AlignScore reports AUC-ROC on SummaC and TRUE. It is useful because a System One model outputs a probability.
 - **Calibration**: [[Expected Calibration Error]] and reliability diagrams ([[Calibration]]). None of the baseline papers report these, so this is a differentiating axis for GroundOne.
 - **Response- or span-level F1**: what RAGTruth and Lynx report. It is not directly comparable with sentence-level BAcc.
-- **Cost and latency**: MiniCheck reports dollars per 13K test examples; HHEM reports about 1.5 s per 2k tokens on an x86 CPU. GroundOne should report latency per sentence and per response on the M4 Mac against the same baselines ([[When System One Beats an LLM]]).
+- **Cost and latency**: MiniCheck reports dollars per 13K test examples; HHEM reports about 1.5 s per 2k tokens on an x86 CPU. GroundOne should report latency per sentence and per response on the M4 Mac against the same baselines ([[When System One Beats an LLM]]). *Done (2026-10-10):* at K ≥ 14, 0.41 s (0.5B) / 2.57 s (3B) per answer and 5.5 J / 33 J per answer, ≈2× / ≈6× faster than terse / verbose judges of the same size; no latency claim against encoders or [[Rizzo-Flow]] because runtimes differ ([[GroundOne Results]], [[Energy of LLM Inference]], [[On-Device Inference]]).
+
+## Related formulations: SummaC and FActScore
+- **[[Laban 2022 - SummaC|SummaC]]** (summary consistency, TACL 2022) splits *both* the document and the summary into sentences, scores every pair with an NLI model and aggregates (max over document sentences, then mean). It is the classic evidence that sentence-level units make entailment checking work (MNLI: 56.4% BAcc at full-document granularity vs 73.5% at sentence level, Table 5), and it introduced the balanced-accuracy-with-validation-threshold protocol. GroundOne keeps the sentence unit on the answer side but reads the whole document as one context, so no document chunking or M × N passes are needed.
+- **[[Min 2023 - FActScore|FActScore]]** (EMNLP 2023) decomposes long generations into **atomic facts** and reports the fraction supported by a knowledge source, with "supported" defined relative to that source rather than world truth. Its definition of support matches groundedness; its unit is finer than GroundOne's sentence. Its automatic evaluator compares P(True) vs P(False) after retrieved passages, a zero-shot binary logit readout.
+- MiniCheck's finding that atomic decomposition brings no consistent gain at 2–4× cost (§7.1) supports the sentence unit; FActScore's finding that 40% of ChatGPT sentences mix supported and unsupported facts is the counter-argument the thesis should acknowledge.
 
 ## Reference numbers (LLM-AggreFact average BAcc)
 | System | Type | Avg BAcc |
@@ -43,7 +57,12 @@ tags: [concept, groundedness, faithfulness, rag, evaluation-protocol, groundone]
 | HHEM-2.1-open | small encoder | 71.8 |
 | AlignScore | 355M encoder | 70.5 |
 | Qwen2.5-0.5B-Instruct (zero-shot) | same backbone as GroundOne-0.5B | 64.2 |
-Source: [[Tang 2024 - LLM-AggreFact Leaderboard]].
+| Qwen2.5-7B-Instruct (zero-shot) | LLM judge | 72.8 |
+| *GroundOne 3B (this thesis)* | *fine-tuned 3B System One* | *74.8* |
+| *MiniCheck-RoBERTa (re-run in this thesis)* | *355M encoder* | *74.0* |
+| *GroundOne 0.5B (this thesis)* | *fine-tuned 0.5B System One* | *70.1* |
+
+Source: [[Tang 2024 - LLM-AggreFact Leaderboard]]; rows in italics are measured in this thesis ([[GroundOne Results]]): GroundOne 3B vs MiniCheck-RoBERTa is not a significant difference.
 
 ## Links
-[[Hallucination Detection]], [[LLM-AggreFact]], [[RAGTruth]], [[Natural Language Inference]], [[MiniCheck]], [[HHEM]], [[AlignScore]], [[LLM-as-a-Judge]], [[Rizzo-Flow]], [[RAG Evaluation Frameworks]], [[Qwen2.5]], [[LoRA]]
+[[Laban 2022 - SummaC]], [[Min 2023 - FActScore]], [[Huang 2023 - A Survey on Hallucination in LLMs]], [[On-Device Inference]], [[GroundOne Results]], [[Hallucination Detection]], [[LLM-AggreFact]], [[RAGTruth]], [[Natural Language Inference]], [[MiniCheck]], [[HHEM]], [[AlignScore]], [[LLM-as-a-Judge]], [[Rizzo-Flow]], [[RAG Evaluation Frameworks]], [[Qwen2.5]], [[LoRA]]

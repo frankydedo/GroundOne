@@ -26,7 +26,7 @@ m.predict([(premise, hypothesis), ...])   # use predict(), not m(pairs)
 ```
 The pipeline prompt template is `"<pad> Determine if the hypothesis is true given the premise?\n\nPremise: {text1}\n\nHypothesis: {text2}"`, with the flan-t5-base tokenizer.
 
-On a Mac it should run on CPU through PyTorch. MPS support and Mac latency are **not stated** and need to be measured.
+On a Mac it should run on CPU through PyTorch. MPS support and Mac latency are **not stated** and need to be measured. *(Measured: it runs on PyTorch MPS, separate env with `transformers` < 4.50.)*
 
 ## Reported performance
 - **Vendor (card)**, balanced accuracy:
@@ -39,8 +39,11 @@ On a Mac it should run on CPU through PyTorch. MPS support and Mac latency are *
 
 ## Relevance to GroundOne
 - It is the **most deployable baseline**: permissively licensed, small, CPU-friendly, and with the same (context, sentence) → P(supported) interface. Its `consistent` probability can go straight into the AUROC and ECE computation for the comparison ([[Calibration]], [[Expected Calibration Error]]).
-- It is a good **latency reference** for a [[System One Models|System One]] verifier on the M4 Mac. The vendor's 1.5 s per 2k tokens is an x86 figure.
+- It was meant as a **latency reference** on the M4. *(Outcome: measured sentence by sentence without batching, 2.52 s per answer at K ≥ 14; not comparable with GroundOne's in-process MLX timing, so no latency claim is made.)*
 - **Caveats**: the training data is undisclosed, so overlap with RAGTruth or AggreFact cannot be ruled out. The "unlimited context" claim is unexplained. Treat the vendor's comparisons with GPT-4 as claims, not measurements.
 
 ## Links
 [[Vectara 2024 - HHEM-2.1-Open model card]], [[Tang 2024 - LLM-AggreFact Leaderboard]], [[LLM-AggreFact]], [[RAGTruth]], [[MiniCheck]], [[AlignScore]], [[Hallucination Detection]], [[Groundedness Verification]], [[When System One Beats an LLM]], [[GroundOne]]
+
+## Measured in the thesis (2026-10-10)
+HHEM-2.1-open: T1 AUROC 0.821, T3 AUROC 0.795 (binary only). See [[GroundOne Results]], [[Datasets for GroundOne]].

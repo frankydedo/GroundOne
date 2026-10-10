@@ -52,11 +52,28 @@ Mitigations proposed by Zheng et al.: evaluate both orders and only count consis
 | Output | Text: rationale + verdict/score, parsed afterwards | Probabilities over a closed answer set, read from logits |
 | Cost per decision | Prefill + many decode steps | Prefill only (one forward pass); shared context reusable via [[KV Cache]] |
 | Explanation | Yes (the claimed "explainability" advantage, Zheng §3.2) | **None**: returns a probability, no rationale |
-| Format failures | Possible (Zheng Table 2 lists up to 3.8% wrong-format outputs) | Not possible by construction |
+| Format failures | Possible (Zheng Table 2 lists up to 3.8% wrong-format outputs; 23–97 % for unconstrained 0.5B judges in GroundOne) | Not possible by construction (the readout is a one-step mask over the answer letters, [[Constrained Decoding]]) |
 | Biases | Position, verbosity, self-enhancement (measured above) | Option-order sensitivity of the readout still possible and must be tested; no self-enhancement if the judge is a separate model |
-| Confidence | Verbalised or ad hoc | Probability, but [[Calibration]] must be measured, not assumed |
+| Confidence | Verbalised or ad hoc (coarse and overconfident: [[Xiong 2024 - Can LLMs Express Their Uncertainty]]) | Probability, but [[Calibration]] must be measured, not assumed ([[Verbalised vs Logit Confidence]]) |
 
 A System One judge therefore trades the rationale for speed and a probability. For RAG groundedness this is often acceptable when the output is used for gating or highlighting unsupported sentences; when an audit trail is needed, a hybrid that escalates low-confidence cases to a generative judge is the natural design ([[When System One Beats an LLM]]). Self-RAG's `IsSup` critic token, consumed as a normalised token probability, is the closest published precedent for reading a groundedness verdict from logits ([[Asai 2024 - Self-RAG]]).
 
+## Small local judges in GroundOne (measured, 2026-10-09/10)
+Zero-shot Qwen2.5 judges of the same size as GroundOne (0.5B, 3B), MLX in-process, greedy decoding, on the 200-answer T1 latency subset:
+
+| Judge | 0.5B three-way / format failures | 3B three-way / format failures | Speed vs GroundOne at K ≥ 14 |
+| --- | --- | --- | --- |
+| Terse (B0a): one letter per sentence | 0.233 / 23 % | 0.390 / 0.1 % | GroundOne 1.95× (0.5B), 1.73× (3B) faster |
+| Verbose (B0b): rationale then verdict | 0.017 / 97 % | 0.402 / 7.6 % | about 6.2× faster |
+| Equal output, logits (B0d-logit) | 0.234 / 23.5 % | 0.390 / 0.1 % | about 2× faster |
+| Equal output, verbalised JSON (B0d-verbal) | 0.234 (0.081 strict) / 30.9 % | 0.410 / 0 % | 6–7× faster |
+| **GroundOne** (System One) | **0.835 / 0 %** | **0.900 / 0 %** | reference |
+
+- **Format failures** dominate the 0.5B judges because no grammar-constrained decoding was used. This keeps one protocol across judges and is stated as a limitation. See [[Constrained Decoding]].
+- **Confidence at equal output.** Verbalised probabilities are almost uninformative (3B: one-hot for 93 % of sentences). Logit-read probabilities are better (3B AUROC 0.68 vs 0.58) but far from GroundOne (0.94–0.97). After the same calibration every judge has ECE 0.03–0.05, so ECE alone cannot rank them. See [[Verbalised vs Logit Confidence]].
+- **Readout matters even with the same weights.** Using GroundOne's own fine-tuned model as a single-token generator (control B2) costs 0.25 (0.5B) / 0.07 (3B) three-way. See [[Letter-Token Readout]].
+- **Fairness caveat.** The judges are zero-shot, while GroundOne is fine-tuned in domain (RAGTruth). The comparison measures what a same-size generative judge offers out of the box, not the readout alone.
+- Letter-based judges inherit **option-ID token bias** ([[Zheng 2024 - LLMs Are Not Robust Multiple Choice Selectors]]). First-token and text answers of instruction-tuned judges can disagree ([[Wang 2024 - My Answer is C (first-token probabilities vs text answers)]]).
+
 ## Related
-[[RAG Evaluation Frameworks]], [[Retrieval-Augmented Generation]], [[Groundedness Verification]], [[Hallucination Detection]], [[LLM-AggreFact]], [[RAGTruth]], [[Calibration]]
+[[Verbalised vs Logit Confidence]], [[Constrained Decoding]], [[Letter-Token Readout]], [[Statistical Significance and Bootstrap]], [[RAG Evaluation Frameworks]], [[Retrieval-Augmented Generation]], [[Groundedness Verification]], [[Hallucination Detection]], [[LLM-AggreFact]], [[RAGTruth]], [[Calibration]]
