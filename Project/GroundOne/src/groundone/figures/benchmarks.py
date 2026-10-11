@@ -16,12 +16,13 @@ SYSTEMS = [  # (label, results name, kind)
     ("HHEM", "hhem", "binary"),
     ("MiniCheck-RoBERTa", "minicheck-roberta", "binary"),
     ("Rizzo-Flow 4B", "rizzo-flow-4b-q4", "three"),
+    ("d1-3B (Liquid AI)", "d1-3b", "three"),
     ("Untrained 0.5B", "untrained-05b", "three"),
     ("Untrained 3B", "untrained-3b", "three"),
     ("GroundOne 0.5B", "g1-05b-b1", "three"),
     ("GroundOne 3B", "g1-3b-b1", "three"),
 ]
-COLORS = {**SYSTEM_COLORS, "Word overlap": "#c4c2bb", "Sentence only": "#8a877f"}
+COLORS = {**SYSTEM_COLORS, "Word overlap": "#c4c2bb", "Sentence only": "#8a877f", "d1-3B (Liquid AI)": "#e87ba4"}
 LATENCY = {  # size -> [(label, results name)]
     "0.5B": [("GroundOne (design b)", "g1-05b-b1"), ("System One (design a)", "untrained-05b"),
              ("Terse judge", "judge-terse-05b"), ("Verbose judge", "judge-verbose-05b")],

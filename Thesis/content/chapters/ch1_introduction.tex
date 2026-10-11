@@ -79,10 +79,11 @@ with the length of the answer.
 
 In brief, the results show that specialisation works in the RAG domain: on the RAGTruth test set GroundOne reaches a
 three-way balanced accuracy of 0.769 with 0.5B parameters and 0.832 with 3B, above the specialised encoders and well
-above a general-purpose System One eight times larger, and on LLM-AggreFact the 3B is on par with the best small encoder.
+above a general-purpose System One eight times larger and above a general-purpose decision model of the same size, and
+on LLM-AggreFact the 3B is on par with the best small encoder.
 It verifies long answers about two times faster than a terse and six times faster than a verbose judge of the same size,
 with always valid output, much better probabilities and less energy. The restriction of the readout to the admissible
-answers adds accuracy by itself. The limits are equally clear: transfer to a different domain is weak, hallucinations
+answers adds accuracy by itself. The limits are equally clear: transfer to a different domain is weak, and there the general-purpose model is better, hallucinations
 hidden in sentences that otherwise copy the source remain hard, and the training recipe is not fully robust to the
 random seed.
 

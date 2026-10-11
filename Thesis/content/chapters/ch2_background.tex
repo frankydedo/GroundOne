@@ -94,16 +94,31 @@ with respect to a fixed threshold of 0.5, and reports a mean balanced accuracy o
 and a strong dependence on a temperature fitted to the target data~\cite{nandakishore2026laya}; contrastive benchmarks
 with clear protocols place small open models far behind Jev~\cite{yong2026decidebench}; and typed decision models have
 been shown to follow the label of an option rather than its definition when the two conflict~\cite{azizi2026labels}. In
-2026 the Hugging Face hub introduced a tag for these \emph{decision models}~\cite{hf2026decisionmodels}, which now
-groups models, benchmarks and datasets from many independent authors, of very different quality.
+2026 the Hugging Face hub introduced a tag for these \emph{decision models}~\cite{hf2026decisionmodels}, which in
+October 2026 already grouped about 1{,}500 models from some 600 authors, of very different quality.
+
+Within weeks of Jev's release, established organisations published open decision models of their own. Cloudflare's Clef
+adds a dedicated decision head to a decoder and answers all questions in a single pass over the state, the design that had
+only been inferred for Jev~\cite{cloudflare2026clef}; Liquid AI's d1-3B reads restricted answer letters from a 3B model
+whose state is shared by all questions~\cite{liquid2026d1}; Perplexity fine-tunes a 27B model with a letter
+head~\cite{perplexity2026decider}. A community leaderboard, the Decision Index, scores these models on a common suite of
+public benchmarks that includes RAGTruth at the level of whole answers~\cite{decisionindex2026}. Its results draw a clear
+line: general-purpose decision models with fewer than one billion parameters barely exceed the trivial baseline on
+RAGTruth, and only models of tens of billions of parameters detect hallucinated answers reliably. Studies of Jev itself
+add that its probabilities are calibrated when pooled over many tasks but not on each task separately, that thresholds
+and temperatures must be fitted on the target workload~\cite{guo2026justaskjev,li2026jevjudge}, and that choosing a
+threshold through a lower confidence bound makes a decision-only judge safer to deploy~\cite{li2026jevjudge}. Runtimes
+followed: llama.cpp now serves the System One interface natively~\cite{llamacpp}. None of these models, however, is
+specialised in groundedness, and none reports sentence-level, three-way verification on the benchmarks used in this
+thesis.
 
 The letter readout itself has been studied outside the System One literature. In multiple-choice evaluation, the
 probability of the first answer token and the answer that an instruction-tuned model actually writes often
 disagree~\cite{wang2024myanswerc}, and the readout is biased towards particular option identifiers, a bias that can be
 estimated and removed~\cite{zheng2024mcq}. Both findings concern zero-shot models and suggest that a letter readout used
-as a decision needs to be trained, calibrated, or both. None of the open System One models is specialised in
-groundedness verification, and none has been compared, under controlled conditions, with generative judges and
-specialised verifiers on that task.
+as a decision needs to be trained, calibrated, or both. No open System One has been specialised in groundedness
+verification and compared, under controlled conditions and on the same hardware, with generative judges, specialised
+verifiers and a general-purpose decision model of the same size.
 
 \section{Retrieval-augmented generation and hallucination}
 \label{sec:bg-rag}

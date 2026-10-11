@@ -77,6 +77,17 @@ llama.cpp~\cite{llamacpp}, and is queried over HTTP with the document and the nu
 three-way choice question per sentence. A 4-bit quantised model is used because the 8-bit one does not fit in memory
 beside the operating system.
 
+\paragraph{A general-purpose decision model of the same size (B3b).} Liquid AI's d1-3B~\cite{liquid2026d1} is an open
+decision model of 3.1B parameters, post-trained for typed decisions on a broad mixture of tasks, which reads restricted
+answer letters with the state shared across questions: the same readout family as GroundOne, at the size of its larger
+model, but general-purpose. It isolates the value of specialisation against a decision model that was already trained to
+decide, rather than against an untrained one. It is run zero-shot with its own inference code, in PyTorch on the GPU of
+the laptop and without network access, with the same state and questions as Rizzo-Flow and at most six questions per call
+on the same state; on LLM-AggreFact its documents are split exactly as GroundOne's and the maximum over chunks is kept.
+A practical detail matters for reproducibility: PyTorch keeps compiled kernels for every new input length on the Apple
+GPU and does not release that memory, so the evaluation runs in worker processes that are restarted when the memory used
+by the GPU driver exceeds 11\,GB, which leaves the outputs unchanged.
+
 \paragraph{Specialised encoders (B4).} MiniCheck-RoBERTa~\cite{tang2024minicheck} and HHEM-2.1-open~\cite{vectara2024hhem}
 are the strongest small verifiers available. They score each (document, sentence) pair independently and return one
 probability of support; long documents are split into chunks of about 400 words and the maximum over chunks is kept, as
@@ -87,9 +98,9 @@ the GPU of the laptop.
 Qwen2.5-7B used zero-shot, are reported as given and not re-run.
 
 The slower systems are evaluated on stratified subsamples of the test sets: Rizzo-Flow on 300 answers of T1, 600 pairs
-of T3 and 1{,}100 items of T2, of which it scored 1{,}093 (seven exceeded its context); the untrained 3B on 600 answers
-of T1; and the generative judges on the 200 answers of the latency protocol below. GroundOne, the untrained 0.5B and the
-encoders are evaluated on the complete test sets, and the comparisons with a subsampled system are always made on the
+of T3 and 1{,}100 items of T2, of which it scored 1{,}093 (seven exceeded its context); d1-3B on a random subsample of
+4{,}000 items of T2; the untrained 3B on 600 answers of T1; and the generative judges on the 200 answers of the latency protocol below. GroundOne, the untrained 0.5B, the
+encoders and, on T1 and T3, d1-3B are evaluated on the complete test sets, and the comparisons with a subsampled system are always made on the
 items that both systems scored.
 
 \section{Metrics}
@@ -132,10 +143,11 @@ System One variants each answer is timed three times and the median is kept; the
 since greedy decoding is deterministic and each run is much longer. The reported time is the wall-clock time of the
 model call for one answer, from which the time per decision follows.
 
-Times were also recorded for the encoders and for Rizzo-Flow, but under conditions that do not allow a fair comparison:
-the encoders ran with PyTorch and scored each sentence separately, re-reading the document every time, which penalises
-them, and Rizzo-Flow ran in a different inference engine, with 4-bit weights and behind an HTTP interface. No latency
-claim is therefore made against them.
+Times were also recorded for the encoders, for Rizzo-Flow and for d1-3B, but under conditions that do not allow a fair
+comparison. The encoders ran with PyTorch and scored each sentence separately, re-reading the document every time, which
+penalises them; Rizzo-Flow ran in a different inference engine, with 4-bit weights and behind an HTTP interface; d1-3B ran
+in PyTorch with its own code and with the worker restarts described above. No latency claim is therefore made against
+them.
 
 Energy is measured with the \texttt{powermetrics} tool of macOS, which reports the power of the CPU, the GPU and the
 Neural Engine every 200 milliseconds. For each system, 100 answers of the latency subset (25 per band of $K$) are

@@ -12,7 +12,9 @@ answer.
 Specialisation works where it was aimed. On the RAGTruth test set GroundOne reaches a three-way balanced accuracy of
 0.769 with 0.5B parameters and 0.832 with 3B, far above the same models untrained, above the specialised encoders in
 ranking supported sentences and well above a general-purpose System One eight times larger. On LLM-AggreFact the 3B is on
-par with the best small encoder, and on VitaminC the gain disappears: a specialist is not a general fact checker.
+par with the best small encoder, and on VitaminC the gain disappears: a specialist is not a general fact checker. A
+general-purpose decision model of the same size, trained to decide on a broad mixture of tasks, confirms the trade-off:
+GroundOne is far ahead of it on RAGTruth, on par on LLM-AggreFact and far behind on VitaminC.
 
 The System One mechanism pays off in two ways. Reading all verdicts in one pass makes verification about two times
 faster than a terse and six times faster than a verbose generative judge of the same size on long answers, with output
