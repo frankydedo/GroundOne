@@ -379,7 +379,7 @@ Thesis chapter outline (to fill in `Thesis/content/chapters/`):
 1. Introduction (motivation: trustworthy local RAG; System One vs LLM; RQs; contributions)
 2. Background and related work (LLM inference: prefill vs decode, KV cache; System One models; hallucination detection and RAG verification; calibration and selective prediction; parameter-efficient fine-tuning)
 3. GroundOne: method and implementation
-4. Data (written, `Thesis/content/chapters/ch4_data.tex`): task and labels; sources (RAGTruth, LLM-AggreFact, VitaminC); construction; resulting dataset; reliability of the test sets; exploratory analysis; leakage control
+4. Data (written, `Thesis/content/chapters/ch5_data.tex`): task and labels; sources (RAGTruth, LLM-AggreFact, VitaminC); construction; resulting dataset; reliability of the test sets; exploratory analysis; leakage control
 5. Experimental setup (baselines, metrics, protocol, hardware)
 6. Results
    - First draft written (training; T1; baselines; T2; T3; calibration; latency vs K; error analysis by word overlap). Still to add: CIs, energy, ablations if run
