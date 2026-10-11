@@ -26,21 +26,13 @@ Local inference hardware on the two axes that decide what can run: memory capaci
 
 *Source: figures/locality.py HARDWARE (vendor spec pages in Vault/raw/local_inference)*
 
-## decode_floor_by_hardware.png
+## decode_cost_by_hardware.png
 
-![](decode_floor_by_hardware.png)
+![](decode_cost_by_hardware.png)
 
-Lower bound on the time to generate one token with the two GroundOne base models, computed as weight bytes divided by the vendor's memory bandwidth (batch 1, weights read once per token, KV cache ignored). Diamonds: decode time measured on the thesis machine, which reaches about 75–85 % of the bound. No hardware removes this cost for a model that generates; a System One does not pay it.
+Lower bounds on the cost of generating text on each class of local hardware, computed as weight bytes divided by the vendor's memory bandwidth (batch 1, KV cache ignored). (a) Time per generated token for the two GroundOne base models in 8-bit; diamonds: decode time measured on the thesis machine, about 75–85 % of the bound. (b) Minimum time a 3B generative judge spends only on writing its verdicts for an answer of 14 or more sentences (median generated tokens of the latency protocol). A System One generates no token, so both costs are zero for it on every machine.
 
-*Source: figures/locality.py (arithmetic on vendor specs) + experiments/feasibility/results/04_speed_*.json*
-
-## judge_decode_overhead_by_hardware.png
-
-![](judge_decode_overhead_by_hardware.png)
-
-Minimum time that a 3B generative judge spends only on writing its verdicts for one long answer (14 or more sentences), on each class of hardware: median generated tokens measured in the latency protocol (terse and verbose judges) times weight bytes divided by bandwidth. This is a floor on top of the prefill, which both the judge and a System One pay; a System One generates no token, so this term is zero for it on every machine.
-
-*Source: results/judge-{terse,verbose}-3b/latency/predictions.parquet + vendor specs*
+*Source: figures/locality.py (arithmetic on vendor specs) + Phase 0 + results/judge-{terse,verbose}-3b/latency*
 
 ## memory_fit.png
 

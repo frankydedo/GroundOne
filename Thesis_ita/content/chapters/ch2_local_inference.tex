@@ -29,23 +29,28 @@ che lavora su documenti privati.
 terza parte, e ciò che accade dopo (per quanto tempo vengono conservati, chi vi può accedere, se vengono usati per
 migliorare i modelli futuri) è regolato da contratti e policy. L'utente può leggere la policy, ma non può verificare che
 venga rispettata. Con un modello locale i documenti non lasciano mai la macchina, e la questione non si pone nemmeno: la
-privacy diventa una proprietà del sistema anziché una promessa. Le rassegne sull'edge intelligence lo affermano
-esplicitamente: l'inferenza sul dispositivo elimina le fughe di dati privati e la necessità di una connessione a
+privacy diventa una proprietà del sistema anziché una promessa. Le rassegne sull'edge intelligence, cioè sull'esecuzione dei modelli su dispositivi
+periferici vicini all'utente, lo affermano esplicitamente: l'inferenza sul dispositivo elimina le fughe di dati privati e la necessità di una connessione a
 Internet~\cite{qu2025mobileedge}.
 
 Il diritto europeo rende concreta la differenza. Secondo il Regolamento generale sulla protezione dei dati (GDPR), il
 trattamento dei dati personali comprende esplicitamente la loro ``comunicazione mediante trasmissione''~\cite[Art.~4(2)]{gdpr2016}.
 Inviare a un modello remoto un documento che contiene dati personali rende quindi il fornitore un responsabile del
-trattamento, vincolato da un contratto con le garanzie specifiche dell'Articolo~28; se poi il fornitore opera al di fuori
-dell'Unione europea, il trasferimento deve fondarsi su una decisione di adeguatezza, su garanzie adeguate o su una delle
-deroghe degli Articoli~44--49~\cite{gdpr2016}. Un verificatore eseguito sul dispositivo dell'utente non coinvolge alcun
+trattamento\footnote{Nel GDPR il \emph{titolare} del trattamento decide perché e come trattare i dati; il
+\emph{responsabile} li tratta per conto del titolare, per esempio fornendo un servizio di calcolo.}, vincolato da un
+contratto con le garanzie specifiche dell'Articolo~28. Se poi il fornitore opera al di fuori dell'Unione europea, il
+trasferimento dei dati deve avere una base giuridica: una decisione di adeguatezza\footnote{Una decisione con cui la
+Commissione europea riconosce che un paese terzo garantisce un livello di protezione dei dati sostanzialmente
+equivalente a quello europeo.}, garanzie adeguate oppure una delle deroghe previste dagli
+Articoli~44--49~\cite{gdpr2016}. Un verificatore eseguito sul dispositivo dell'utente non coinvolge alcun
 responsabile del trattamento né alcun trasferimento. Non elimina ogni obbligo, perché l'organizzazione che lo usa deve
 comunque rispettare i principi dell'Articolo~5 e proteggere il dispositivo, ma elimina gli obblighi che dipendono dal
 doversi fidare di qualcun altro. Molti documenti riservati, come ricerche inedite, contratti o codice sorgente, non
 contengono affatto dati personali; per essi il regolamento non si applica, e l'argomento diventa di riservatezza.
 
 Un episodio recente mostra che cosa sia in gioco. Nel settembre 2026 OpenAI ha annunciato che un proprio sistema
-multi-agente interno aveva prodotto una dimostrazione di blow-up per le equazioni di Navier--Stokes forzate, uno dei
+multi-agente interno aveva prodotto una dimostrazione di blow-up (la formazione di una singolarità in tempo finito) per le equazioni di
+Navier--Stokes forzate, uno dei
 problemi del Millennio, formalizzata nell'assistente di dimostrazione Lean~\cite{rits2026navierstokes}. Due matematici,
 Tristan Buckmaster e Levent Alpöge, avevano diffuso più o meno nello stesso periodo risultati affini per le equazioni di
 Eulero, e ne hanno rivendicato la paternità. Buckmaster aveva scritto le proprie bozze nell'assistente di programmazione
@@ -66,13 +71,14 @@ I fornitori sono consapevoli del problema. Apple descrive l'elaborazione sul dis
 proprio approccio alla privacy e, per le richieste che eccedono le capacità del dispositivo, ha costruito Private Cloud
 Compute, un cloud dedicato con server su misura, nessun accesso privilegiato per il personale, nessuna conservazione
 persistente delle richieste e un registro pubblico delle immagini software che vi vengono eseguite~\cite{apple2024pcc}.
-Il progetto è un tentativo serio di rendere verificabile l'inferenza remota, e la sua stessa complessità è un argomento:
-la privacy nel cloud richiede silicio su misura, un sistema operativo irrobustito e un'attestazione crittografica, e
-poggia comunque sulla fiducia nell'hardware, nella filiera di fornitura e nell'attestazione, che soltanto i ricercatori
-di sicurezza, e non gli utenti, sono in grado di ispezionare~\cite{apple2024pcc}.
+Il progetto è un tentativo serio di rendere verificabile l'inferenza remota, e la sua stessa complessità è un argomento
+a favore della località. Per garantire la privacy nel cloud servono silicio su misura, un sistema operativo irrobustito
+e un'attestazione crittografica, cioè una prova firmata di quale software sia in esecuzione sui server. Anche così, il
+sistema poggia sulla fiducia nell'hardware, nella filiera di fornitura e nell'attestazione stessa, che soltanto i
+ricercatori di sicurezza, e non gli utenti, sono in grado di ispezionare~\cite{apple2024pcc}.
 
 \paragraph{Disponibilità.} Un modello locale funziona senza rete e senza dipendere dalla disponibilità di un fornitore.
-Per un assistente usato in treno, in un reparto ospedaliero con connettività limitata o in un ambiente air-gapped, questo
+Per un assistente usato in treno, in un reparto ospedaliero con connettività limitata o in un ambiente air-gapped, cioè isolato fisicamente da qualunque rete, questo
 è un requisito, non una comodità.
 
 \paragraph{Stabilità e riproducibilità.} I pesi di un modello locale cambiano solo quando è l'utente a cambiarli. Un
@@ -93,10 +99,10 @@ questo accesso; in questo senso è possibile soltanto con un modello locale.
 ospitarli accanto al sistema operativo, alle applicazioni dell'utente e a ogni altro componente dell'assistente. Dispone
 di meno banda di memoria e di meno capacità di calcolo di un acceleratore da datacenter, e funziona a batteria. Una parte
 della letteratura conclude che un'esecuzione puramente sul dispositivo è troppo limitata e propone di dividere il lavoro
-con un server edge o con il cloud~\cite{qu2025mobileedge,li2025collaborative}: un modello locale piccolo gestisce le
+con un server edge, cioè un server vicino all'utente, o con il cloud~\cite{qu2025mobileedge,li2025collaborative}: un modello locale piccolo gestisce le
 richieste facili e inoltra quelle difficili, oppure scrive una bozza di risposta che un modello remoto più grande
 controlla. L'abbinamento di Apple tra un modello sul dispositivo e Private Cloud Compute è l'esempio più
-visibile~\cite{gunter2024apple,apple2024pcc}. Queste soluzioni ibride riducono il costo della località ma ne restituiscono
+visibile~\cite{gunter2024apple,apple2024pcc}. Queste soluzioni ibride riducono il costo della località ma ne sacrificano
 una parte dei benefici, perché tutto ciò che viene inoltrato lascia il dispositivo. Questa tesi adotta la posizione più
 rigorosa: l'intera verifica resta sul dispositivo, e il resto del capitolo esamina che cosa ciò richieda.
 
@@ -142,18 +148,22 @@ ed eseguirlo, e informazioni sui dati di addestramento sufficienti perché una p
 sostanzialmente equivalente~\cite{osi2024osaid}. I dati in sé non devono necessariamente essere rilasciati, ma i soli
 pesi non bastano. La maggior parte dei modelli comunemente definiti aperti pubblica i pesi e una ricetta per l'inferenza,
 ma né il codice di addestramento né una descrizione dettagliata dei dati. L'apertura è quindi una scala, non una
-proprietà binaria. Un indice che valuta i modelli in base alla disponibilità dei pesi, alla documentazione dei dati di
-pre-training e di post-training, alla metodologia e alla licenza rileva che nessun modello raggiunge il punteggio
-massimo, che modelli di ricerca interamente documentati come OLMo ottengono punteggi alti e che alcuni modelli
-open-weight molto diffusi pubblicano poco oltre ai pesi~\cite{aa2025openness}.
+proprietà binaria. Un indice recente valuta i modelli su cinque aspetti: la disponibilità dei pesi, la documentazione
+dei dati di pre-training e di post-training (le due fasi dell'addestramento, su testo generico e poi su istruzioni e
+preferenze), la metodologia e la licenza~\cite{aa2025openness}. Nessun modello raggiunge il punteggio massimo; i modelli
+di ricerca interamente documentati, come OLMo, ottengono punteggi alti, mentre alcuni modelli open-weight molto diffusi
+pubblicano poco oltre ai pesi.
 
 Le licenze aggiungono un'ulteriore distinzione. I due modelli sottoposti a fine-tuning in questa tesi appartengono alla
 stessa famiglia ma hanno licenze diverse: Qwen2.5-0.5B è rilasciato con la licenza permissiva Apache 2.0, mentre
 Qwen2.5-3B è rilasciato con una licenza di ricerca che ne limita l'uso commerciale~\cite{qwen2024qwen25}. Nella
 terminologia appena introdotta entrambi sono modelli open-weight, ed è questo il termine che la tesi usa per indicarli.
-La distinzione conta anche sul piano normativo: l'AI Act europeo attenua alcuni obblighi di trasparenza per i modelli
-general-purpose rilasciati con licenze libere e aperte, ma non per i modelli che presentano un rischio sistemico, che
-presume tali oltre $10^{25}$ operazioni in virgola mobile di calcolo di addestramento~\cite{bommasani2024euaiact}.
+La distinzione conta anche sul piano normativo. L'AI Act europeo attenua alcuni obblighi di trasparenza per i modelli
+general-purpose rilasciati con licenze libere e aperte, ma non per quelli che presentano un rischio sistemico. Un modello
+si presume a rischio sistemico quando il suo addestramento ha richiesto più di $10^{25}$ operazioni in virgola mobile
+(FLOP\footnote{Un FLOP è una singola operazione aritmetica su numeri in virgola mobile, come una somma o una
+moltiplicazione. La velocità di calcolo si misura in FLOP al secondo: un TFLOP/s corrisponde a $10^{12}$ operazioni al
+secondo.})~\cite{bommasani2024euaiact}, molte più di quelle usate per i modelli di questa tesi.
 
 \subsection{Il divario con i modelli chiusi si sta chiudendo}
 \label{sec:local-gap}
@@ -180,29 +190,32 @@ abbastanza piccoli da girare su una singola scheda grafica consumer, al massimo 
 scheda da 24\,GB e circa 40 miliardi per una da 32\,GB, rileva che su quattro benchmark essi raggiungono le prestazioni
 del modello di frontiera del momento dopo sei-dodici mesi~\cite{epoch2025consumergpu}. Tre forze trainano il recupero:
 gli sviluppatori di modelli aperti aumentano il calcolo di addestramento più o meno alla stessa velocità di quelli
-chiusi, la distillazione trasferisce in un modello piccolo gran parte delle capacità di uno grande, e ogni nuova
+chiusi, la distillazione, cioè l'addestramento di un modello piccolo a imitare le risposte di uno grande, ne trasferisce gran
+parte delle capacità, e ogni nuova
 generazione di schede grafiche aumenta la dimensione dei modelli che vi trovano posto~\cite{epoch2025bestmodel}. La
-stessa tendenza emerge dal lato opposto: il modello più piccolo con un punteggio superiore al 60\,\% sul benchmark MMLU
-aveva 540 miliardi di parametri nel 2022 e 3.8 miliardi nel 2024, una riduzione di 142 volte~\cite{stanford2025aiindex}.
+stessa tendenza emerge dal lato opposto: il modello più piccolo con un punteggio superiore al 60\,\% sul benchmark MMLU, un
+insieme di domande a scelta multipla su 57 materie, aveva 540 miliardi di parametri nel 2022 e 3.8 miliardi nel 2024, una riduzione di 142 volte~\cite{stanford2025aiindex}.
 
 \subsection{Small language model}
 \label{sec:local-slm}
 
 All'estremo inferiore della scala si trovano gli \emph{small language model}. Le definizioni variano; una rassegna che ne
 misura diverse decine sui dispositivi colloca l'intervallo tra 100 milioni e 5 miliardi di parametri, con architettura
-decoder-only~\cite{lu2024slm}. I modelli piccoli vengono addestrati su molti più dati di quanti ne suggerirebbe, per la
-loro dimensione, la ricetta ottimale dal punto di vista del calcolo, perché per essi il costo che conta non è
-l'addestramento ma l'inferenza che segue: un modello da mezzo miliardo di parametri può vedere migliaia di miliardi di
-token~\cite{lu2024slm}. Misurati su dispositivi edge con pesi a 4 bit, i modelli tra 0.1 e 3 miliardi di parametri
-richiedono tra 0.3 e 2.5\,GB di memoria, e con contesti lunghi la KV cache e i buffer di calcolo ne occupano la maggior
-parte~\cite{lu2024slm}. Le ricerche sui modelli sotto il miliardo di parametri sostengono che, sugli smartphone,
+decoder-only, cioè quella dei comuni LLM che generano il testo da sinistra a destra~\cite{lu2024slm}. I modelli piccoli
+vengono addestrati su molti più dati di quanto converrebbe se si volesse soltanto minimizzare il costo
+dell'addestramento. Il motivo è che per essi il costo che conta è l'inferenza, ripetuta milioni di volte dopo
+l'addestramento: conviene quindi spendere di più una volta sola per ottenere un modello piccolo ma capace. Un modello da
+mezzo miliardo di parametri può così vedere migliaia di miliardi di token~\cite{lu2024slm}. Misurati su dispositivi edge con pesi a 4 bit, i modelli tra 0.1 e 3 miliardi di parametri
+richiedono tra 0.3 e 2.5\,GB di memoria, e con contesti lunghi la maggior parte della memoria è occupata dalla KV cache, che conserva il contesto già letto
+(Sezione~\ref{sec:local-phases}), e dai buffer di calcolo~\cite{lu2024slm}. Le ricerche sui modelli sotto il miliardo di parametri sostengono che, sugli smartphone,
 un'applicazione non dovrebbe usare più di circa un decimo della memoria del dispositivo, e mostrano che un modello da 350
 milioni di parametri progettato con cura eguaglia un modello generalista da 7 miliardi su un task ristretto come
 l'invocazione di un'interfaccia applicativa~\cite{liu2024mobilellm}.
 
 I produttori di piattaforme hanno adottato la stessa idea. Il foundation model che Apple impiega sui propri dispositivi
 ha circa tre miliardi di parametri, è quantizzato a meno di quattro bit per peso ed è specializzato per ciascuna
-funzionalità con piccoli adapter low-rank~\cite{gunter2024apple}; la famiglia Gemma~3n di Google è progettata per girare
+funzionalità con piccoli adapter low-rank, moduli aggiuntivi con pochi parametri addestrati sul singolo compito
+(Sezione~\ref{sec:bg-peft})~\cite{gunter2024apple}; la famiglia Gemma~3n di Google è progettata per girare
 su smartphone e laptop con un'impronta di memoria ridotta, ed è promossa esplicitamente per la privacy e l'uso
 offline~\cite{google2025gemma3n}. GroundOne segue lo stesso schema: un modello open-weight piccolo, quantizzato e
 specializzato da un adapter per un unico task.
@@ -217,10 +230,11 @@ spiega quanto costa eseguirne uno, e perché il costo dipende così tanto da ci�
 \label{sec:local-phases}
 
 Un modello linguistico decoder-only elabora una richiesta in due fasi. Nella fase di \emph{prefill} legge l'intero prompt
-in una volta: ogni strato calcola, per ciascun token di input, le chiavi e i valori che i token successivi useranno nel
-meccanismo di attenzione, e li memorizza nella KV cache. Nella fase di \emph{decoding} produce l'output un token alla
+in una volta. Per farlo usa il meccanismo di attenzione, con cui ogni token raccoglie informazioni dai token che lo
+precedono: ogni strato calcola, per ciascun token di input, due vettori (una \emph{chiave} e un \emph{valore}) che i
+token successivi consulteranno, e li memorizza nella \emph{KV cache} (dall'inglese key-value). Nella fase di \emph{decoding} produce l'output un token alla
 volta; ogni nuovo token consulta la cache attraverso l'attenzione e la estende di una posizione~\cite{pope2023scaling}. Il
-prefill elabora molti token in parallelo, il decoding uno solo. I sistemi di serving sfruttano questa differenza in vari
+prefill elabora molti token in parallelo, il decoding uno solo. I sistemi che servono i modelli a molti utenti sfruttano questa differenza in vari
 modi, per esempio gestendo la cache a pagine per accogliere più richieste concorrenti~\cite{kwon2023pagedattention}
 oppure eseguendo le due fasi su macchine diverse, ciascuna adatta alla propria~\cite{patel2024splitwise}.
 
@@ -234,7 +248,7 @@ token.
 \centering
 \includegraphics[width=0.85\textwidth]{images/locality/prefill_vs_decode_m4.png}
 \caption{Tempo per token quando il modello legge l'input (prefill) e quando scrive l'output (decoding), misurato sulla
-macchina della tesi (Apple M4, 16\,GB, MLX a 8 bit, batch 1). Prefill: mediana su contesti di 500, 1000 e 2000 token.}
+macchina della tesi (Apple M4, 16\,GB, MLX a 8 bit, una richiesta alla volta). Prefill: mediana su contesti di 500, 1000 e 2000 token.}
 \label{fig:local-prefill-decode}
 \end{figure}
 
@@ -286,8 +300,8 @@ della macchina, e si applica a ogni modello che genera testo. È la chiave per c
 Sezione~\ref{sec:local-hardware} e per la conseguenza tratta nella Sezione~\ref{sec:local-verification}.
 
 La capacità di memoria impone un secondo limite, ancora più rigido: i pesi devono entrare in memoria. Un modello richiede
-circa due byte per parametro nel formato a 16 bit usato in addestramento, uno a 8 bit e mezzo a 4 bit, più piccole scale
-per gruppo (Figura~\ref{fig:local-memory}). Un modello da 7 miliardi di parametri a 16 bit richiede 14\,GB per i soli
+circa due byte per parametro nel formato a 16 bit usato in addestramento, uno a 8 bit e mezzo a 4 bit, più alcuni piccoli
+fattori di scala per ogni gruppo di pesi, necessari a ricostruirne il valore (Figura~\ref{fig:local-memory}). Un modello da 7 miliardi di parametri a 16 bit richiede 14\,GB per i soli
 pesi, più di quanto la maggior parte dei dispositivi personali possa mettere a disposizione~\cite{alizadeh2024flash}; a 4
 bit ne richiede circa 4. A questi si aggiungono la KV cache, le attivazioni, il sistema operativo e ogni altro modello in
 esecuzione nello stesso momento. Un laptop da 16\,GB può quindi ospitare un generatore da 7--8 miliardi di parametri a 4
@@ -319,7 +333,21 @@ il modello deve entrare in essa. In un sistema a \emph{memoria unificata} il pro
 unico, ampio blocco di memoria, così che un modello può usarne la maggior parte, con una banda però inferiore a quella di
 una scheda grafica di fascia alta. I processori di Apple, il DGX Spark di NVIDIA e il Ryzen AI Max (Strix Halo) di AMD
 seguono tutti questa seconda architettura. La Tabella~\ref{tab:local-hardware} e la Figura~\ref{fig:local-hardware}
-collocano le principali opzioni sui due assi della memoria.
+collocano le principali opzioni sui due assi della memoria. La Figura~\ref{fig:local-photos} mostra
+alcuni dei sistemi citati, per dare un'idea concreta di come si presentano (le foto non sono in scala).
+
+\begin{figure}[htbp]
+\centering
+\subfloat[MacBook Pro della famiglia M4 (nella foto il modello da 16 pollici; la macchina della tesi è quello da 14).]{\includegraphics[width=0.31\textwidth]{images/hardware/macbook_pro_m4.jpg}}\hfill
+\subfloat[Mac mini (2024, M4).]{\includegraphics[width=0.31\textwidth]{images/hardware/mac_mini_m4.jpg}}\hfill
+\subfloat[Mac Studio.]{\includegraphics[width=0.31\textwidth]{images/hardware/mac_studio.jpg}}\\[0.6em]
+\subfloat[NVIDIA DGX Spark.]{\includegraphics[width=0.31\textwidth]{images/hardware/dgx_spark.jpg}}\hspace{0.035\textwidth}
+\subfloat[Scheda grafica GeForce RTX 5090 (modello Palit GameRock).]{\includegraphics[width=0.31\textwidth]{images/hardware/rtx_5090.jpg}}
+\caption{Alcuni dei sistemi per l'inferenza locale confrontati in questa sezione. Foto da Wikimedia Commons, ritagliate:
+(a) AzureSaturn, CC0; (b) Seasider53, CC BY 4.0; (c) KKPCW, CC BY-SA 4.0; (d) Daniel Lu, CC BY-SA 4.0;
+(e) PantheraLeo1359531, CC BY 4.0.}
+\label{fig:local-photos}
+\end{figure}
 
 \begin{table}[htbp]
 \centering
@@ -366,13 +394,14 @@ dollari, offre molta più memoria con una banda moderata. Il processore Strix Ha
 Framework Desktop, consente all'unità grafica di usare fino a 96\,GB dei suoi 128\,GB di memoria; al lancio, nell'agosto
 2025, la configurazione da 128\,GB costava 1999 dollari, con una potenza del processore di 55\,W~\cite{hachman2025framework}.
 Il Mac mini di Apple con M5 Pro arriva a 64\,GB a 307\,GB/s~\cite{apple2026macmini}. Macchine di questo tipo possono
-ospitare modelli da decine di miliardi di parametri o modelli mixture-of-experts, il cui decoding legge solo gli esperti
-attivi, al prezzo di una generazione più lenta che su una scheda grafica.
+ospitare modelli da decine di miliardi di parametri o modelli mixture-of-experts, composti da molte sottoreti (gli esperti) di cui ogni token ne attiva solo
+una parte, così che il decoding legge soltanto i pesi degli esperti attivi, al prezzo di una generazione più lenta che su una scheda grafica.
 
 \paragraph{Macchine dedicate all'IA.} Oltre questo budget, il Mac Studio con M3 Ultra unisce fino a 256\,GB a
-819\,GB/s~\cite{apple2025macstudio}, mentre il DGX Spark di NVIDIA racchiude in un box desktop con alimentatore da
-240\,W 128\,GB di memoria unificata, un'unità grafica Blackwell da un petaflop in aritmetica a 4 bit con sparsità e
-273\,GB/s di banda~\cite{nvidia2026dgxspark}. Le due macchine compiono scelte opposte, e un confronto diretto mostra il
+819\,GB/s~\cite{apple2025macstudio}, mentre il DGX Spark di NVIDIA è un piccolo box desktop, con alimentatore da
+240\,W, che contiene 128\,GB di memoria unificata con 273\,GB/s di banda e un'unità grafica Blackwell da un petaflop
+($10^{15}$ operazioni al secondo) in aritmetica a 4 bit, valore che sfrutta la sparsità, cioè il salto dei pesi
+nulli~\cite{nvidia2026dgxspark}. Le due macchine compiono scelte opposte, e un confronto diretto mostra il
 modello di costo all'opera: su un modello da 8 miliardi di parametri con un prompt di 8000 token, il DGX Spark completa il
 prefill 3.8 volte più velocemente del Mac Studio, grazie al calcolo più elevato, mentre il Mac Studio genera 3.4 volte più
 velocemente, grazie a una banda tre volte superiore~\cite{exo2025spark}. Lo stesso studio combina le due macchine,
@@ -395,7 +424,7 @@ eseguendo il prefill sulla NPU e il decoding altrove~\cite{xu2025npu}.
 
 Le due fasi dipendono da proprietà diverse dell'hardware, e le generazioni più recenti lo rendono esplicito. Apple
 riporta che il processore M5, che aggiunge unità matriciali dedicate a ogni core grafico, riduce di 3.3--4.1 volte
-rispetto all'M4 il tempo al primo token, dominato dal prefill, mentre la generazione diventa soltanto 1.19--1.27 volte più
+rispetto all'M4 il tempo al primo token, cioè l'attesa prima che il modello inizi a rispondere, dominata dal prefill, mentre la generazione diventa soltanto 1.19--1.27 volte più
 veloce, in linea con una banda di memoria passata da 120 a 153\,GB/s~\cite{apple2025m5mlx}. È la stessa Apple ad
 attribuire il primo dato al calcolo e il secondo alla banda. Sui dispositivi edge, uno studio che confronta 18 coppie di
 configurazioni rileva che i rallentamenti si accumulano nel decoding, mentre il tempo di valutazione del prompt varia al
@@ -403,17 +432,20 @@ massimo del 16\,\%~\cite{das2026edge}. Sugli smartphone, per i task con output b
 della latenza~\cite{xu2025npu}. L'hardware si sta quindi evolvendo per leggere più velocemente, molto più che per
 scrivere più velocemente.
 
-La Figura~\ref{fig:local-floor} applica il limite inferiore della Sezione~\ref{sec:local-floor} all'hardware della
+La Figura~\ref{fig:local-floor}a applica il limite inferiore della Sezione~\ref{sec:local-floor} all'hardware della
 Tabella~\ref{tab:local-hardware}. Sulla scheda più veloce il modello da 3B potrebbe in linea di principio generare un
 token in 1.8 millisecondi; sulla macchina della tesi il limite è di 27 millisecondi, e il tempo misurato vi si avvicina.
 Un hardware migliore abbassa il limite, ma nessun hardware lo elimina.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{images/locality/decode_floor_by_hardware.png}
-\caption{Limite inferiore al tempo di generazione di un token con i due modelli base di GroundOne (byte dei pesi divisi
-per la banda dichiarata dal produttore; batch 1; KV cache trascurata). Rombi: tempo di decoding misurato sulla macchina
-della tesi.}
+\includegraphics[width=\textwidth]{images/locality/decode_cost_by_hardware.png}
+\caption{Limiti inferiori al costo della generazione di testo su ciascuna classe di hardware locale, calcolati come byte
+dei pesi divisi per la banda dichiarata dal produttore (una richiesta alla volta; KV cache trascurata). (a) Tempo per
+token generato con i due modelli base di GroundOne a 8 bit; rombi: tempo di decoding misurato sulla macchina della tesi.
+(b) Tempo minimo che un giudice generativo da 3B impiega soltanto per scrivere i verdetti di una risposta di quattordici o
+più frasi (mediana dei token generati nel protocollo di latenza). Un System One non genera alcun token, quindi per esso
+entrambi i costi sono nulli su ogni macchina.}
 \label{fig:local-floor}
 \end{figure}
 
@@ -424,13 +456,13 @@ della tesi.}
 \label{sec:local-runtimes}
 
 Il software per l'inferenza locale è maturato rapidamente. llama.cpp offre inferenza in C e C++ senza dipendenze
-esterne, con quantizzazione intera e backend per la maggior parte degli acceleratori consumer, e ha definito il formato
-di file GGUF, che memorizza in un unico file un modello quantizzato insieme al suo tokenizer e al suo chat
-template~\cite{llamacpp}. Strumenti di distribuzione come Ollama e LM Studio si basano su di esso e riducono a un solo
-comando lo scaricamento e la messa in servizio di un modello. MLX è un framework per array progettato da Apple per la
-memoria unificata dei propri processori, con valutazione lazy e un'interfaccia vicina a NumPy~\cite{mlx2023}; il suo
-pacchetto per modelli linguistici supporta quantizzazione e fine-tuning LoRA direttamente sul dispositivo~\cite{mlxlm},
-ed è il runtime usato in tutta questa tesi.
+esterne, con quantizzazione e supporto per la maggior parte degli acceleratori consumer~\cite{llamacpp}. Ha inoltre
+definito il formato GGUF, che raccoglie in un unico file il modello quantizzato e tutto ciò che serve per usarlo, come
+il tokenizer e il formato delle conversazioni. Strumenti come Ollama e LM Studio si basano su di esso e riducono a un
+solo comando lo scaricamento e l'avvio di un modello. MLX è un framework di calcolo progettato da Apple per la memoria
+unificata dei propri processori, con un'interfaccia vicina a NumPy~\cite{mlx2023}. Il suo pacchetto per modelli
+linguistici supporta la quantizzazione e il fine-tuning con LoRA direttamente sul dispositivo~\cite{mlxlm}, ed è il
+runtime usato in tutta questa tesi.
 
 Il runtime conta quanto il chip. Un confronto tra cinque runtime sulla stessa macchina Apple riporta velocità di decoding
 che differiscono di oltre un ordine di grandezza, con MLX e MLC-LLM in cima e il backend Metal generico di PyTorch in
@@ -455,10 +487,11 @@ lettura dei pesi. La Tabella~\ref{tab:local-quant} riassume i metodi che hanno s
 \toprule
 Metodo & Idea e risultato principale & Fonte \\
 \midrule
-LLM.int8() & Pesi e attivazioni a 8 bit; le poche dimensioni con outlier di grande ampiezza restano a 16 bit. Nessuna
+LLM.int8() & Pesi e attivazioni a 8 bit; le poche dimensioni con valori anomali molto grandi (outlier) restano a 16 bit. Nessuna
 perdita fino a 175B parametri; fa risparmiare memoria ma non accelera i modelli piccoli & \cite{dettmers2022llmint8} \\
-GPTQ & Pesi a 3--4 bit, quantizzati strato per strato con informazione del secondo ordine. OPT-175B a 4 bit perde 0.03 di
-perplexity; i modelli piccoli perdono di più; decoding 3.2--4.5$\times$ più veloce grazie alla banda & \cite{frantar2023gptq} \\
+GPTQ & Pesi a 3--4 bit, quantizzati strato per strato stimando quanto ogni peso influisca sull'errore. OPT-175B a 4 bit
+perde 0.03 di perplexity\footnote{La \emph{perplexity} misura quanto un modello predice bene un testo: più è bassa,
+meno il modello è ``sorpreso'' dalle parole che incontra.}; i modelli piccoli perdono di più; decoding 3.2--4.5$\times$ più veloce grazie alla banda & \cite{frantar2023gptq} \\
 AWQ & Pesi a 4 bit; l'1\,\% di canali più importanti, individuato dall'ampiezza delle attivazioni, è protetto tramite
 scalatura. Robusto rispetto ai dati di calibrazione; pensato per l'uso sul dispositivo & \cite{lin2024awq} \\
 GGUF k-quant & Formati a blocchi da 2 a 8 bit di llama.cpp, standard di fatto per la distribuzione consumer & \cite{llamacpp} \\
@@ -523,17 +556,8 @@ un prefill, come ogni metodo che legge il documento, e poi un passo di decoding 
 di latenza di questa tesi (Sezione~\ref{sec:results-latency}), per una risposta di quattordici o più frasi un giudice
 sintetico da 3B scrive in mediana 65 token, e uno verboso, che motiva ogni verdetto, ne scrive 388. Il limite inferiore
 della Sezione~\ref{sec:local-floor} traduce questi conteggi in un tempo minimo che nessuna implementazione può battere
-(Figura~\ref{fig:local-judge}): sulla macchina della tesi, almeno 1.8 secondi per il giudice sintetico e 10.6 per quello
+(Figura~\ref{fig:local-floor}b): sulla macchina della tesi, almeno 1.8 secondi per il giudice sintetico e 10.6 per quello
 verboso, oltre al prefill; persino sulla scheda grafica più veloce, 0.12 e 0.71 secondi.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{images/locality/judge_decode_overhead_by_hardware.png}
-\caption{Tempo minimo che un giudice generativo da 3B impiega soltanto per scrivere i propri verdetti su una risposta di
-quattordici o più frasi: mediana dei token generati misurata nel protocollo di latenza, moltiplicata per i byte dei pesi
-divisi per la banda. Un System One non genera alcun token, quindi per esso questo termine è nullo su ogni macchina.}
-\label{fig:local-judge}
-\end{figure}
 
 Un System One elimina del tutto questo termine. Legge il documento e la risposta una sola volta e prende ogni decisione
 dai logit calcolati durante quell'unica lettura, quindi il suo costo coincide con il solo prefill: la fase limitata dal

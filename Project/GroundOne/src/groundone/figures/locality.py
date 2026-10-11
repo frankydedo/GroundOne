@@ -35,6 +35,51 @@ HARDWARE = {
 KIND_COLOR = {"unified": SERIES[0], "discrete": SERIES[1]}
 THESIS = "MacBook Pro M4\n(thesis machine, 16 GB)"
 
+# Italian labels for the Italian thesis (figures/locality_it); any string not listed stays as it is.
+IT = {
+    "MacBook Pro M4\n(thesis machine, 16 GB)": "MacBook Pro M4\n(macchina della tesi, 16 GB)",
+    "reading a prompt token (prefill)": "lettura di un token del prompt (prefill)",
+    "writing an output token (decode)": "scrittura di un token di output (decoding)",
+    "× per token": "× per token",
+    "milliseconds per token (log scale)": "millisecondi per token (scala log.)",
+    "memory available to the model (GB, log scale)  →  which models fit": "memoria disponibile per il modello (GB, scala log.)  →  quali modelli entrano",
+    "memory bandwidth (GB/s, log scale)\n→  how fast tokens are generated": "banda di memoria (GB/s, scala log.)\n→  velocità di generazione dei token",
+    "unified memory (shared by CPU and GPU)": "memoria unificata (condivisa da CPU e GPU)",
+    "discrete GPU memory (VRAM)": "memoria dedicata della GPU (VRAM)",
+    "1,600": "1600",
+    "measured on the M4 (Phase 0)": "misurato sull'M4 (Fase 0)",
+    "minimum milliseconds per generated token (log scale)": "millisecondi minimi per token generato (scala log.)",
+    "minimum seconds spent writing the verdicts of one answer (log scale)": "secondi minimi per scrivere i verdetti di una risposta (scala log.)",
+    "(a) any model that generates: time per token": "(a) qualunque modello che genera: tempo per token",
+    "(b) 3B generative judge: time to write the verdicts (answers with ≥ 14 sentences)": "(b) giudice da 3B: tempo per scrivere i verdetti (risposte con ≥ 14 frasi)",
+    "terse judge": "giudice sintetico", "verbose judge": "giudice verboso",
+    "generated tokens": "token generati",
+    "of weights": "di pesi",
+    "16-bit (training format)": "16 bit (formato di addestramento)",
+    "8-bit (MLX, as in GroundOne)": "8 bit (MLX, come in GroundOne)",
+    "4-bit (typical local deployment)": "4 bit (tipico dell'uso locale)",
+    "7–8B generator": "generatore da 7–8B", "70B model": "modello da 70B",
+    "parameters (billions, log scale)": "parametri (miliardi, scala log.)",
+    "memory for the weights alone (GB, log scale)": "memoria per i soli pesi (GB, scala log.)",
+    "best closed model (API)": "miglior modello chiuso (API)",
+    "best open-weight model": "miglior modello open-weight",
+    "bandwidth roof: 120 GB/s × intensity": "tetto della banda: 120 GB/s × intensità",
+    "compute reached in prefill": "calcolo raggiunto nel prefill",
+    "(lower bound of the peak)": "(limite inferiore del picco)",
+    "decode, 1 token\n(both models)": "decoding, 1 token\n(entrambi i modelli)",
+    "prefill, 500 tokens\n(0.5B, FFN layer)": "prefill, 500 token\n(0.5B, strato FFN)",
+    "prefill, 1,000 tokens\n(3B, FFN layer)": "prefill, 1000 token\n(3B, strato FFN)",
+    "ridge": "ridge point",
+    "arithmetic intensity (FLOPs per byte read from memory, log scale)": "intensità aritmetica (FLOP per byte letto dalla memoria, scala log.)",
+    "attainable throughput (TFLOP/s, log scale)": "throughput raggiungibile (TFLOP/s, scala log.)",
+}
+LANG = "en"
+
+
+def tr(text):
+    return IT.get(text, text) if LANG == "it" else text
+
+
 # weight bytes of the two GroundOne bases in MLX 8-bit (group size 64: 8 bits + 0.5 bits of scale and bias per weight)
 PARAMS = {"Qwen2.5-0.5B": 0.494e9, "Qwen2.5-3B": 3.09e9}
 BITS_MLX8 = 8.5
@@ -56,16 +101,16 @@ def prefill_vs_decode(g):
     fig, ax = plt.subplots(figsize=(6.2, 3.2))
     x = np.arange(len(rows))
     w = 0.36
-    ax.bar(x - w / 2, [r[1] for r in rows], w, color=SERIES[0], label="reading a prompt token (prefill)")
-    ax.bar(x + w / 2, [r[2] for r in rows], w, color=SERIES[7], label="writing an output token (decode)")
+    ax.bar(x - w / 2, [r[1] for r in rows], w, color=SERIES[0], label=tr("reading a prompt token (prefill)"))
+    ax.bar(x + w / 2, [r[2] for r in rows], w, color=SERIES[7], label=tr("writing an output token (decode)"))
     for i, (lab, p, dcd) in enumerate(rows):
         ax.text(i - w / 2, p * 1.08, f"{p:.2f}", ha="center", va="bottom", fontsize=8, color=INK2)
         ax.text(i + w / 2, dcd * 1.08, f"{dcd:.1f}", ha="center", va="bottom", fontsize=8, color=INK2)
-        ax.text(i, dcd * 2.3, f"{dcd / p:.0f}× per token", ha="center", fontsize=9, fontweight="bold")
+        ax.text(i, dcd * 2.3, f"{dcd / p:.0f}" + tr("× per token"), ha="center", fontsize=9, fontweight="bold")
     ax.set_yscale("log")
     ax.set_ylim(0.1, 200)
     ax.set_xticks(x, [r[0] for r in rows])
-    ax.set_ylabel("milliseconds per token (log scale)")
+    ax.set_ylabel(tr("milliseconds per token (log scale)"))
     ax.legend(loc="upper left")
     g.save(fig, "prefill_vs_decode_m4", "Time per token when the model reads its input (prefill) and when it writes its "
            "output (decode), measured on the thesis machine (Apple M4, 16 GB, MLX 8-bit, batch 1). Prefill time is the "
@@ -84,18 +129,18 @@ def hardware_landscape(g):
         dx, dy, ha = (1.12, 1.02, "left")
         if name in ("Mac Studio M3 Ultra",):
             dx, dy, ha = (1.0, 1.13, "right")
-        ax.annotate(name.replace("\n", " "), (mem, bw), xytext=(mem * dx, bw * dy), fontsize=7.5, ha=ha, va="center",
+        ax.annotate(tr(name).replace("\n", " "), (mem, bw), xytext=(mem * dx, bw * dy), fontsize=7.5, ha=ha, va="center",
                     color="#0b0b0b" if name == THESIS else INK2, fontweight="bold" if name == THESIS else "normal")
     ax.set_xscale("log", base=2)
     ax.set_yscale("log")
     ax.set_xticks([16, 32, 64, 128, 256], ["16", "32", "64", "128", "256"])
-    ax.set_yticks([100, 200, 400, 800, 1600], ["100", "200", "400", "800", "1,600"])
+    ax.set_yticks([100, 200, 400, 800, 1600], ["100", "200", "400", "800", tr("1,600")])
     ax.set_xlim(11, 400)
     ax.set_ylim(90, 2600)
-    ax.set_xlabel("memory available to the model (GB, log scale)  →  which models fit")
-    ax.set_ylabel("memory bandwidth (GB/s, log scale)\n→  how fast tokens are generated")
+    ax.set_xlabel(tr("memory available to the model (GB, log scale)  →  which models fit"))
+    ax.set_ylabel(tr("memory bandwidth (GB/s, log scale)\n→  how fast tokens are generated"))
     for kind, lab in [("unified", "unified memory (shared by CPU and GPU)"), ("discrete", "discrete GPU memory (VRAM)")]:
-        ax.scatter([], [], color=KIND_COLOR[kind], marker="o" if kind == "unified" else "s", label=lab)
+        ax.scatter([], [], color=KIND_COLOR[kind], marker="o" if kind == "unified" else "s", label=tr(lab))
     ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2, fontsize=8)
     g.save(fig, "hardware_landscape", "Local inference hardware on the two axes that decide what can run: memory capacity "
            "(which models fit) and memory bandwidth (how fast tokens can be generated). Discrete GPUs have the highest "
@@ -105,39 +150,9 @@ def hardware_landscape(g):
            "shown at its actual 16 GB.", "figures/locality.py HARDWARE (vendor spec pages in Vault/raw/local_inference)")
 
 
-def decode_floor(g):
-    """Lower bound on time per generated token = weight bytes / bandwidth (batch 1)."""
-    names = sorted(HARDWARE, key=lambda n: HARDWARE[n][1])
-    fig, ax = plt.subplots(figsize=(7.0, 4.0))
-    y = np.arange(len(names))
-    h = 0.38
-    meas = {"Qwen2.5-0.5B": load_json(PHASE0 / "04_speed_qwen0.5b.json"), "Qwen2.5-3B": load_json(PHASE0 / "04_speed_qwen3b.json")}
-    i = names.index(THESIS)
-    for j, (model, params) in enumerate(PARAMS.items()):
-        gb = _weight_gb(params, BITS_MLX8)
-        vals = [gb / HARDWARE[n][1] * 1000 for n in names]
-        ax.barh(y + (j - 0.5) * h, vals, h, color=[SERIES[0], SERIES[6]][j], label=f"{model}, 8-bit ({gb:.2f} GB of weights)")
-        for k, (yi, v) in enumerate(zip(y + (j - 0.5) * h, vals)):
-            xl = max(v, meas[model]["decode_ms_per_token_median"] * 1.1) if (k == i and meas[model]) else v
-            ax.text(xl * 1.05, yi, f"{v:.1f}" if v >= 1 else f"{v:.2f}", va="center", fontsize=7, color=INK2)
-    for j, (model, d) in enumerate(meas.items()):
-        if d:
-            ax.scatter(d["decode_ms_per_token_median"], i + (j - 0.5) * h, marker="D", color="#0b0b0b", s=22, zorder=4,
-                       label="measured on the M4 (Phase 0)" if j == 0 else None)
-    ax.set_xscale("log")
-    ax.set_xlim(right=60)
-    ax.set_yticks(y, [n.replace("\n", " ") for n in names], fontsize=8)
-    ax.set_xlabel("minimum milliseconds per generated token (log scale)")
-    ax.legend(loc="lower center", bbox_to_anchor=(0.4, 1.0), ncol=2, fontsize=7.5)
-    g.save(fig, "decode_floor_by_hardware", "Lower bound on the time to generate one token with the two GroundOne base "
-           "models, computed as weight bytes divided by the vendor's memory bandwidth (batch 1, weights read once per "
-           "token, KV cache ignored). Diamonds: decode time measured on the thesis machine, which reaches about 75–85 % "
-           "of the bound. No hardware removes this cost for a model that generates; a System One does not pay it.",
-           "figures/locality.py (arithmetic on vendor specs) + experiments/feasibility/results/04_speed_*.json")
-
-
-def judge_decode_overhead(g):
-    """Seconds a generative judge spends only on decoding a long answer's verdicts, lower bound per hardware."""
+def decode_cost_by_hardware(g):
+    """Two panels: (a) lower bound per generated token for both bases; (b) lower bound on a 3B judge's decoding per long
+    answer (median generated tokens of the latency protocol). Both = weight bytes / bandwidth (batch 1)."""
     toks = {}
     for j in ("terse", "verbose"):
         p = RESULTS_DIR / f"judge-{j}-3b" / "latency" / "predictions.parquet"
@@ -145,47 +160,70 @@ def judge_decode_overhead(g):
             return
         x = pd.read_parquet(p).drop_duplicates("rid")
         toks[j] = float(x[x.K >= 14].generated_tokens.median())
-    gb = _weight_gb(PARAMS["Qwen2.5-3B"], BITS_MLX8)
+    meas = {"Qwen2.5-0.5B": load_json(PHASE0 / "04_speed_qwen0.5b.json"), "Qwen2.5-3B": load_json(PHASE0 / "04_speed_qwen3b.json")}
     names = sorted(HARDWARE, key=lambda n: HARDWARE[n][1])
-    fig, ax = plt.subplots(figsize=(7.0, 4.0))
+    labels = [tr(n).replace("\n", " ") for n in names]
     y = np.arange(len(names))
     h = 0.38
+    i = names.index(THESIS)
+    fig, (a1, a2) = plt.subplots(2, 1, figsize=(7.0, 7.6))
+    for k, (model, params) in enumerate(PARAMS.items()):
+        gb = _weight_gb(params, BITS_MLX8)
+        vals = [gb / HARDWARE[n][1] * 1000 for n in names]
+        a1.barh(y + (k - 0.5) * h, vals, h, color=[SERIES[0], SERIES[6]][k], label=f"{model}, 8-bit ({gb:.2f} GB {tr('of weights')})")
+        for q, (yi, v) in enumerate(zip(y + (k - 0.5) * h, vals)):
+            xl = max(v, meas[model]["decode_ms_per_token_median"] * 1.1) if (q == i and meas[model]) else v
+            a1.text(xl * 1.05, yi, f"{v:.1f}" if v >= 1 else f"{v:.2f}", va="center", fontsize=7, color=INK2)
+    for k, (model, d) in enumerate(meas.items()):
+        if d:
+            a1.scatter(d["decode_ms_per_token_median"], i + (k - 0.5) * h, marker="D", color="#0b0b0b", s=22, zorder=4,
+                       label=tr("measured on the M4 (Phase 0)") if k == 0 else None)
+    a1.set_xscale("log")
+    a1.set_xlim(right=250)
+    a1.set_xlabel(tr("minimum milliseconds per generated token (log scale)"))
+    a1.set_title(tr("(a) any model that generates: time per token"), loc="left", fontsize=9)
+    a1.legend(loc="upper right", fontsize=7)
+    gb3 = _weight_gb(PARAMS["Qwen2.5-3B"], BITS_MLX8)
     colors = {"terse": SERIES[7], "verbose": SERIES[5]}
     for k, j in enumerate(("terse", "verbose")):
-        vals = [toks[j] * gb / HARDWARE[n][1] for n in names]
-        ax.barh(y + (k - 0.5) * h, vals, h, color=colors[j], label=f"{j} judge ({toks[j]:.0f} generated tokens)")
+        vals = [toks[j] * gb3 / HARDWARE[n][1] for n in names]
+        a2.barh(y + (k - 0.5) * h, vals, h, color=colors[j], label=f"{tr(j + ' judge')} ({toks[j]:.0f} {tr('generated tokens')})")
         for yi, v in zip(y + (k - 0.5) * h, vals):
-            ax.text(v * 1.05, yi, f"{v:.2f} s", va="center", fontsize=7, color=INK2)
-    ax.set_xscale("log")
-    ax.set_yticks(y, [n.replace("\n", " ") for n in names], fontsize=8)
-    ax.set_xlabel("minimum seconds spent decoding per answer (log scale)")
-    ax.legend(loc="lower center", bbox_to_anchor=(0.4, 1.0), ncol=2, fontsize=7.5)
-    g.save(fig, "judge_decode_overhead_by_hardware", "Minimum time that a 3B generative judge spends only on writing its "
-           "verdicts for one long answer (14 or more sentences), on each class of hardware: median generated tokens "
-           "measured in the latency protocol (terse and verbose judges) times weight bytes divided by bandwidth. This is "
-           "a floor on top of the prefill, which both the judge and a System One pay; a System One generates no token, "
-           "so this term is zero for it on every machine.",
-           "results/judge-{terse,verbose}-3b/latency/predictions.parquet + vendor specs")
+            a2.text(v * 1.05, yi, f"{v:.2f} s", va="center", fontsize=7, color=INK2)
+    a2.set_xscale("log")
+    a2.set_xlim(right=40)
+    a2.set_xlabel(tr("minimum seconds spent writing the verdicts of one answer (log scale)"))
+    a2.set_title(tr("(b) 3B generative judge: time to write the verdicts (answers with ≥ 14 sentences)"), loc="left", fontsize=9)
+    a2.legend(loc="upper right", fontsize=7)
+    for ax in (a1, a2):
+        ax.set_yticks(y, labels, fontsize=8)
+    g.save(fig, "decode_cost_by_hardware", "Lower bounds on the cost of generating text on each class of local hardware, "
+           "computed as weight bytes divided by the vendor's memory bandwidth (batch 1, KV cache ignored). (a) Time per "
+           "generated token for the two GroundOne base models in 8-bit; diamonds: decode time measured on the thesis "
+           "machine, about 75–85 % of the bound. (b) Minimum time a 3B generative judge spends only on writing its "
+           "verdicts for an answer of 14 or more sentences (median generated tokens of the latency protocol). A System "
+           "One generates no token, so both costs are zero for it on every machine.",
+           "figures/locality.py (arithmetic on vendor specs) + Phase 0 + results/judge-{terse,verbose}-3b/latency")
 
 
 def memory_fit(g):
     sizes = np.logspace(np.log10(0.3e9), np.log10(800e9), 200)
     fig, ax = plt.subplots(figsize=(7.0, 4.0))
-    for bits, col, lab in [(16, NEUTRAL, "16-bit (training format)"), (8.5, SERIES[0], "8-bit (MLX, as in GroundOne)"),
-                           (4.5, SERIES[2], "4-bit (typical local deployment)")]:
+    for bits, col, lab in [(16, NEUTRAL, tr("16-bit (training format)")), (8.5, SERIES[0], tr("8-bit (MLX, as in GroundOne)")),
+                           (4.5, SERIES[2], tr("4-bit (typical local deployment)"))]:
         ax.plot(sizes / 1e9, sizes * bits / 8 / 1e9, color=col, label=lab)
     for mem in (16, 32, 64, 128, 256):
         ax.axhline(mem, color="#c8c6bf", lw=0.8, ls="--", zorder=1)
         ax.text(1.15, mem * 1.06, f"{mem} GB", fontsize=7, color=INK2)
     for name, p in [("GroundOne 0.5B", 0.494e9), ("GroundOne 3B", 3.09e9), ("7–8B generator", 7.6e9), ("70B model", 70e9)]:
         ax.axvline(p / 1e9, color="#e4e3df", lw=1, zorder=0)
-        ax.text(p / 1e9 * 1.05, 1300, name, rotation=90, fontsize=7, color=INK2, va="top")
+        ax.text(p / 1e9 * 1.05, 1300, tr(name), rotation=90, fontsize=7, color=INK2, va="top")
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_ylim(0.1, 1600)
     ax.set_xlim(0.3, 800)
-    ax.set_xlabel("parameters (billions, log scale)")
-    ax.set_ylabel("memory for the weights alone (GB, log scale)")
+    ax.set_xlabel(tr("parameters (billions, log scale)"))
+    ax.set_ylabel(tr("memory for the weights alone (GB, log scale)"))
     ax.legend(loc="lower right", fontsize=7.5)
     g.save(fig, "memory_fit", "Memory needed for the weights of a model as a function of its size and precision "
            "(parameters × bits per weight; the 8- and 4-bit lines include half a bit of per-group scales). Dashed lines "
@@ -213,7 +251,7 @@ def open_closed_gap(g):
         return
     df = pd.DataFrame(recs, columns=["date", "kind", "eci"]).sort_values("date")
     fig, ax = plt.subplots(figsize=(7.0, 3.6))
-    for kind, col, lab in [("closed", SERIES[1], "best closed model (API)"), ("open", SERIES[0], "best open-weight model")]:
+    for kind, col, lab in [("closed", SERIES[1], tr("best closed model (API)")), ("open", SERIES[0], tr("best open-weight model"))]:
         d = df[df.kind == kind].copy()
         d["best"] = d.eci.cummax()
         ax.scatter(d.date, d.eci, s=8, color=col, alpha=0.25, linewidth=0)
@@ -244,24 +282,24 @@ def roofline_m4(g):
     x = np.logspace(-0.3, 3.3, 300)
     fig, ax = plt.subplots(figsize=(7.0, 4.0))
     ax.plot(x, np.minimum(bw * x, peak) / 1e12, color="#0b0b0b", lw=2)
-    ax.text(0.7, bw * 0.7 / 1e12 * 2.6, "bandwidth roof: 120 GB/s × intensity", rotation=33, fontsize=7.5, color=INK2)
-    ax.text(150, peak / 1e12 * 1.12, f"compute reached in prefill ≈ {peak / 1e12:.1f} TFLOP/s (lower bound of the peak)",
+    ax.text(0.7, bw * 0.7 / 1e12 * 2.6, tr("bandwidth roof: 120 GB/s × intensity"), rotation=33, fontsize=7.5, color=INK2)
+    ax.text(150, peak / 1e12 * 1.12, f"{tr('compute reached in prefill')} ≈ {peak / 1e12:.1f} TFLOP/s {tr('(lower bound of the peak)')}",
             fontsize=7.5, color=INK2, ha="center")
-    pts = [("decode, 1 token\n(both models)", intensity(1, 2048, 11008), SERIES[7], (1.3, 0.45), "left"),
-           ("prefill, 500 tokens\n(0.5B, FFN layer)", intensity(500, 896, 4864), SERIES[0], (0.8, 0.4), "right"),
-           ("prefill, 1,000 tokens\n(3B, FFN layer)", intensity(1000, 2048, 11008), SERIES[6], (1.0, 0.2), "center")]
+    pts = [(tr("decode, 1 token\n(both models)"), intensity(1, 2048, 11008), SERIES[7], (1.3, 0.45), "left"),
+           (tr("prefill, 500 tokens\n(0.5B, FFN layer)"), intensity(500, 896, 4864), SERIES[0], (0.8, 0.4), "right"),
+           (tr("prefill, 1,000 tokens\n(3B, FFN layer)"), intensity(1000, 2048, 11008), SERIES[6], (1.0, 0.2), "center")]
     for lab, i, col, (fx, fy), ha in pts:
         y = min(bw * i, peak) / 1e12
         ax.scatter(i, y, s=60, color=col, zorder=4, edgecolor="white", linewidth=1.2)
         ax.annotate(lab, (i, y), xytext=(i * fx, y * fy), fontsize=7.5, color=INK2, ha=ha,
                     arrowprops=dict(arrowstyle="-", color="#c8c6bf", lw=0.8))
     ax.axvline(peak / bw, color="#c8c6bf", ls="--", lw=1)
-    ax.text(peak / bw * 1.08, 0.012, f"ridge ≈ {peak / bw:.0f} FLOP/byte", fontsize=7, color=INK2)
+    ax.text(peak / bw * 1.08, 0.012, f"{tr('ridge')} ≈ {peak / bw:.0f} FLOP/byte", fontsize=7, color=INK2)
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_ylim(0.01, 8)
-    ax.set_xlabel("arithmetic intensity (FLOPs per byte read from memory, log scale)")
-    ax.set_ylabel("attainable throughput (TFLOP/s, log scale)")
+    ax.set_xlabel(tr("arithmetic intensity (FLOPs per byte read from memory, log scale)"))
+    ax.set_ylabel(tr("attainable throughput (TFLOP/s, log scale)"))
     g.save(fig, "roofline_m4", "Roofline model of the thesis machine. The sloped roof is Apple's memory bandwidth (120 "
            "GB/s); Apple publishes no peak compute figure, so the flat roof is the throughput actually reached during "
            "prefill (2 FLOPs per parameter per token divided by the measured time per token), a lower bound of the "
@@ -272,7 +310,11 @@ def roofline_m4(g):
 
 
 def main():
-    g = Group("locality")
-    for f in (prefill_vs_decode, roofline_m4, hardware_landscape, decode_floor, judge_decode_overhead, memory_fit, open_closed_gap):
-        f(g)
-    g.write_index("Local inference (Ch. 2)")
+    global LANG
+    for lang, group, title in (("en", "locality", "Local inference (Ch. 2)"), ("it", "locality_it", "Inferenza locale (Cap. 2)")):
+        LANG = lang
+        g = Group(group)
+        for f in (prefill_vs_decode, roofline_m4, hardware_landscape, decode_cost_by_hardware, memory_fit, open_closed_gap):
+            f(g)
+        g.write_index(title)
+    LANG = "en"

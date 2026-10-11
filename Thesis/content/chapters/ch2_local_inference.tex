@@ -293,7 +293,21 @@ Two architectures dominate. In a \emph{discrete} system, the graphics card has i
 model must fit in it. In a \emph{unified-memory} system, the processor and the graphics unit share one large pool of
 memory, so a model can use most of the machine's memory, at a lower bandwidth than a high-end graphics card. Apple's
 processors, NVIDIA's DGX Spark and AMD's Ryzen AI Max (Strix Halo) all follow the second design.
-Table~\ref{tab:local-hardware} and Figure~\ref{fig:local-hardware} place the main options on the two memory axes.
+Table~\ref{tab:local-hardware} and Figure~\ref{fig:local-hardware} place the main options on the two memory axes. Figure~\ref{fig:local-photos} shows some of the
+systems discussed, to give a concrete idea of what they look like (the photos are not to scale).
+
+\begin{figure}[htbp]
+\centering
+\subfloat[MacBook Pro of the M4 family (the 16-inch model is shown; the thesis machine is the 14-inch one).]{\includegraphics[width=0.31\textwidth]{images/hardware/macbook_pro_m4.jpg}}\hfill
+\subfloat[Mac mini (2024, M4).]{\includegraphics[width=0.31\textwidth]{images/hardware/mac_mini_m4.jpg}}\hfill
+\subfloat[Mac Studio.]{\includegraphics[width=0.31\textwidth]{images/hardware/mac_studio.jpg}}\\[0.6em]
+\subfloat[NVIDIA DGX Spark.]{\includegraphics[width=0.31\textwidth]{images/hardware/dgx_spark.jpg}}\hspace{0.035\textwidth}
+\subfloat[GeForce RTX 5090 graphics card (Palit GameRock model).]{\includegraphics[width=0.31\textwidth]{images/hardware/rtx_5090.jpg}}
+\caption{Some of the local inference systems compared in this section. Photos from Wikimedia Commons, cropped:
+(a) AzureSaturn, CC0; (b) Seasider53, CC BY 4.0; (c) KKPCW, CC BY-SA 4.0; (d) Daniel Lu, CC BY-SA 4.0;
+(e) PantheraLeo1359531, CC BY 4.0.}
+\label{fig:local-photos}
+\end{figure}
 
 \begin{table}[htbp]
 \centering
@@ -375,16 +389,19 @@ compares 18 pairs of configurations finds that slowdowns accumulate in decoding,
 changes by at most 16\,\%~\cite{das2026edge}. On phones, for tasks whose output is short, prefill takes most of the
 latency~\cite{xu2025npu}. Hardware is thus evolving to read faster, much more than to write faster.
 
-Figure~\ref{fig:local-floor} applies the lower bound of Section~\ref{sec:local-floor} to the hardware of
+Figure~\ref{fig:local-floor}a applies the lower bound of Section~\ref{sec:local-floor} to the hardware of
 Table~\ref{tab:local-hardware}. On the fastest card, the 3B model could in principle generate a token in 1.8 milliseconds;
 on the thesis machine the floor is 27 milliseconds, and the measured time is close to it. Better hardware lowers the
 floor, but no hardware removes it.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{images/locality/decode_floor_by_hardware.png}
-\caption{Lower bound on the time to generate one token with the two GroundOne base models (weight bytes divided by the
-vendor's bandwidth; batch 1; key-value cache ignored). Diamonds: decode time measured on the thesis machine.}
+\includegraphics[width=\textwidth]{images/locality/decode_cost_by_hardware.png}
+\caption{Lower bounds on the cost of generating text on each class of local hardware, computed as weight bytes divided
+by the vendor's bandwidth (one request at a time; key-value cache ignored). (a) Time per generated token with the two
+GroundOne base models in 8 bits; diamonds: decode time measured on the thesis machine. (b) Minimum time that a 3B
+generative judge spends only on writing the verdicts for an answer of fourteen or more sentences (median generated tokens
+of the latency protocol). A System One generates no token, so both costs are zero for it on every machine.}
 \label{fig:local-floor}
 \end{figure}
 
@@ -488,17 +505,8 @@ prefill, like any method that reads the document, and then one decoding step for
 protocol of this thesis (Section~\ref{sec:results-latency}), a terse 3B judge writes a median of 65 tokens for an answer of
 fourteen or more sentences, and a verbose one, which explains each verdict, writes 388. The lower bound of
 Section~\ref{sec:local-floor} turns these counts into a minimum time that no implementation can beat
-(Figure~\ref{fig:local-judge}): on the thesis machine, at least 1.8 seconds for the terse judge and 10.6 for the verbose
+(Figure~\ref{fig:local-floor}b): on the thesis machine, at least 1.8 seconds for the terse judge and 10.6 for the verbose
 one, on top of the prefill; even on the fastest graphics card, 0.12 and 0.71 seconds.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{images/locality/judge_decode_overhead_by_hardware.png}
-\caption{Minimum time that a 3B generative judge spends only on writing its verdicts for one answer of fourteen or more
-sentences: median generated tokens measured in the latency protocol times weight bytes divided by bandwidth. A System
-One generates no token, so this term is zero for it on every machine.}
-\label{fig:local-judge}
-\end{figure}
 
 A System One removes this term altogether. It reads the document and the answer once and takes every decision from the
 logits computed during that single reading, so its cost is the prefill alone: the compute-bound phase, the one that

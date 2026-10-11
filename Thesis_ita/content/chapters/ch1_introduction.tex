@@ -214,15 +214,20 @@ piccole dimensioni.
 
 Il meccanismo System One ripaga in velocità e in accuratezza. Quando una risposta contiene quattordici o più frasi,
 GroundOne la verifica circa due volte più velocemente di un giudice sintetico e sei volte più velocemente di un giudice
-verboso della stessa dimensione, con un output sempre valido e consumando meno energia. Restringere la decisione alle tre
-lettere ammesse è, da solo, più accurato che lasciare allo stesso modello generare il proprio verdetto. Dopo la
+verboso della stessa dimensione, con un output sempre valido e consumando meno energia. Anche il modo di leggere la
+decisione conta: con lo stesso modello addestrato, scegliere la più probabile fra le sole tre lettere ammesse è più
+accurato che lasciare al modello generare liberamente il proprio verdetto, con un guadagno di balanced accuracy di 0.25
+per il 0.5B e di 0.07 per il 3B. Dopo la
 calibrazione, le probabilità di GroundOne sono vicine alle frequenze osservate, mentre quelle dei giudici generativi a cui
 si chiede lo stesso output distinguono a stento le decisioni corrette da quelle errate.
 
 Restano alcuni aspetti da migliorare, che indicano direzioni naturali per il lavoro futuro. Le prestazioni calano su
 domini lontani da quello di addestramento, dove il System One generalista d1-3B risulta più forte; le allucinazioni più
 sottili, nascoste in frasi che per il resto ricalcano fedelmente la fonte, vengono individuate solo in parte; infine,
-l'addestramento non è ancora del tutto stabile al variare del seed.
+l'addestramento non è ancora del tutto stabile al variare del seed\footnote{Il \emph{seed} è il numero che inizializza
+il generatore di numeri casuali usato durante l'addestramento, per esempio per inizializzare i pesi aggiunti e per
+mescolare l'ordine dei dati. Ripetere l'addestramento con seed diversi produce modelli leggermente diversi: se i
+risultati cambiano molto da un seed all'altro, la procedura non è robusta.}.
 
 \section{Struttura della tesi}
 \label{sec:intro-structure}
