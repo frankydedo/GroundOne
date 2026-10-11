@@ -21,3 +21,6 @@ Language models small enough to run on personal devices. Definitions disagree: t
 
 ## Links
 - Concepts: [[Qwen2.5]], [[LoRA]], [[On-Device Inference]], [[Open-Weight Models]], [[Quantization]], [[Edge-Cloud Collaborative Inference]], [[Local Inference Hardware]]
+
+## MobileLLM (ingest 2026-10-11, second batch)
+- Phone guidance: an app should use ≤ 10 % of DRAM; a 350M model designed for depth (SwiGLU, embedding sharing, GQA) matches LLaMA-2 7B on API-calling exact match ([[Liu 2024 - MobileLLM, Optimizing Sub-billion Parameter Language Models for On-Device Use Cases (arXiv 2402.14905)|Liu 2024]]). Qwen2.5-0.5B already follows that recipe. The 10 % rule applied to a 16 GB laptop (1.6 GB: the 0.5B fits, the 3B does not) is an extrapolation.

@@ -111,3 +111,12 @@ be the phrasing it works best with, and on a subsample of LLM-AggreFact.
 test sets. Because the same base models are used untrained as baselines and reach near-chance accuracy on the
 three-way task, contamination cannot explain the gains of training, but it cannot be ruled out entirely for the absolute
 numbers.
+
+\paragraph{One machine.} All measurements of time and energy come from one laptop, an Apple M4 with 16\,GB, and one
+runtime, MLX. The cost model of Chapter~\ref{sec:local} predicts that the advantage of a System One holds on every class
+of local hardware, because it rests on the difference between prefill and decoding, which vendors and independent studies
+observe everywhere; the lower bounds on decoding computed there for other machines follow from published specifications.
+The actual speed-ups on a discrete graphics card, a DGX Spark or a phone were not measured: their size depends on the
+balance between computation and bandwidth of each machine, and the direction of the advantage, not its magnitude, is
+what the cost model supports.
+

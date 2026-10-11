@@ -7,6 +7,14 @@ that the retrieved context does not support or that contradict it. Detecting the
 local assistants, and since the check must run on every answer, it has to fit on the same constrained machine as the
 generator.
 
+Locality is the backbone of this work, and it has a precise technical consequence. On a single device, reading text is
+cheap and writing it is expensive: the model reads its input in one compute-bound pass, but generates its output one token
+at a time, each token limited by the memory bandwidth needed to read all the weights. On the laptop used here, writing a
+token costs fourteen to sixteen times more than reading one, and a review of current local hardware, from phones and
+laptops to dedicated machines such as Apple's Mac Studio and NVIDIA's DGX Spark, shows the same asymmetry everywhere,
+with new hardware accelerating reading much more than writing. Small open-weight models now trail the closed frontier by
+only months, so capable local pipelines are realistic; the question is how to verify them at a cost the device can bear.
+
 Verification currently follows two paradigms. \textbf{Encoder-based checkers}, such as AlignScore, MiniCheck and HHEM, are small
 and fast, but return one fixed score per pair of document and sentence. \textbf{Generative judges}, by contrast, are flexible but write their
 verdicts token by token, so their cost grows with what they write; small judges often break the output format, and the
@@ -23,8 +31,8 @@ sentence of the answer, and the verdicts for all $K$ sentences are read from the
 forward pass, without generating any text. Qwen2.5 models with 0.5B and 3B parameters are fine-tuned with LoRA on the
 human-labelled answers of RAGTruth, with a class-weighted loss restricted to the three letters; a temperature and a bias
 fitted on development data calibrate the probabilities, and a threshold chosen on the same data turns them into
-consistent labels and strict or lenient flags. Everything, from training to serving, runs with MLX on an Apple M4 laptop
-with 16\,GB of memory. The evaluation uses three test sets built and frozen before training (the RAGTruth test split,
+consistent labels and strict or lenient flags. Everything, from building the dataset to training, evaluation and serving, runs on one Apple M4 laptop with 16\,GB
+of memory, with MLX and no external service, and every baseline is run on the same machine. The evaluation uses three test sets built and frozen before training (the RAGTruth test split,
 LLM-AggreFact and VitaminC) and compares GroundOne with cues that never read the document, the untrained models,
 generative judges of the same size with and without probabilities, a general-purpose System One and specialised encoders,
 reporting cluster-bootstrap intervals.
@@ -37,7 +45,9 @@ LLM-AggreFact the 3B is on par with MiniCheck-RoBERTa (74.8 against 74.0), above
 the published zero-shot 7B model and below the closed System One Jev as measured independently (78.6). When an answer contains fourteen or more sentences ($K \geq 14$),
 GroundOne is about two times faster than a terse judge and six times faster than a verbose judge of the same size and,
 unlike the judges, always produces a valid output. It also uses less energy (5.5 joules per answer with the 0.5B, 33 with
-the 3B), but the saving is smaller than the saving in time, because a long prefill draws more power than decoding. Asked
+the 3B), but the saving is smaller than the saving in time, because a long prefill draws more power than decoding. Combining vendor specifications with the measured length of the
+judges' outputs, a 3B judge must spend at least 1.8 seconds only on writing its verdicts for a long answer on the thesis
+laptop, and 0.12 seconds even on the fastest consumer graphics card: a cost that GroundOne does not pay on any hardware. Asked
 for the same output, generative judges provide probabilities that barely separate correct from incorrect decisions,
 while calibration brings GroundOne's expected calibration error on the test set to 0.019. How the decision is read also
 matters: with the same trained model, comparing only the three admissible letters is more accurate than letting the model

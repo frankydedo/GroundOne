@@ -5,65 +5,12 @@
 % LLM Inference, System One Models, Letter-Token Readout, Laya, Decision-Model Benchmarks, Groundedness Verification,
 % Hallucination Detection, Calibration, Verbalised vs Logit Confidence, Fine-tuning Instability and Seeds).
 
-This chapter introduces the ideas on which GroundOne is built and the work it is compared with. It starts from how a
-transformer spends its time during inference, because the advantage of a System One follows directly from it, and from
-what changes when inference runs on the user's own device. It then reviews System One models, the problem of
-hallucination in retrieval-augmented generation and the methods that verify answers against their sources, and closes
-with calibration, parameter-efficient fine-tuning and the gap that this thesis addresses.
-
-\section{Transformer inference: prefill, decode and the key-value cache}
-\label{sec:bg-inference}
-
-A decoder-only language model processes its input in two phases. In the \emph{prefill} phase the whole prompt is read in
-parallel: every layer computes, for every input token, the keys and values that later tokens will attend to, and stores
-them in a key-value cache. In the \emph{decode} phase the model produces its output one token at a time, each new token
-attending to the cache and extending it by one position~\cite{pope2023scaling}. The two phases behave very differently on
-hardware. Prefill performs a large amount of computation on many tokens at once and is limited by arithmetic throughput.
-Decoding performs little computation per step but must read all the weights, and the growing cache, for every generated
-token, so at small batch sizes it is limited by memory bandwidth~\cite{pope2023scaling,patel2024splitwise}. As a result,
-a generated token costs far more time than a prompt token, and on a single device the difference reaches one order of
-magnitude. Serving systems exploit the distinction in different ways, for instance by managing the cache in pages to fit
-more concurrent requests~\cite{kwon2023pagedattention} or by running the two phases on separate machines suited to each
-of them~\cite{patel2024splitwise}.
-
-The practical consequence for verification is simple. A judge that writes its verdict pays a prefill for the document
-and the answer and then a decoding step for every token it writes, whether a single letter or a paragraph of reasoning.
-A model that reads its decision from the logits computed during prefill pays only the first cost. The key-value cache
-adds a second lever: when many questions are asked about the same context, the context can be processed once and reused,
-so that each additional question costs only its own few tokens.
-
-\section{Inference on the user's device}
-\label{sec:bg-local}
-
-Language models are mostly used through hosted services, which receive the user's input over the network and run the
-model in a datacenter. Running the model on the user's own device changes several properties at once. The documents
-never leave the machine, which matters for private or regulated data; the system works without a network and without
-depending on a provider's availability; the cost is the hardware and its energy rather than a price per token; and the
-weights, and therefore the behaviour, do not change unless the user changes them. A local model also exposes its
-logits, which hosted interfaces often hide or limit, and which a System One and its calibration require. The price is
-capability: a laptop can hold only small models, and it must hold them next to everything else it runs.
-
-Three properties of the hardware decide what is feasible. Memory capacity decides which models fit: a 7B model in half
-precision needs more than 14\,GB, beyond most personal devices, which is why local deployments rely on quantised
-weights, smaller models or, in research systems, on streaming weights from flash storage~\cite{alizadeh2024flash}.
-Memory bandwidth bounds the speed of decoding, since every generated token reads all the weights; on the laptop used in
-this thesis, an Apple M4 with 120\,GB/s of bandwidth and 16\,GB of unified memory shared by CPU and
-GPU~\cite{apple2024m4specs}, this bound is a few milliseconds per token for a 0.5B model in 8-bit precision and about ten
-times more for a 3B model. Computation, finally, bounds prefill, which on a laptop GPU is comparatively fast.
-
-The software for local inference has matured quickly. llama.cpp~\cite{llamacpp} provides dependency-free inference with
-integer quantisation and back ends for most consumer accelerators, and many distribution tools build on it. MLX~\cite{mlx2023},
-with its language-model package~\cite{mlxlm}, is an array framework designed for the unified memory of Apple silicon and
-supports quantisation and LoRA fine-tuning directly on the device. Platform vendors now ship their own on-device models:
-Apple's foundation model for its devices is a dense model of about three billion parameters, quantised to under four
-bits per weight and specialised for each feature with low-rank adapters of rank 16 on all linear
-layers~\cite{gunter2024apple}. This is the same pattern, at the same scale, that GroundOne follows.
-
-Energy is the last dimension of local inference. Measurements on datacenter hardware show that the energy of a request
-grows with the number of generated tokens and depends strongly on model size and task~\cite{samsi2023words,luccioni2024power},
-and the distinction between compute-bound prefill and bandwidth-bound decoding implies that the two phases also draw
-different power~\cite{patel2024splitwise}. On a battery-powered device the energy per verification is therefore a
-property of the method, not only of the hardware, and Chapter~\ref{sec:results} measures it.
+This chapter reviews the work on which GroundOne builds and with which it is compared. The cost of inference on a local
+device, which motivates the design, was treated in Chapter~\ref{sec:local}. The chapter starts from System One models, the
+idea of reading decisions from a language model instead of generating them, and the rapidly growing ecosystem of decision
+models. It then reviews the problem of hallucination in retrieval-augmented generation and the methods that verify
+answers against their sources, and closes with calibration, parameter-efficient fine-tuning and the gap that this thesis
+addresses.
 
 \section{System One models}
 \label{sec:bg-systemone}

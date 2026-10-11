@@ -24,3 +24,8 @@ Why it matters where a model runs. With **hosted inference**, every document and
 
 ## Links
 - Concepts: [[On-Device Inference]], [[Navier-Stokes Credit Dispute (2026)]], [[Open-Weight Models]], [[Edge-Cloud Collaborative Inference]], [[Retrieval-Augmented Generation]]
+
+## GDPR and the best-case hosted design (ingest 2026-10-11, second batch)
+- **GDPR** ([[EU 2016 - Regulation (EU) 2016-679, General Data Protection Regulation (GDPR)|Regulation (EU) 2016/679]]): "processing" includes "disclosure by transmission" (Art. 4(2)); a hosted verifier makes the provider a processor (Art. 28 contract); non-EU providers need a transfer basis (Arts. 44–49; adequacy revocable, Art. 45(5)); fines up to €20M/4 % for Arts. 5–9 and 44–49 (Art. 83). A local verifier avoids Arts. 28 and 44–49 by design; Art. 5, lawful basis (Art. 6), security (Art. 32) and possibly a DPIA (Art. 35) still apply. Non-personal confidential documents fall outside the GDPR: there the argument is confidentiality.
+- **Apple Private Cloud Compute** ([[Apple Security 2024 - Private Cloud Compute, a new frontier for AI privacy in the cloud]]): hosted AI needs plaintext, so end-to-end encryption is impossible; PCC answers with custom silicon, stateless computation, no privileged access, OHTTP relays and an attested transparency log. Residual trust remains (hardware, supply chain, attestation), verifiable by researchers, not users. Apple calls on-device processing "the cornerstone".
+- Thesis use: Ch. 2 §2.1 (Table 2.1) cites both.

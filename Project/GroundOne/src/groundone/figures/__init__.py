@@ -1,4 +1,4 @@
-"""Thesis figures. `groundone figures all|phase0|sweep|training RUN|results|eda|dataset|benchmarks` writes PNGs + index.md to Project/outputs/figures/.
+"""Thesis figures. `groundone figures all|phase0|sweep|training RUN|results|eda|dataset|benchmarks|locality` writes PNGs + index.md to Project/outputs/figures/.
 
 Rule for the project: every phase must leave figures behind (plots are thesis material). Add a function here whenever a
 new kind of result appears, and run `groundone figures all` after each phase.
@@ -47,3 +47,6 @@ def main(argv=None):
     if what in ("benchmarks", "all"):
         from . import benchmarks
         benchmarks.main()
+    if what in ("locality", "all"):
+        from . import locality
+        locality.main()

@@ -49,3 +49,8 @@ Source: thesis notes, `results/energy-*/energy/metrics.json`.
 - **Reporting protocol**: report Wh per query with meter scope and workload description ([[Wang 2025 - Cognitive Edge Computing, Optimizing Large Models and AI Agents (arXiv 2501.03265)|Wang 2025]] §3.5, §6.7; weak preprint). The thesis already states scope (SoC power via powermetrics) and workload (100 latency answers).
 - **Power envelopes**: on-device tier under 10 W (Wang 2025); Strix Halo 55 W chip; DGX Spark 140 W chip; Mac Studio up to 480 W; RTX 5090 575 W ([[Local Inference Hardware]]).
 - **Generated tokens dominate time on slow decoders**: 2,200 generated tokens take about 38 s on an RTX 5090 and 234 s on a DGX Spark ([[Presenc 2026 - Local LLM tokens-per-second benchmarks]]); a zero-token verifier avoids this term entirely.
+
+## Phones and rules of thumb (ingest 2026-10-11, second batch)
+- MELT: Zephyr-3B 4-bit 0.58–0.76 J per generated token on phones; sustained ≈ 13.8 W, surface up to 47.9 °C ([[Laskaridis 2024 - MELTing point, Mobile Evaluation of Language Transformers (arXiv 2403.12844)|Laskaridis 2024]]). GroundOne 3B's 33 J per long answer ≈ 44–57 phone-generated tokens (different hardware; scale only).
+- MobileLLM rule of thumb (from prior work): ≈ 0.1 J per generated token per billion parameters ([[Liu 2024 - MobileLLM, Optimizing Sub-billion Parameter Language Models for On-Device Use Cases (arXiv 2402.14905)|Liu 2024]]).
+- NPU prefill uses 1.85–4.32× less energy than the phone GPU (Xu 2025); PowerInfer-2: lowest power is not lowest energy (0.257 vs 0.672 J/token at 5.10 vs 4.07 W).

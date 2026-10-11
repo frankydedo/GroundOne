@@ -45,7 +45,10 @@ contains, should address both the weak recall outside data-to-text and the blind
 readout on the letter that the model would naturally write after the marker could align readout and generation, with
 effects on accuracy that remain to be measured.
 
-On the systems side, the remaining measurements of the locality pillar are the memory used when the verifier runs next
+On the systems side, the cost model of Chapter~\ref{sec:local} should be checked on other hardware: a port of the
+readout to llama.cpp would allow measuring GroundOne on a discrete graphics card, on a DGX Spark or an AMD Strix Halo
+machine, and on a phone, whose neural processing units accelerate exactly the prefill on which a System One relies. The
+remaining measurements of the locality pillar are the memory used when the verifier runs next
 to a generator and a retriever, and a complete evaluation with the network disabled. A fair latency comparison with the
 encoders requires running them in batches, and one with the general-purpose System One requires comparing both systems
 through the same HTTP interface. Verification could also run while the answer is being generated, flagging each sentence

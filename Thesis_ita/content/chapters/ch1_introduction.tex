@@ -17,11 +17,18 @@ consulta i propri report interni, a un avvocato che esamina un contratto e a uno
 e in tutti questi casi il valore della risposta dipende dalla sua fedeltà ai documenti.
 
 Fino a poco tempo fa una pipeline di questo tipo richiedeva un modello ospitato in remoto, raggiungibile via rete. Oggi
-non è più così. Modelli aperti compatti e runtime efficienti girano su hardware consumer~\cite{llamacpp,mlx2023}, e i
+non è più così. Modelli open-weight compatti e runtime efficienti girano su hardware consumer~\cite{llamacpp,mlx2023}, e i
 produttori di piattaforme integrano direttamente nei propri dispositivi modelli da pochi miliardi di
-parametri~\cite{gunter2024apple}. L'intera pipeline, dal recupero dei documenti alla risposta, può quindi restare sulla
+parametri~\cite{gunter2024apple}. Il divario con i migliori modelli chiusi è ridotto e continua a ridursi: i modelli che
+entrano in una singola scheda grafica consumer raggiungono le prestazioni della frontiera del momento nel giro di sei-dodici
+mesi~\cite{epoch2025consumergpu}, e su una nota leaderboard il vantaggio del miglior modello chiuso sul miglior modello
+aperto è sceso in un solo anno dall'8\,\% a meno del 2\,\%~\cite{stanford2025aiindex}. L'intera pipeline, dal recupero dei documenti alla risposta, può quindi restare sulla
 macchina dell'utente. Questo conta per quattro ragioni. Quando i documenti sono riservati o soggetti a regolamentazione,
-non lasciano mai il dispositivo. Quando manca la rete, l'assistente continua a funzionare. Quando il comportamento del
+non lasciano mai il dispositivo; la privacy diventa così una proprietà tecnica del sistema, anziché una promessa del
+fornitore che l'utente non ha modo di verificare. Una recente disputa sulla paternità di un risultato tra OpenAI e due
+matematici, che avevano scritto bozze non ancora pubblicate all'interno di uno dei prodotti dell'azienda, ha mostrato
+quanto la questione sia concreta: lo stesso fornitore ha dichiarato di non poter escludere che dati derivati da
+quell'utilizzo abbiano contribuito a migliorare i suoi modelli~\cite{rits2026navierstokes}. Quando manca la rete, l'assistente continua a funzionare. Quando il comportamento del
 sistema deve restare stabile, i pesi cambiano solo se è l'utente a cambiarli, invece di seguire gli aggiornamenti di un
 fornitore. Infine, il costo diventa quello dell'hardware e della sua energia, invece di un prezzo per token. I modelli
 locali, inoltre, espongono i propri logit, che le interfacce remote spesso nascondono o limitano: una proprietà che si
@@ -30,7 +37,9 @@ rivela essenziale per l'approccio studiato in questa tesi.
 La località, però, è anche un vincolo. Un laptop ha memoria, banda e batteria limitate, e ogni componente dell'assistente
 deve rientrarvi nello stesso momento. Questa tesi tratta la località come un requisito e non come un dettaglio: ogni fase
 del lavoro, dalla costruzione del dataset all'addestramento, dalla valutazione alla messa in servizio, gira su un unico
-laptop consumer con 16\,GB di memoria, e nessuna dipende da un servizio esterno.
+laptop consumer con 16\,GB di memoria, e nessuna dipende da un servizio esterno. Poiché la località è l'asse portante
+del lavoro, il Capitolo~\ref{sec:local} è interamente dedicato a essa: perché conta, quali modelli e quale hardware la
+rendono possibile e quanto costa.
 
 \subsection{Le allucinazioni e la necessità di verificare}
 \label{sec:intro-hallucination}
@@ -62,8 +71,9 @@ dove un laptop è più debole. Un giudice scrive i propri verdetti token per tok
 costa molto più di ogni token letto. La lettura del prompt è limitata dalla capacità di calcolo, che la GPU di un laptop
 gestisce bene, mentre la scrittura dell'output è limitata dalla banda di memoria, perché ogni nuovo token richiede di
 leggere tutti i pesi~\cite{pope2023scaling}. Sul laptop usato in questa tesi, leggere un token richiede circa 0.37
-millisecondi con un modello da 0.5B parametri, mentre scriverne uno ne richiede circa 5.9, sedici volte di più. Un
-giudice che spiega il proprio ragionamento prima di ogni verdetto moltiplica questo costo per la lunghezza della
+millisecondi con un modello da 0.5B parametri, mentre scriverne uno ne richiede circa 5.9, sedici volte di più, e
+l'asimmetria vale per ogni classe di hardware locale, dagli smartphone alle macchine dedicate all'IA
+(Capitolo~\ref{sec:local}). Un giudice che spiega il proprio ragionamento prima di ogni verdetto moltiplica questo costo per la lunghezza della
 spiegazione, e il costo cresce ancora con il numero di frasi della risposta. I giudici piccoli, inoltre, non rispettano
 il formato di output richiesto, e la confidenza che dichiarano è raramente utilizzabile come probabilità.
 
@@ -161,7 +171,9 @@ generalista della stessa dimensione ed encoder specializzati, tutti sullo stesso
 tramite cluster bootstrap.
 \item \textbf{Uno studio di calibrazione, tempo ed energia}: come le probabilità possano essere calibrate e tradotte in
 etichette coerenti, quanto aiutino a rinviare le decisioni incerte e come tempo ed energia di una verifica crescano con la
-lunghezza della risposta.
+lunghezza della risposta. Lo studio si inserisce in un'analisi dell'inferenza locale che combina le specifiche dei
+produttori con misure proprie per stabilire, per ogni classe di hardware consumer, il costo minimo che un verificatore
+che genera testo deve pagare e che un System One non paga.
 \end{enumerate}
 
 \section{Risultati principali}
@@ -189,9 +201,11 @@ l'addestramento non è ancora del tutto stabile al variare del seed.
 \section{Struttura della tesi}
 \label{sec:intro-structure}
 
-Il Capitolo~\ref{sec:background} passa in rassegna l'inferenza nei transformer, l'inferenza sul dispositivo dell'utente,
-i modelli System One, le allucinazioni nella retrieval-augmented generation, i metodi di verifica e la calibrazione. Il
-Capitolo~\ref{sec:method} descrive GroundOne: la decisione, il readout in un solo passaggio, l'obiettivo di
+Il Capitolo~\ref{sec:local} è dedicato all'inferenza locale: le ragioni per mantenere i modelli sul dispositivo, i
+modelli open-weight e i modelli piccoli, il modello di costo dell'inferenza su un singolo dispositivo, il panorama
+dell'hardware, i runtime e la quantizzazione, l'energia e le conseguenze per la verifica. Il
+Capitolo~\ref{sec:background} passa in rassegna i modelli System One e l'ecosistema dei decision model, le allucinazioni
+nella retrieval-augmented generation, i metodi di verifica e la calibrazione. Il Capitolo~\ref{sec:method} descrive GroundOne: la decisione, il readout in un solo passaggio, l'obiettivo di
 addestramento, la calibrazione e l'output esposto dal servizio. Il Capitolo~\ref{ch:data} definisce le etichette e
 descrive come sono stati costruiti, controllati e congelati il training set e i test set. Il Capitolo~\ref{sec:setup}
 presenta i modelli addestrati, le baseline, le metriche e il protocollo di misura. Il Capitolo~\ref{sec:results} riporta

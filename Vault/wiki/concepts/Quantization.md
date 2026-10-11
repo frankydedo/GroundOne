@@ -30,3 +30,10 @@ Storing model weights (and sometimes activations or the KV cache) with fewer bit
 
 ## Links
 - Concepts: [[Prefill and Decode]], [[Apple Silicon and MLX]], [[On-Device Inference]], [[Local Inference Hardware]], [[Small Language Models]], [[LoRA]], [[KV Cache]]
+
+## Classic methods (ingest 2026-10-11, second batch)
+- **LLM.int8()** (W8A8, outlier dimensions ≥ 6 kept in fp16): no loss up to 175B; saves memory but runs at 0.51× fp16 at hidden size 2048, faster only at 13B+; outliers control much of the attention mass ([[Dettmers 2022 - LLM.int8(), 8-bit Matrix Multiplication for Transformers at Scale (arXiv 2208.07339)|Dettmers 2022]]).
+- **GPTQ** (3–4-bit, second-order, post-training): OPT-175B 4-bit 8.34 → 8.37 ppl; small models lose more (OPT-1.3B 14.63 → 15.47); 3.24× (A100) / 4.53× (A6000) faster decode from bandwidth, no compute reduction ([[Frantar 2023 - GPTQ, Accurate Post-Training Quantization for Generative Pre-trained Transformers (arXiv 2210.17323)|Frantar 2023]]).
+- **AWQ** (4-bit, protect ~1 % salient channels by activation-aware scaling): Llama-2-7B INT4-g128 5.60 vs GPTQ 5.69 vs fp16 5.47; robust to calibration domain ([[Lin 2024 - AWQ, Activation-aware Weight Quantization for LLM Compression and Acceleration (arXiv 2306.00978)|Lin 2024]]).
+- **Small models at low bits**: ≤ 3B models "unusable" at 3 bits on phones ([[Laskaridis 2024 - MELTing point, Mobile Evaluation of Language Transformers (arXiv 2403.12844)|MELT]]); MobileLLM W8A8 costs < 0.5 points ([[Liu 2024 - MobileLLM, Optimizing Sub-billion Parameter Language Models for On-Device Use Cases (arXiv 2402.14905)|Liu 2024]]). Phone NPUs need per-tensor INT8; QNN per-channel INT4 drops Qwen2-7B GSM8K from 77.4 to 22.3 (Xue 2024).
+- **Thesis position**: weight-only 8-bit (MLX, group 64) is the conservative choice for a calibrated logit readout; it speeds up decode-heavy baselines more than GroundOne's prefill. The adapter is trained on the already-quantised base and served on the same base (no train/serve mismatch).

@@ -47,7 +47,10 @@ quelle di VitaminC dovrebbero intervenire sia sul basso recall al di fuori del d
 frasi copiate. Addestrare il readout sulla lettera che il modello scriverebbe spontaneamente dopo il marker potrebbe
 allineare readout e generazione, con effetti sull'accuratezza ancora da misurare.
 
-Sul versante dei sistemi, per il pilastro della località restano da misurare la memoria occupata quando il verificatore
+Sul versante dei sistemi, il modello di costo del Capitolo~\ref{sec:local} andrebbe verificato su altro hardware: un
+porting del readout su llama.cpp permetterebbe di misurare GroundOne su una scheda grafica dedicata, su un DGX Spark o
+su una macchina AMD Strix Halo, e su uno smartphone, le cui unità di elaborazione neurale accelerano proprio il prefill
+su cui si regge un System One. Per il pilastro della località restano inoltre da misurare la memoria occupata quando il verificatore
 opera accanto a un generatore e a un retriever, e da condurre una valutazione completa con la rete disattivata. Un
 confronto equo della latenza con gli encoder richiede di eseguirli in batch, mentre quello con il System One generalista
 richiede di interrogare entrambi i sistemi attraverso la stessa interfaccia HTTP. La verifica potrebbe inoltre procedere

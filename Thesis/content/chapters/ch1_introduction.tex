@@ -17,10 +17,17 @@ a lawyer reading a contract and a student questioning their own notes, and in ea
 on its staying faithful to the documents.
 
 Until recently such a pipeline required a hosted model, reached over the network. This is no longer the case. Compact
-open models and efficient runtimes now run on consumer hardware~\cite{llamacpp,mlx2023}, and platform vendors ship
-models of a few billion parameters directly on their devices~\cite{gunter2024apple}. The whole pipeline, from retrieval
+open-weight models and efficient runtimes now run on consumer hardware~\cite{llamacpp,mlx2023}, and platform vendors ship
+models of a few billion parameters directly on their devices~\cite{gunter2024apple}. The gap with the best closed models
+is small and shrinking: models that fit on a single consumer graphics card reach the performance of the frontier of the
+time within six to twelve months~\cite{epoch2025consumergpu}, and the lead of the best closed model over the best open one
+on a popular leaderboard fell from 8\,\% to under 2\,\% in a single year~\cite{stanford2025aiindex}. The whole pipeline, from retrieval
 to answer, can therefore stay on the user's own machine. This matters for four reasons. When the documents are private
-or regulated, they never leave the device. When there is no network, the assistant keeps working. When the behaviour of
+or regulated, they never leave the device; privacy becomes a technical property of the system rather than a promise of a
+provider, which the user cannot verify. A recent dispute over credit between OpenAI and two mathematicians, who had
+written unpublished drafts inside one of the company's products, showed how real the question is: the provider itself
+stated that it could not rule out that data derived from that usage had helped improve its
+models~\cite{rits2026navierstokes}. When there is no network, the assistant keeps working. When the behaviour of
 the system must stay stable, the weights change only if the user changes them, instead of following a provider's
 updates. Finally, the cost becomes that of the hardware and its energy, instead of a price per token. Local models also
 expose their logits, which hosted interfaces often hide or limit, and this property turns out to be essential for the
@@ -29,7 +36,9 @@ approach studied here.
 Locality is a constraint as well as an advantage. A laptop has limited memory, limited bandwidth and a battery, and every
 component of the assistant must fit within them at the same time. This thesis treats locality as a requirement rather
 than as an afterthought: every step of the work, from building the dataset to training, evaluation and serving, runs on
-one consumer laptop with 16\,GB of memory, and no step depends on an external service.
+one consumer laptop with 16\,GB of memory, and no step depends on an external service. Because locality is the backbone
+of the work, Chapter~\ref{sec:local} is devoted entirely to it: why it matters, which models and hardware make it
+possible, and what it costs.
 
 \subsection{Hallucination and the need for verification}
 \label{sec:intro-hallucination}
@@ -59,7 +68,8 @@ its verdicts token by token, and on local hardware each generated token costs fa
 the prompt is limited by computation, which a laptop GPU handles well, whereas writing the output is limited by memory
 bandwidth, because every new token must read all the weights~\cite{pope2023scaling}. On the laptop used in this thesis,
 reading one token takes about 0.37 milliseconds for a model of 0.5B parameters, while writing one takes about 5.9, sixteen
-times more. A judge that explains its reasoning before each verdict multiplies this cost by the length of its
+times more, and the asymmetry holds on every class of local hardware, from phones to dedicated AI machines
+(Chapter~\ref{sec:local}). A judge that explains its reasoning before each verdict multiplies this cost by the length of its
 explanation, and the cost grows again with the number of sentences in the answer. Small judges also break the required
 output format, and the confidence they express is rarely usable as a probability.
 
@@ -152,7 +162,9 @@ generative judges with and without probabilities, a general-purpose System One, 
 same size and specialised encoders, all on the same hardware and with intervals obtained by cluster bootstrap.
 \item \textbf{A study of calibration, time and energy}: how the probabilities can be calibrated and turned into consistent
 labels, how much they help in deferring uncertain decisions, and how the time and energy of a verification grow with the
-length of the answer.
+length of the answer. The study is set in an analysis of local inference that combines vendor specifications with own
+measurements to bound, for each class of consumer hardware, what a verifier that generates text must pay and a System One
+does not.
 \end{enumerate}
 
 \section{Main results}
@@ -179,8 +191,10 @@ across random seeds.
 \section{Thesis structure}
 \label{sec:intro-structure}
 
-Chapter~\ref{sec:background} reviews transformer inference, inference on the user's device, System One models,
-hallucination in retrieval-augmented generation, verification methods and calibration. Chapter~\ref{sec:method} describes
+Chapter~\ref{sec:local} is devoted to local inference: the reasons for keeping models on the device, open-weight and
+small models, the cost model of inference on one device, the hardware landscape, runtimes and quantisation, energy, and
+the consequence for verification. Chapter~\ref{sec:background} reviews System One models and the decision-model
+ecosystem, hallucination in retrieval-augmented generation, verification methods and calibration. Chapter~\ref{sec:method} describes
 GroundOne: the decision, the single-pass readout, the training objective, the calibration and the served output.
 Chapter~\ref{ch:data} defines the labels and describes how the training and test sets were built, checked and frozen.
 Chapter~\ref{sec:setup} presents the trained models, the baselines, the metrics and the measurement protocol.

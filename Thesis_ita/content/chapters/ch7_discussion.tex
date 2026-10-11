@@ -124,3 +124,11 @@ System One, che potrebbero non essere la formulazione a esso più congeniale, e 
 test set pubblici. Poiché gli stessi modelli base, usati senza addestramento come baseline, raggiungono un'accuratezza
 vicina al caso sul task a tre classi, la contaminazione non può spiegare i guadagni dovuti all'addestramento; per i
 valori assoluti, tuttavia, non può essere esclusa del tutto.
+
+\paragraph{Una sola macchina.} Tutte le misure di tempo e di energia provengono da un unico portatile, un Apple M4 con
+16\,GB, e da un unico runtime, MLX. Il modello di costo del Capitolo~\ref{sec:local} prevede che il vantaggio di un
+System One valga su ogni classe di hardware locale, perché poggia sulla differenza tra prefill e decoding, che produttori
+e studi indipendenti osservano ovunque; i limiti inferiori al decoding calcolati in quel capitolo per altre macchine
+discendono dalle specifiche pubblicate. Gli speed-up effettivi su una scheda grafica dedicata, su un DGX Spark o su uno
+smartphone non sono stati misurati: la loro entità dipende dall'equilibrio tra calcolo e banda di ciascuna macchina, e il
+modello di costo sostiene la direzione del vantaggio, non la sua entità.

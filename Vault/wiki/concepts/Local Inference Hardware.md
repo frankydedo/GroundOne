@@ -49,3 +49,8 @@ On an M2 Ultra, decode throughput ranges from about 230 tok/s (MLX) to 150 (llam
 
 ## Links
 - Concepts: [[On-Device Inference]], [[Apple Silicon and MLX]], [[Prefill and Decode]], [[Energy of LLM Inference]], [[Mixture of Experts]], [[Quantization]], [[Small Language Models]]
+
+## Additions (ingest 2026-10-11, second batch; thesis Ch. 2)
+- Current Apple lineup from vendor pages: MacBook Pro / Mac mini M5 153 GB/s (16–32 GB), M5 Pro 307 GB/s (24–64 GB), M5 Max 460–614 GB/s (up to 128 GB) ([[Apple 2026 - MacBook Pro tech specs (M5 family)]], [[Apple 2026 - Mac mini tech specs]]); NVIDIA RTX 50 bandwidths ([[NVIDIA 2026 - GeForce graphics cards compare specs]]).
+- Phone NPUs: fast INT8 prefill (7B INT4 at 770 tok/s), decode limited to 44–60 GB/s shared bandwidth ([[Xue 2024 - PowerInfer-2, Fast Large Language Model Inference on a Smartphone (arXiv 2406.06282)|Xue 2024]], [[Xu 2025 - Fast On-device LLM Inference with NPUs (arXiv 2407.05858)|Xu 2025]]).
+- Thesis figures (`groundone figures locality`): `hardware_landscape` (thesis machine at its actual 16 GB, bars over memory ranges), `decode_floor_by_hardware`, `judge_decode_overhead_by_hardware` (3B judge, K ≥ 14: ≥ 1.78 s terse / 10.6 s verbose on the M4, 0.12 / 0.71 s on an RTX 5090), `roofline_m4`, `memory_fit`, `open_closed_gap`, `prefill_vs_decode_m4`.

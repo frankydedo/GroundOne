@@ -5,71 +5,12 @@
 % LLM Inference, System One Models, Letter-Token Readout, Laya, Decision-Model Benchmarks, Groundedness Verification,
 % Hallucination Detection, Calibration, Verbalised vs Logit Confidence, Fine-tuning Instability and Seeds).
 
-Questo capitolo introduce le idee su cui si basa GroundOne e i lavori con cui viene confrontato. Si parte da come un
-transformer impiega il proprio tempo durante l'inferenza, perché il vantaggio di un System One ne discende direttamente,
-e da ciò che cambia quando l'inferenza avviene sul dispositivo dell'utente. Si passano poi in rassegna i modelli System
-One, il problema delle allucinazioni nella retrieval-augmented generation (RAG) e i metodi che verificano le risposte
-rispetto alle fonti; il capitolo si chiude con la calibrazione, il parameter-efficient fine-tuning e la lacuna che questa
-tesi intende colmare.
-
-\section{Inferenza nei transformer: prefill, decoding e KV cache}
-\label{sec:bg-inference}
-
-Un modello linguistico decoder-only elabora l'input in due fasi. Nella fase di \emph{prefill} l'intero prompt viene letto
-in parallelo: ogni strato calcola, per ciascun token di input, le chiavi e i valori che i token successivi useranno nel
-meccanismo di attenzione, e li memorizza nella KV cache. Nella fase di \emph{decoding} il modello produce l'output un
-token alla volta; ogni nuovo token consulta la cache attraverso l'attenzione e la estende di una
-posizione~\cite{pope2023scaling}. Sull'hardware le due fasi si comportano in modo molto diverso. Il prefill esegue molto
-calcolo su molti token contemporaneamente ed è limitato dalla potenza di calcolo aritmetico. Il decoding esegue poco
-calcolo a ogni passo, ma per ogni token generato deve leggere tutti i pesi e la cache, che nel frattempo cresce: con
-batch piccoli è quindi limitato dalla banda di memoria~\cite{pope2023scaling,patel2024splitwise}. Ne segue che un token
-generato costa molto più tempo di un token del prompt, e su un singolo dispositivo la differenza arriva a un ordine di
-grandezza. I sistemi di serving sfruttano questa distinzione in modi diversi, per esempio gestendo la cache a pagine per
-accogliere più richieste concorrenti~\cite{kwon2023pagedattention} oppure eseguendo le due fasi su macchine separate,
-ciascuna adatta alla propria~\cite{patel2024splitwise}.
-
-La conseguenza pratica per la verifica è semplice. Un giudice che scrive il proprio verdetto paga un prefill per il
-documento e la risposta, poi un passo di decoding per ogni token che scrive, che si tratti di una sola lettera o di un
-paragrafo di ragionamento. Un modello che legge la decisione dai logit calcolati durante il prefill paga soltanto il
-primo costo. La KV cache offre una seconda leva: quando si pongono molte domande sullo stesso contesto, questo può essere
-elaborato una volta sola e poi riutilizzato, così che ogni domanda in più costi soltanto i suoi pochi token.
-
-\section{Inferenza sul dispositivo dell'utente}
-\label{sec:bg-local}
-
-I modelli linguistici si usano per lo più tramite servizi remoti, che ricevono l'input dell'utente attraverso la rete ed
-eseguono il modello in un datacenter. Eseguire il modello direttamente sul dispositivo dell'utente cambia
-contemporaneamente diverse proprietà. I documenti non lasciano mai la macchina, aspetto importante per dati riservati o
-soggetti a regolamentazione; il sistema funziona senza rete e senza dipendere dalla disponibilità di un fornitore; il
-costo è quello dell'hardware e dell'energia che consuma, non un prezzo per token; i pesi, e quindi il comportamento, non
-cambiano se non è l'utente a cambiarli. Un modello locale espone inoltre i propri logit, che le interfacce remote spesso
-nascondono o limitano e di cui un System One e la sua calibrazione hanno bisogno. Il prezzo da pagare è la capacità del
-modello: un laptop può ospitare soltanto modelli piccoli, e deve farlo accanto a tutto ciò che vi è già in esecuzione.
-
-Tre proprietà dell'hardware stabiliscono che cosa sia fattibile. La capacità di memoria determina quali modelli possono
-essere caricati: un modello da 7B in mezza precisione richiede più di 14\,GB, oltre la portata della maggior parte dei
-dispositivi personali; per questo le installazioni locali ricorrono a pesi quantizzati, a modelli più piccoli oppure, nei
-sistemi di ricerca, al caricamento in streaming dei pesi dalla memoria flash~\cite{alizadeh2024flash}. La banda di
-memoria limita la velocità del decoding, perché ogni token generato legge tutti i pesi: sul laptop usato in questa tesi,
-un Apple M4 con 120\,GB/s di banda e 16\,GB di memoria unificata condivisa tra CPU e GPU~\cite{apple2024m4specs}, questo
-limite vale pochi millisecondi per token per un modello da 0.5B a 8 bit e circa dieci volte tanto per un modello da 3B.
-La potenza di calcolo, infine, limita il prefill, che sulla GPU di un laptop è relativamente rapido.
-
-Il software per l'inferenza locale è maturato rapidamente. llama.cpp~\cite{llamacpp} offre inferenza senza dipendenze
-esterne, con quantizzazione intera e backend per la maggior parte degli acceleratori consumer, e su di esso si basano
-molti strumenti di distribuzione. MLX~\cite{mlx2023}, insieme al suo pacchetto per modelli linguistici~\cite{mlxlm}, è un
-framework per array progettato per la memoria unificata di Apple silicon e supporta quantizzazione e fine-tuning LoRA
-direttamente sul dispositivo. I produttori di piattaforme distribuiscono ormai i propri modelli on-device: il foundation
-model che Apple impiega sui propri dispositivi è un modello denso di circa tre miliardi di parametri, quantizzato a meno
-di quattro bit per peso e specializzato per ogni funzionalità con adapter low-rank di rango 16 su tutti gli strati
-lineari~\cite{gunter2024apple}. È lo stesso schema, alla stessa scala, che segue GroundOne.
-
-L'energia è l'ultima dimensione dell'inferenza locale. Misure su hardware da datacenter mostrano che l'energia di una
-richiesta cresce con il numero di token generati e dipende fortemente dalla dimensione del modello e dal
-task~\cite{samsi2023words,luccioni2024power}; inoltre, la distinzione tra un prefill limitato dal calcolo e un decoding
-limitato dalla banda implica che anche la potenza assorbita dalle due fasi sia diversa~\cite{patel2024splitwise}. Su un
-dispositivo a batteria l'energia per verifica è quindi una proprietà del metodo e non soltanto dell'hardware, e il
-Capitolo~\ref{sec:results} la misura.
+Questo capitolo passa in rassegna i lavori su cui GroundOne si fonda e quelli con cui viene confrontato. Il costo
+dell'inferenza su un dispositivo locale, da cui discende il progetto, è stato trattato nel Capitolo~\ref{sec:local}. Si
+parte dai modelli System One, cioè dall'idea di leggere le decisioni di un modello linguistico invece di farle generare,
+e dall'ecosistema dei decision model, in rapida crescita. Si passano poi in rassegna il problema delle allucinazioni
+nella retrieval-augmented generation (RAG) e i metodi che verificano le risposte rispetto alle fonti; il capitolo si
+chiude con la calibrazione, il parameter-efficient fine-tuning e la lacuna che questa tesi intende colmare.
 
 \section{Modelli System One}
 \label{sec:bg-systemone}

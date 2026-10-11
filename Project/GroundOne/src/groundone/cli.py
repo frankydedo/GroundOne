@@ -11,7 +11,7 @@
   groundone test       --suite t1|t2|t3 --name NAME [--adapter RUN]   frozen GroundOne test sets (three-way)
   groundone matrix     [--print]                                  results matrix (all systems x test sets) -> docs/tracker.md
   groundone guard      QUEUE.txt                                  run long jobs one at a time under the memory guard
-  groundone figures    all | dataset | benchmarks | training RUN | eda | phase0   thesis figures -> Project/outputs/figures/
+  groundone figures    all | dataset | benchmarks | locality | training RUN | eda | phase0   thesis figures -> Project/outputs/figures/
                        (legacy: sweep | diagnostics | results)
   groundone baselines  frozen | judges | judges-calibrate [...]   baselines on the frozen tests; generative judges + latency
   groundone bootstrap  [--reps 2000]                              CIs and paired tests from saved predictions (CPU)
