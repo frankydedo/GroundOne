@@ -1,0 +1,27 @@
+\documentclass[border=2pt]{standalone}
+\input{s1_vs_llm_common.tex}
+\begin{document}
+\begin{tikzpicture}[node distance=5mm]
+  \node[io, text width=5.2cm] (in) {Documento + risposta di $K$ frasi\\+ istruzioni per il giudice};
+  \node[model, below=11mm of in] (t) {Transformer: un passaggio\\\textbf{per ogni token}};
+  \node[model, below=4mm of t] (s) {Sceglie il token successivo\\tra tutto il vocabolario};
+  \begin{scope}[on background layer]
+    \node[cluster, fit=(t)(s), label={[clusterlabel,anchor=south east]north east:LLM generativo}] (c) {};
+  \end{scope}
+  \node[decision, below=8mm of s] (d) {token\\di fine?};
+  \node[io, below=8mm of d, text width=4.4cm] (txt) {Testo libero: \guillemotleft La frase 1\\è supportata perché\dots\guillemotright};
+  \node[post, below=4mm of txt] (p) {Interpretazione del testo};
+  \node[decision, below=5mm of p] (f) {formato\\valido?};
+  \node[io, below=9mm of f, xshift=-14mm, font=\footnotesize, text width=1.9cm] (o1) {verdetti\\(senza probabilità)};
+  \node[io, below=9mm of f, xshift=14mm, font=\footnotesize, text width=1.6cm] (o2) {nessun\\verdetto};
+  \draw[arrow] (in) -- (t);
+  \draw[arrow] (t) -- (s);
+  \draw[arrow] (s) -- (d);
+  \draw[loop] (d.west) -- ++(-9mm,0) |- node[pos=0.25, left, font=\footnotesize, text=loopRed, text width=1.9cm, align=right] {no: il token\\si aggiunge\\all'input} (t.west);
+  \draw[arrow] (d) -- node[right, font=\footnotesize] {sì} (txt);
+  \draw[arrow] (txt) -- (p);
+  \draw[arrow] (p) -- (f);
+  \draw[arrow] (f.west) -| node[pos=0.75, left, font=\footnotesize] {sì} (o1.north);
+  \draw[arrow] (f.east) -| node[pos=0.75, right, font=\footnotesize] {no} (o2.north);
+\end{tikzpicture}
+\end{document}

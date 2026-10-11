@@ -104,13 +104,15 @@ prodotto può essere interpretato come una decisione (Figura~\ref{fig:intro-s1-v
 
 \begin{figure}[htbp]
 \centering
-\subfloat[System One: una sola lettura, tutti i verdetti insieme.]{\parbox[b]{0.42\textwidth}{\centering
-\includegraphics[width=0.349\textwidth]{images/diagrams/system_one.png}}\label{fig:intro-s1}}\hfill
-\subfloat[LLM tradizionale: una lettura, poi una parola alla volta finché la risposta è completa.]{\parbox[b]{0.42\textwidth}{\centering
-\includegraphics[width=0.33\textwidth]{images/diagrams/llm_autoregressive.png}}\label{fig:intro-llm}}
-\caption{Due modi di verificare le $K$ frasi di una risposta. Un System One legge documento e risposta una sola volta e
-restituisce subito un verdetto con la sua probabilità per ogni frase. Un LLM tradizionale, dopo la lettura, scrive la
-risposta parola per parola, ripassando dal modello per ogni parola, e i verdetti vanno poi ricavati dal testo prodotto.}
+\subfloat[System One: una sola lettura e una decisione fra tre risposte ammesse per ogni frase.]{\parbox[b][392pt][t]{0.48\textwidth}{\centering
+\includegraphics[scale=0.95]{images/diagrams/system_one_tikz.pdf}}\label{fig:intro-s1}}\hfill
+\subfloat[LLM tradizionale: un passaggio nel modello per ogni token, finché il testo non è completo.]{\parbox[b]{0.48\textwidth}{\centering
+\includegraphics[scale=0.95]{images/diagrams/llm_autoregressive_tikz.pdf}}\label{fig:intro-llm}}
+\caption{Due modi di verificare le $K$ frasi di una risposta. Parallelogrammi: input e output; rettangoli blu: componenti
+del modello; rettangolo giallo: elaborazione esterna al modello; rombi: decisioni. Il System One legge documento e
+risposta una sola volta e, per ogni frase, sceglie fra tre risposte ammesse, restituendo anche la probabilità. L'LLM
+generativo ripassa dal modello per ogni token scritto (ciclo in rosso), e i verdetti vanno poi ricavati dal testo, che
+può non rispettare il formato richiesto.}
 \label{fig:intro-s1-vs-llm}
 \end{figure}
 

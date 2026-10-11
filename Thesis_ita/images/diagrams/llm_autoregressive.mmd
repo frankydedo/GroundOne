@@ -1,13 +1,25 @@
-%%{init: {'theme':'base','flowchart':{'wrappingWidth':260,'nodeSpacing':35,'rankSpacing':45},'themeVariables':{'fontFamily':'Helvetica','fontSize':'18px','lineColor':'#52514e','edgeLabelBackground':'#ffffff'}}}%%
+%%{init: {'theme':'base','flowchart':{'wrappingWidth':300,'nodeSpacing':18,'rankSpacing':26,'diagramPadding':4},'themeVariables':{'fontFamily':'Helvetica','fontSize':'16px','lineColor':'#52514e','edgeLabelBackground':'#ffffff','clusterBkg':'#fbfbfa','clusterBorder':'#9a9890'}}}%%
 flowchart TB
-    A["Documento<br/>+ risposta di K frasi"] --> B["Il modello<br/>legge tutto"]
-    B --> C["Scrive<br/><b>una parola</b>"]
-    C --> D(["Ha finito?"])
-    D -- "no: rilegge e aggiunge<br/>la parola successiva" --> C
-    D -- sì --> E["Testo libero da interpretare<br/>«La frase 1 è supportata<br/>perché…; la frase 2…»"]
-    classDef read fill:#e8f1fb,stroke:#2a78d6,stroke-width:2px,color:#0b0b0b
-    classDef write fill:#fdecec,stroke:#e34948,stroke-width:2px,color:#0b0b0b
-    classDef out fill:#fff6e0,stroke:#eda100,stroke-width:2px,color:#0b0b0b
-    class A,B read
-    class C,D write
-    class E out
+    IN[/"Documento<br/>+ risposta di K frasi<br/>+ istruzioni"/]
+    subgraph M["LLM generativo"]
+        T["Transformer:<br/>un passaggio<br/><b>per ogni token</b>"]
+        S["Sceglie il token<br/>successivo"]
+        T --> S
+    end
+    IN --> T
+    S --> D{"Fine?"}
+    D -- "no: token<br/>aggiunto<br/>all'input" --> T
+    D -- sì --> TXT[/"Testo libero<br/>«La frase 1 è<br/>supportata perché…»"/]
+    TXT --> P["Interpretazione<br/>del testo"]
+    P --> F{"Valido?"}
+    F -- sì --> O1[/"Verdetti<br/>(senza p)"/]
+    F -- no --> O2[/"Nessun<br/>verdetto"/]
+    classDef io fill:#f1f0ec,stroke:#52514e,stroke-width:1.5px,color:#0b0b0b
+    classDef model fill:#e8f1fb,stroke:#2a78d6,stroke-width:2px,color:#0b0b0b
+    classDef post fill:#fff6e0,stroke:#eda100,stroke-width:2px,color:#0b0b0b
+    classDef decision fill:#ece9f7,stroke:#4a3aa7,stroke-width:2px,color:#0b0b0b
+    class IN,TXT,O1,O2 io
+    class T,S model
+    class P post
+    class D,F decision
+    linkStyle 3 stroke:#e34948,stroke-width:3px,color:#e34948

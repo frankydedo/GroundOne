@@ -1,0 +1,25 @@
+% Shared TikZ styles for the System One vs LLM diagrams (compiled as standalone PDFs).
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[italian]{babel}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,positioning,fit,arrows.meta,calc,backgrounds}
+\definecolor{ioFill}{HTML}{F1F0EC}\definecolor{ioLine}{HTML}{52514E}
+\definecolor{modFill}{HTML}{E8F1FB}\definecolor{modLine}{HTML}{2A78D6}
+\definecolor{decFill}{HTML}{ECE9F7}\definecolor{decLine}{HTML}{4A3AA7}
+\definecolor{postFill}{HTML}{FFF6E0}\definecolor{postLine}{HTML}{EDA100}
+\definecolor{loopRed}{HTML}{E34948}\definecolor{clusterLine}{HTML}{9A9890}
+\tikzset{
+  every node/.style={font=\small, align=center},
+  hyphens off/.style={},
+  io/.style={trapezium, trapezium left angle=72, trapezium right angle=108, trapezium stretches body,
+             draw=ioLine, fill=ioFill, thick, inner sep=3pt, minimum height=2.6em},
+  model/.style={rectangle, draw=modLine, fill=modFill, very thick, inner sep=4pt, minimum height=2.6em, text width=#1},
+  model/.default=3.6cm,
+  post/.style={rectangle, draw=postLine, fill=postFill, very thick, inner sep=4pt, minimum height=2.2em, text width=3.6cm},
+  decision/.style={diamond, aspect=1.9, draw=decLine, fill=decFill, very thick, inner sep=1pt},
+  arrow/.style={-{Latex[length=2mm]}, thick, ioLine},
+  loop/.style={-{Latex[length=2.4mm]}, line width=1.4pt, loopRed},
+  cluster/.style={draw=clusterLine, dashed, rounded corners=3pt, inner sep=7pt, fill=white},
+  clusterlabel/.style={font=\small\bfseries, text=ioLine},
+}
