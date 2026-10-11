@@ -5,13 +5,13 @@
 % GroundOne served output via `groundone verify` (calibration + dev threshold, D27). Answer rt-7784 of T1, chosen
 % because every system scored it and it contains all three classes; it was not chosen for any system's performance.
 
-Questa appendice mostra che cosa restituisce ciascun sistema per la stessa risposta di T1, così da poter mettere in
-relazione i numeri del Capitolo~\ref{sec:results} con output concreti. La risposta (identificativo \texttt{rt-7784}) è
-una risposta di tipo data-to-text, scritta da un modello linguistico a partire dalla descrizione strutturata di un
-ristorante: un record JSON che ne riporta il nome, l'indirizzo, le categorie, gli orari di apertura (da martedì a
-domenica, 11:00--21:00), gli attributi, una valutazione media di 4.5 stelle e due recensioni di clienti. È stata scelta
-perché tutti i sistemi l'hanno valutata e perché contiene tutte e tre le classi; non è stata selezionata in base alle
-prestazioni di alcun sistema. Le sue sei frasi, con le relative etichette di riferimento, sono le seguenti:
+Questa appendice mostra che cosa restituisce ciascun sistema per una stessa risposta di T1, in modo da collegare i numeri
+del Capitolo~\ref{sec:results} a output concreti. La risposta (identificativo \texttt{rt-7784}) è di tipo data-to-text:
+un modello linguistico l'ha scritta a partire dalla descrizione strutturata di un ristorante, ossia un record JSON con
+nome, indirizzo, categorie, orari di apertura (da martedì a domenica, 11:00--21:00), attributi, una valutazione media di
+4.5 stelle e due recensioni di clienti. È stata scelta perché tutti i sistemi l'hanno valutata e perché contiene tutte e
+tre le classi, non in base alle prestazioni di un qualche sistema. Le sei frasi e le relative etichette di riferimento
+sono:
 
 \begin{enumerate}
 \item \emph{Mesa Verde is a popular business located in Santa Barbara, CA.} --- supportata.
@@ -28,11 +28,11 @@ vegan food options.} --- supportata.
 
 \section{Verdetti frase per frase}
 
-La Tabella~\ref{tab:app-examples} riporta il verdetto di ciascun sistema. Per GroundOne l'etichetta è quella restituita,
-ricavata dalle probabilità calibrate con la soglia stimata sui dati di sviluppo ($\tau$ = 0.935 per il modello 0.5B e
-0.925 per il 3B), e il numero è la $P(\text{supported})$ calibrata. Per gli encoder il numero è la loro probabilità di
-supporto, e la decisione è presa a 0.5. S, C e N indicano supportata, contraddetta e non menzionata; un trattino segnala
-un errore di formato.
+La Tabella~\ref{tab:app-examples} riporta il verdetto di ciascun sistema. Per GroundOne l'etichetta è quella restituita
+dal servizio, ricavata dalle probabilità calibrate con la soglia stimata sul dev set ($\tau$ = 0.935 per il 0.5B e 0.925
+per il 3B), e il numero è la $P(\text{supported})$ calibrata. Per gli encoder il numero è la probabilità di supporto, con
+la decisione presa a 0.5. S, C e N stanno per supportata, contraddetta e non menzionata; un trattino indica un errore di
+formato.
 
 \begin{table}[htbp]
 \centering
@@ -65,22 +65,21 @@ Rizzo-Flow 4B & S & S & \textbf{S} & \textbf{S} & S & S \\
 \end{adjustbox}
 \end{table}
 
-Il GroundOne da 0.5B classifica correttamente tutte e sei le frasi. La contraddizione della frase~3 viene individuata con
-una $P(\text{supported})$ calibrata di 0.50: ben al di sotto della soglia, ma lontana dalla certezza, ed è proprio ciò che
-una probabilità calibrata dovrebbe esprimere per una frase corretta in tutto tranne che per un giorno della settimana.
-Anche il GroundOne da 3B individua entrambi gli errori, ma restituisce come non menzionata la frase~6, una
-generalizzazione a partire dalle due recensioni: la sua $P(\text{supported})$ di 0.85 è inferiore alla soglia elevata
-imposta dal tasso di base di RAGTruth, un caso in cui un utente che preferisca meno segnalazioni abbasserebbe la soglia.
-A parità di pesi, il token generato (B2) fornisce la lettera corretta su cinque delle sei frasi, ma sulla restante
-produce uno spazio (0.5B) o la parola ``We'' (3B) al posto di un verdetto. Gli encoder binari separano bene i due errori,
-ma respingono anche le frasi~5 o~6, che riassumono le recensioni con parole diverse; Rizzo-Flow accetta ogni frase. I
-giudici generativi falliscono nei modi quantificati nel Capitolo~\ref{sec:results}, come mostrano gli output grezzi
-riportati di seguito.
+GroundOne 0.5B classifica correttamente tutte e sei le frasi. La contraddizione nella frase~3 viene colta con una
+$P(\text{supported})$ calibrata di 0.50: ben sotto la soglia, ma lontana dalla certezza, ed è esattamente ciò che una
+probabilità calibrata dovrebbe esprimere per una frase corretta in tutto tranne che in un giorno della settimana. Anche
+GroundOne 3B coglie entrambi gli errori, ma restituisce come non menzionata la frase~6, una generalizzazione tratta dalle
+due recensioni: la sua $P(\text{supported})$ di 0.85 è inferiore alla soglia elevata imposta dal tasso di base di
+RAGTruth, un caso in cui un utente che preferisce meno segnalazioni abbasserebbe la soglia. A parità di pesi, il token
+generato (B2) dà la lettera corretta su cinque frasi su sei, ma sulla restante produce uno spazio (0.5B) o la parola
+``We'' (3B) al posto di un verdetto. Gli encoder binari separano bene i due errori, ma respingono anche le frasi~5 o~6,
+che riassumono le recensioni con parole diverse; Rizzo-Flow accetta tutte le frasi. I giudici generativi falliscono nei
+modi quantificati nel Capitolo~\ref{sec:results}, come mostrano gli output grezzi che seguono.
 
 \section{Output grezzi}
 
-\paragraph{GroundOne 0.5B (JSON restituito, abbreviato).} Un unico passaggio in avanti su 1{,}193 token di input, nessun
-token generato, 0.47 secondi (2.6 secondi per il 3B):
+\paragraph{GroundOne 0.5B (JSON restituito, abbreviato).} Un unico forward pass su 1{,}193 token di input, nessun token
+generato, 0.47 secondi (2.6 secondi per il 3B):
 {\footnotesize
 \begin{verbatim}
 {"design": "b", "threshold": 0.935, "n_decisions": 6,
@@ -99,7 +98,7 @@ token generato, 0.47 secondi (2.6 secondi per il 3B):
 \end{verbatim}
 }
 
-\paragraph{Giudice sintetico 3B.} Una riga per frase, come richiesto, ma con lettere errate per quattro frasi:
+\paragraph{Giudice sintetico 3B.} Una riga per frase, come richiesto, ma con la lettera sbagliata in quattro frasi:
 {\footnotesize
 \begin{verbatim}
 1: B
@@ -111,9 +110,9 @@ token generato, 0.47 secondi (2.6 secondi per il 3B):
 \end{verbatim}
 }
 
-\paragraph{Giudice verboso 3B (primi tre verdetti).} Il ragionamento riformula la frase e cita il documento come
-supporto anche per la frase contraddetta e per quella non supportata, e ogni verdetto è ``A''. I verdetti sono scritti su
-una riga separata anziché sulla stessa riga, come chiedeva l'istruzione, per cui il protocollo li conta come errori di
+\paragraph{Giudice verboso 3B (primi tre verdetti).} Il ragionamento riformula la frase e cita il documento a
+sostegno anche della frase contraddetta e di quella non supportata, e tutti i verdetti sono ``A''. I verdetti compaiono
+su una riga a sé anziché sulla stessa riga richiesta dall'istruzione, per cui il protocollo li conta come errori di
 formato:
 {\footnotesize
 \begin{verbatim}
@@ -132,8 +131,8 @@ Verdict: A
 
 \paragraph{Giudice verboso 0.5B.} Ricopia le sei frasi, numerate, senza alcun verdetto.
 
-\paragraph{Giudice a parità di output 3B, probabilità espresse a parole.} Le probabilità sono tutte one-hot, e per le
-frasi~3 e~6 l'etichetta dichiarata (C) contraddice le probabilità dichiarate, che concentrano tutta la massa su A:
+\paragraph{Giudice a parità di output 3B, probabilità espresse a parole.} Le probabilità sono tutte one-hot e, per le
+frasi~3 e~6, l'etichetta dichiarata (C) contraddice le probabilità dichiarate, che assegnano tutta la massa ad A:
 {\footnotesize
 \begin{verbatim}
 {"1": {"label": "A", "p": [1.0, 0.0, 0.0]},

@@ -3,73 +3,74 @@
 
 % Source notes: Project/docs/thesis_notes.md (Ch. 3), Project/docs/dataset_plan.md §8, implementation_plan.md §4.
 
-GroundOne è un modello linguistico compatto impiegato come System One: legge una sola volta un documento e una
-risposta e restituisce un verdetto per ciascuna frase valutata della risposta, leggendo i logit di poche lettere di
-risposta senza generare testo. Questo capitolo descrive la decisione che il modello prende, il prompt che raccoglie
-tutte le decisioni di una risposta in un solo passaggio in avanti, l'obiettivo di addestramento, la calibrazione delle
-probabilità di output, la regola che trasforma le probabilità in etichette restituite e il software che realizza
-l'insieme.
+GroundOne è un modello linguistico compatto usato come System One: legge una sola volta il documento e la risposta e,
+senza generare testo, emette un verdetto per ciascuna frase valutata della risposta, ricavandolo dai logit di poche
+lettere di risposta. Il capitolo descrive la decisione che il modello prende, il prompt che raccoglie in un unico
+forward pass tutte le decisioni relative a una risposta, l'obiettivo di addestramento, la calibrazione delle
+probabilità in uscita, la regola che converte le probabilità nelle etichette restituite e il software che implementa il
+tutto.
 
-\section{Compito e decisione}
+\section{Task e decisione}
 \label{sec:method-task}
 
-Per ogni frase di una risposta GroundOne prende una decisione fra tre classi, definite nella
-Sezione~\ref{sec:data-task}: rispetto al documento, la frase è \emph{supportata}, \emph{contraddetta} o \emph{non
-menzionata}. Le tre classi corrispondono alle lettere A, B e C, e il modello produce una probabilità per ciascuna di
-esse. Il punteggio binario di groundedness e le regole stretta e permissiva non costituiscono domande separate poste al
-modello: vengono ricavati da queste tre probabilità, cosicché un unico passaggio in avanti serve ogni utilizzo. Chiedere
-direttamente le regole non porterebbe alcun vantaggio. Ciascuna di esse è infatti una funzione deterministica della
-classe assegnata nella decisione a tre classi; domande separate moltiplicherebbero quindi le decisioni senza aggiungere informazione e
-potrebbero fornire al modello obiettivi incoerenti per la stessa frase.
+Per ogni frase di una risposta GroundOne sceglie fra tre classi, definite nella Sezione~\ref{sec:data-task}: rispetto
+al documento, la frase è \emph{supportata}, \emph{contraddetta} o \emph{non menzionata}. Alle tre classi corrispondono
+le lettere A, B e C, e il modello restituisce una probabilità per ciascuna. Il punteggio binario di groundedness e le
+policy strict e lenient non sono domande distinte poste al modello, ma vengono calcolati a partire da queste tre
+probabilità, cosicché un unico forward pass basta per ogni utilizzo. Interrogare il modello direttamente sulle policy
+non porterebbe nulla: ciascuna è una funzione deterministica della classe a tre vie, per cui domande separate
+moltiplicherebbero le decisioni senza aggiungere informazione e potrebbero fornire al modello obiettivi di
+addestramento incoerenti per la stessa frase.
 
-\section{Leggere tutti i verdetti in un solo passaggio in avanti}
+\section{Tutti i verdetti in un solo forward pass}
 \label{sec:method-readout}
 
-Il prompt contiene una breve istruzione, il documento e la risposta. Ogni frase della risposta è numerata, e ogni frase
-a cui è associata una decisione è seguita da un marcatore, la stringa ``\texttt{~Verdict:}''. Le frasi prive di
-contenuto verificabile (Sezione~\ref{sec:data-construction}) restano nel testo come contesto ma non ricevono alcun
-marcatore. Il modello elabora l'intera sequenza una sola volta; in corrispondenza dell'ultimo token di ciascun
-marcatore si leggono i logit delle lettere A, B e C, normalizzati con una softmax ristretta a queste tre lettere. Poiché
-un decoder presta attenzione soltanto alle posizioni precedenti, il verdetto sulla frase $i$ dipende dal documento e
-dalle frasi $1, \dots, i$, ed è proprio ciò che la verifica richiede: i riferimenti, come i pronomi, rimandano
-all'indietro. Nulla di quanto segue l'ultimo marcatore influisce sui verdetti, perciò la sequenza termina lì.
+Il prompt contiene una breve istruzione, il documento e la risposta. Le frasi della risposta sono numerate, e ognuna di
+quelle a cui è associata una decisione è seguita da un marker, la stringa ``\texttt{~Verdict:}''. Le frasi prive di
+contenuto verificabile (Sezione~\ref{sec:data-construction}) restano nel testo come contesto, ma senza marker. Il
+modello elabora l'intera sequenza una sola volta: sull'ultimo token di ciascun marker si leggono i logit delle lettere
+A, B e C, normalizzati con una softmax ristretta a queste tre lettere. Poiché in un decoder ogni posizione vede
+soltanto quelle precedenti, il verdetto sulla frase $i$ dipende dal documento e dalle frasi $1, \dots, i$, ed è
+esattamente ciò che serve alla verifica, dato che i riferimenti, come i pronomi, puntano all'indietro. Quanto segue
+l'ultimo marker non influisce su alcun verdetto, quindi la sequenza si chiude lì.
 
-Due accorgimenti rendono la lettura dei logit (readout) efficiente ed esatta. In primo luogo, il prompt si costruisce
-tokenizzando separatamente le sue parti e concatenandole, così che la posizione di ogni marcatore sia nota con esattezza
-e coincida fra addestramento e inferenza. In secondo luogo, la proiezione sul vocabolario viene applicata soltanto nelle
-posizioni dei marcatori. Il corpo del transformer opera sull'intera sequenza, ma la grande matrice del vocabolario viene
-moltiplicata solo per i pochi stati nascosti che vengono letti.
+Due accorgimenti rendono il readout efficiente ed esatto. Anzitutto il prompt viene costruito tokenizzando
+separatamente le sue parti e concatenandole, così che la posizione di ogni marker sia nota con esattezza e resti
+identica in addestramento e in inferenza. In secondo luogo, la proiezione di output sul vocabolario si applica solo
+nelle posizioni dei marker: il corpo del transformer elabora l'intera sequenza, ma la grande matrice del vocabolario
+viene moltiplicata soltanto per i pochi stati nascosti effettivamente letti.
 
-Questa scelta determina il costo di una verifica. Se $S$ è la lunghezza di documento e risposta, $K$ il numero di
-decisioni e $m$ la lunghezza in token di un marcatore, il System One richiede un unico prefill di $S + K m$ token. Un
-giudice generativo deve invece anche decodificare i propri verdetti: con $n$ token per verdetto e un tempo di decodifica
-per token $t_\mathrm{dec}$, il suo costo è all'incirca $\mathrm{prefill}(S) + K\, n\, t_\mathrm{dec}$. Poiché $m$ vale
-tre token e, sull'hardware di riferimento, la decodifica è per token molto più lenta del prefill, il divario cresce al
-crescere di $K$. Sull'M4 impiegato in questa tesi il prefill costa circa 0.37\,ms per token con il modello 0.5B e
-2.2\,ms con il 3B, mentre la decodifica costa 5.9 e 31.8\,ms per token generato: un token decodificato costa quanto
-quattordici-sedici token elaborati in prefill. Le due fasi sollecitano inoltre l'hardware in modo diverso. Il prefill
-elabora molti token alla volta ed è limitato dal calcolo, mentre la decodifica produce un token alla volta ed è limitata
-dalla banda di memoria necessaria a leggere i pesi~\cite{pope2023scaling,patel2024splitwise}. Questa differenza
-ritorna nelle misure di energia del Capitolo~\ref{sec:results}.
+Questa scelta determina il costo di una verifica. Indicando con $S$ la lunghezza complessiva di documento e risposta,
+con $K$ il numero di decisioni e con $m$ la lunghezza in token di un marker, il System One richiede un solo prefill di
+$S + K m$ token. Un giudice generativo deve invece produrre anche i propri verdetti in fase di decoding: con $n$ token
+per verdetto e un tempo di decoding per token $t_\mathrm{dec}$, il suo costo è all'incirca
+$\mathrm{prefill}(S) + K\, n\, t_\mathrm{dec}$. Dato che $m$ vale tre token e che sull'hardware di riferimento il
+decoding è, a parità di token, molto più lento del prefill, il divario si allarga al crescere di $K$. Sull'M4 usato in
+questa tesi il prefill costa circa 0.37\,ms per token con il modello 0.5B e 2.2\,ms con il 3B, mentre il decoding costa
+5.9 e 31.8\,ms per token generato: un token in decoding costa quanto quattordici-sedici token in prefill. Le due fasi,
+inoltre, sollecitano l'hardware in modo diverso. Il prefill elabora molti token insieme ed è limitato dalla capacità di
+calcolo, mentre il decoding produce un token alla volta ed è limitato dalla banda necessaria a leggere i
+pesi~\cite{pope2023scaling,patel2024splitwise}. La differenza riemerge nelle misure di energia del
+Capitolo~\ref{sec:results}.
 
-Una seconda soluzione legge una sola volta il prefisso condiviso e aggiunge poi una breve domanda per ciascuna frase,
-valutando le domande in batch. Essa richiede una cache chiave-valore (KV cache) replicata $K$ volte, mentre la soluzione
-a marcatori richiede un solo passaggio. Questa seconda soluzione è mantenuta come ripiego ed è il formato naturale per un
-modello non addestrato, che comprende una domanda esplicita ma non ha motivo di interpretare un marcatore come tale; per
-questa ragione è utilizzata dalla baseline non addestrata (Sezione~\ref{sec:setup-baselines}).
+Una seconda soluzione legge una sola volta il prefisso condiviso e vi accoda poi una breve domanda per ogni frase,
+valutando le domande in batch. Richiede però una KV cache replicata $K$ volte, mentre la soluzione a marker si
+accontenta di un solo passaggio. È mantenuta come alternativa di riserva ed è il formato naturale per un modello non
+addestrato, che comprende una domanda esplicita ma non ha motivo di interpretare un marker come tale; per questo è il
+formato usato dalla baseline non addestrata (Sezione~\ref{sec:setup-baselines}).
 
-\paragraph{Un classificatore, non un generatore più veloce.} Il readout restringe la decisione a tre lettere, e questa
-restrizione è rilevante. Dopo il marcatore, il modello addestrato non scriverebbe la lettera che viene letta: il token
-successivo più probabile è la stessa lettera preceduta da uno spazio, e le tre lettere del readout raccolgono insieme
-solo circa il 4--5\,\% della massa di probabilità in corrispondenza dei marcatori. L'addestramento con una funzione di
-perdita (loss) ristretta a queste lettere modella i loro logit relativi, non la loro probabilità assoluta, cosicché il
-readout si comporta come un classificatore a tre classi posto sopra il modello linguistico. È questo che definisce un
-System One: la risposta non viene mai decodificata, ma scelta fra le opzioni ammissibili. Ciò richiama anche
-l'osservazione secondo cui la probabilità del primo token di risposta e la risposta effettivamente scritta da un
-modello possono divergere~\cite{wang2024myanswerc}, e quella secondo cui la scelta fra lettere porta con sé distorsioni
-di selezione~\cite{zheng2024mcq}, che un readout specializzato e calibrato deve assorbire. Un esperimento di controllo,
-che con gli stessi pesi e lo stesso passaggio prende il token che la generazione emetterebbe al posto del readout
-ristretto, quantifica la differenza (Sezione~\ref{sec:results-readout}).
+\paragraph{Un classificatore, non un generatore più veloce.} Il readout restringe la decisione a tre lettere, e la
+restrizione non è un dettaglio. Dopo il marker, il modello sottoposto a fine-tuning non scriverebbe la lettera che viene
+letta: il suo token successivo più probabile è la stessa lettera preceduta da uno spazio, e le tre lettere del readout
+raccolgono insieme appena il 4--5\,\% circa della massa di probabilità in corrispondenza dei marker. Addestrare con una
+loss ristretta a queste lettere modella i loro logit relativi, non la loro probabilità assoluta, e il readout si
+comporta quindi come un classificatore a tre classi innestato sul modello linguistico. È questo a definire un System
+One: la risposta non passa mai per il decoding, ma viene scelta fra le opzioni ammissibili. Il fenomeno richiama anche
+l'osservazione che la probabilità del primo token di risposta e la risposta effettivamente scritta dal modello possono
+non coincidere~\cite{wang2024myanswerc}, e che la scelta fra lettere è soggetta a bias di selezione~\cite{zheng2024mcq}:
+un readout specializzato e calibrato deve assorbire entrambi gli effetti. Un esperimento di controllo che, con gli
+stessi pesi e lo stesso passaggio, prende al posto del readout ristretto il token che la generazione emetterebbe ne
+quantifica la differenza (Sezione~\ref{sec:results-readout}).
 
 % Marker " Verdict:" = 3 tokens with the Qwen2.5 tokenizer (" Ver", "dict", ":"), verified 2026-10-07.
 % Prefill / decode speeds: Phase 0 measurements (Project/docs/phase0_report.md). Readout mass: thesis_notes.md (B2 check).
@@ -77,94 +78,89 @@ ristretto, quantifica la differenza (Sezione~\ref{sec:results-readout}).
 \section{Obiettivo di addestramento}
 \label{sec:method-training}
 
-GroundOne si ottiene da Qwen2.5-0.5B-Instruct e Qwen2.5-3B-Instruct~\cite{qwen2024qwen25} mediante adattamento a basso
-rango (LoRA)~\cite{hu2022lora}. Adattatori di rango 16, con fattore di scala 2 e dropout 0.05, sono applicati a tutti
-gli strati lineari di tutti i blocchi del transformer, poiché coprire ogni strato conta più di un rango
-elevato~\cite{dettmers2023qlora}. I pesi di base restano congelati in precisione a 8 bit. Un esempio di addestramento
-corrisponde a una risposta con tutte le sue frasi valutate, e la funzione di perdita è calcolata in corrispondenza di
-ogni marcatore della risposta.
+GroundOne si ottiene da Qwen2.5-0.5B-Instruct e Qwen2.5-3B-Instruct~\cite{qwen2024qwen25} tramite low-rank adaptation
+(LoRA)~\cite{hu2022lora}. Gli adapter, di rango 16, con fattore di scala 2 e dropout 0.05, sono applicati a tutti i
+layer lineari di tutti i blocchi transformer, poiché coprire ogni layer conta più di un rango
+elevato~\cite{dettmers2023qlora}. I pesi del modello base restano congelati in precisione a 8 bit. Un esempio di
+addestramento è una risposta con tutte le sue frasi valutate, e la loss viene calcolata su ogni marker della risposta.
 
-La funzione di perdita è un'entropia incrociata sulle sole tre lettere: il prompt non è mai supervisionato e il segnale
-di addestramento è costituito interamente dai verdetti. Poiché circa l'88\,\% delle frasi di addestramento è
-supportato, alle classi sono assegnati pesi tali che ciascuna contribuisca in egual misura alla funzione di perdita; con
-la distribuzione di addestramento ne risultano pesi di circa 0.38 per le frasi supportate, 7.5 per quelle contraddette e
-4.4 per quelle non menzionate. Senza tali pesi un modello può raggiungere una perdita bassa rispondendo quasi sempre
-``supportata''. Ne deriva una conseguenza utile: un modello che avesse appreso soltanto le frequenze delle classi
-resterebbe a una perdita di $\ln 3 \approx 1.10$, e una perdita inferiore a questo valore indica quindi che il testo
-viene effettivamente utilizzato.
+La loss è una cross-entropy calcolata sulle sole tre lettere: il prompt non viene mai supervisionato e il segnale di
+addestramento proviene interamente dai verdetti. Poiché circa l'88\,\% delle frasi del training set è supportato, le
+classi sono pesate in modo che ciascuna contribuisca in egual misura alla loss: con la distribuzione del training set
+si ottengono pesi di circa 0.38 per le frasi supportate, 7.5 per quelle contraddette e 4.4 per quelle non menzionate.
+Senza questi pesi un modello può ottenere una loss bassa rispondendo quasi sempre ``supportata''. Ne discende una
+conseguenza utile: un modello che avesse appreso soltanto le frequenze delle classi resterebbe a una loss di
+$\ln 3 \approx 1.10$, quindi una loss inferiore a questo valore indica che il testo viene effettivamente sfruttato.
 
-L'ottimizzazione impiega AdamW senza weight decay e, come nella configurazione predefinita di MLX, senza correzione del
-bias delle stime dei momenti; i gradienti non sono sottoposti a clipping. Il tasso di apprendimento (learning rate) di
-$10^{-4}$ viene raggiunto dopo un warm-up lineare sul primo 3\,\% dei passi e viene poi ridotto fino a zero con una
-schedulazione coseno, nell'arco di un'epoca sulle risposte di addestramento. Le risposte di lunghezza simile sono
-raggruppate in micro-batch entro un budget di token con padding, e i gradienti sono accumulati in modo che ogni passo
-dell'ottimizzatore veda circa 16 risposte, ossia circa 110 decisioni; in questo modo ogni passo contiene alcune frasi
-contraddette nonostante la loro rarità. Il gradient checkpointing mantiene la memoria entro i 16\,GB del portatile. Il
-modello viene valutato sull'insieme di sviluppo a intervalli regolari, e si conserva il checkpoint con la più alta
-accuratezza bilanciata a tre classi, mediata sui tre compiti. La Sezione~\ref{sec:setup-models} riporta le
-impostazioni di ciascuna esecuzione.
+L'ottimizzazione usa AdamW senza weight decay e, come nella configurazione predefinita di MLX, senza bias correction
+delle stime dei momenti; non si applica gradient clipping. Il learning rate di $10^{-4}$ viene raggiunto con un warm-up
+lineare sul primo 3\,\% dei passi e poi portato a zero con un cosine schedule, nell'arco di un'epoca sulle risposte del
+training set. Le risposte di lunghezza simile sono raggruppate in micro-batch entro un budget di token comprensivo del
+padding, e i gradienti vengono accumulati in modo che ogni passo dell'ottimizzatore veda circa 16 risposte, ovvero
+circa 110 decisioni: così ogni passo contiene qualche frase contraddetta nonostante la rarità della classe. Il gradient
+checkpointing mantiene l'occupazione di memoria entro i 16\,GB del portatile. Il modello viene valutato periodicamente
+sul dev set e si conserva il checkpoint con la balanced accuracy a tre classi più alta, mediata sui tre task. La
+Sezione~\ref{sec:setup-models} riporta le impostazioni di ciascun run.
 
 \section{Calibrazione}
 \label{sec:method-calibration}
 
-I pesi delle classi addestrano il modello come se le tre classi fossero ugualmente frequenti, sicché le sue probabilità
-grezze non sono calibrate sulla frequenza reale degli errori. Sull'insieme di sviluppo si adatta quindi una
-trasformazione a posteriori: i tre logit sono divisi per una temperatura $T$ e traslati di un bias per classe,
-$\mathrm{softmax}(z / T + b)$, con il bias della classe supportata fissato a zero, e $T$ e $b$ minimizzano la
-log-verosimiglianza negativa delle etichette di sviluppo~\cite{guo2017calibration}. Il bias svolge il ruolo della
+I pesi delle classi addestrano il modello come se le tre classi fossero ugualmente frequenti, per cui le sue
+probabilità grezze non rispecchiano la frequenza reale degli errori. Sul dev set si stima quindi una trasformazione
+post-hoc: i tre logit vengono divisi per una temperatura $T$ e traslati di un bias per classe,
+$\mathrm{softmax}(z / T + b)$, con il bias della classe supportata fissato a zero, e $T$ e $b$ sono scelti minimizzando
+la negative log-likelihood delle etichette del dev set~\cite{guo2017calibration}. Il bias svolge il ruolo della
 correzione contestuale proposta per i modelli linguistici interrogati tramite prompt~\cite{zhao2021calibrate}, qui
-stimata su dati etichettati. La sola temperatura modifica le probabilità ma non altera né la classe più probabile né
-l'ordinamento delle frasi. Il bias, invece, può cambiare la classe più probabile e, con tre classi, può anche riordinare
-leggermente $P(\text{supported})$ fra le frasi. Per questa ragione le metriche di classificazione e l'AUROC sono
-calcolate sull'output grezzo, mentre le probabilità calibrate si usano dove una probabilità deve esprimere una
-frequenza: per le metriche di calibrazione, per le soglie e per la predizione selettiva
+però stimata su dati etichettati. La sola temperatura cambia le probabilità ma non la classe più probabile né
+l'ordinamento delle frasi. Il bias, invece, può cambiare la classe più probabile e, con tre classi, può anche
+riordinare leggermente $P(\text{supported})$ fra una frase e l'altra. Per questo le metriche di classificazione e
+l'AUROC sono calcolate sull'output grezzo, mentre le probabilità calibrate si usano dove una probabilità deve
+corrispondere a una frequenza: nelle metriche di calibrazione, nelle soglie e nella selective prediction
 (Sezione~\ref{sec:results-calibration}).
 
-La calibrazione è misurata principalmente con l'errore di calibrazione atteso
-(ECE)~\cite{naeini2015ece,guo2017calibration}. Le predizioni sono suddivise, in base alla loro confidenza, in $M$
-intervalli di uguale ampiezza, con $M = 15$ in questa tesi. Per ogni intervallo $B_m$ la confidenza media
-$\mathrm{conf}(B_m)$ è confrontata con la frequenza osservata $\mathrm{acc}(B_m)$, e gli scarti sono mediati con pesi
+La calibrazione è misurata principalmente con l'Expected Calibration Error
+(ECE)~\cite{naeini2015ece,guo2017calibration}. Le predizioni vengono ripartite in base alla confidenza in $M$
+intervalli di uguale ampiezza, con $M = 15$ in questa tesi. Per ogni intervallo $B_m$ si confronta la confidenza media
+$\mathrm{conf}(B_m)$ con la frequenza osservata $\mathrm{acc}(B_m)$, e gli scarti vengono mediati con pesi
 proporzionali alla numerosità degli intervalli:
 \begin{equation}
   \mathrm{ECE} = \sum_{m=1}^{M} \frac{|B_m|}{n} \, \bigl| \mathrm{acc}(B_m) - \mathrm{conf}(B_m) \bigr| .
 \end{equation}
 Nella variante binaria la confidenza è $P(\text{supported})$ e la frequenza osservata è la quota di frasi supportate
-nell'intervallo; nella variante top-label a tre classi la confidenza è la probabilità più alta e la frequenza osservata
-è la quota di predizioni corrette. L'ECE non confronta la distribuzione delle classi predette con quella dell'insieme di
-test, ma chiede se, fra le frasi a cui il modello assegna una data confidenza, tale confidenza corrisponda alla realtà.
-Essa dipende dalla scelta degli intervalli, e un predittore costante che restituisce sempre la frequenza di base ottiene
-un ECE prossimo a zero pur non discriminando nulla. Per questi motivi l'ECE è sempre riportato insieme al punteggio di
-Brier, alla log-verosimiglianza negativa e ai diagrammi di affidabilità, mentre la capacità delle probabilità di
-separare le decisioni corrette da quelle errate è misurata a parte, con l'AUROC e con l'area sotto la curva
-rischio--copertura.
+nell'intervallo; nella variante top-label a tre classi la confidenza è la probabilità massima e la frequenza osservata
+è la quota di predizioni corrette. L'ECE non confronta la distribuzione delle classi predette con quella del test set:
+verifica se, fra le frasi a cui il modello assegna una certa confidenza, quella confidenza corrisponde alla realtà.
+Dipende dalla scelta degli intervalli, e un predittore costante che restituisce sempre la frequenza di base ottiene un
+ECE vicino a zero pur non discriminando nulla. Per questi motivi l'ECE è sempre riportato insieme al Brier score, alla
+negative log-likelihood e ai reliability diagram, mentre la capacità delle probabilità di separare le decisioni
+corrette da quelle errate si misura a parte, con l'AUROC e con l'area sotto la risk--coverage curve.
 
-\paragraph{Dalle probabilità alle etichette restituite.} Chi utilizza il verificatore vede, per ogni frase,
-un'etichetta e una probabilità, e le due devono essere coerenti. La decisione grezza, ossia la classe più probabile
-dell'output non calibrato, è quella valutata in questa tesi, ma può essere in disaccordo con la probabilità calibrata
-mostrata accanto: una frase può ricevere l'etichetta ``non menzionata'' mentre la sua $P(\text{supported})$ calibrata
-supera di poco un mezzo. L'output restituito ricava perciò ogni elemento dalle probabilità calibrate tramite un'unica
-regola. Una frase riceve l'etichetta supportata se e solo se $P(\text{supported}) \geq \tau$, e altrimenti riceve la più
-probabile fra le due classi restanti; la regola stretta segnala ogni frase non supportata, mentre la regola permissiva
-segnala soltanto quelle contraddette. La soglia $\tau$ è stimata sull'insieme di sviluppo in modo da massimizzare
-l'accuratezza bilanciata a tre classi, e l'utente può modificarla al momento della richiesta per scegliere un altro
-punto operativo senza riaddestrare il modello.
+\paragraph{Dalle probabilità alle etichette restituite.} Chi usa il verificatore vede per ogni frase un'etichetta e una
+probabilità, che devono essere coerenti tra loro. La decisione grezza, cioè la classe più probabile secondo l'output non
+calibrato, è quella valutata in questa tesi, ma può contraddire la probabilità calibrata mostrata accanto: una frase può
+essere etichettata ``non menzionata'' pur avendo una $P(\text{supported})$ calibrata di poco superiore a un mezzo.
+L'output restituito ricava quindi ogni elemento dalle probabilità calibrate con un'unica regola. Una frase è etichettata
+come supportata se e solo se $P(\text{supported}) \geq \tau$; altrimenti riceve la più probabile fra le due classi
+restanti. La policy strict segnala ogni frase non supportata, quella lenient soltanto le contraddette. La soglia $\tau$
+è stimata sul dev set in modo da massimizzare la balanced accuracy a tre classi, e l'utente può modificarla a ogni
+richiesta per scegliere un diverso punto operativo senza riaddestrare il modello.
 
 \section{Software}
 \label{sec:method-software}
 
-GroundOne è realizzato come pacchetto Python installabile basato su MLX~\cite{mlx2023,mlxlm}, il framework per array
-pensato per Apple silicon, e ogni fase di addestramento e di inferenza descritta finora viene eseguita al suo interno
-sullo stesso portatile. Il pacchetto comprende il costruttore del dataset con i relativi controlli, il ciclo di
-addestramento, la calibrazione, la valutazione sugli insiemi di test congelati, le baseline e una guardia di memoria
-che esegue i processi lunghi uno alla volta e arresta un processo prima che il sistema esaurisca la memoria. Il
-verificatore è accessibile tramite un'interfaccia a riga di comando e un server HTTP; il server offre un endpoint
-nativo e un endpoint compatibile con l'interfaccia adottata da altri modelli System One, così che i client esistenti
-possano usare GroundOne cambiando soltanto l'indirizzo. L'endpoint nativo riceve un documento e una risposta, segmenta
-la risposta con la stessa regola usata per costruire i dati, esegue l'unico passaggio in avanti della
-Sezione~\ref{sec:method-readout} e restituisce, per ogni frase, se è stata valutata, le tre probabilità calibrate,
-l'etichetta restituita, i segnali delle regole stretta e permissiva, nonché la regola di decisione e la soglia che li
-hanno prodotti; riporta inoltre il numero di token in ingresso, il numero di token generati, che è sempre zero, e il
-tempo impiegato. L'endpoint compatibile risponde a generiche domande chiuse su un contesto condiviso, con il formato a
-una domanda per frase. Tutto il calcolo del modello avviene su un unico thread di lavoro di lunga durata, perché il
-contesto Metal della GPU non deve spostarsi fra thread, e nulla lascia la macchina: modelli, dati e richieste restano
-locali.
+GroundOne è implementato come pacchetto Python installabile basato su MLX~\cite{mlx2023,mlxlm}, il framework per array
+pensato per Apple silicon, e tutte le fasi di addestramento e di inferenza descritte finora vengono eseguite al suo
+interno sullo stesso portatile. Il pacchetto comprende il costruttore del dataset con i relativi controlli, il ciclo di
+addestramento, la calibrazione, la valutazione sui test set congelati, le baseline e un meccanismo di protezione della
+memoria che esegue i processi lunghi uno alla volta e interrompe un processo prima che il sistema esaurisca la memoria.
+Il verificatore è esposto tramite un'interfaccia a riga di comando e un server HTTP; il server offre un endpoint
+nativo e un endpoint compatibile con l'interfaccia usata da altri modelli System One, così che i client esistenti
+possano adottare GroundOne cambiando soltanto l'indirizzo. L'endpoint nativo riceve un documento e una risposta,
+segmenta la risposta con la stessa regola usata per costruire i dati, esegue il singolo forward pass della
+Sezione~\ref{sec:method-readout} e riporta per ogni frase se è stata valutata, le tre probabilità calibrate,
+l'etichetta restituita, i flag delle policy strict e lenient, nonché la regola di decisione e la soglia che li hanno
+prodotti; indica inoltre il numero di token in ingresso, il numero di token generati, sempre pari a zero, e il tempo
+impiegato. L'endpoint compatibile risponde a domande chiuse generiche su un contesto condiviso, con il formato a una
+domanda per frase. Tutto il calcolo del modello avviene su un unico worker thread di lunga durata, perché il contesto
+Metal della GPU non deve spostarsi da un thread all'altro, e nulla esce dalla macchina: modelli, dati e richieste
+restano in locale.

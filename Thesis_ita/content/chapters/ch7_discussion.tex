@@ -3,124 +3,124 @@
 
 % Source notes: Project/docs/thesis_notes.md, checkpoint_2026-10-10.md (takeaways and caveats).
 
-Questo capitolo interpreta i risultati alla luce delle cinque domande di ricerca, per poi indicare ciò che gli
-esperimenti non sono in grado di dimostrare e quali scelte avrebbero potuto distorcerli.
+Questo capitolo interpreta i risultati alla luce delle cinque domande di ricerca, quindi indica ciò che gli esperimenti
+non possono dimostrare e quali scelte potrebbero averli distorti.
 
 \section{Quando conviene un System One specialista}
 \label{sec:disc-synthesis}
 
-\paragraph{Specializzazione (RQ1).} È l'addestramento sulla decisione a rendere GroundOne accurato. I modelli non
-addestrati si collocano vicino al caso, mentre gli stessi modelli dopo l'addestramento raggiungono 0.769 e 0.832 di
-accuratezza bilanciata a tre classi sull'insieme di test di RAGTruth, superando gli encoder specializzati in AUROC e un
-System One generalista otto volte più grande nell'accuratezza a tre classi. Il vantaggio si concentra là dove si trovano i
-dati di addestramento: su LLM-AggreFact il 3B è alla pari con il miglior encoder di piccole dimensioni, anziché superarlo,
-e resta al di sotto del System One chiuso Jev e di un modello aperto da 27B secondo misure indipendenti; il 0.5B rimane
-sotto l'encoder, e su VitaminC il 3B addestrato non fa meglio di quello non addestrato. Il confronto con un modello
-decisionale generalista della stessa dimensione rende esplicito il compromesso. d1-3B, già addestrato a decidere ma su
-un'ampia miscela di compiti, è nettamente dietro GroundOne su RAGTruth, soprattutto sulle risposte lunghe, alla pari con
-il 3B su LLM-AggreFact e nettamente avanti su VitaminC. Uno specialista è quindi una scelta solida per il dominio su cui è
-stato addestrato e un debole verificatore di fatti generale: la specializzazione garantisce accuratezza e robustezza sulle
-risposte lunghe nel proprio dominio al prezzo del trasferimento, mentre ciò che migliora il trasferimento al di fuori di
-esso è la dimensione del modello, oppure un'ampia miscela di addestramento.
+\paragraph{Specializzazione (RQ1).} A rendere GroundOne accurato è l'addestramento sulla decisione. I modelli non
+addestrati restano vicini al caso, mentre gli stessi modelli, una volta addestrati, raggiungono sul test set di RAGTruth
+una balanced accuracy a tre classi di 0.769 e 0.832, superando in AUROC gli encoder specializzati e, in accuratezza a tre
+classi, un System One generalista otto volte più grande. Il vantaggio si concentra dove si trovano i dati di
+addestramento: su LLM-AggreFact il 3B si porta alla pari con il miglior encoder di piccole dimensioni, senza superarlo, e
+resta sotto il System One chiuso Jev e un modello aperto da 27B, misurati in modo indipendente; il 0.5B rimane al di sotto
+dell'encoder e, su VitaminC, il 3B addestrato non fa meglio di quello non addestrato. Il confronto con un decision model
+generalista della stessa dimensione rende esplicito il compromesso. d1-3B, già addestrato a decidere ma su un'ampia
+miscela di task, è molto lontano da GroundOne su RAGTruth, soprattutto sulle risposte lunghe, alla pari con il 3B su
+LLM-AggreFact e nettamente superiore su VitaminC. Uno specialista è dunque una scelta solida per il dominio su cui è stato
+addestrato, ma uno strumento debole per la verifica dei fatti in generale: la specializzazione garantisce accuratezza e
+robustezza sulle risposte lunghe all'interno del dominio a scapito del trasferimento, mentre fuori dal dominio sono la
+dimensione del modello, oppure un'ampia miscela di addestramento, a migliorare il trasferimento.
 
-\paragraph{Readout contro generazione (RQ2).} Il meccanismo System One contribuisce in due modi distinti. Il primo è il
-costo: un solo passaggio sulla risposta sostituisce la generazione di $K$ verdetti, per cui il tempo risparmiato cresce
-con la lunghezza della risposta, fino a un fattore di circa due rispetto a un giudice sintetico e di sei rispetto a uno
-verboso per risposte di quattordici o più frasi. Il secondo, che questa tesi non si attendeva, è l'accuratezza. A parità
-di pesi e di costo, decidere tra le tre lettere ammissibili è più accurato che prendere il token che il modello
-genererebbe, di 0.25 per il 0.5B e di 0.07 per il 3B. Un System One addestrato va dunque inteso più come un classificatore
-a tre classi posto sopra un modello linguistico che come un generatore che si arresta dopo un token, e questa distinzione
-conta soprattutto per i modelli piccoli, che sono quelli alla portata di un portatile. Il confronto con i giudici
-generativi, infine, misura anche l'addestramento: i giudici non sono addestrati, perciò le ampie differenze di accuratezza
-tra essi e GroundOne vanno lette come l'effetto combinato della specializzazione e del readout (la lettura dei logit).
+\paragraph{Readout e generazione a confronto (RQ2).} Il meccanismo System One contribuisce in due modi distinti. Il primo
+riguarda il costo: un solo forward pass sulla risposta sostituisce la generazione di $K$ verdetti, per cui il tempo
+risparmiato cresce con la lunghezza della risposta, fino a un fattore di circa due rispetto a un giudice sintetico e di sei
+rispetto a uno verboso per risposte di quattordici o più frasi. Il secondo, che questa tesi non aveva previsto, riguarda
+l'accuratezza. A parità di pesi e di costo, scegliere tra le tre lettere ammissibili è più accurato che prendere il token
+che il modello genererebbe, con un guadagno di 0.25 per il 0.5B e di 0.07 per il 3B. Un System One sottoposto a
+fine-tuning si comprende meglio come un classificatore a tre classi innestato su un modello linguistico che come un
+generatore che si ferma dopo un token; la distinzione pesa soprattutto per i modelli piccoli, cioè proprio quelli che un
+portatile può permettersi. Il confronto con i giudici generativi, infine, misura anche l'effetto dell'addestramento:
+poiché i giudici non sono addestrati, le ampie differenze di accuratezza rispetto a GroundOne vanno lette come l'effetto
+congiunto di specializzazione e readout.
 
-\paragraph{Calibrazione (RQ3).} Una temperatura e un bias stimati sui dati di sviluppo fanno sì che le probabilità
-corrispondano alle frequenze osservate sull'insieme di test dello stesso dominio, e le probabilità calibrate rendono
-efficace la predizione selettiva. Due lezioni vanno oltre GroundOne. In primo luogo, l'errore di calibrazione atteso, da
-solo, non basta a ordinare i sistemi: dopo la stessa calibrazione, giudici le cui probabilità separano a malapena le
-classi raggiungono lo stesso ECE di GroundOne, e soltanto l'AUROC e la curva rischio--copertura rivelano la differenza. In
-secondo luogo, decisioni e probabilità devono essere ricavate in modo coerente: la classe calibrata più probabile
-collassa verso la classe maggioritaria, mentre una soglia stimata sui dati di sviluppo recupera la decisione bilanciata e
-mantiene l'etichetta coerente con la probabilità mostrata all'utente. La calibrazione è valida soltanto per la
-distribuzione su cui è stata stimata, come mostrano i risultati su VitaminC.
+\paragraph{Calibrazione (RQ3).} Una temperatura e un bias stimati sul dev set allineano le probabilità alle frequenze
+osservate sul test set dello stesso dominio, e le probabilità calibrate rendono efficace la selective prediction. Due
+indicazioni valgono al di là di GroundOne. In primo luogo, l'Expected Calibration Error da solo non basta a ordinare i
+sistemi: dopo la stessa calibrazione, giudici le cui probabilità separano a malapena le classi raggiungono lo stesso ECE di
+GroundOne, e soltanto l'AUROC e la risk--coverage curve ne rivelano la differenza. In secondo luogo, decisioni e
+probabilità vanno ricavate in modo coerente: la classe calibrata più probabile collassa verso la classe maggioritaria,
+mentre una soglia stimata sul dev set recupera la decisione bilanciata e mantiene l'etichetta coerente con la probabilità
+mostrata all'utente. La calibrazione, come mostrano i risultati su VitaminC, vale soltanto per la distribuzione su cui è
+stata stimata.
 
-\paragraph{Costo sul dispositivo (RQ4).} Il verificatore trova agevolmente posto nel portatile da 16\,GB:
-l'addestramento raggiunge picchi di 2.6 e 5.9\,GB, e la verifica di una risposta lunga richiede 0.41 secondi con il 0.5B e
-2.57 con il 3B, con un'energia di 5.5 e 33 joule. Il 0.5B rispetta un budget interattivo; il 3B, per una risposta tipica,
-è più lento di un obiettivo interattivo e scambia tempo con accuratezza. Le misure di energia precisano i risultati sulla
-velocità: un singolo prefill lungo assorbe più potenza della decodifica token per token, sicché l'energia risparmiata è
-inferiore al tempo risparmiato, e la velocità non va interpretata come un risparmio equivalente di batteria. La memoria
-necessaria quando il verificatore gira accanto a un generatore e a un retriever non è stata misurata.
+\paragraph{Costo sul dispositivo (RQ4).} Il verificatore sta comodamente nel portatile da 16\,GB: l'addestramento ha
+picchi di 2.6 e 5.9\,GB, e verificare una risposta lunga richiede 0.41 secondi con il 0.5B e 2.57 con il 3B, con un
+consumo di 5.5 e 33 joule. Il 0.5B rientra in un budget interattivo; il 3B, su una risposta tipica, è più lento di quanto
+un uso interattivo richiederebbe e scambia tempo con accuratezza. Le misure di energia precisano la portata dei risultati
+sulla velocità: un singolo prefill lungo assorbe più potenza del decoding token per token, per cui l'energia risparmiata
+è inferiore al tempo risparmiato, e la maggiore velocità non va letta come un risparmio equivalente di batteria. Non è
+stata misurata la memoria necessaria quando il verificatore gira accanto a un generatore e a un retriever.
 
-\paragraph{Oltre un punteggio binario (RQ5).} L'output a tre classi separa bene le frasi contraddette da quelle non
+\paragraph{Oltre un punteggio binario (RQ5).} L'output a tre classi distingue bene le frasi contraddette da quelle non
 menzionate nel data-to-text, dove RAGTruth concentra le proprie contraddizioni, e molto meno nel question answering e nella
-sintesi, dove le contraddizioni sono rare nei dati di addestramento. Il 3B migliora considerevolmente questo aspetto, il
-che suggerisce che al modello piccolo manchino contraddizioni più varie in addestramento, più che un'architettura diversa.
-Poiché le politiche rigorosa e permissiva e la soglia derivano dalle stesse tre probabilità, un utente può modificare la
-nozione di errore senza riaddestrare il modello, cosa che nessun verificatore binario consente.
+summarization, dove nei dati di addestramento le contraddizioni sono rare. Il 3B migliora sensibilmente su questo fronte,
+il che suggerisce che al modello piccolo manchino, più che un'architettura diversa, contraddizioni più varie in
+addestramento. Poiché le policy strict e lenient e la soglia derivano dalle stesse tre probabilità, l'utente può
+cambiare la nozione di errore senza riaddestrare il modello, cosa che nessun verificatore binario consente.
 
 \section{Limiti}
 \label{sec:disc-limitations}
 
-\paragraph{Una sola piattaforma e una sola famiglia di modelli.} Ogni risultato proviene da un unico portatile, un unico
-runtime e un'unica famiglia di modelli. Latenza ed energia dipendono dall'hardware e dall'implementazione, e ciò che
-dovrebbe trasferirsi sono i rapporti tra i metodi, non i valori assoluti. Non si effettua alcun confronto di latenza con
-gli encoder o con il System One generalista, perché questi sono stati eseguiti in runtime diversi e in condizioni che
+\paragraph{Una sola piattaforma e una sola famiglia di modelli.} Tutti i risultati provengono da un unico portatile, un
+unico runtime e un'unica famiglia di modelli. Latenza ed energia dipendono dall'hardware e dall'implementazione: ciò che
+dovrebbe valere anche altrove sono i rapporti tra i metodi, non i valori assoluti. Non si confronta la latenza con gli
+encoder né con il System One generalista, perché questi sono stati eseguiti in runtime diversi e in condizioni che
 renderebbero il confronto iniquo.
 
-\paragraph{Stabilità dell'addestramento.} Le due esecuzioni complete del 0.5B concordano su tutte le metriche aggregate,
-ma una terza esecuzione è andata precocemente in collasso ed è stata interrotta. La procedura non prevede clipping del
-gradiente e usa Adam senza correzione del bias, entrambe cause note di fine-tuning
-instabile~\cite{pascanu2013difficulty,mosbach2021stability}, per cui ciascuna delle due potrebbe spiegare il collasso; nessuna delle
-due ipotesi è stata verificata. Il 3B è stato addestrato una sola volta, su metà delle risposte di addestramento, e la sua
-varianza rispetto al seed è ignota.
+\paragraph{Stabilità dell'addestramento.} Due run completi del 0.5B concordano su tutte le metriche aggregate, ma un
+terzo run è collassato nelle prime fasi ed è stato interrotto. La ricetta di addestramento non prevede gradient clipping
+e usa Adam senza bias correction, due cause note di fine-tuning
+instabile~\cite{pascanu2013difficulty,mosbach2021stability}: l'una o l'altra potrebbe spiegare il collasso, ma nessuna
+delle due ipotesi è stata verificata. Il 3B è stato addestrato una sola volta, su metà delle risposte di addestramento, e
+la sua variabilità al cambiare del seed è ignota.
 
 \paragraph{Dati di addestramento.} RAGTruth è l'unica fonte di addestramento. Le sue contraddizioni sono concentrate nel
-data-to-text, e al di fuori di questo compito vengono apprese solo in parte. I modelli si affidano inoltre in parte alla
-sovrapposizione lessicale: un supporto parafrasato appare non supportato, e una piccola modifica in una frase che per il
-resto copia la fonte passa spesso inosservata. Questo punto cieco si riduce con la dimensione del modello, ma resta il
-limite principale di entrambi i modelli.
+data-to-text e, al di fuori di questo task, vengono apprese solo in parte. I modelli si affidano inoltre in parte alla
+sovrapposizione lessicale: quando il supporto è espresso con parole diverse la frase appare non supportata, e una piccola
+modifica in una frase che per il resto copia la fonte passa spesso inosservata. Questo punto cieco si riduce al crescere
+del modello, ma resta il limite principale di entrambi.
 
 \paragraph{Ambito della decisione.} La verifica avviene frase per frase e soltanto rispetto al documento recuperato. Una
-frase vera nel mondo ma assente dal documento conta come non menzionata, il che è il comportamento corretto per la
-groundedness ma non per la verifica dei fatti. Le frasi prive di contenuto verificabile sono escluse da una regola, e la
-segmentazione stessa può dividere o unire le affermazioni in modo diverso da un lettore umano. Il verdetto su una frase
-dipende soltanto dal documento e dalle frasi che la precedono.
+frase vera nel mondo ma assente dal documento conta come non menzionata: è il comportamento corretto per la groundedness,
+non per la verifica dei fatti. Le frasi prive di contenuto verificabile vengono escluse da una regola, e la segmentazione
+stessa può dividere o accorpare le affermazioni diversamente da un lettore umano. Il verdetto su una frase dipende
+soltanto dal documento e dalle frasi che la precedono.
 
-\paragraph{Ambito statistico.} Gli intervalli bootstrap descrivono la variabilità dei dati di test, non quella
-dell'addestramento, e circa cinquanta confronti sono stati sottoposti a test senza correzione per i test multipli. Le
-conclusioni poggiano pertanto su effetti ben lontani dallo zero, e non si rivendicano differenze su LLM-AggreFact e
-VitaminC inferiori alla dispersione tra seed. Diverse baseline sono state valutate su sottocampioni, il che ne allarga gli
+\paragraph{Portata statistica.} Gli intervalli bootstrap descrivono la variabilità del test set, non quella
+dell'addestramento, e circa cinquanta confronti sono stati sottoposti a test senza correzione per confronti multipli. Le
+conclusioni poggiano quindi su effetti ben lontani dallo zero, e non si rivendicano differenze su LLM-AggreFact e VitaminC
+inferiori alla dispersione tra seed. Diverse baseline sono state valutate su sottocampioni, il che ne allarga gli
 intervalli.
 
 \section{Minacce alla validità}
 \label{sec:disc-threats}
 
-\paragraph{Etichette.} La distinzione tra contraddetta e non menzionata si fonda sugli annotatori di RAGTruth, il cui
-accordo sul tipo di allucinazione non è pubblicato, e una recente riannotazione della partizione di test di RAGTruth ha
-individuato un numero considerevolmente maggiore di risposte allucinate rispetto alle etichette
-originali~\cite{yu2026retromorphic}. L'insieme di test potrebbe quindi sottostimare le classi minoritarie. Per questo
-motivo i risultati a tre classi su RAGTruth vanno sempre letti insieme a quelli su VitaminC, le cui etichette hanno un
-accordo misurato. LLM-AggreFact unifica le etichette di undici dataset di qualità diversa, e alcune delle sue colonne sono
+\paragraph{Etichette.} La distinzione tra frase contraddetta e non menzionata si basa sugli annotatori di RAGTruth, il
+cui accordo sul tipo di allucinazione non è pubblicato; inoltre, una recente riannotazione della partizione di test di
+RAGTruth ha individuato un numero di risposte allucinate considerevolmente superiore a quello indicato dalle etichette
+originali~\cite{yu2026retromorphic}. Il test set potrebbe quindi sottostimare le classi minoritarie. Per questo i
+risultati a tre classi su RAGTruth vanno sempre letti insieme a quelli su VitaminC, le cui etichette hanno un accordo
+misurato. LLM-AggreFact unifica le etichette di undici dataset di qualità diversa, e alcune delle sue colonne sono
 notoriamente rumorose.
 
-\paragraph{Vantaggio nel dominio.} GroundOne è addestrato su RAGTruth, per cui i suoi risultati sull'insieme di test di
-RAGTruth e sulla colonna RAGTruth di LLM-AggreFact lo favoriscono rispetto a sistemi addestrati altrove; per converso,
-VitaminC rientra nella genealogia di addestramento di MiniCheck-RoBERTa. Ogni confronto è riportato con la relativa
-avvertenza, e le affermazioni poggiano sull'andamento complessivo nei tre insiemi di test piuttosto che su uno solo.
+\paragraph{Vantaggio nel dominio.} GroundOne è addestrato su RAGTruth, per cui i suoi risultati sul test set di RAGTruth e
+sulla colonna RAGTruth di LLM-AggreFact lo avvantaggiano rispetto a sistemi addestrati altrove; per contro, VitaminC fa
+parte della genealogia dei dati di addestramento di MiniCheck-RoBERTa. Ogni confronto è riportato con la relativa
+avvertenza, e le conclusioni poggiano sull'andamento complessivo nei tre test set anziché su uno solo.
 
-\paragraph{Configurazione delle baseline.} I giudici generativi sono sensibili ai prompt. I loro prompt sono stati fissati
-prima di esaminare i risultati di test, e il prompt del giudice a parità di output è stato scelto sui dati di sviluppo
-unicamente in base alla validità del formato; l'interpretazione dell'output è stata permissiva a loro favore; la
-decodifica non era vincolata da una grammatica, il che incide soprattutto sugli errori di formato del modello più piccolo.
-Non è stato valutato un giudice addestrato sugli stessi dati, né un giudice più grande, per cui il confronto misura ciò
-che offre un giudice della stessa dimensione senza addestramento. Il System One generalista è stato eseguito con pesi a 4
-bit perché il modello a 8 bit non trovava posto accanto al sistema operativo, il che potrebbe sottostimarne
-l'accuratezza. Il modello decisionale generalista d1-3B è stato eseguito zero-shot con le domande usate per tutte le
-baseline System One, che potrebbero non essere la formulazione a esso più congeniale, e su un sottocampione di
-LLM-AggreFact.
+\paragraph{Configurazione delle baseline.} I giudici generativi sono sensibili al prompt. I loro prompt sono stati
+fissati prima di esaminare i risultati di test, e quello del giudice a parità di output è stato scelto sul dev set
+unicamente in base alla validità del formato; il parsing dell'output è stato permissivo, a loro vantaggio; il decoding
+non era vincolato da una grammatica, il che incide soprattutto sugli errori di formato del modello più piccolo. Non sono
+stati valutati né un giudice sottoposto a fine-tuning sugli stessi dati né un giudice più grande: il confronto misura
+dunque ciò che offre, senza addestramento, un giudice della stessa dimensione. Il System One generalista è stato eseguito
+con pesi a 4 bit perché il modello a 8 bit non trovava posto accanto al sistema operativo, il che potrebbe sottostimarne
+l'accuratezza. Il decision model generalista d1-3B è stato eseguito zero-shot, con le domande usate per tutte le baseline
+System One, che potrebbero non essere la formulazione a esso più congeniale, e su un sottocampione di LLM-AggreFact.
 
-\paragraph{Contaminazione.} I modelli di base sono stati preaddestrati su ampi corpora web che potrebbero includere parti
-degli insiemi di test pubblici. Poiché gli stessi modelli di base sono usati senza addestramento come baseline e
-raggiungono un'accuratezza vicina al caso sul compito a tre classi, la contaminazione non può spiegare i guadagni
-dell'addestramento, ma per i valori assoluti non può essere esclusa del tutto.
+\paragraph{Contaminazione.} I modelli base sono stati preaddestrati su ampi corpora web che potrebbero includere parti dei
+test set pubblici. Poiché gli stessi modelli base, usati senza addestramento come baseline, raggiungono un'accuratezza
+vicina al caso sul task a tre classi, la contaminazione non può spiegare i guadagni dovuti all'addestramento; per i
+valori assoluti, tuttavia, non può essere esclusa del tutto.

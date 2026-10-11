@@ -1,49 +1,48 @@
 % STATUS: version with results (2026-10-10). Numbers: Project/docs/checkpoint_2026-10-10.md.
 
-La generazione aumentata dal recupero (RAG) è il modo ormai consueto per dare ai modelli linguistici accesso a documenti
-privati, e l'esecuzione dell'intera pipeline sul dispositivo dell'utente è oggi praticabile su hardware di consumo, con
-vantaggi per la riservatezza, l'uso offline e i costi. Il recupero, tuttavia, non elimina l'allucinazione: le risposte
-generate contengono ancora frasi che il contesto recuperato non supporta o che lo contraddicono. Individuarle è un
-prerequisito per assistenti locali affidabili e, poiché il controllo deve essere eseguito su ogni risposta, esso deve
-trovare posto sulla stessa macchina dalle risorse limitate che ospita il generatore.
+La retrieval-augmented generation (RAG) è ormai il modo standard per dare ai modelli linguistici accesso a documenti
+privati, e oggi l'intera pipeline può essere eseguita sul dispositivo dell'utente con hardware di fascia consumer, a
+vantaggio della privacy, dell'uso offline e dei costi. Il recupero dei documenti, tuttavia, non elimina le allucinazioni:
+le risposte generate contengono ancora frasi che il contesto recuperato non supporta o che lo contraddicono. Individuarle
+è un prerequisito per assistenti locali affidabili e, poiché il controllo va eseguito su ogni risposta, deve trovare
+posto sulla stessa macchina, dalle risorse limitate, che ospita il generatore.
 
-La verifica segue oggi due paradigmi. I verificatori basati su encoder, come AlignScore, MiniCheck e HHEM, sono piccoli
-e veloci, ma restituiscono un unico punteggio fisso per ogni coppia di documento e frase. I giudici generativi sono
-flessibili, ma scrivono i propri verdetti token per token, sicché il loro costo cresce con la quantità di testo prodotto;
-i giudici di piccole dimensioni violano spesso il formato di output, e la fiducia che esprimono è raramente utilizzabile
-come probabilità. Di recente è emersa una terza famiglia: i \textbf{modelli System One}, come il proprietario Jev e gli
-aperti SemIf e Rizzo-Flow, rispondono a domande chiuse in un unico passaggio in avanti, leggendo dai logit la probabilità
-di ciascuna opzione di risposta. Le evidenze a loro favore sono per lo più riportate dagli stessi autori, e le
-implementazioni aperte sono generaliste. Se un System One compatto, specializzato in un unico compito, possa eguagliare i
-giudici generativi e gli encoder dedicati, da dove provenga il suo vantaggio e se le sue probabilità siano utilizzabili,
-il tutto su un portatile, non era stato studiato in modo controllato.
+La verifica segue oggi due paradigmi. I verificatori basati su encoder, come AlignScore, MiniCheck e HHEM, sono piccoli e
+veloci, ma restituiscono un unico punteggio fisso per ogni coppia di documento e frase. I giudici generativi sono
+flessibili, ma scrivono i verdetti token per token, per cui il loro costo cresce con la quantità di testo prodotto; i
+giudici piccoli violano spesso il formato di output, e la confidenza che esprimono è raramente utilizzabile come
+probabilità. Di recente è emersa una terza famiglia: i \textbf{modelli System One}, come il proprietario Jev e i modelli
+aperti SemIf e Rizzo-Flow, che rispondono a domande chiuse in un unico forward pass leggendo dai logit la probabilità di
+ciascuna opzione di risposta. Le evidenze a loro favore provengono per lo più dagli stessi autori, e le implementazioni
+aperte sono generaliste. Non era ancora stato studiato in modo controllato se un System One compatto, specializzato in un
+unico task, possa eguagliare i giudici generativi e gli encoder dedicati, da dove derivi il suo vantaggio e se le sue
+probabilità siano utilizzabili, il tutto su un portatile.
 
 Questa tesi progetta, addestra e valuta \textbf{GroundOne}, un System One specializzato in un'unica decisione: stabilire,
 per ogni frase di una risposta, se il documento recuperato la supporta, la contraddice o non la menziona. Ogni frase
-della risposta è seguita da un marcatore, e i verdetti per tutte le $K$ frasi vengono letti dai logit di tre lettere di
-risposta in un unico passaggio in avanti, senza generare alcun testo. Modelli Qwen2.5 da 0.5B e 3B parametri sono
-adattati con LoRA sulle risposte di RAGTruth annotate da esseri umani, con una funzione di perdita pesata per classe e
-ristretta alle tre lettere; una temperatura e un bias stimati sui dati di sviluppo calibrano le probabilità, e una soglia
-scelta sugli stessi dati le traduce in etichette coerenti e in segnalazioni rigorose o permissive. Ogni fase,
-dall'addestramento alla messa in servizio, viene eseguita con MLX su un portatile Apple M4 con 16\,GB di memoria. La
-valutazione impiega tre insiemi di test costruiti e congelati prima dell'addestramento (la partizione di test di
-RAGTruth, LLM-AggreFact e VitaminC) e confronta GroundOne con indizi che non leggono mai il documento, con i modelli non
-addestrati, con giudici generativi della stessa dimensione con e senza probabilità, con un System One generalista e con
-encoder specializzati, riportando intervalli ottenuti tramite bootstrap a cluster.
+della risposta è seguita da un marker, e i verdetti di tutte le $K$ frasi si leggono dai logit di tre lettere di risposta
+in un unico forward pass, senza generare testo. Modelli Qwen2.5 da 0.5B e 3B parametri sono sottoposti a fine-tuning con
+LoRA sulle risposte di RAGTruth annotate manualmente, con una loss pesata per classe e ristretta alle tre lettere; una
+temperatura e un bias stimati sul dev set calibrano le probabilità, e una soglia scelta sugli stessi dati le traduce in
+etichette coerenti e in segnalazioni secondo la policy strict o lenient. Tutto, dall'addestramento alla messa in
+servizio, gira con MLX su un portatile Apple M4 con 16\,GB di memoria. La valutazione usa tre test set costruiti e
+congelati prima dell'addestramento (la partizione di test di RAGTruth, LLM-AggreFact e VitaminC) e confronta GroundOne con
+indizi che non leggono mai il documento, con i modelli non addestrati, con giudici generativi della stessa dimensione, con
+e senza probabilità, con un System One generalista e con encoder specializzati, riportando intervalli calcolati con un
+bootstrap a cluster.
 
-Sull'insieme di test di RAGTruth GroundOne raggiunge un'accuratezza bilanciata a tre classi di 0.769 con 0.5B parametri e
-di 0.832 con 3B, contro 0.37 e 0.44 dei modelli non addestrati; la sua AUROC (0.905 e 0.940) supera quella degli encoder
-(circa 0.82), e il modello supera nettamente sia un System One generalista otto volte più grande sia un modello
-decisionale generalista della stessa dimensione (0.657), il quale risulta a sua volta molto più forte sull'insieme di test
-fuori dominio VitaminC. Su LLM-AggreFact il modello 3B è alla pari con MiniCheck-RoBERTa (74.8 contro 74.0, una
-differenza non significativa), si colloca al di sopra del modello 7B zero-shot pubblicato e al di sotto del System One
-chiuso Jev, misurato in modo indipendente (78.6). Per risposte di quattordici o più frasi GroundOne è circa due volte più
-veloce di un giudice sintetico e sei volte più veloce di un giudice verboso della stessa dimensione, con un output sempre
-valido; consuma inoltre meno energia (5.5 e 33 joule per risposta), sebbene con un fattore inferiore rispetto al tempo,
-poiché un prefill lungo assorbe più potenza della decodifica. Quando si richiede loro lo stesso output, i giudici
-generativi forniscono probabilità che distinguono a stento le decisioni corrette da quelle errate, mentre la calibrazione
-porta l'errore di calibrazione atteso di GroundOne sull'insieme di test a 0.019. A parità di pesi, restringere la
-decisione alle tre lettere è più accurato che prendere il token che il modello genererebbe, di 0.25 per il modello 0.5B e
-di 0.07 per il 3B. I limiti sono altrettanto chiari: il trasferimento a un dominio diverso è debole, le allucinazioni
-nascoste in frasi che per il resto ricalcano la fonte restano difficili da cogliere, e la ricetta di addestramento non è
-del tutto robusta rispetto al seed casuale.
+Sul test set di RAGTruth GroundOne raggiunge una balanced accuracy a tre classi di 0.769 con 0.5B parametri e di 0.832
+con 3B, contro 0.37 e 0.44 dei modelli non addestrati; la sua AUROC (0.905 e 0.940) supera quella degli encoder (circa
+0.82), e il modello supera nettamente sia un System One generalista otto volte più grande sia un decision model
+generalista della stessa dimensione (0.657), che a sua volta è molto più forte sul test fuori dominio VitaminC. Su
+LLM-AggreFact il 3B è alla pari con MiniCheck-RoBERTa (74.8 contro 74.0, differenza non significativa), sopra il modello
+7B zero-shot pubblicato e sotto il System One chiuso Jev, misurato in modo indipendente (78.6). Per risposte di
+quattordici o più frasi GroundOne è circa due volte più veloce di un giudice sintetico e sei volte più veloce di uno
+verboso della stessa dimensione, con un output sempre valido; consuma inoltre meno energia (5.5 e 33 joule per risposta),
+sebbene con un fattore inferiore a quello osservato sul tempo, perché un prefill lungo assorbe più potenza del decoding.
+Quando si chiede loro lo stesso output, i giudici generativi forniscono probabilità che distinguono a stento le decisioni
+corrette da quelle errate, mentre la calibrazione porta l'Expected Calibration Error di GroundOne sul test set a 0.019. A
+parità di pesi, restringere la decisione alle tre lettere è più accurato che prendere il token che il modello
+genererebbe, di 0.25 per il 0.5B e di 0.07 per il 3B. I limiti sono altrettanto chiari: il trasferimento a un dominio
+diverso è debole, le allucinazioni nascoste in frasi che per il resto ricalcano la fonte restano difficili da
+individuare, e la ricetta di addestramento non è del tutto robusta rispetto alla scelta del seed.

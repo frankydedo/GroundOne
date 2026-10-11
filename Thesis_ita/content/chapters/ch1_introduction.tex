@@ -6,103 +6,102 @@
 \section{Motivazione}
 \label{sec:intro-motivation}
 
-La generazione aumentata dal recupero (RAG) è diventata il modo standard per consentire a un modello linguistico di
-rispondere a domande su documenti che non ha mai visto durante l'addestramento: un sistema di recupero seleziona i
-passaggi pertinenti e il modello scrive una risposta tenendo tali passaggi nel proprio contesto~\cite{lewis2020rag}.
-Poiché modelli aperti compatti e runtime efficienti girano ormai su hardware di consumo~\cite{llamacpp,mlx2023}, l'intera
-pipeline può restare sul dispositivo dell'utente. Ciò è rilevante ogni volta che i documenti sono privati, che
-l'assistente deve funzionare senza rete o che il suo comportamento non deve cambiare a seguito di un aggiornamento del
-fornitore.
+La retrieval-augmented generation (RAG) è ormai l'approccio standard per far rispondere un modello linguistico a domande
+su documenti che non ha mai visto in addestramento: un retriever seleziona i passaggi pertinenti e il modello formula la
+risposta avendoli nel proprio contesto~\cite{lewis2020rag}. Dato che modelli aperti compatti e runtime efficienti girano
+ormai su hardware consumer~\cite{llamacpp,mlx2023}, l'intera pipeline può restare sul dispositivo dell'utente. Questo
+conta ogni volta che i documenti sono riservati, che l'assistente deve funzionare senza connessione di rete o che il suo
+comportamento non deve cambiare in seguito a un aggiornamento del fornitore.
 
-Il recupero non elimina l'allucinazione. Le risposte contengono ancora frasi che i passaggi recuperati non supportano, o
-che li contraddicono~\cite{niu2024ragtruth,huang2025hallucination}, e non si può pretendere che un utente controlli ogni
-frase rispetto alla sua fonte. Un assistente locale affidabile richiede quindi un verificatore che controlli ogni
-risposta, frase per frase, sulla stessa macchina che l'ha generata. Un simile verificatore compete con il generatore per
-la stessa memoria, lo stesso tempo e la stessa batteria. La soluzione più diffusa, cioè chiedere a un modello linguistico
-di giudicare la risposta, è costosa proprio là dove un laptop è più debole: un giudice scrive i propri verdetti token per
-token, e su hardware locale ogni token generato costa molto più di un token letto. I giudici di piccole dimensioni,
-inoltre, violano il formato di output richiesto, e la confidenza che esprimono è raramente utilizzabile come probabilità.
+Il recupero dei documenti, però, non elimina le allucinazioni. Le risposte contengono comunque frasi che i passaggi
+recuperati non supportano, o che li contraddicono~\cite{niu2024ragtruth,huang2025hallucination}, e non si può pretendere
+che l'utente confronti ogni frase con la fonte. Un assistente locale affidabile ha quindi bisogno di un verificatore che
+controlli ogni risposta, frase per frase, sulla stessa macchina che l'ha generata. Un verificatore di questo tipo si
+contende con il generatore la stessa memoria, lo stesso tempo e la stessa batteria. La soluzione più comune, cioè
+chiedere a un modello linguistico di giudicare la risposta, è costosa proprio dove un laptop è più debole: un giudice
+scrive i propri verdetti token per token, e su hardware locale generare un token costa molto più che leggerlo. I giudici
+piccoli, inoltre, non rispettano il formato di output richiesto, e la confidenza che dichiarano è raramente utilizzabile
+come probabilità.
 
 \section{Modelli System One}
 \label{sec:intro-systemone}
 
 Un modo diverso di usare un modello linguistico per prendere decisioni ha attirato di recente l'attenzione con il nome di
-\emph{modelli System One}~\cite{typesafe2026jev}. Anziché generare una risposta, un modello di questo tipo legge una sola
-volta la domanda e il contesto e restituisce una probabilità per ciascuna risposta ammissibile, ad esempio leggendo i
-logit delle lettere delle opzioni alla fine del prompt~\cite{semif,rizzoflow}. Non viene generato alcun testo, l'output è
-sempre valido e molte domande sullo stesso contesto possono condividere un unico passaggio su di esso. L'idea si adatta
-bene alla verifica: una risposta di $K$ frasi pone $K$ domande chiuse sullo stesso documento, e una probabilità per
-ciascuna frase può essere sottoposta a soglia e calibrata.
+\emph{modelli System One}~\cite{typesafe2026jev}. Invece di generare una risposta, un modello di questo tipo legge una
+sola volta la domanda e il contesto e restituisce una probabilità per ciascuna risposta ammissibile, per esempio leggendo
+i logit delle lettere delle opzioni alla fine del prompt~\cite{semif,rizzoflow}. Non viene generato alcun testo, l'output
+è sempre valido e molte domande sullo stesso contesto possono condividere un unico passaggio su di esso. L'idea si presta
+bene alla verifica: una risposta di $K$ frasi pone $K$ domande chiuse sullo stesso documento, e alla probabilità
+associata a ogni frase si possono applicare una soglia e una calibrazione.
 
-Le evidenze a favore dei modelli System One, tuttavia, provengono per lo più dai loro stessi autori, e le
-implementazioni aperte sono sistemi generalisti che rispondono a qualunque domanda tipizzata. Restano aperte diverse
-questioni: se l'approccio sia vantaggioso per un compito specifico, come si collochi un modello specializzato in quel
-compito rispetto a uno generalista, ai giudici generativi e ai verificatori dedicati, e da dove derivi effettivamente
-l'eventuale vantaggio.
+Le evidenze a favore dei modelli System One, tuttavia, provengono per lo più dai loro stessi autori, e le implementazioni
+aperte sono sistemi generalisti in grado di rispondere a qualunque domanda tipizzata. Restano aperte diverse questioni:
+se l'approccio convenga per un task specifico, come si collochi un modello specializzato in quel task rispetto a
+uno generalista, ai giudici generativi e ai verificatori dedicati, e da dove derivi davvero l'eventuale vantaggio.
 
 \section{Domande di ricerca}
 \label{sec:intro-rq}
 
-Questa tesi progetta, addestra e valuta GroundOne, un modello System One compatto specializzato in un'unica decisione:
-stabilire, per ogni frase di una risposta RAG, se il documento recuperato la supporta, la contraddice o non la menziona.
-Il lavoro è guidato da cinque domande di ricerca.
+Questa tesi progetta, addestra e valuta GroundOne, un System One compatto specializzato in un'unica decisione: stabilire,
+per ogni frase di una risposta RAG, se il documento recuperato la supporta, la contraddice o non la menziona. Il lavoro è
+guidato da cinque domande di ricerca.
 
 \begin{description}
-\item[RQ1, specializzazione.] Un modello System One sottoposto a fine-tuning, con 0.5B o 3B parametri, può eguagliare
-modelli zero-shot più grandi e gli encoder specializzati nella verifica della groundedness (aderenza al documento) a
-livello di frase?
-\item[RQ2, lettura dei logit (readout) contro generazione.] Quale contributo apporta il meccanismo System One a parità di dimensione del
-modello, rispetto ai giudici generativi che scrivono i propri verdetti e rispetto allo stesso modello che decide in base
-al token che genererebbe, e come cresce la differenza con il numero di decisioni per risposta?
-\item[RQ3, calibrazione.] Le probabilità sono utilizzabili come confidenza, per fissare soglie e per rinviare le
-decisioni incerte, e come si confrontano con le probabilità che un giudice generativo è in grado di fornire?
+\item[RQ1, specializzazione.] Un System One da 0.5B o 3B parametri, sottoposto a fine-tuning, può eguagliare modelli
+zero-shot più grandi e gli encoder specializzati nella valutazione della groundedness a livello di frase, cioè
+dell'aderenza di ciascuna frase al documento?
+\item[RQ2, readout contro generazione.] Che cosa apporta il meccanismo System One, ossia il readout della decisione dai
+logit, a parità di dimensione del modello, rispetto a giudici generativi che scrivono i propri verdetti e allo stesso
+modello che decide in base al token che genererebbe, e come cresce la differenza all'aumentare del numero di decisioni
+per risposta?
+\item[RQ3, calibrazione.] Le probabilità sono utilizzabili come misura di confidenza, per fissare soglie e per rinviare
+le decisioni incerte, e come si confrontano con quelle che un giudice generativo è in grado di fornire?
 \item[RQ4, costo sul dispositivo.] Il verificatore rientra nel budget di memoria, tempo ed energia di un laptop da
-16\,GB, e come si confronta il suo costo con quello di un giudice sulla stessa macchina?
-\item[RQ5, oltre un punteggio binario.] Che cosa offre una decisione a tre classi per ogni frase che un verificatore
+16\,GB, e come si confronta il suo costo con quello di un giudice eseguito sulla stessa macchina?
+\item[RQ5, oltre il punteggio binario.] Che cosa offre una decisione a tre classi per ogni frase che un verificatore
 binario non offre?
 \end{description}
 
 \section{Contributi}
 \label{sec:intro-contributions}
 
-La tesi apporta quattro contributi.
+La tesi offre quattro contributi.
 \begin{enumerate}
-\item \textbf{GroundOne}, un modello System One specialista e aperto per la verifica della groundedness a livello di
-frase, eseguito interamente su un laptop. Legge tutti i verdetti di una risposta in un solo passaggio in avanti, grazie a
-un marcatore posto dopo ogni frase, ed è distribuito come pacchetto installabile con un'interfaccia a riga di comando e
-un'API HTTP locale, che include un'interfaccia compatibile con i client System One esistenti.
-\item \textbf{Un dataset orientato al compito}, costruito a partire da annotazioni umane pubbliche, con tre insiemi di
-test validati senza nuove annotazioni e congelati prima dell'addestramento di qualsiasi modello, e con il leakage
-controllato a livello di documento.
-\item \textbf{Una scomposizione controllata dei guadagni.} Il confronto separa il contributo della specializzazione,
-del readout ristretto e della dimensione del modello, rispetto a indizi che non verificano mai una
-frase, modelli non addestrati, giudici generativi con e senza probabilità, un modello System One generalista ed encoder
-specializzati, tutti sullo stesso hardware e con intervalli di cluster bootstrap.
+\item \textbf{GroundOne}, un System One specialista e aperto per la verifica della groundedness a livello di frase,
+eseguito interamente su un laptop. Grazie a un marker inserito dopo ogni frase, legge tutti i verdetti di una risposta in
+un solo forward pass; è rilasciato come pacchetto installabile, con un'interfaccia a riga di comando e un'API HTTP locale
+che comprende anche un'interfaccia compatibile con i client System One esistenti.
+\item \textbf{Un dataset costruito attorno al task} a partire da annotazioni umane pubbliche, con tre test set
+validati senza nuove annotazioni e congelati prima di addestrare qualunque modello, e con il leakage controllato a
+livello di documento.
+\item \textbf{Una scomposizione controllata dei guadagni.} Il confronto isola il contributo della specializzazione, del
+readout ristretto e della dimensione del modello rispetto a indizi che non verificano mai una frase, modelli non
+addestrati, giudici generativi con e senza probabilità, un System One generalista ed encoder specializzati, tutti sullo
+stesso hardware e con intervalli di confidenza ottenuti tramite cluster bootstrap.
 \item \textbf{Uno studio di calibrazione, tempo ed energia}: come le probabilità possano essere calibrate e tradotte in
-etichette coerenti, quanto aiutino a rinviare le decisioni incerte, e come il tempo e l'energia per verifica crescano
-con la lunghezza della risposta.
+etichette coerenti, quanto aiutino a rinviare le decisioni incerte e come tempo ed energia per verifica crescano con la
+lunghezza della risposta.
 \end{enumerate}
 
-In sintesi, i risultati mostrano che la specializzazione funziona nel dominio RAG: sull'insieme di test RAGTruth
-GroundOne raggiunge un'accuratezza bilanciata a tre classi di 0.769 con 0.5B parametri e di 0.832 con 3B, superiore a
-quella degli encoder specializzati, nettamente superiore a quella di un modello System One generalista otto volte più
-grande e superiore a quella di un modello decisionale generalista della stessa dimensione; su LLM-AggreFact, inoltre, il
-modello da 3B è alla pari con il miglior encoder di piccole dimensioni.
-Verifica le risposte lunghe circa due volte più velocemente di un giudice sintetico e sei volte più velocemente di un
-giudice verboso della stessa dimensione, con un output sempre valido, probabilità molto migliori e un minore consumo di
-energia. La restrizione del readout alle risposte ammissibili aumenta da sola l'accuratezza. I limiti sono altrettanto
-chiari: il trasferimento a un dominio diverso è debole, e lì il modello generalista risulta migliore; le allucinazioni
-nascoste in frasi che per il resto ricopiano la fonte restano difficili da individuare; la ricetta di addestramento,
-infine, non è del tutto robusta rispetto al seed casuale.
+In sintesi, i risultati mostrano che la specializzazione funziona nel dominio RAG. Sul test set RAGTruth GroundOne
+raggiunge una balanced accuracy a tre classi di 0.769 con 0.5B parametri e di 0.832 con 3B: più degli encoder
+specializzati, molto più di un System One generalista otto volte più grande e più di un decision model generalista della
+stessa dimensione. Su LLM-AggreFact, inoltre, il modello da 3B è alla pari con il miglior encoder di piccole dimensioni.
+Sulle risposte lunghe la verifica è circa due volte più veloce di un giudice sintetico e sei volte più veloce di un
+giudice verboso della stessa dimensione, con output sempre valido, probabilità molto migliori e un minore consumo di
+energia. La sola restrizione del readout alle risposte ammissibili basta ad aumentare l'accuratezza. Altrettanto chiari
+sono i limiti: il trasferimento a un dominio diverso è debole, e lì il modello generalista risulta migliore; le
+allucinazioni nascoste in frasi che per il resto ricopiano la fonte restano difficili da individuare; la ricetta di
+addestramento, infine, non è del tutto robusta rispetto alla scelta del seed.
 
 \section{Struttura della tesi}
 \label{sec:intro-structure}
 
-Il Capitolo~\ref{sec:background} passa in rassegna l'inferenza dei transformer, l'inferenza locale, i modelli System One,
-l'allucinazione nella generazione aumentata dal recupero, i metodi di verifica e la calibrazione. Il
+Il Capitolo~\ref{sec:background} passa in rassegna l'inferenza nei transformer, l'inferenza locale, i modelli System One,
+le allucinazioni nella retrieval-augmented generation, i metodi di verifica e la calibrazione. Il
 Capitolo~\ref{sec:method} descrive GroundOne: la decisione, il readout in un solo passaggio, l'obiettivo di
-addestramento, la calibrazione e l'output servito. Il Capitolo~\ref{ch:data} definisce le etichette e descrive come gli
-insiemi di addestramento e di test sono stati costruiti, verificati e congelati. Il Capitolo~\ref{sec:setup} presenta i
-modelli addestrati, le baseline, le metriche e il protocollo di misura. Il Capitolo~\ref{sec:results} riporta i
-risultati, il Capitolo~\ref{sec:discussion} ne discute il significato e i limiti, e il Capitolo~\ref{sec:conclusion}
-conclude. L'Appendice~\ref{app:examples} mostra l'output di ciascun sistema su una stessa risposta.
+addestramento, la calibrazione e l'output esposto dal servizio. Il Capitolo~\ref{ch:data} definisce le etichette e
+descrive come sono stati costruiti, controllati e congelati il training set e i test set. Il Capitolo~\ref{sec:setup}
+presenta i modelli addestrati, le baseline, le metriche e il protocollo di misura. Il Capitolo~\ref{sec:results} riporta
+i risultati, il Capitolo~\ref{sec:discussion} ne discute il significato e i limiti e il Capitolo~\ref{sec:conclusion}
+trae le conclusioni. L'Appendice~\ref{app:examples} mostra l'output di tutti i sistemi su una stessa risposta.

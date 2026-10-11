@@ -4,170 +4,170 @@
 % Source notes: Project/docs/thesis_notes.md; checkpoint_2026-10-10.md; configs Project/GroundOne/configs/train_0.5b.yaml,
 % train_3b.yaml; queues Project/jobs/queue_night3.txt, queue_day4.txt, queue_night5.txt, queue_day5.txt, queue_night6.txt.
 
-Questo capitolo descrive i modelli addestrati, i sistemi con cui vengono confrontati, le metriche, il protocollo
-statistico e il modo in cui si misurano tempo ed energia. Tutti gli esperimenti sono eseguiti su un'unica macchina, un
-MacBook Pro con chip Apple M4 (CPU a 10 core, GPU a 10 core, 120\,GB/s di banda di memoria) e 16\,GB di memoria
-unificata~\cite{apple2024m4specs}: in questo modo ogni risultato riflette ciò che un verificatore è in grado di fare sul
-dispositivo su cui gira un assistente locale. Anche ogni baseline, compresi gli encoder e il System One generalista, è
-eseguita su questo portatile; nessun risultato dipende da un servizio remoto.
+Questo capitolo presenta i modelli addestrati, i sistemi con cui sono messi a confronto, le metriche, il protocollo
+statistico e le modalità di misura di tempo ed energia. Tutti gli esperimenti si svolgono su un'unica macchina, un
+MacBook Pro con chip Apple M4 (CPU a 10 core, GPU a 10 core, banda di memoria di 120\,GB/s) e 16\,GB di memoria
+unificata~\cite{apple2024m4specs}: ogni risultato riflette così ciò che un verificatore può fare sullo stesso dispositivo
+su cui gira un assistente locale. Anche tutte le baseline, compresi gli encoder e il System One generalista, sono
+eseguite su questo portatile, e nessun risultato dipende da un servizio remoto.
 
 \section{Modelli}
 \label{sec:setup-models}
 
-Entrambi i modelli GroundOne partono dai checkpoint di Qwen2.5 addestrati a seguire istruzioni~\cite{qwen2024qwen25},
-convertiti in MLX con pesi a 8 bit, ed entrambi sono addestrati con la procedura della
-Sezione~\ref{sec:method-training}. Differiscono soltanto per dimensione, per numero di risposte di addestramento e per il
-modo in cui si formano i micro-batch, aspetto dettato dalla memoria disponibile.
+Entrambi i modelli GroundOne partono da Qwen2.5~\cite{qwen2024qwen25} nella versione instruction-tuned, convertita in
+MLX con pesi a 8 bit, e sono addestrati con la procedura descritta nella Sezione~\ref{sec:method-training}. Si
+distinguono soltanto per la dimensione, per il numero di risposte di addestramento e per la composizione dei
+micro-batch, che dipende dalla memoria disponibile.
 
-Il modello 0.5B è addestrato su tutte le 13{,}203 risposte di addestramento. Un'epoca di 802 passi dell'ottimizzatore ha
-richiesto 5.5 ore di tempo reale (wall-clock), con una valutazione sull'intero insieme di sviluppo ogni 150 passi, e
-l'addestramento ha occupato al massimo 2.6\,GB di memoria. Il modello 3B è circa sei volte più lento per token, perciò
-viene addestrato per una notte su un sottoinsieme casuale di 6{,}500 risposte (circa 45{,}000 decisioni): 403 passi in
-12.25 ore, con un picco di 5.9\,GB. La sua valutazione sullo sviluppo, ogni 80 passi, usa un sottoinsieme fisso di 200
-risposte, poiché un passaggio completo richiederebbe circa un'ora. In entrambi i casi si conserva il checkpoint con il
-miglior punteggio sullo sviluppo, che viene poi calibrato come descritto nella Sezione~\ref{sec:method-calibration}; per
-il 3B si tratta del passo 320.
+Il modello 0.5B è addestrato sull'intero training set di 13{,}203 risposte. Un'epoca di 802 passi di ottimizzazione ha
+richiesto 5.5 ore di tempo wall-clock, con una valutazione sull'intero dev set ogni 150 passi, e un'occupazione massima
+di 2.6\,GB di memoria. Il modello 3B è circa sei volte più lento per token; per questo viene addestrato per una notte su
+un sottoinsieme casuale di 6{,}500 risposte (circa 45{,}000 decisioni), con 403 passi in 12.25 ore e un picco di
+5.9\,GB. La sua valutazione sul dev set, ogni 80 passi, usa un sottoinsieme fisso di 200 risposte, dato che una
+valutazione completa richiederebbe circa un'ora. In entrambi i casi si conserva il checkpoint con il miglior punteggio
+sul dev set, che viene poi calibrato come descritto nella Sezione~\ref{sec:method-calibration}; per il 3B si tratta del
+passo 320.
 
-Per misurare quanto i risultati dipendano dal seed casuale, che determina l'inizializzazione degli adapter e l'ordine dei
-batch, la procedura del 0.5B viene ripetuta con un secondo seed. È noto, infatti, che gli esiti del fine-tuning variano
-con entrambi i fattori~\cite{dodge2020finetuning}. Un'ulteriore esecuzione con un terzo seed è andata precocemente in
-collasso verso una predizione costante ed è stata interrotta a circa il 60\,\% dell'epoca; essendo incompleta, è esclusa
-dalle tabelle e viene discussa nella Sezione~\ref{sec:results-seeds}. La seconda esecuzione, portata a termine, è valutata
-su tutti e tre gli insiemi di test esattamente come la prima.
+Per stimare quanto i risultati dipendano dal seed, che determina l'inizializzazione degli adapter e l'ordine dei batch,
+la procedura del 0.5B viene ripetuta con un secondo seed: è noto che l'esito del fine-tuning varia con entrambi questi
+fattori~\cite{dodge2020finetuning}. Un'ulteriore esecuzione con un terzo seed è collassata presto su una predizione
+costante ed è stata interrotta a circa il 60\,\% dell'epoca; poiché incompleta, è esclusa dalle tabelle e viene discussa
+nella Sezione~\ref{sec:results-seeds}. La seconda esecuzione, portata a termine, è valutata su tutti e tre i test set
+esattamente come la prima.
 
 \section{Baseline}
 \label{sec:setup-baselines}
 
-Le baseline servono a isolare le fonti di un eventuale vantaggio, e ciascuna risponde a una domanda specifica.
+Le baseline servono a isolare l'origine di un eventuale vantaggio, e ciascuna risponde a una domanda precisa.
 
-\paragraph{Indizi che non leggono mai il documento nel suo insieme.} Due predittori semplici stabiliscono la soglia
-minima che qualunque verificatore deve superare. Il primo assegna a una frase un punteggio pari alla quota delle sue
-parole di contenuto che compaiono anche nel documento. Il secondo è un classificatore bag-of-words addestrato soltanto
-sulle frasi di addestramento, senza il documento. Entrambi sono descritti nella Sezione~\ref{sec:data-eda}.
+\paragraph{Segnali che non leggono mai il documento nella sua interezza.} Due predittori elementari fissano la soglia
+minima che qualsiasi verificatore deve superare. Il primo assegna a una frase un punteggio pari alla frazione delle sue
+parole di contenuto che compaiono anche nel documento. Il secondo è un classificatore bag-of-words addestrato sulle sole
+frasi del training set, senza il documento. Entrambi sono descritti nella Sezione~\ref{sec:data-eda}.
 
-\paragraph{Readout senza addestramento (B1).} Agli stessi modelli Qwen2.5, privi di fine-tuning, viene posta la domanda a
-tre classi per ciascuna frase e se ne leggono i logit delle lettere di risposta (readout, ossia lettura dei logit).
-Poiché un modello non addestrato non ha motivo di interpretare il marcatore \texttt{Verdict:} come una domanda, questa
-baseline adotta il formato con una domanda esplicita per frase (Sezione~\ref{sec:method-readout}). Essa misura ciò che il
-meccanismo System One offre prima di qualsiasi specializzazione.
+\paragraph{Readout senza addestramento (B1).} Agli stessi modelli Qwen2.5, senza fine-tuning, si pone per ogni frase la
+domanda a tre classi e se ne leggono i logit delle lettere di risposta. Un modello non addestrato non ha alcun motivo di
+interpretare il marker \texttt{Verdict:} come una domanda, perciò questa baseline adotta il formato con una domanda
+esplicita per frase (Sezione~\ref{sec:method-readout}). Misura quindi ciò che il meccanismo System One offre prima di
+qualunque specializzazione.
 
-\paragraph{Giudici generativi (B0a, B0b).} I modelli non addestrati sono impiegati anche nel modo più comune nella
-pratica: ricevono il documento, la risposta numerata e l'elenco delle frasi da controllare, e scrivono un verdetto per
-ciascuna frase con decodifica greedy. Il giudice \emph{sintetico} scrive una riga ``\texttt{<number>: <letter>}'' per
-frase, mentre il giudice \emph{verboso} scrive una breve frase di ragionamento seguita dal verdetto. Un verdetto che non
-può essere interpretato costituisce un errore di formato; viene conteggiato come errore nell'accuratezza e riportato
-separatamente.
+\paragraph{Giudici generativi (B0a, B0b).} I modelli non addestrati sono impiegati anche nel modo più diffuso nella
+pratica: ricevono il documento, la risposta numerata e l'elenco delle frasi da verificare, e scrivono un verdetto per
+ogni frase con greedy decoding. Il giudice \emph{sintetico} produce una riga ``\texttt{<number>: <letter>}'' per frase;
+il giudice \emph{verboso} scrive una breve frase di ragionamento seguita dal verdetto. Un verdetto che non è possibile
+interpretare costituisce un errore di formato: viene contato come errore nel calcolo dell'accuratezza e riportato a
+parte.
 
-\paragraph{Giudici a parità di output (B0d).} I giudici sintetico e verboso restituiscono meno di GroundOne: una lettera
-per frase e nessuna probabilità, e quindi non offrono calibrazione, soglia regolabile né scelta della politica. A due
-ulteriori giudici si chiede pertanto esattamente il contenuto prodotto da GroundOne, cioè un'etichetta e tre probabilità
-per frase. Il primo li scrive come oggetto JSON, con le probabilità espresse a parole, che è ciò che uno sviluppatore
-otterrebbe con il solo prompt. Il secondo è il giudice sintetico le cui tre probabilità vengono lette dai logit in
-corrispondenza della lettera generata; ottiene lo stesso contenuto al costo del giudice sintetico ed è l'avversario
-generativo più forte. Entrambi i giudici sono calibrati con la stessa temperatura e lo stesso bias di GroundOne, stimati
-su 200 risposte di sviluppo, affinché le loro probabilità ricevano lo stesso trattamento. Il prompt JSON è stato scelto su
-dodici risposte di sviluppo unicamente in base alla validità del formato: un esempio numerico presente nel prompt veniva
-copiato alla lettera dai modelli ed è stato quindi sostituito da segnaposto. L'interpretazione dell'output è permissiva, a
-favore dei giudici: le voci complete di un oggetto troncato vengono conservate e un'etichetta mancante viene ricavata
-dalle probabilità. La decodifica non è vincolata da una grammatica~\cite{willard2023outlines}, così che il protocollo
-resti quello degli altri giudici; questa scelta incide soprattutto sugli errori di formato del modello più piccolo.
+\paragraph{Giudici a parità di output (B0d).} I giudici sintetico e verboso restituiscono meno di GroundOne, cioè una
+lettera per frase e nessuna probabilità, e non consentono quindi né calibrazione, né una soglia regolabile, né la scelta
+di una politica di decisione. Per questo a due ulteriori giudici si chiede esattamente ciò che produce GroundOne:
+un'etichetta e tre probabilità per frase. Il primo le scrive in un oggetto JSON, con le probabilità espresse a parole,
+che è quanto uno sviluppatore otterrebbe con il solo prompt. Il secondo è il giudice sintetico, con le tre probabilità
+lette dai logit in corrispondenza della lettera che genera; ottiene lo stesso contenuto al costo del giudice sintetico ed
+è l'avversario generativo più forte. Entrambi sono calibrati con la stessa temperatura e lo stesso bias di GroundOne,
+stimati su 200 risposte del dev set, così che le loro probabilità ricevano lo stesso trattamento. Il prompt JSON è stato
+scelto su dodici risposte del dev set badando unicamente alla validità del formato: i modelli copiavano alla lettera un
+esempio numerico presente nel prompt, che è stato perciò sostituito da segnaposto. Il parsing è permissivo, a vantaggio
+dei giudici: le voci complete di un oggetto troncato vengono conservate e un'etichetta mancante si ricava dalle
+probabilità. Il decoding non è vincolato da una grammatica~\cite{willard2023outlines}, in modo che il protocollo resti
+quello degli altri giudici; questa scelta pesa soprattutto sugli errori di formato del modello più piccolo.
 
-\paragraph{Readout contro generazione (B2).} I modelli GroundOne addestrati sono eseguiti con lo stesso prompt e lo
-stesso singolo passaggio, ma il verdetto in corrispondenza di ciascun marcatore è il token con la probabilità più alta
-sull'intero vocabolario, ossia ciò che produrrebbe la generazione greedy di un token. Le tre lettere, con o senza spazio
-iniziale, corrispondono alle tre classi, e qualsiasi altro token è un errore di formato. Questo controllo mantiene
-identici pesi, prompt e costo, e cambia soltanto il fatto che la decisione sia o meno ristretta alle opzioni ammissibili.
+\paragraph{Readout e generazione a confronto (B2).} I modelli GroundOne addestrati sono eseguiti con lo stesso prompt e
+lo stesso singolo forward pass, ma il verdetto a ogni marker è il token con la probabilità più alta sull'intero
+vocabolario, cioè quello che produrrebbe la generazione greedy di un solo token. Le tre lettere, con o senza spazio
+iniziale, corrispondono alle tre classi, e qualunque altro token è un errore di formato. Questo controllo lascia
+invariati pesi, prompt e costo, e cambia soltanto se la decisione sia ristretta o meno alle opzioni ammissibili.
 
-\paragraph{Un System One generalista (B3).} Il progetto aperto Rizzo-Flow~\cite{rizzoflow} realizza l'idea di System One
-con un modello da 4B addestrato su decisioni tipizzate generiche. Gira in un proprio server, basato su
-llama.cpp~\cite{llamacpp}, e viene interrogato via HTTP con il documento e la risposta numerata come stato condiviso e una
-domanda a scelta a tre classi per frase. Si impiega un modello quantizzato a 4 bit perché quello a 8 bit non trova posto
-in memoria accanto al sistema operativo.
+\paragraph{Un System One generalista (B3).} Il progetto open Rizzo-Flow~\cite{rizzoflow} realizza l'idea di System One
+con un modello da 4B sottoposto a fine-tuning su decisioni tipizzate generiche. Gira in un server dedicato, basato su
+llama.cpp~\cite{llamacpp}, e viene interrogato via HTTP passando il documento e la risposta numerata come stato
+condiviso e una domanda a scelta fra tre opzioni per ogni frase. Si usa il modello quantizzato a 4 bit perché quello a
+8 bit non entra in memoria insieme al sistema operativo.
 
-\paragraph{Un modello decisionale generalista della stessa dimensione (B3b).} d1-3B di Liquid AI~\cite{liquid2026d1} è
-un modello decisionale aperto da 3.1B parametri, post-addestrato per decisioni tipizzate su un'ampia miscela di compiti,
-che legge lettere di risposta ristrette con lo stato condiviso tra le domande: appartiene alla stessa famiglia di readout
-di GroundOne e ha la dimensione del suo modello più grande, ma è generalista. Permette quindi di isolare il valore della
-specializzazione rispetto a un modello decisionale già addestrato a decidere, anziché rispetto a uno non addestrato.
-Viene eseguito zero-shot con il proprio codice di inferenza, in PyTorch sulla GPU del portatile e senza accesso alla rete,
-con lo stesso stato e le stesse domande di Rizzo-Flow e al massimo sei domande per chiamata sullo stesso stato; su
-LLM-AggreFact i suoi documenti sono suddivisi esattamente come quelli di GroundOne e si conserva il massimo tra i
-frammenti. Un dettaglio pratico è rilevante per la riproducibilità: PyTorch conserva kernel compilati per ogni nuova
-lunghezza di input sulla GPU Apple e non rilascia quella memoria, perciò la valutazione si svolge in processi worker che
-vengono riavviati quando la memoria usata dal driver della GPU supera 11\,GB, il che lascia invariati gli output.
+\paragraph{Un decision model generalista della stessa dimensione (B3b).} d1-3B di Liquid AI~\cite{liquid2026d1} è un
+decision model open da 3.1B parametri, post-addestrato per decisioni tipizzate su un'ampia varietà di task, che legge
+lettere di risposta ristrette con lo stato condiviso tra le domande: appartiene alla stessa famiglia di readout di
+GroundOne e ha la dimensione del suo modello più grande, ma è generalista. Consente così di isolare il valore della
+specializzazione rispetto a un decision model già addestrato a decidere, anziché rispetto a un modello non addestrato.
+Viene eseguito zero-shot con il proprio codice di inferenza, in PyTorch sulla GPU del portatile e senza accesso alla
+rete, con lo stesso stato e le stesse domande di Rizzo-Flow e al più sei domande per chiamata sullo stesso stato; su
+LLM-AggreFact i documenti sono suddivisi esattamente come per GroundOne e si conserva il massimo sui frammenti. Ai fini
+della riproducibilità conta un dettaglio pratico: sulla GPU Apple PyTorch mantiene i kernel compilati per ogni nuova
+lunghezza di input senza mai rilasciarne la memoria, perciò la valutazione si svolge in processi worker che vengono
+riavviati quando la memoria occupata dal driver della GPU supera 11\,GB, senza alcun effetto sugli output.
 
 \paragraph{Encoder specializzati (B4).} MiniCheck-RoBERTa~\cite{tang2024minicheck} e HHEM-2.1-open~\cite{vectara2024hhem}
-sono i verificatori di piccole dimensioni più forti disponibili. Valutano ciascuna coppia (documento, frase) in modo
-indipendente e restituiscono una sola probabilità di supporto; i documenti lunghi sono suddivisi in frammenti di circa 400
-parole e si conserva il massimo tra i frammenti, come in MiniCheck. Non disponendo di un output a tre classi, sono
-confrontati soltanto sulla decisione binaria. Girano con PyTorch sulla GPU del portatile.
+sono i verificatori di piccole dimensioni più forti oggi disponibili. Valutano ogni coppia (documento, frase) in modo
+indipendente e restituiscono un'unica probabilità di supporto; i documenti lunghi vengono suddivisi in frammenti di circa
+400 parole e si conserva il massimo sui frammenti, come in MiniCheck. Poiché non hanno un output a tre classi, sono
+confrontati soltanto sulla decisione binaria. Girano in PyTorch sulla GPU del portatile.
 
-\paragraph{Risultati pubblicati.} Per LLM-AggreFact, i punteggi di sistemi più grandi tratti dalla classifica pubblica,
-come Qwen2.5-7B usato zero-shot, sono riportati così come pubblicati e non vengono rieseguiti.
+\paragraph{Risultati pubblicati.} Per LLM-AggreFact, i punteggi di sistemi più grandi presenti nella leaderboard
+pubblica, come Qwen2.5-7B usato zero-shot, sono riportati così come pubblicati, senza rieseguirli.
 
-I sistemi più lenti sono valutati su sottocampioni stratificati degli insiemi di test: Rizzo-Flow su 300 risposte di T1,
-600 coppie di T3 e 1{,}100 elementi di T2, di cui ne ha valutati 1{,}093 (sette superavano il suo contesto); d1-3B su un
-sottocampione casuale di 4{,}000 elementi di T2; il 3B non addestrato su 600 risposte di T1; i giudici generativi, infine,
-sulle 200 risposte del protocollo di latenza descritto più avanti. GroundOne, il 0.5B non addestrato, gli encoder e, su T1
-e T3, d1-3B sono valutati sugli insiemi di test completi, e i confronti con un sistema sottocampionato sono sempre
-condotti sugli elementi valutati da entrambi i sistemi.
+I sistemi più lenti sono valutati su sottocampioni stratificati dei test set: Rizzo-Flow su 300 risposte di T1, 600
+coppie di T3 e 1{,}100 elementi di T2, di cui ne ha valutati 1{,}093 (sette eccedevano il suo contesto); d1-3B su un
+sottocampione casuale di 4{,}000 elementi di T2; il 3B non addestrato su 600 risposte di T1; i giudici generativi sulle
+200 risposte del protocollo di latenza descritto più avanti. GroundOne, il 0.5B non addestrato, gli encoder e, su T1 e
+T3, d1-3B sono valutati sui test set completi, e ogni confronto con un sistema sottocampionato è condotto sugli elementi
+valutati da entrambi i sistemi.
 
 \section{Metriche}
 \label{sec:setup-metrics}
 
-Poiché la quota di frasi allucinate differisce tra l'insieme di sviluppo e T1 (Sezione~\ref{sec:data-eda}), le metriche
-primarie non dipendono dal tasso di base. Per la decisione a tre classi la metrica principale è l'accuratezza bilanciata,
-cioè la recall media sulle tre classi, affiancata dalla recall di ciascuna classe e dalla quota di ciascuna classe
-predetta, che rivela un modello in collasso su un'unica risposta. Per la decisione binaria le metriche sono l'accuratezza
-bilanciata con soglia 0.5, come nella classifica di LLM-AggreFact, e l'AUROC di $P(\text{supported})$, che non dipende da
-alcuna soglia. La calibrazione è misurata con l'ECE definito nella Sezione~\ref{sec:method-calibration}, con il Brier
-score e con la log-verosimiglianza negativa, mentre la predizione selettiva è valutata mediante curve rischio--copertura e
-l'area sottesa a tali curve (AURC)~\cite{geifman2017selective}. Tutte le metriche su T1 sono riportate anche per compito e
-per fascia di $K$.
+Poiché la quota di frasi allucinate non è la stessa nel dev set e in T1 (Sezione~\ref{sec:data-eda}), le metriche
+primarie sono scelte in modo da non dipendere dal tasso di base. Per la decisione a tre classi la metrica principale è
+la balanced accuracy, cioè la recall media sulle tre classi, affiancata dalla recall di ciascuna classe e dalla
+frazione di predizioni per classe, che rivela un modello collassato su un'unica risposta. Per la decisione binaria si
+riportano la balanced accuracy con soglia 0.5, come nella leaderboard di LLM-AggreFact, e l'AUROC di
+$P(\text{supported})$, che non dipende da alcuna soglia. La calibrazione è misurata con l'ECE definito nella
+Sezione~\ref{sec:method-calibration}, con il Brier score e con la negative log-likelihood; la selective prediction con
+le curve risk--coverage e l'area sottesa (AURC)~\cite{geifman2017selective}. Tutte le metriche su T1 sono riportate
+anche per task e per fascia di $K$.
 
 \section{Protocollo statistico}
 \label{sec:setup-statistics}
 
-Ogni differenza tra due sistemi è accompagnata da un intervallo di confidenza al 95\,\% ottenuto con un bootstrap
-appaiato con 2{,}000 ricampionamenti~\cite{koehn2004significance,bergkirkpatrick2012significance,dror2018hitchhiker}.
-L'unità di ricampionamento non è la frase ma il gruppo usato dal controllo di leakage: il documento sorgente in RAGTruth,
-il documento in LLM-AggreFact e la pagina di Wikipedia in VitaminC. Le frasi di una stessa risposta, così come le risposte
-relative a uno stesso documento, sono fortemente correlate, e ricampionarle in modo indipendente produrrebbe intervalli
-troppo stretti. Su LLM-AggreFact i gruppi sono ricampionati all'interno di ciascuno degli undici dataset, perché la media
-macro attribuisce a ogni dataset lo stesso peso. Entrambi i sistemi di un confronto sono valutati sugli stessi
-ricampionamenti, e il $p$-value riportato è la quota bilaterale di ricampionamenti in cui la differenza cambia segno.
+Ogni differenza tra due sistemi è accompagnata da un intervallo di confidenza al 95\,\% ottenuto con un paired bootstrap
+con 2{,}000 resampling~\cite{koehn2004significance,bergkirkpatrick2012significance,dror2018hitchhiker}. L'unità di
+resampling non è la frase, ma il gruppo impiegato nel controllo di leakage: il documento sorgente in RAGTruth, il
+documento in LLM-AggreFact e la pagina di Wikipedia in VitaminC. Le frasi di una stessa risposta, e le risposte relative
+a uno stesso documento, sono fortemente correlate, e ricampionarle in modo indipendente porterebbe a intervalli troppo
+stretti. Su LLM-AggreFact i gruppi sono ricampionati all'interno di ciascuno degli undici dataset, perché la media macro
+assegna a ogni dataset lo stesso peso. I due sistemi di un confronto sono valutati sugli stessi resampling, e il
+$p$-value riportato è la frazione bilaterale di resampling in cui la differenza cambia segno.
 
-Due limiti di questo protocollo vengono dichiarati in anticipo. In primo luogo, si sottopongono a test circa cinquanta
-confronti senza alcuna correzione per confronti multipli; le conclusioni poggiano quindi su intervalli ben lontani dallo
-zero, e non si rivendica alcuna differenza con $p$-value vicino a 0.05. In secondo luogo, il ricampionamento dei dati non
-cattura la variabilità dovuta all'addestramento: questa informazione è fornita separatamente dalle due esecuzioni del
-0.5B (Sezione~\ref{sec:results-seeds}).
+Due limiti del protocollo vanno dichiarati in anticipo. Innanzitutto, si eseguono circa cinquanta confronti senza alcuna
+correzione per confronti multipli: le conclusioni si fondano perciò su intervalli ben lontani dallo zero, e nessuna
+differenza con un $p$-value prossimo a 0.05 viene considerata acquisita. Inoltre, il resampling dei dati non coglie la
+variabilità dovuta all'addestramento, che è invece documentata a parte dalle due esecuzioni del 0.5B
+(Sezione~\ref{sec:results-seeds}).
 
 \section{Latenza, energia e hardware}
 \label{sec:setup-protocol}
 
-La latenza è misurata su 200 risposte di T1, 50 per ciascuna fascia di $K$, così che le risposte lunghe siano
-rappresentate quanto quelle brevi. GroundOne, il readout con una domanda per frase e tutti i giudici generativi girano nel
-processo stesso su MLX, una risposta alla volta, come farebbe un verificatore all'interno di un assistente locale. Le
-prime tre risposte servono da riscaldamento (warm-up) e sono escluse. Per le varianti System One ogni risposta è
-cronometrata tre volte e si conserva la mediana; i giudici generativi sono cronometrati una sola volta, poiché la
-decodifica greedy è deterministica e ogni esecuzione è molto più lunga. Il tempo riportato è il tempo reale (wall-clock)
-della chiamata al modello per una risposta, da cui si ricava il tempo per decisione.
+La latenza è misurata su 200 risposte di T1, 50 per ciascuna fascia di $K$, in modo che le risposte lunghe siano
+rappresentate quanto quelle brevi. GroundOne, il readout con una domanda per frase e tutti i giudici generativi girano
+in-process su MLX, una risposta alla volta, come farebbe un verificatore integrato in un assistente locale. Le prime tre
+risposte fungono da warm-up e sono escluse. Per le varianti System One ogni risposta è cronometrata tre volte e si
+conserva la mediana; i giudici generativi sono cronometrati una sola volta, dato che il greedy decoding è deterministico
+e ogni esecuzione dura molto di più. Il tempo riportato è il tempo wall-clock della chiamata al modello per una
+risposta, da cui si ricava il tempo per decisione.
 
-Sono stati registrati tempi anche per gli encoder, per Rizzo-Flow e per d1-3B, ma in condizioni che non consentono un
-confronto equo. Gli encoder giravano con PyTorch e valutavano ogni frase separatamente, rileggendo ogni volta il
-documento, il che li penalizza; Rizzo-Flow girava in un motore di inferenza diverso, con pesi a 4 bit e dietro
-un'interfaccia HTTP; d1-3B girava in PyTorch con il proprio codice e con i riavvii dei worker descritti sopra. Non si
-avanza quindi alcuna affermazione sulla latenza nei loro confronti.
+Sono stati registrati i tempi anche per gli encoder, per Rizzo-Flow e per d1-3B, ma in condizioni che non permettono un
+confronto equo. Gli encoder giravano in PyTorch e valutavano ogni frase separatamente, rileggendo ogni volta il
+documento, il che li penalizza; Rizzo-Flow girava in un altro motore di inferenza, con pesi a 4 bit e dietro
+un'interfaccia HTTP; d1-3B girava in PyTorch con il proprio codice e con i riavvii dei worker descritti sopra. Nei loro
+confronti, quindi, non si avanza alcuna conclusione sulla latenza.
 
-L'energia è misurata con lo strumento \texttt{powermetrics} di macOS, che riporta la potenza di CPU, GPU e Neural Engine
-ogni 200 millisecondi. Per ciascun sistema, 100 risposte del sottoinsieme di latenza (25 per fascia di $K$) sono
-verificate una sola volta, dopo 60 secondi di misura a riposo con il modello già caricato; l'energia di una verifica è la
-potenza media durante l'esecuzione, al netto della potenza a riposo, moltiplicata per la durata dell'esecuzione e divisa
-per il numero di risposte. La misura copre le unità di calcolo del chip ma non la memoria, lo schermo o l'archiviazione,
-ed è stata effettuata di notte con la macchina altrimenti inattiva.
+L'energia è misurata con \texttt{powermetrics}, lo strumento di macOS che riporta ogni 200 millisecondi la potenza
+assorbita da CPU, GPU e Neural Engine. Per ciascun sistema, 100 risposte del sottoinsieme di latenza (25 per fascia di
+$K$) vengono verificate una sola volta, dopo 60 secondi di misura a riposo con il modello già caricato; l'energia di una
+verifica è la potenza media durante l'esecuzione, al netto della potenza a riposo, moltiplicata per la durata
+dell'esecuzione e divisa per il numero di risposte. La misura comprende le unità di calcolo del chip ma non la memoria,
+lo schermo o l'archiviazione, ed è stata effettuata di notte, con la macchina altrimenti inattiva.
 
-Un solo modello è in esecuzione alla volta, e una guardia di memoria sorveglia ogni job lungo registrando per tutta la
-sua durata la memoria libera e lo swap. I risultati vengono scritti una sola volta e mai sovrascritti, e ogni esecuzione
-conserva la propria configurazione, così che ogni numero del Capitolo~\ref{sec:results} possa essere ricondotto
+È in esecuzione un solo modello alla volta, e una guardia di memoria sorveglia ogni job lungo, registrando per tutta la
+sua durata la memoria libera e lo swap. I risultati vengono scritti una sola volta e mai sovrascritti, e ogni
+esecuzione conserva la propria configurazione: ogni numero del Capitolo~\ref{sec:results} può così essere ricondotto
 all'esecuzione che lo ha prodotto.
