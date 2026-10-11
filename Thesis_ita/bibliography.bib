@@ -1,0 +1,262 @@
+% Bibliography of the GroundOne thesis. Entries verified on 2026-10-05 against arXiv, the ACL Anthology, AAAI and
+% the dataset cards (copies in Vault/raw/). Cite the publication year, not the arXiv year.
+% The previous template file is kept as bibliography_template.bib.
+
+% ---------------------------------------------------------------- System One (grey literature)
+@online{typesafe2026jev,
+  author = {{TypeSafe}}, title = {Introducing System One Models and Jev}, year = {2026},
+  url = {https://typesafe.ai/blog/introducing-system-one-models-and-jev}, note = {Blog post}}
+@software{semif,
+  author = {TheoLeeCJ}, title = {{SemIf}: open option-logit System One baseline}, year = {2026},
+  url = {https://github.com/TheoLeeCJ/SemIf}}
+@software{rizzoflow,
+  author = {Rizzo, Simone}, title = {{Rizzo Flow}: typed decisions from an {LLM}, without generating a single token}, year = {2026},
+  url = {https://github.com/Rizzo-AI-Academy/rizzo-flow}}
+@online{kwok2026clm,
+  author = {Kwok, Jacky and Kang, Hangoo and Suresh, Tarun and Saad-Falcon, Jon and Pavone, Marco and R{\'e}, Christopher and Mirhoseini, Azalia},
+  title = {Contrastive Language Models: A System One Model for Fast and Generalizable Decision-Making}, year = {2026},
+  url = {https://contrastive-lm.notion.site}, note = {Blog post, not peer-reviewed}}
+
+% ---------------------------------------------------------------- RAG, verification, judges
+@inproceedings{lewis2020rag,
+  author = {Lewis, Patrick and Perez, Ethan and Piktus, Aleksandra and Petroni, Fabio and others},
+  title = {Retrieval-Augmented Generation for Knowledge-Intensive {NLP} Tasks}, booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, year = {2020}}
+@inproceedings{niu2024ragtruth,
+  author = {Niu, Cheng and Wu, Yuanhao and Zhu, Juno and Xu, Siliang and others},
+  title = {{RAGTruth}: A Hallucination Corpus for Developing Trustworthy Retrieval-Augmented Language Models},
+  booktitle = {Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (ACL)}, year = {2024}}
+@inproceedings{tang2024minicheck,
+  author = {Tang, Liyan and Laban, Philippe and Durrett, Greg},
+  title = {{MiniCheck}: Efficient Fact-Checking of {LLMs} on Grounding Documents},
+  booktitle = {Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing (EMNLP)}, year = {2024}}
+@online{llmaggrefact,
+  author = {Tang, Liyan and Laban, Philippe and Durrett, Greg}, title = {{LLM-AggreFact} Leaderboard}, year = {2024},
+  url = {https://llm-aggrefact.github.io/}, urldate = {2026-10-05}}
+@inproceedings{zha2023alignscore,
+  author = {Zha, Yuheng and Yang, Yichi and Li, Ruichen and Hu, Zhiting},
+  title = {{AlignScore}: Evaluating Factual Consistency with a Unified Alignment Function},
+  booktitle = {Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (ACL)}, year = {2023}}
+@online{vectara2024hhem,
+  author = {{Vectara}}, title = {{HHEM-2.1-Open}: Hughes Hallucination Evaluation Model}, year = {2024},
+  url = {https://huggingface.co/vectara/hallucination_evaluation_model}}
+@inproceedings{es2024ragas,
+  author = {Es, Shahul and James, Jithin and Espinosa-Anke, Luis and Schockaert, Steven},
+  title = {{RAGAs}: Automated Evaluation of Retrieval Augmented Generation},
+  booktitle = {Proceedings of EACL 2024: System Demonstrations}, year = {2024}}
+@inproceedings{saadfalcon2024ares,
+  author = {Saad-Falcon, Jon and Khattab, Omar and Potts, Christopher and Zaharia, Matei},
+  title = {{ARES}: An Automated Evaluation Framework for Retrieval-Augmented Generation Systems},
+  booktitle = {Proceedings of NAACL 2024}, year = {2024}}
+@misc{ravi2024lynx,
+  author = {Ravi, Selvan Sunitha and Mielczarek, Bartosz and Kannappan, Anand and Kiela, Douwe and Qian, Rebecca},
+  title = {Lynx: An Open Source Hallucination Evaluation Model}, year = {2024}, eprint = {2407.08488}, archivePrefix = {arXiv}}
+@inproceedings{zheng2023judging,
+  author = {Zheng, Lianmin and Chiang, Wei-Lin and Sheng, Ying and Zhuang, Siyuan and others},
+  title = {Judging {LLM}-as-a-Judge with {MT-Bench} and Chatbot Arena},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS), Datasets and Benchmarks Track}, year = {2023}}
+@inproceedings{asai2024selfrag,
+  author = {Asai, Akari and Wu, Zeqiu and Wang, Yizhong and Sil, Avirup and Hajishirzi, Hannaneh},
+  title = {{Self-RAG}: Learning to Retrieve, Generate, and Critique through Self-Reflection},
+  booktitle = {International Conference on Learning Representations (ICLR)}, year = {2024}}
+@inproceedings{nie2020anli,
+  author = {Nie, Yixin and Williams, Adina and Dinan, Emily and Bansal, Mohit and Weston, Jason and Kiela, Douwe},
+  title = {Adversarial {NLI}: A New Benchmark for Natural Language Understanding},
+  booktitle = {Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics (ACL)}, year = {2020}}
+@inproceedings{williams2018mnli,
+  author = {Williams, Adina and Nangia, Nikita and Bowman, Samuel R.},
+  title = {A Broad-Coverage Challenge Corpus for Sentence Understanding through Inference},
+  booktitle = {Proceedings of NAACL-HLT 2018}, year = {2018}}
+
+% ---------------------------------------------------------------- Dataset sources
+@misc{nguyen2016msmarco,
+  author = {Nguyen, Tri and Rosenberg, Mir and Song, Xia and Gao, Jianfeng and Tiwary, Saurabh and Majumder, Rangan and Deng, Li},
+  title = {{MS MARCO}: A Human Generated {MAchine} Reading {COmprehension} Dataset}, year = {2016}, eprint = {1611.09268}, archivePrefix = {arXiv},
+  note = {CoCo Workshop at NIPS 2016}}
+@inproceedings{hermann2015teaching,
+  author = {Hermann, Karl Moritz and Ko{\v{c}}isk{\'y}, Tom{\'a}{\v{s}} and Grefenstette, Edward and Espeholt, Lasse and Kay, Will and Suleyman, Mustafa and Blunsom, Phil},
+  title = {Teaching Machines to Read and Comprehend}, booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, year = {2015}}
+@inproceedings{see2017pointer,
+  author = {See, Abigail and Liu, Peter J. and Manning, Christopher D.},
+  title = {Get To The Point: Summarization with Pointer-Generator Networks},
+  booktitle = {Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics (ACL)}, year = {2017}}
+@online{yelpdataset,
+  author = {{Yelp}}, title = {Yelp Open Dataset}, url = {https://business.yelp.com/data/resources/open-dataset/}, urldate = {2026-10-05}}
+@inproceedings{tang2023aggrefact,
+  author = {Tang, Liyan and Goyal, Tanya and Fabbri, Alex and Laban, Philippe and Xu, Jiacheng and Yavuz, Semih and Kry{\'s}ci{\'n}ski, Wojciech and Rousseau, Justin and Durrett, Greg},
+  title = {Understanding Factual Errors in Summarization: Errors, Summarizers, Datasets, Error Detectors},
+  booktitle = {Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (ACL)}, year = {2023}}
+@inproceedings{tang2024tofueval,
+  author = {Tang, Liyan and Shalyminov, Igor and Wong, Amy Wing-mei and others},
+  title = {{TofuEval}: Evaluating Hallucinations of {LLMs} on Topic-Focused Dialogue Summarization}, booktitle = {Proceedings of NAACL 2024}, year = {2024}}
+@inproceedings{kamoi2023wice,
+  author = {Kamoi, Ryo and Goyal, Tanya and Rodriguez, Juan Diego and Durrett, Greg},
+  title = {{WiCE}: Real-World Entailment for Claims in {Wikipedia}}, booktitle = {Proceedings of EMNLP 2023}, year = {2023}}
+@inproceedings{jacovi2024reveal,
+  author = {Jacovi, Alon and Bitton, Yonatan and Bohnet, Bernd and Herzig, Jonathan and Honovich, Or and Tseng, Michael and Collins, Michael and Aharoni, Roee and Geva, Mor},
+  title = {A Chain-of-Thought Is as Strong as Its Weakest Link: A Benchmark for Verifiers of Reasoning Chains},
+  booktitle = {Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (ACL)}, year = {2024}}
+@inproceedings{liu2023verifiability,
+  author = {Liu, Nelson F. and Zhang, Tianyi and Liang, Percy},
+  title = {Evaluating Verifiability in Generative Search Engines}, booktitle = {Findings of EMNLP 2023}, year = {2023}}
+@inproceedings{wang2024factcheckbench,
+  author = {Wang, Yuxia and Reddy, Revanth Gangi and Mujahid, Zain Muhammad and others},
+  title = {Factcheck-Bench: Fine-Grained Evaluation Benchmark for Automatic Fact-checkers}, booktitle = {Findings of EMNLP 2024}, year = {2024}}
+@inproceedings{malaviya2024expertqa,
+  author = {Malaviya, Chaitanya and Lee, Subin and Chen, Sihao and Sieber, Elizabeth and Yatskar, Mark and Roth, Dan},
+  title = {{ExpertQA}: Expert-Curated Questions and Attributed Answers}, booktitle = {Proceedings of NAACL 2024}, year = {2024}}
+@inproceedings{chen2024lfqa,
+  author = {Chen, Hung-Ting and Xu, Fangyuan and Arora, Shane and Choi, Eunsol},
+  title = {Understanding Retrieval Augmentation for Long-Form Question Answering}, booktitle = {Conference on Language Modeling (COLM)}, year = {2024}}
+@online{hf_anli, author = {{Facebook AI}}, title = {{ANLI} dataset card (facebook/anli)}, url = {https://huggingface.co/datasets/facebook/anli}, urldate = {2026-10-05}}
+@online{hf_llmaggrefact, author = {Tang, Liyan}, title = {{LLM-AggreFact} dataset card (lytang/LLM-AggreFact)}, url = {https://huggingface.co/datasets/lytang/LLM-AggreFact}, urldate = {2026-10-05}}
+@online{hf_minicheck_data, author = {Tang, Liyan}, title = {{C2D-and-D2C-MiniCheck} dataset card}, url = {https://huggingface.co/datasets/lytang/C2D-and-D2C-MiniCheck}, urldate = {2026-10-05}}
+
+% ---------------------------------------------------------------- Models and fine-tuning
+@inproceedings{hu2022lora,
+  author = {Hu, Edward J. and Shen, Yelong and Wallis, Phillip and Allen-Zhu, Zeyuan and Li, Yuanzhi and Wang, Shean and Wang, Lu and Chen, Weizhu},
+  title = {{LoRA}: Low-Rank Adaptation of Large Language Models}, booktitle = {International Conference on Learning Representations (ICLR)}, year = {2022}}
+@inproceedings{dettmers2023qlora,
+  author = {Dettmers, Tim and Pagnoni, Artidoro and Holtzman, Ari and Zettlemoyer, Luke},
+  title = {{QLoRA}: Efficient Finetuning of Quantized {LLMs}}, booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, year = {2023}}
+@misc{qwen2024qwen25,
+  author = {{Qwen Team}}, title = {Qwen2.5 Technical Report}, year = {2024}, eprint = {2412.15115}, archivePrefix = {arXiv}}
+@software{mlx2023,
+  author = {{Apple}}, title = {{MLX}: An array framework for Apple silicon}, year = {2023}, url = {https://github.com/ml-explore/mlx}}
+@software{mlxlm,
+  author = {{Apple}}, title = {{mlx-lm}: LLMs with MLX}, year = {2024}, url = {https://github.com/ml-explore/mlx-lm}}
+
+% ---------------------------------------------------------------- Calibration and selective prediction
+@inproceedings{naeini2015ece,
+  author = {Naeini, Mahdi Pakdaman and Cooper, Gregory F. and Hauskrecht, Milos},
+  title = {Obtaining Well Calibrated Probabilities Using Bayesian Binning}, booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence}, year = {2015}}
+@inproceedings{guo2017calibration,
+  author = {Guo, Chuan and Pleiss, Geoff and Sun, Yu and Weinberger, Kilian Q.},
+  title = {On Calibration of Modern Neural Networks}, booktitle = {International Conference on Machine Learning (ICML)}, year = {2017}}
+@misc{kadavath2022know,
+  author = {Kadavath, Saurav and Conerly, Tom and Askell, Amanda and Henighan, Tom and others},
+  title = {Language Models (Mostly) Know What They Know}, year = {2022}, eprint = {2207.05221}, archivePrefix = {arXiv}}
+@inproceedings{tian2023justask,
+  author = {Tian, Katherine and Mitchell, Eric and Zhou, Allan and Sharma, Archit and others},
+  title = {Just Ask for Calibration: Strategies for Eliciting Calibrated Confidence Scores from Language Models Fine-Tuned with Human Feedback},
+  booktitle = {Proceedings of EMNLP 2023}, year = {2023}}
+@inproceedings{geifman2017selective,
+  author = {Geifman, Yonatan and El-Yaniv, Ran}, title = {Selective Classification for Deep Neural Networks},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, year = {2017}}
+
+% ---------------------------------------------------------------- Inference background
+@inproceedings{pope2023scaling,
+  author = {Pope, Reiner and Douglas, Sholto and Chowdhery, Aakanksha and Devlin, Jacob and others},
+  title = {Efficiently Scaling Transformer Inference}, booktitle = {Proceedings of Machine Learning and Systems (MLSys)}, year = {2023}}
+@inproceedings{kwon2023pagedattention,
+  author = {Kwon, Woosuk and Li, Zhuohan and Zhuang, Siyuan and Sheng, Ying and others},
+  title = {Efficient Memory Management for Large Language Model Serving with {PagedAttention}}, booktitle = {Proceedings of the 29th Symposium on Operating Systems Principles (SOSP)}, year = {2023}}
+
+% ---- added 2026-10-06 (dataset chapter); verified against the ACL Anthology / arXiv / HF card
+@inproceedings{schuster2021vitaminc,
+  title = {Get Your Vitamin {C}! Robust Fact Verification with Contrastive Evidence},
+  author = {Schuster, Tal and Fisch, Adam and Barzilay, Regina},
+  booktitle = {Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies},
+  pages = {624--643}, year = {2021}, publisher = {Association for Computational Linguistics},
+  doi = {10.18653/v1/2021.naacl-main.52}, url = {https://aclanthology.org/2021.naacl-main.52}}
+@online{hf_vitaminc, author = {Schuster, Tal}, title = {{VitaminC} dataset card (tals/vitaminc)}, url = {https://huggingface.co/datasets/tals/vitaminc}, urldate = {2026-10-06}}
+@inproceedings{sadvilkar2020pysbd,
+  title = {{PySBD}: Pragmatic Sentence Boundary Disambiguation},
+  author = {Sadvilkar, Nipun and Neumann, Mark},
+  booktitle = {Proceedings of the Second Workshop for NLP Open Source Software (NLP-OSS)},
+  pages = {110--114}, year = {2020}, doi = {10.18653/v1/2020.nlposs-1.15}, url = {https://aclanthology.org/2020.nlposs-1.15}}
+@misc{yu2026retromorphic,
+  title = {Retromorphic Testing with Hierarchical Verification for Hallucination Detection in {RAG}},
+  author = {Yu, Boxi and Zhang, Yuzhong and Lin, Liting and Briand, Lionel and Mu{\~n}oz, Emir},
+  year = {2026}, eprint = {2603.27752}, archivePrefix = {arXiv}, url = {https://arxiv.org/abs/2603.27752}}
+
+% ---- added 2026-10-10 (thesis update: readout, confidence, significance, stability, local inference, energy);
+% ---- verified against the arXiv API / ACL Anthology / publisher pages; PDFs in Vault/raw/
+@inproceedings{wang2024myanswerc,
+  author = {Wang, Xinpeng and Ma, Bolei and Hu, Chengzhi and Weber-Genzel, Leon and others},
+  title = {``My Answer is {C}'': First-Token Probabilities Do Not Match Text Answers in Instruction-Tuned Language Models},
+  booktitle = {Findings of the Association for Computational Linguistics: ACL 2024}, year = {2024}, eprint = {2402.14499}, archivePrefix = {arXiv}}
+@inproceedings{zheng2024mcq,
+  author = {Zheng, Chujie and Zhou, Hao and Meng, Fandong and Zhou, Jie and Huang, Minlie},
+  title = {Large Language Models Are Not Robust Multiple Choice Selectors}, booktitle = {International Conference on Learning Representations (ICLR)}, year = {2024}}
+@inproceedings{zhao2021calibrate,
+  author = {Zhao, Tony Z. and Wallace, Eric and Feng, Shi and Klein, Dan and Singh, Sameer},
+  title = {Calibrate Before Use: Improving Few-Shot Performance of Language Models}, booktitle = {International Conference on Machine Learning (ICML)}, year = {2021}}
+@inproceedings{xiong2024uncertainty,
+  author = {Xiong, Miao and Hu, Zhiyuan and Lu, Xinyang and Li, Yifei and others},
+  title = {Can {LLMs} Express Their Uncertainty? An Empirical Evaluation of Confidence Elicitation in {LLMs}}, booktitle = {International Conference on Learning Representations (ICLR)}, year = {2024}}
+@inproceedings{koehn2004significance,
+  author = {Koehn, Philipp}, title = {Statistical Significance Tests for Machine Translation Evaluation},
+  booktitle = {Proceedings of the 2004 Conference on Empirical Methods in Natural Language Processing (EMNLP)}, pages = {388--395}, year = {2004}, url = {https://aclanthology.org/W04-3250}}
+@inproceedings{bergkirkpatrick2012significance,
+  author = {Berg-Kirkpatrick, Taylor and Burkett, David and Klein, Dan}, title = {An Empirical Investigation of Statistical Significance in {NLP}},
+  booktitle = {Proceedings of EMNLP-CoNLL 2012}, pages = {995--1005}, year = {2012}, url = {https://aclanthology.org/D12-1091}}
+@inproceedings{dror2018hitchhiker,
+  author = {Dror, Rotem and Baumer, Gili and Shlomov, Segev and Reichart, Roi}, title = {The Hitchhiker's Guide to Testing Statistical Significance in Natural Language Processing},
+  booktitle = {Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (ACL)}, pages = {1383--1392}, year = {2018}, url = {https://aclanthology.org/P18-1128}}
+@misc{dodge2020finetuning,
+  author = {Dodge, Jesse and Ilharco, Gabriel and Schwartz, Roy and Farhadi, Ali and Hajishirzi, Hannaneh and Smith, Noah},
+  title = {Fine-Tuning Pretrained Language Models: Weight Initializations, Data Orders, and Early Stopping}, year = {2020}, eprint = {2002.06305}, archivePrefix = {arXiv}}
+@inproceedings{mosbach2021stability,
+  author = {Mosbach, Marius and Andriushchenko, Maksym and Klakow, Dietrich},
+  title = {On the Stability of Fine-tuning {BERT}: Misconceptions, Explanations, and Strong Baselines}, booktitle = {International Conference on Learning Representations (ICLR)}, year = {2021}}
+@inproceedings{pascanu2013difficulty,
+  author = {Pascanu, Razvan and Mikolov, Tomas and Bengio, Yoshua}, title = {On the Difficulty of Training Recurrent Neural Networks},
+  booktitle = {International Conference on Machine Learning (ICML)}, year = {2013}}
+@misc{willard2023outlines,
+  author = {Willard, Brandon T. and Louf, R{\'e}mi}, title = {Efficient Guided Generation for Large Language Models}, year = {2023}, eprint = {2307.09702}, archivePrefix = {arXiv}}
+@inproceedings{patel2024splitwise,
+  author = {Patel, Pratyush and Choukse, Esha and Zhang, Chaojie and Shah, Aashaka and others},
+  title = {Splitwise: Efficient Generative {LLM} Inference Using Phase Splitting}, booktitle = {Proceedings of the 51st Annual International Symposium on Computer Architecture (ISCA)}, year = {2024}}
+@inproceedings{samsi2023words,
+  author = {Samsi, Siddharth and Zhao, Dan and McDonald, Joseph and Li, Baolin and others},
+  title = {From Words to Watts: Benchmarking the Energy Costs of Large Language Model Inference}, booktitle = {IEEE High Performance Extreme Computing Conference (HPEC)}, year = {2023}}
+@inproceedings{luccioni2024power,
+  author = {Luccioni, Alexandra Sasha and Jernite, Yacine and Strubell, Emma},
+  title = {Power Hungry Processing: Watts Driving the Cost of {AI} Deployment?}, booktitle = {Proceedings of the ACM Conference on Fairness, Accountability, and Transparency (FAccT)}, year = {2024}}
+@inproceedings{alizadeh2024flash,
+  author = {Alizadeh, Keivan and Mirzadeh, Iman and Belenko, Dmitry and Khatamifard, Karen and others},
+  title = {{LLM} in a flash: Efficient Large Language Model Inference with Limited Memory}, booktitle = {Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (ACL)}, year = {2024}}
+@misc{gunter2024apple,
+  author = {Gunter, Tom and Wang, Zirui and Wang, Chong and Pang, Ruoming and others},
+  title = {Apple Intelligence Foundation Language Models}, year = {2024}, eprint = {2407.21075}, archivePrefix = {arXiv}}
+@software{llamacpp,
+  author = {Gerganov, Georgi and {ggml-org contributors}}, title = {llama.cpp: {LLM} inference in {C/C++}}, year = {2023}, url = {https://github.com/ggml-org/llama.cpp}}
+@online{apple2024m4specs,
+  author = {{Apple}}, title = {{MacBook Pro} (14-inch, {M4}, 2024) -- Technical Specifications}, url = {https://support.apple.com/en-us/121552}, urldate = {2026-10-10}}
+@article{laban2022summac,
+  author = {Laban, Philippe and Schnabel, Tobias and Bennett, Paul N. and Hearst, Marti A.},
+  title = {{SummaC}: Re-Visiting {NLI}-based Models for Inconsistency Detection in Summarization}, journal = {Transactions of the Association for Computational Linguistics}, volume = {10}, pages = {163--177}, year = {2022}}
+@inproceedings{min2023factscore,
+  author = {Min, Sewon and Krishna, Kalpesh and Lyu, Xinxi and Lewis, Mike and others},
+  title = {{FActScore}: Fine-grained Atomic Evaluation of Factual Precision in Long Form Text Generation}, booktitle = {Proceedings of EMNLP 2023}, year = {2023}}
+@article{huang2025hallucination,
+  author = {Huang, Lei and Yu, Weijiang and Ma, Weitao and Zhong, Weihong and others},
+  title = {A Survey on Hallucination in Large Language Models: Principles, Taxonomy, Challenges, and Open Questions}, journal = {ACM Transactions on Information Systems}, year = {2025}, doi = {10.1145/3703155}}
+@misc{deusser2026jev,
+  author = {Deu{\ss}er, Tobias and Sparrenberg, Lorenz and Sifa, Rafet}, title = {Evaluating and Benchmarking the System One Model {Jev}}, year = {2026}, eprint = {2609.37647}, archivePrefix = {arXiv}}
+@misc{azizi2026labels,
+  author = {Azizi, Seyedarmin and Baghaei Potraghloo, Erfan and Pedram, Massoud}, title = {Labels Override Definitions in {Jev}-Style Typed Decision Models}, year = {2026}, eprint = {2610.02586}, archivePrefix = {arXiv}}
+@misc{nandakishore2026laya,
+  author = {Nandakishore, Gowthamkumar}, title = {Laya as a Typed Probabilistic Assessor: An Independent Reproduction and a Preregistered Study of Calibration and Selective Escalation}, year = {2026}, eprint = {2609.33843}, archivePrefix = {arXiv}}
+@online{convai2026laya,
+  author = {{Convai Innovations}}, title = {Laya: a System One decision model (model card, convaiinnovations/laya)}, url = {https://huggingface.co/convaiinnovations/laya}, urldate = {2026-10-10}}
+@online{hf2026decisionmodels,
+  author = {{Hugging Face}}, title = {Models tagged decision-model}, url = {https://huggingface.co/models?other=decision-model}, urldate = {2026-10-10}}
+@online{yong2026decidebench,
+  author = {Yong, Cho Yin}, title = {{DecideBench} (dataset card, choyiny/decidebench)}, url = {https://huggingface.co/datasets/choyiny/decidebench}, urldate = {2026-10-10}}
+
+% ---- added 2026-10-11 (decision-model ecosystem; cards and papers in Vault/raw/, arXiv ids verified)
+@online{liquid2026d1,
+  author = {{Liquid AI}}, title = {d1-3B: a decision model built on {LFM2.5-VL-3B} (model card, LiquidAI/d1-3B, revision 051bcc4)}, url = {https://huggingface.co/LiquidAI/d1-3B}, urldate = {2026-10-10}}
+@online{cloudflare2026clef,
+  author = {{Cloudflare}}, title = {Clef: open decision models (model card, Cloudflare/clef)}, url = {https://huggingface.co/Cloudflare/clef}, urldate = {2026-10-10}}
+@online{perplexity2026decider,
+  author = {{Perplexity}}, title = {pplx-decider-v1.1-27b (model card)}, url = {https://huggingface.co/perplexity-ai/pplx-decider-v1.1-27b}, urldate = {2026-10-10}}
+@online{decisionindex2026,
+  author = {{multimodalart}}, title = {Jev Decision Index: a leaderboard of System One decision models (Hugging Face Space, v0.2.1)}, url = {https://huggingface.co/spaces/multimodalart/jev-decision-index}, urldate = {2026-10-10}}
+@misc{guo2026justaskjev,
+  author = {Guo, Ruoqi and Liu, Yi and Deng, Gelei and Li, Yuekang and others}, title = {Just Ask {Jev}: Reinforcement Learning for Calibrated Decisions as a Zero-Shot Detector of {AI} Alignment Failures}, year = {2026}, eprint = {2609.29429}, archivePrefix = {arXiv}}
+@misc{li2026jevjudge,
+  author = {Li, Yubo and Miao, Yidi and Krishnan, Ramayya and Padman, Rema}, title = {{JEV}-as-a-Judge: Accept When Confident, Escalate When Unsure}, year = {2026}, eprint = {2609.26550}, archivePrefix = {arXiv}}
+@misc{deka2026typed,
+  author = {Deka, Pritam}, title = {From Retrieval to Typed Decisions: Calibrated System One Models from Biomedical Sentence Encoders}, year = {2026}, eprint = {2610.02486}, archivePrefix = {arXiv}}

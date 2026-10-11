@@ -1,0 +1,10 @@
+% to remove all first use occurrences given the presence of the summary
+\glsresetall
+% to skip all the first use occurrences, using only short forms
+% \glsunsetall
+
+% toptesi sets \floatpagefraction and \textfraction to 0, so any float that does not fit becomes a page of its own,
+% mostly empty. Restore usual values: a float page must be at least 70% full and text must fill 15% of a page.
+\renewcommand{\topfraction}{0.85}
+\renewcommand{\textfraction}{0.15}
+\renewcommand{\floatpagefraction}{0.7}

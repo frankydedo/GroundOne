@@ -114,3 +114,23 @@ Thesis/thesis.out
 Thesis/thesis.run.xml
 Thesis/thesis.synctex.gz
 Thesis/thesis.toc
+
+# LaTeX build artefacts (Thesis_ita/, Italian version)
+Thesis_ita/thesis.aux
+Thesis_ita/thesis.bbl
+Thesis_ita/thesis.bcf
+Thesis_ita/thesis.blg
+Thesis_ita/thesis.fdb_latexmk
+Thesis_ita/thesis.fls
+Thesis_ita/thesis.glo
+Thesis_ita/thesis.glo-abr
+Thesis_ita/thesis.gls
+Thesis_ita/thesis.glg
+Thesis_ita/thesis.ist
+Thesis_ita/thesis.lof
+Thesis_ita/thesis.lot
+Thesis_ita/thesis.log
+Thesis_ita/thesis.out
+Thesis_ita/thesis.run.xml
+Thesis_ita/thesis.synctex.gz
+Thesis_ita/thesis.toc

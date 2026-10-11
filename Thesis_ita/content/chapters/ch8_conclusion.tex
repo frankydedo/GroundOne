@@ -1,0 +1,59 @@
+\chapter{Conclusioni e sviluppi futuri}
+\label{sec:conclusion}
+
+\section{Sintesi dei risultati}
+\label{sec:concl-summary}
+
+Questa tesi si è chiesta se un modello linguistico compatto, specializzato in un'unica decisione e impiegato come
+System One, possa verificare frase per frase le risposte generate con recupero di informazioni su un portatile, e da
+dove provenga l'eventuale vantaggio. GroundOne, un modello Qwen2.5 addestrato che legge i verdetti di un'intera
+risposta in un solo passaggio in avanti, fornisce una risposta positiva, ma con alcune riserve.
+
+La specializzazione funziona dove era stata indirizzata. Sull'insieme di test di RAGTruth GroundOne raggiunge
+un'accuratezza bilanciata a tre classi di 0.769 con 0.5B parametri e di 0.832 con 3B, ben al di sopra degli stessi
+modelli non addestrati, al di sopra degli encoder specializzati nell'ordinamento delle frasi supportate e nettamente al
+di sopra di un System One generalista otto volte più grande. Su LLM-AggreFact il 3B è alla pari con il miglior encoder
+di piccole dimensioni, mentre su VitaminC il vantaggio scompare: uno specialista non è un verificatore di fatti
+generale. Un modello decisionale generalista della stessa dimensione, addestrato a decidere su un'ampia miscela di
+compiti, conferma questo compromesso: GroundOne lo supera nettamente su RAGTruth, è alla pari su LLM-AggreFact e resta
+molto indietro su VitaminC.
+
+Il meccanismo del System One porta vantaggi su due fronti. Leggere tutti i verdetti in un solo passaggio rende la
+verifica, sulle risposte lunghe, circa due volte più rapida di un giudice generativo sintetico e sei volte più rapida di
+uno prolisso della stessa dimensione, con un output sempre valido; inoltre, restringere la decisione alle risposte
+ammissibili è di per sé più accurato che lasciare allo stesso modello la generazione del verdetto. A parità di output, i
+giudici generativi non sono in grado di fornire probabilità di qualità paragonabile: le loro probabilità separano a
+malapena le decisioni corrette da quelle errate, e quelle verbalizzate sono quasi sempre del tipo tutto-o-niente.
+
+Le probabilità di GroundOne possono essere calibrate con una temperatura e un bias stimati sui dati di sviluppo, e una
+soglia scelta sugli stessi dati le trasforma in etichette coerenti sia con le probabilità sia con la decisione valutata.
+L'errore di calibrazione atteso, da solo, non distingue tuttavia le probabilità utili da quelle inutili, e la capacità
+discriminativa va misurata separatamente.
+
+L'intero sistema funziona su un portatile da 16\,GB. Una risposta lunga viene verificata in 0.41 secondi e 5.5 joule
+con il modello 0.5B, e in 2.57 secondi e 33 joule con il 3B. Il risparmio di energia rispetto a un giudice è reale ma
+inferiore al risparmio di tempo, perché un singolo prefill lungo assorbe più potenza della decodifica.
+
+I limiti principali risiedono nella ristrettezza dei dati di addestramento, a causa della quale le contraddizioni al di
+fuori del data-to-text e le allucinazioni nascoste in frasi copiate vengono apprese solo in parte, e in una procedura di
+addestramento non del tutto robusta rispetto al seed casuale.
+
+\section{Sviluppi futuri}
+\label{sec:concl-future}
+
+Da questi limiti discendono direttamente diverse direzioni di lavoro. La procedura di addestramento andrebbe resa
+robusta abilitando la correzione del bias e il clipping del gradiente, registrando le norme dei gradienti e ripetendo le
+esecuzioni con più seed, anche per il modello 3B. Dati di addestramento con contraddizioni più varie, con supporto
+parafrasato e con modifiche minime del tipo contenuto in VitaminC dovrebbero affrontare sia il richiamo debole al di
+fuori del data-to-text sia il punto cieco sulle frasi copiate. Addestrare la lettura dei logit (readout) sulla lettera che il modello
+scriverebbe spontaneamente dopo il marcatore potrebbe allineare readout e generazione, con effetti sull'accuratezza che
+restano da misurare.
+
+Sul versante dei sistemi, le misure ancora mancanti per il pilastro della località sono la memoria occupata quando il
+verificatore opera accanto a un generatore e a un sistema di recupero, e una valutazione completa con la rete
+disattivata. Un confronto equo della latenza con gli encoder richiede di eseguirli in batch, mentre quello con il
+System One generalista richiede di confrontare entrambi i sistemi attraverso la stessa interfaccia HTTP. La verifica
+potrebbe inoltre avvenire durante la generazione della risposta, segnalando ogni frase non appena è completa, cosa che
+la soluzione a marcatori rende naturale. Infine, un assistente locale costruito sull'interfaccia del servizio
+consentirebbe agli utenti di scegliere la regola e la soglia più adatte ai propri documenti, ed è proprio in questo
+contesto che le probabilità calibrate mostrano il loro valore.

@@ -1,0 +1,231 @@
+\chapter{Contesto e lavori correlati}
+\label{sec:background}
+
+% Source notes: Vault/wiki (concepts: Prefill and Decode, KV Cache, On-Device Inference, Apple Silicon and MLX, Energy of
+% LLM Inference, System One Models, Letter-Token Readout, Laya, Decision-Model Benchmarks, Groundedness Verification,
+% Hallucination Detection, Calibration, Verbalised vs Logit Confidence, Fine-tuning Instability and Seeds).
+
+Questo capitolo introduce le idee su cui si fonda GroundOne e i lavori con cui viene confrontato. Si parte da come un
+transformer impiega il proprio tempo durante l'inferenza, poiché il vantaggio di un modello System One ne discende
+direttamente, e da ciò che cambia quando l'inferenza viene eseguita sul dispositivo dell'utente. Si passano poi in
+rassegna i modelli System One, il problema dell'allucinazione nella generazione aumentata dal recupero (RAG) e i metodi
+che verificano le risposte rispetto alle loro fonti; il capitolo si chiude con la calibrazione, il fine-tuning
+efficiente nei parametri e la lacuna di ricerca che questa tesi affronta.
+
+\section{Inferenza dei transformer: prefill, decodifica e cache chiave-valore}
+\label{sec:bg-inference}
+
+Un modello linguistico di tipo decoder-only elabora il proprio input in due fasi. Nella fase di \emph{prefill} l'intero
+prompt viene letto in parallelo: ogni strato calcola, per ciascun token di input, le chiavi e i valori a cui i token
+successivi presteranno attenzione, e li memorizza in una cache chiave-valore (KV cache). Nella fase di
+\emph{decodifica} il modello produce il proprio output un token alla volta, e ogni nuovo token presta attenzione alla
+cache e la estende di una posizione~\cite{pope2023scaling}. Le due fasi si comportano in modo molto diverso
+sull'hardware. Il prefill esegue una grande quantità di calcolo su molti token contemporaneamente ed è limitato dalla
+capacità di calcolo aritmetico. La decodifica esegue poco calcolo per passo, ma deve leggere tutti i pesi, oltre alla
+cache in crescita, per ogni token generato, e dunque con batch piccoli è limitata dalla banda di
+memoria~\cite{pope2023scaling,patel2024splitwise}. Ne consegue che un token generato costa molto più tempo di un token
+del prompt, e su un singolo dispositivo la differenza raggiunge un ordine di grandezza. I sistemi di serving sfruttano
+questa distinzione in modi diversi, ad esempio gestendo la cache a pagine per accogliere più richieste
+concorrenti~\cite{kwon2023pagedattention} oppure eseguendo le due fasi su macchine separate, ciascuna adatta a una di
+esse~\cite{patel2024splitwise}.
+
+La conseguenza pratica per la verifica è semplice. Un giudice che scrive il proprio verdetto paga un prefill per il
+documento e la risposta e poi un passo di decodifica per ogni token che scrive, si tratti di una sola lettera o di un
+paragrafo di ragionamento. Un modello che legge la propria decisione dai logit calcolati durante il prefill paga soltanto
+il primo costo. La cache chiave-valore offre una seconda leva: quando si pongono molte domande sullo stesso contesto,
+quest'ultimo può essere elaborato una sola volta e poi riutilizzato, cosicché ogni domanda aggiuntiva costa soltanto i
+suoi pochi token.
+
+\section{Inferenza sul dispositivo dell'utente}
+\label{sec:bg-local}
+
+I modelli linguistici sono usati per lo più attraverso servizi remoti, che ricevono l'input dell'utente tramite la rete
+ed eseguono il modello in un datacenter. Eseguire il modello sul dispositivo dell'utente modifica diverse proprietà allo
+stesso tempo. I documenti non lasciano mai la macchina, il che è importante per dati privati o regolamentati; il sistema
+funziona senza rete e senza dipendere dalla disponibilità di un fornitore; il costo è rappresentato dall'hardware e
+dalla sua energia anziché da un prezzo per token; i pesi, e dunque il comportamento, non cambiano a meno che non sia
+l'utente a cambiarli. Un modello locale espone inoltre i propri logit, che le interfacce remote spesso nascondono o
+limitano e che sono indispensabili a un modello System One e alla sua calibrazione. Il prezzo da pagare è la capacità:
+un laptop può ospitare soltanto modelli piccoli, e deve ospitarli accanto a tutto ciò che vi è in esecuzione.
+
+Tre proprietà dell'hardware determinano ciò che è fattibile. La capacità di memoria stabilisce quali modelli possono
+essere caricati: un modello da 7B in mezza precisione richiede più di 14\,GB, oltre le possibilità della maggior parte
+dei dispositivi personali, ed è per questo che le installazioni locali si affidano a pesi quantizzati, a modelli più
+piccoli oppure, nei sistemi di ricerca, al caricamento progressivo dei pesi dalla memoria flash~\cite{alizadeh2024flash}.
+La banda di memoria limita la velocità della decodifica, poiché ogni token generato legge tutti i pesi; sul laptop
+utilizzato in questa tesi, un Apple M4 con 120\,GB/s di banda e 16\,GB di memoria unificata condivisa tra CPU e
+GPU~\cite{apple2024m4specs}, tale limite corrisponde a pochi millisecondi per token per un modello da 0.5B in precisione
+a 8 bit e a circa dieci volte tanto per un modello da 3B. La capacità di calcolo, infine, limita il prefill, che sulla
+GPU di un laptop è relativamente veloce.
+
+Il software per l'inferenza locale è maturato rapidamente. llama.cpp~\cite{llamacpp} offre un'inferenza priva di
+dipendenze, con quantizzazione intera e back end per la maggior parte degli acceleratori di consumo, e molti strumenti
+di distribuzione si basano su di esso. MLX~\cite{mlx2023}, con il suo pacchetto per modelli linguistici~\cite{mlxlm}, è
+un framework per array progettato per la memoria unificata di Apple silicon e supporta la quantizzazione e il
+fine-tuning LoRA direttamente sul dispositivo. I produttori di piattaforme distribuiscono ormai i propri modelli per
+l'inferenza locale (sul dispositivo): il foundation model di Apple per i suoi dispositivi è un modello denso di circa tre
+miliardi di parametri, quantizzato a meno di quattro bit per peso e specializzato per ciascuna funzionalità mediante
+adattatori a basso rango di rango 16 su tutti gli strati lineari~\cite{gunter2024apple}. Si tratta dello stesso schema,
+alla stessa scala, seguito da GroundOne.
+
+L'energia è l'ultima dimensione dell'inferenza locale. Misure condotte su hardware da datacenter mostrano che l'energia
+di una richiesta cresce con il numero di token generati e dipende fortemente dalla dimensione del modello e dal
+compito~\cite{samsi2023words,luccioni2024power}, e la distinzione tra un prefill limitato dal calcolo e una decodifica
+limitata dalla banda implica che anche la potenza assorbita dalle due fasi sia diversa~\cite{patel2024splitwise}. Su un
+dispositivo alimentato a batteria l'energia per verifica è quindi una proprietà del metodo, non soltanto dell'hardware,
+e il Capitolo~\ref{sec:results} la misura.
+
+\section{Modelli System One}
+\label{sec:bg-systemone}
+
+Il termine \emph{modello System One} è stato introdotto da TypeSafe con Jev, un modello offerto come servizio remoto che
+risponde a domande chiuse su uno stato dato con output tipizzati, come un booleano, una scelta tra opzioni o un
+punteggio, senza generare testo~\cite{typesafe2026jev}. Il nome richiama la modalità di pensiero rapida e intuitiva
+descritta da Kahneman, contrapposta al ragionamento deliberato. Il fornitore dichiara latenze dell'ordine di decine o
+centinaia di millisecondi e forti risparmi di costo rispetto ai giudici generativi, ma queste cifre restano affermazioni
+e l'architettura non è resa nota.
+
+Sono seguite implementazioni aperte, che differiscono nel modo in cui le probabilità vengono prodotte. La famiglia più
+diffusa mantiene la testa del modello linguistico e legge i logit delle lettere delle opzioni nella posizione della
+risposta, dopo un prompt che presenta la domanda come scelta multipla. SemIf applica questa lettura dei logit (readout)
+a un modello congelato da 4B e riporta che 21 criteri relativi a un documento ricevono risposta in circa un secondo,
+contro più di cinque secondi per la migliore baseline generativa in grado di produrre JSON valido~\cite{semif}.
+Rizzo-Flow sottopone a fine-tuning con LoRA un modello da 4B su decisioni tipizzate, espone la stessa interfaccia di Jev
+e riporta miglioramenti di accuratezza e di calibrazione dopo il fine-tuning~\cite{rizzoflow}; si tratta del modello
+System One generalista impiegato come baseline in questa tesi. Una seconda famiglia codifica separatamente lo stato e
+ciascuna risposta candidata e ne confronta gli embedding: i Contrastive Language Models sono molto veloci quando i
+candidati sono numerosi e riutilizzabili, ma nel loro stesso confronto concordano con le decisioni di Jev molto meno di
+un modello che lascia interagire stato e candidato~\cite{kwok2026clm}. Una terza famiglia utilizza piccoli encoder con
+una testa decisionale dedicata. Laya, ad esempio, assegna un punteggio a ogni opzione in corrispondenza di un proprio
+token di maschera di un encoder ModernBERT di circa 400M parametri; le domande di una richiesta vengono valutate in
+un'unica chiamata a batch, ma ciascuna domanda viene codificata con una propria copia del
+contesto~\cite{convai2026laya,azizi2026labels}.
+
+Le evidenze a sostegno di questi sistemi sono disomogenee. Gran parte di esse proviene dagli autori stessi, spesso su
+una sola macchina e su un solo benchmark. Le valutazioni indipendenti sono recenti e meno favorevoli ai piccoli modelli
+aperti: una valutazione di Jev su 37 dataset trova ben calibrate le sue probabilità di scelta, mentre le sue probabilità
+binarie, pur ordinando bene gli esempi, risultano mal posizionate rispetto a una soglia fissa di 0.5, e riporta
+un'accuratezza bilanciata media di 78.6 su LLM-AggreFact~\cite{deusser2026jev}; una riproduzione indipendente di Laya
+rileva una calibrazione diversa da quella dichiarata e una forte dipendenza da una temperatura stimata sui dati di
+destinazione~\cite{nandakishore2026laya}; benchmark contrastivi con protocolli chiari collocano i piccoli modelli aperti
+molto al di sotto di Jev~\cite{yong2026decidebench}; ed è stato mostrato che i modelli decisionali tipizzati seguono
+l'etichetta di un'opzione anziché la sua definizione quando le due sono in conflitto~\cite{azizi2026labels}. Nel 2026
+l'hub di Hugging Face ha introdotto un tag per questi \emph{modelli decisionali}~\cite{hf2026decisionmodels}, che a
+ottobre 2026 raggruppava già circa 1{,}500 modelli di circa 600 autori, di qualità molto diversa.
+
+A poche settimane dal rilascio di Jev, organizzazioni affermate hanno pubblicato propri modelli decisionali aperti. Clef
+di Cloudflare aggiunge una testa decisionale dedicata a un decoder e risponde a tutte le domande in un solo passaggio
+sullo stato, l'architettura che per Jev era stata soltanto ipotizzata~\cite{cloudflare2026clef}; d1-3B di Liquid AI
+legge lettere di risposta ristrette da un modello da 3B il cui stato è condiviso da tutte le
+domande~\cite{liquid2026d1}; Perplexity sottopone a fine-tuning un modello da 27B con una testa sulle
+lettere~\cite{perplexity2026decider}. Una classifica (leaderboard) della comunità, il Decision Index, valuta questi
+modelli su un insieme comune di benchmark pubblici che comprende RAGTruth a livello di risposte
+intere~\cite{decisionindex2026}. I suoi risultati tracciano una linea netta: i modelli decisionali generalisti con meno
+di un miliardo di parametri superano a malapena la baseline banale su RAGTruth, e soltanto modelli da decine di miliardi
+di parametri individuano in modo affidabile le risposte allucinate. Gli studi su Jev aggiungono che le sue probabilità
+sono calibrate quando aggregate su molti compiti, ma non su ciascun compito preso separatamente, che soglie e
+temperature vanno stimate sul carico di lavoro di destinazione~\cite{guo2026justaskjev,li2026jevjudge}, e che scegliere
+una soglia mediante un limite inferiore di confidenza rende più sicuro l'impiego di un giudice che restituisce soltanto
+decisioni~\cite{li2026jevjudge}. Anche i runtime si sono adeguati: llama.cpp supporta ora nativamente l'interfaccia
+System One~\cite{llamacpp}. Nessuno di questi modelli, tuttavia, è specializzato nella groundedness (aderenza al
+documento), e nessuno riporta risultati di verifica a tre classi a livello di frase sui benchmark utilizzati in questa
+tesi.
+
+Il readout sulle lettere è stato studiato anche al di fuori della letteratura sui modelli System One. Nella valutazione
+a scelta multipla, la probabilità del primo token di risposta e la risposta che un modello addestrato a seguire
+istruzioni scrive effettivamente sono spesso in disaccordo~\cite{wang2024myanswerc}, e il readout è distorto a favore di
+particolari identificatori di opzione, un bias che può essere stimato e rimosso~\cite{zheng2024mcq}. Entrambi i
+risultati riguardano modelli zero-shot e suggeriscono che un readout sulle lettere usato come decisione debba essere
+addestrato, calibrato o entrambe le cose. Nessun modello System One aperto è stato specializzato nella verifica della
+groundedness e confrontato, in condizioni controllate e sullo stesso hardware, con giudici generativi, verificatori
+specializzati e un modello decisionale generalista della stessa dimensione.
+
+\section{Generazione aumentata dal recupero e allucinazione}
+\label{sec:bg-rag}
+
+La generazione aumentata dal recupero consente a un modello linguistico di accedere a documenti su cui non è stato
+addestrato: un sistema di recupero seleziona i passaggi pertinenti alla domanda e il modello scrive la propria risposta
+tenendo questi passaggi nel contesto~\cite{lewis2020rag}. L'approccio è il modo standard per costruire assistenti su
+documenti privati e può essere eseguito interamente su una macchina locale. Non elimina, tuttavia, l'allucinazione. Le
+rassegne distinguono gli errori di \emph{fattualità}, relativi alla conoscenza del mondo, dagli errori di
+\emph{fedeltà}, relativi all'input o al contesto forniti~\cite{huang2025hallucination}; una risposta RAG può essere
+infedele proprio ai passaggi che le sono stati forniti, contraddicendoli o aggiungendo informazioni che essi non
+contengono. RAGTruth documenta quanto ciò sia frequente: raccoglie circa 18{,}000 risposte scritte da sei modelli
+linguistici in tre compiti aumentati dal recupero e annota, a livello di intervalli di caratteri, le parti che sono in
+conflitto con il contesto o che non sono supportate da esso~\cite{niu2024ragtruth}. La sua distinzione tra contenuto in
+conflitto e contenuto privo di fondamento corrisponde alle classi \emph{contraddetta} e \emph{non menzionata} adottate in
+questa tesi.
+
+\section{Verifica della groundedness}
+\label{sec:bg-verification}
+
+Verificare una risposta rispetto alla sua fonte è strettamente legato all'inferenza in linguaggio naturale (NLI), il
+compito di stabilire se una premessa implica un'ipotesi, la contraddice o è neutrale rispetto a essa. Grandi dataset di
+inferenza come MultiNLI~\cite{williams2018mnli} e l'avversariale ANLI~\cite{nie2020anli} forniscono dati di
+addestramento, e VitaminC~\cite{schuster2021vitaminc} aggiunge coppie contrastive in cui una revisione minima di una
+frase di Wikipedia ribalta il verdetto, costringendo il modello a guardare al fatto preciso anziché alla sovrapposizione
+di parole. Applicare questi modelli a testi generati lunghi richiede una scomposizione: SummaC suddivide in frasi sia il
+documento sia il riassunto e aggrega i punteggi di inferenza a livello di frase~\cite{laban2022summac}, mentre FActScore
+scompone le generazioni lunghe in fatti atomici e verifica ciascuno di essi~\cite{min2023factscore}. La verifica a
+livello di frase, come in GroundOne, rappresenta una via di mezzo: le frasi sono unità naturali di una risposta, un
+utente può intervenire su una frase segnalata, e il numero di decisioni cresce con la lunghezza della risposta.
+
+Nella pratica dominano due famiglie di verificatori. Gli encoder specializzati sono piccoli e veloci. AlignScore addestra
+un'unica funzione di allineamento su un'ampia miscela di compiti~\cite{zha2023alignscore}; MiniCheck addestra piccoli
+verificatori su dati sintetici progettati per richiedere un ragionamento su più frasi ed eguaglia modelli molto più
+grandi sui benchmark di grounding~\cite{tang2024minicheck}; HHEM è un modello di valutazione delle allucinazioni dello
+stesso tipo, rilasciato apertamente~\cite{vectara2024hhem}. Questi modelli valutano in modo indipendente ciascuna coppia
+di documento e frase e restituiscono un'unica probabilità di supporto. La seconda famiglia impiega un LLM come
+giudice~\cite{zheng2023judging}. Framework di valutazione RAG come RAGAS~\cite{es2024ragas} e
+ARES~\cite{saadfalcon2024ares} si basano su giudici, Lynx sottopone a fine-tuning un giudice specificamente per
+l'individuazione delle allucinazioni~\cite{ravi2024lynx}, e Self-RAG addestra il generatore stesso a emettere token di
+critica~\cite{asai2024selfrag}. I giudici sono flessibili, ma il loro costo cresce con ciò che scrivono, i modelli
+piccoli violano spesso il formato di output richiesto, e per garantire una risposta analizzabile è necessaria una
+decodifica vincolata da una grammatica~\cite{willard2023outlines}. LLM-AggreFact raccoglie undici dataset di grounding
+etichettati da esseri umani sotto un protocollo binario comune ed è il benchmark di riferimento per entrambe le
+famiglie~\cite{tang2024minicheck,llmaggrefact}.
+
+\section{Calibrazione e predizione selettiva}
+\label{sec:bg-calibration}
+
+Una probabilità è calibrata quando, tra le predizioni formulate con una data confidenza, la quota di predizioni corrette
+coincide con tale confidenza. Le reti neurali moderne sono spesso mal calibrate, e un'unica temperatura applicata ai
+logit, stimata su dati tenuti da parte, costituisce una correzione semplice ed efficace~\cite{guo2017calibration};
+l'errore di calibrazione atteso (ECE), calcolato su intervalli di confidenza, è la misura abituale~\cite{naeini2015ece}.
+Per i modelli linguistici interrogati tramite prompt può essere necessario anche un bias per classe, che corregga una
+preferenza sistematica per alcune risposte~\cite{zhao2021calibrate}. I modelli linguistici sanno, in una certa misura,
+ciò che sanno: le loro probabilità sui token in risposta a domande chiuse sono spesso informative sulla
+correttezza~\cite{kadavath2022know}. Quando le probabilità non sono accessibili, la confidenza può essere richiesta a
+parole; per i modelli di grandi dimensioni sottoposti a fine-tuning con feedback umano questa confidenza verbalizzata può
+risultare meglio calibrata delle probabilità stimate da campioni~\cite{tian2023justask}, ma valutazioni sistematiche
+trovano la confidenza verbalizzata grossolana ed eccessivamente sicura, con valori concentrati su pochi numeri
+tondi~\cite{xiong2024uncertainty}. Una probabilità calibrata diventa utile attraverso la predizione selettiva: un sistema
+agisce sulle decisioni di cui è sicuro e rinvia le altre, e la curva rischio--copertura mostra come il tasso di errore
+diminuisca man mano che più decisioni vengono rinviate~\cite{geifman2017selective}.
+
+\section{Fine-tuning efficiente nei parametri}
+\label{sec:bg-peft}
+
+Specializzare un modello preaddestrato non richiede di aggiornarne tutti i pesi. L'adattamento a basso rango (LoRA)
+congela il modello e addestra, per matrici di pesi selezionate, un aggiornamento a basso rango che può essere fuso nei
+pesi o mantenuto come piccolo adattatore separato~\cite{hu2022lora}; applicarlo a tutti gli strati lineari conta più di
+un rango elevato, e il metodo si combina con pesi di base quantizzati per far entrare modelli grandi in poca
+memoria~\cite{dettmers2023qlora}. La famiglia Qwen2.5 mette a disposizione modelli aperti a partire da 0.5B parametri con
+un tokenizer condiviso, il che consente di confrontare dimensioni diverse del modello con la stessa
+ricetta~\cite{qwen2024qwen25}. Il fine-tuning su dataset piccoli è tuttavia notoriamente instabile: i risultati variano
+con il seed casuale, sia attraverso l'inizializzazione dei nuovi parametri sia attraverso l'ordine dei dati di
+addestramento~\cite{dodge2020finetuning}; alcune esecuzioni falliscono del tutto, un comportamento legato a dettagli
+dell'ottimizzazione come l'assenza della correzione del bias in Adam~\cite{mosbach2021stability}; e il clipping della
+norma del gradiente è la difesa standard contro occasionali aggiornamenti esplosivi~\cite{pascanu2013difficulty}.
+
+\section{Lacuna di ricerca}
+\label{sec:bg-gap}
+
+Gli elementi necessari per un verificatore locale, veloce e calibrato esistono separatamente: modelli aperti compatti e
+runtime che li eseguono su un laptop, l'idea System One di leggere le decisioni anziché generarle, verificatori
+specializzati e calibrazione a posteriori. Ciò che manca è uno studio indipendente e controllato che li metta insieme per
+un unico compito. In particolare, nessun lavoro ha misurato se un modello System One compatto, specializzato nella
+verifica della groundedness, possa eguagliare giudici generativi ed encoder dedicati in quel compito, da dove provenga il
+suo vantaggio, tra specializzazione, readout e dimensione del modello, se le sue probabilità siano sufficientemente
+buone da fissare soglie e rinviare decisioni, e come il suo tempo e la sua energia si confrontino con quelli di un
+giudice sullo stesso hardware di consumo. Il resto di questa tesi affronta queste domande.
