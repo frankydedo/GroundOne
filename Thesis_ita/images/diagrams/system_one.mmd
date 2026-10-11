@@ -1,0 +1,8 @@
+%%{init: {'theme':'base','flowchart':{'wrappingWidth':340,'nodeSpacing':40,'rankSpacing':55},'themeVariables':{'fontFamily':'Helvetica','fontSize':'18px','lineColor':'#52514e','edgeLabelBackground':'#ffffff'}}}%%
+flowchart TB
+    A["Documento<br/>+ risposta di K frasi"] --> B["Il modello legge tutto<br/><b>una sola volta</b>"]
+    B --> C["Frase 1: supportata (0.97)<br/>Frase 2: contraddetta (0.88)<br/>Frase 3: non menzionata (0.74)<br/>…<br/><i>tutti i verdetti insieme,<br/>con la loro probabilità</i>"]
+    classDef read fill:#e8f1fb,stroke:#2a78d6,stroke-width:2px,color:#0b0b0b
+    classDef out fill:#eaf7f1,stroke:#1baf7a,stroke-width:2px,color:#0b0b0b
+    class A,B read
+    class C out

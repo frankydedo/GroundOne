@@ -90,7 +90,7 @@ Un modo diverso di usare un modello linguistico per prendere decisioni ha attira
 \emph{modelli System One}~\cite{typesafe2026jev}. Il nome richiama il modo di pensare rapido e intuitivo, contrapposto al
 ragionamento deliberato. Invece di generare una risposta, un modello di questo tipo legge una sola volta la domanda e il
 contesto e restituisce una probabilità per ciascuna risposta ammissibile, per esempio leggendo i logit delle lettere
-delle opzioni alla fine del prompt~\cite{semif,rizzoflow}. Ne seguono direttamente tre proprietà. Non viene generato
+delle opzioni alla fine del prompt (e.g., A: 90\%, B: 5\%, C: 5\%)~\cite{semif,rizzoflow}. Ne seguono direttamente tre proprietà. Non viene generato
 alcun testo, quindi la decisione costa solo la lettura dell'input. L'output è sempre una delle risposte ammissibili,
 quindi è sempre valido. Molte domande sullo stesso contesto possono condividere un unico passaggio su di esso, quindi ogni
 domanda aggiuntiva costa poco.
@@ -98,6 +98,21 @@ domanda aggiuntiva costa poco.
 L'idea si presta bene alla verifica. Una risposta di $K$ frasi pone $K$ domande chiuse sullo stesso documento, ciascuna
 con tre risposte ammissibili. Un System One può rispondere a tutte leggendo il documento una sola volta, e alla
 probabilità restituita per ogni frase si possono applicare una calibrazione e una soglia scelta dall'applicazione.
+Un LLM tradizionale, invece, produce la risposta in modo autoregressivo: dopo aver letto il documento deve generare i
+verdetti un token alla volta, con un nuovo passaggio nel modello per ogni token scritto, e solo alla fine il testo
+prodotto può essere interpretato come una decisione (Figura~\ref{fig:intro-s1-vs-llm}).
+
+\begin{figure}[htbp]
+\centering
+\subfloat[System One: una sola lettura, tutti i verdetti insieme.]{\parbox[b]{0.42\textwidth}{\centering
+\includegraphics[width=0.349\textwidth]{images/diagrams/system_one.png}}\label{fig:intro-s1}}\hfill
+\subfloat[LLM tradizionale: una lettura, poi una parola alla volta finché la risposta è completa.]{\parbox[b]{0.42\textwidth}{\centering
+\includegraphics[width=0.33\textwidth]{images/diagrams/llm_autoregressive.png}}\label{fig:intro-llm}}
+\caption{Due modi di verificare le $K$ frasi di una risposta. Un System One legge documento e risposta una sola volta e
+restituisce subito un verdetto con la sua probabilità per ogni frase. Un LLM tradizionale, dopo la lettura, scrive la
+risposta parola per parola, ripassando dal modello per ogni parola, e i verdetti vanno poi ricavati dal testo prodotto.}
+\label{fig:intro-s1-vs-llm}
+\end{figure}
 
 Il campo è giovane e si muove in fretta. Dopo il primo modello ospitato sono arrivate le implementazioni
 aperte~\cite{semif,rizzoflow}, e nel 2026 l'hub di Hugging Face ha introdotto un tag per questi \emph{decision model},
