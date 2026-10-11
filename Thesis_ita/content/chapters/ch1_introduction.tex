@@ -102,9 +102,9 @@ Un LLM tradizionale, invece, produce la risposta in modo autoregressivo: dopo av
 verdetti un token alla volta, con un nuovo passaggio nel modello per ogni token scritto, e solo alla fine il testo
 prodotto può essere interpretato come una decisione (Figura~\ref{fig:intro-s1-vs-llm}).
 
-\begin{figure}[htbp]
+\begin{figure}[!ht]
 \centering
-\subfloat[System One: una sola lettura e una decisione fra tre risposte ammesse per ogni frase.]{\parbox[b][392pt][t]{0.48\textwidth}{\centering
+\subfloat[System One: una sola lettura e una decisione fra tre risposte ammesse per ogni frase.]{\parbox[b][340pt][t]{0.48\textwidth}{\centering
 \includegraphics[scale=0.95]{images/diagrams/system_one_tikz.pdf}}\label{fig:intro-s1}}\hfill
 \subfloat[LLM tradizionale: un passaggio nel modello per ogni token, finché il testo non è completo.]{\parbox[b]{0.48\textwidth}{\centering
 \includegraphics[scale=0.95]{images/diagrams/llm_autoregressive_tikz.pdf}}\label{fig:intro-llm}}

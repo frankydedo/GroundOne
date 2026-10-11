@@ -3,13 +3,13 @@
 \begin{document}
 \begin{tikzpicture}[node distance=5mm]
   \node[io, text width=5.2cm] (in) {Documento + risposta di $K$ frasi\\(un marker dopo ogni frase)};
-  \node[model, below=11mm of in] (t) {Transformer: legge tutto\\in \textbf{un solo passaggio}};
-  \node[model, below=4mm of t] (r) {Logit di A, B, C\\a ogni marker};
+  \node[model, below=8mm of in] (t) {Transformer: legge tutto\\in \textbf{un solo passaggio}};
+  \node[model, below=3mm of t] (r) {Logit di A, B, C\\a ogni marker};
   \begin{scope}[on background layer]
     \node[cluster, fit=(t)(r), label={[clusterlabel,anchor=south east]north east:System One}] (c) {};
   \end{scope}
-  \node[decision, below=8mm of r] (d) {per ogni frase:\\A, B o C?};
-  \node[io, below=9mm of d, font=\footnotesize, text width=1.75cm] (o2) {contraddetta\\$+\,p$};
+  \node[decision, below=5mm of r] (d) {per ogni frase:\\A, B o C?};
+  \node[io, below=6mm of d, font=\footnotesize, text width=1.75cm] (o2) {contraddetta\\$+\,p$};
   \node[io, left=0.5mm of o2, font=\footnotesize, text width=1.75cm] (o1) {supportata\\$+\,p$};
   \node[io, right=0.5mm of o2, font=\footnotesize, text width=1.75cm] (o3) {non menzionata\\$+\,p$};
   \draw[arrow] (in) -- (t);
