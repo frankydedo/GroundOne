@@ -142,11 +142,12 @@ training is measured separately in Section~\ref{sec:results-readout}.
 \includegraphics[width=\textwidth]{images/results/comparison_t1.png}
 \caption{T1: AUROC of $P(\text{supported})$ for every system (left), and three-way balanced accuracy for the systems
 with a three-way output (right). Rizzo-Flow is evaluated on 300 answers and the untrained 3B on 600; all other systems,
-including the general-purpose decision model d1-3B, on the full test set.}
+including d1-3B, on the full test set.}
 \label{fig:results-comparison}
 \end{figure}
 
-The general-purpose System One is the most instructive comparison. On the same 300 answers of T1, Rizzo-Flow, a 4B
+Rizzo-Flow, the larger general-purpose System One, gives the most instructive comparison. On the same 300 answers of
+T1, Rizzo-Flow, a 4B
 model fine-tuned for generic decisions, reaches a three-way balanced accuracy of 0.603, against 0.798 for the 0.5B
 GroundOne and 0.840 for the 3B; the differences, $+0.195$ ($+0.136$ to $+0.249$) and $+0.237$ ($+0.184$ to $+0.285$), are
 large. Its AUROC (0.894) is close to that of the 0.5B on these answers (0.916; the difference is not significant) because
@@ -154,7 +155,8 @@ it ranks sentences well but predicts ``supported'' for 90\,\% of them; the 3B ra
 $+0.079$). A specialist eight times smaller therefore outperforms the generalist on the decision it was built for, while
 matching it in the ability to rank sentences.
 
-A general-purpose decision model of the same size gives the sharpest test of specialisation, because d1-3B was already
+d1-3B, a general-purpose System One of the same size as the 3B, gives the sharpest test of specialisation, because it
+was already
 trained to make typed decisions and differs from GroundOne mainly in what it was trained on. On the full T1 it reaches a
 three-way balanced accuracy of 0.657 and an AUROC of 0.863. Both GroundOne models are clearly better: the 0.5B, six times
 smaller, by $+0.112$ ($+0.092$ to $+0.133$) in three-way accuracy and $+0.042$ in AUROC, the 3B by $+0.175$ ($+0.157$ to
@@ -196,8 +198,8 @@ Rizzo-Flow, the general-purpose model reaches 0.712 and an AUROC of 0.909, again
 and 0.845 for the 3B. Two facts put these numbers in context. MiniCheck-RoBERTa starts from the AlignScore model, whose
 training data include VitaminC~\cite{zha2023alignscore}, so T3 belongs to its training distribution, whereas for
 GroundOne it measures transfer from RAGTruth. Moreover, the gain of the 3B over the 0.5B on T3 comes from model size
-rather than from the RAG training: the untrained 3B already reaches 0.531 and an AUROC of 0.821. The general-purpose
-decision model of the same size makes the contrast explicit: d1-3B reaches 0.724 and an AUROC of 0.913 on the full T3,
+rather than from the RAG training: the untrained 3B already reaches 0.531 and an AUROC of 0.821. d1-3B, the general-purpose
+System One of the same size, makes the contrast explicit: it reaches 0.724 and an AUROC of 0.913 on the full T3,
 ahead of the 3B GroundOne by 0.197 and 0.096, the reverse of what happens on T1. Specialisation on RAG answers therefore
 improves the RAG task substantially but does not, by itself, produce a general fact checker.
 Section~\ref{sec:results-errors} shows which cases are missed.

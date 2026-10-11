@@ -11,10 +11,10 @@ and which choices could have biased them.
 
 \paragraph{Specialisation (RQ1).} Training on the decision is what makes GroundOne accurate. The untrained models are
 near chance, and the same models after training reach 0.769 and 0.832 three-way balanced accuracy on the RAGTruth test
-set, beating the specialised encoders in AUROC and a general-purpose System One eight times larger in three-way accuracy.
+set, beating the specialised encoders in AUROC and Rizzo-Flow, a general-purpose System One eight times larger, in three-way accuracy.
 The advantage is concentrated where the training data are: on LLM-AggreFact the 3B is on par with the best small encoder
 rather than above it, and below the closed System One Jev and a 27B open model as measured independently; the 0.5B
-remains below the encoder, and on VitaminC the trained 3B is no better than the untrained one. The comparison with a general-purpose decision model of the same size makes the trade-off explicit. d1-3B, already
+remains below the encoder, and on VitaminC the trained 3B is no better than the untrained one. The comparison with d1-3B, a general-purpose System One of the same size, makes the trade-off explicit. d1-3B, already
 trained to decide but on a broad mixture of tasks, is far behind GroundOne on RAGTruth, especially on long answers, on par
 with the 3B on LLM-AggreFact and far ahead on VitaminC. A specialist is therefore a strong choice for the domain it was
 trained on and a weak general fact checker: specialisation buys accuracy and robustness on long answers in its domain at
@@ -102,9 +102,9 @@ pattern across the three test sets rather than on a single one.
 looking at test results, and the prompt of the equal-output judge was chosen on development data for format validity
 only; parsing was lenient in their favour; decoding was not constrained by a grammar, which mostly affects the format
 failures of the smallest model. A judge fine-tuned on the same data, or a larger judge, was not evaluated, so the
-comparison measures what a judge of the same size gives without training. The general-purpose System One was run with
+comparison measures what a judge of the same size gives without training. Rizzo-Flow was run with
 4-bit weights because the 8-bit model did not fit beside the operating system, which may understate its accuracy. The
-general-purpose decision model d1-3B was run zero-shot with the questions used for all System One baselines, which may not
+d1-3B was run zero-shot with the questions used for all System One baselines, which may not
 be the phrasing it works best with, and on a subsample of LLM-AggreFact.
 
 \paragraph{Contamination.} The base models were pretrained on large web corpora that may include parts of the public

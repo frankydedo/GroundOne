@@ -1,0 +1,22 @@
+\documentclass[border=2pt]{standalone}
+\input{s1_vs_llm_common.tex}
+\begin{document}
+\begin{tikzpicture}[node distance=5mm]
+  \node[io, text width=5.2cm] (in) {Document + answer of $K$ sentences\\(a marker after every sentence)};
+  \node[model, below=8mm of in] (t) {Transformer: reads everything\\in \textbf{a single pass}};
+  \node[model, below=3mm of t] (r) {Logits of A, B, C\\at every marker};
+  \begin{scope}[on background layer]
+    \node[cluster, fit=(t)(r), label={[clusterlabel,anchor=south east]north east:System One}] (c) {};
+  \end{scope}
+  \node[decision, below=5mm of r] (d) {for every sentence:\\A, B or C?};
+  \node[io, below=6mm of d, font=\footnotesize, text width=1.75cm] (o2) {contradicted\\$+\,p$};
+  \node[io, left=0.5mm of o2, font=\footnotesize, text width=1.75cm] (o1) {supported\\$+\,p$};
+  \node[io, right=0.5mm of o2, font=\footnotesize, text width=1.75cm] (o3) {not mentioned\\$+\,p$};
+  \draw[arrow] (in) -- (t);
+  \draw[arrow] (t) -- (r);
+  \draw[arrow] (r) -- (d);
+  \draw[arrow] (d.west) -| node[pos=0.75, left, font=\footnotesize] {A} (o1.north);
+  \draw[arrow] (d.south) -- node[right, font=\footnotesize] {B} (o2.north);
+  \draw[arrow] (d.east) -| node[pos=0.75, right, font=\footnotesize] {C} (o3.north);
+\end{tikzpicture}
+\end{document}

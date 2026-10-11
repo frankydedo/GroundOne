@@ -85,17 +85,35 @@ A different way to use a language model for decisions has recently attracted att
 One models}~\cite{typesafe2026jev}. The name evokes the fast, intuitive mode of thinking, as opposed to deliberate
 reasoning. Instead of generating an answer, such a model reads the question and the context once and returns a
 probability for each admissible answer, for example by reading the logits of the option letters at the end of the
-prompt~\cite{semif,rizzoflow}. Three properties follow directly. No text is generated, so the decision costs only the
+prompt (e.g., A: 90\,\%, B: 5\,\%, C: 5\,\%)~\cite{semif,rizzoflow}. Three properties follow directly. No text is generated, so the decision costs only the
 reading of the input. The output is always one of the admissible answers, so it is always valid. Many questions about the
 same context can share a single pass over it, so each additional question costs little.
 
 The idea fits verification well. An answer of $K$ sentences poses $K$ closed questions about the same document, and each
 of them has three admissible answers. A System One can answer all of them while reading the document only once, and the
 probability it returns for each sentence can be calibrated and compared with a threshold chosen by the application.
+A traditional LLM, instead, produces its answer autoregressively: after reading the document it must generate the
+verdicts one token at a time, with a new pass through the model for every token written, and only at the end can the
+text it produced be interpreted as a decision (Figure~\ref{fig:intro-s1-vs-llm}).
+
+\begin{figure}[!ht]
+\centering
+\subfloat[System One: one reading and, for every sentence, a choice among three admissible answers.]{\parbox[b][330pt][t]{0.48\textwidth}{\centering
+\includegraphics[scale=0.95]{images/diagrams/system_one_tikz.pdf}}\label{fig:intro-s1}}\hfill
+\subfloat[Traditional LLM: one pass through the model for every token, until the text is complete.]{\parbox[b]{0.48\textwidth}{\centering
+\includegraphics[scale=0.95]{images/diagrams/llm_autoregressive_tikz.pdf}}\label{fig:intro-llm}}
+\caption{Two ways of verifying the $K$ sentences of an answer. Parallelograms: inputs and outputs; blue rectangles:
+components of the model; yellow rectangle: processing outside the model; diamonds: decisions. The System One reads the
+document and the answer once and, for every sentence, chooses among three admissible answers, also returning their
+probability. The generative LLM passes through the model again for every token it writes (red loop), and the verdicts
+must then be extracted from the text, which may not follow the required format.}
+\label{fig:intro-s1-vs-llm}
+\end{figure}
 
 The field is young and moves quickly. After the first hosted model, open implementations
-followed~\cite{semif,rizzoflow}, and in 2026 the Hugging Face hub introduced a tag for these \emph{decision models} which
-by October 2026 already grouped about 1{,}500 models~\cite{hf2026decisionmodels}. Established organisations released their own,
+followed~\cite{semif,rizzoflow}, and on 9 October 2026 the Hugging Face hub officially introduced a tag for these
+\emph{decision models}, which the following day already grouped about 1{,}500 models, more than half of them published in
+the previous weeks~\cite{hf2026decisionmodels}. Established organisations released their own,
 such as Liquid AI's d1-3B and Cloudflare's Clef~\cite{liquid2026d1,cloudflare2026clef}. The evidence, however, lags
 behind the releases. Most of it comes from the authors of each system, independent evaluations are recent and often less
 favourable~\cite{deusser2026jev,nandakishore2026laya}, and a common leaderboard finds that general-purpose decision models
@@ -103,10 +121,10 @@ with fewer than one billion parameters barely exceed the trivial baseline on hal
 answers~\cite{decisionindex2026}. All the open implementations, moreover, are general-purpose systems that answer any
 typed question.
 
-Several questions therefore remain open. It is not known whether the approach is worth it for one specific task, how a
-small model specialised in that task compares with a general-purpose one, with generative judges and with dedicated
-verifiers, and where any advantage actually comes from: from the specialisation, from the way the decision is read, or
-simply from the size of the model.
+Three problems therefore remain open. The first is whether, for a single task, a small specialised System One is worth
+using. The second is how such a model compares with the alternatives: a general-purpose System One, a generative judge
+and a dedicated verifier. The third is where any advantage comes from: from the specialisation, from the way the decision
+is read or, more simply, from the size of the model.
 
 \section{Approach and research questions}
 \label{sec:intro-rq}
@@ -117,22 +135,28 @@ with a short marker after each sentence, and the verdicts of all sentences are r
 of three answer letters at the markers, without generating any text. Qwen2.5 models with 0.5B and 3B parameters are
 fine-tuned with LoRA on human-labelled answers from RAGTruth~\cite{qwen2024qwen25,hu2022lora,niu2024ragtruth}, and their
 probabilities are calibrated on development data. Three test sets were built and frozen before any model was trained, so
-that no design choice could be tuned on them. Five research questions guide the work.
+that no design choice could be tuned on them. The three open problems become five research questions: the first two
+restate them in a testable form, and the other three add what matters for real use on the device, namely the reliability
+of the probabilities, the cost and the value of a three-way decision.
 
 \begin{description}
-\item[RQ1, specialisation.] Can a fine-tuned System One of 0.5B or 3B parameters match larger zero-shot models and the
-specialised encoders on sentence-level groundedness, that is, on deciding whether each sentence is faithful to the
-document?
-\item[RQ2, readout versus generation.] What does the System One mechanism, the reading of the decision from the logits,
-contribute at the same model size? The comparison is twofold: against generative judges that write their verdicts, and
-against the same model deciding by the token it would generate. The question also asks how the difference grows with the
-number of decisions per answer.
-\item[RQ3, calibration.] Are the probabilities usable as confidence, to set thresholds and to defer uncertain decisions,
-and how do they compare with the probabilities that a generative judge can provide?
-\item[RQ4, cost on the device.] Does the verifier fit within the memory, time and energy budget of a 16\,GB laptop, and
-how does its cost compare with that of a judge running on the same machine?
-\item[RQ5, beyond a binary score.] What does a three-way decision for every sentence offer that a binary verifier does
-not?
+\item[RQ1, specialisation.] Can a System One of 0.5B or 3B parameters, fine-tuned on the task, decide whether each
+sentence is faithful to the document? And does it do so as well as larger models used zero-shot\footnote{A model is
+used \emph{zero-shot} when it tackles a task without any task-specific training and without examples in the prompt: it
+receives only an instruction that describes the task.} and as the encoders specialised in this kind of verification?
+\item[RQ2, readout versus generation.] How much does the System One mechanism, that is, the readout\footnote{The
+\emph{readout} is the reading of the decision directly from the logits of the model: instead of letting it write an
+answer, the scores it assigns to the admissible answers alone (here the letters A, B and C) are compared and the most
+probable one is chosen.} of the decision from the logits, contribute at the same model size? The comparison is twofold:
+against generative judges that write their verdicts and against the same model left free to generate its answer. And how
+does the difference change as the number of sentences to verify grows?
+\item[RQ3, calibration.] Are the probabilities returned by the model reliable as a measure of confidence? In
+particular, can they be used to set a decision threshold and to defer uncertain cases to the user? And are they better
+than those that can be obtained from a generative judge?
+\item[RQ4, cost on the device.] Does the verifier fit within the memory, time and energy limits of a 16\,GB laptop? And
+how much does it cost compared with a generative judge running on the same machine?
+\item[RQ5, beyond a binary score.] What does a user of the verifier gain from a three-way decision for every sentence,
+compared with the plain score of a binary verifier?
 \end{description}
 
 \section{Scope}
@@ -154,12 +178,14 @@ The thesis makes four contributions.
 on a laptop. Thanks to a marker placed after every sentence, it reads all the verdicts of an answer in one forward pass.
 It is released as an installable package with a command-line interface and a local HTTP API, which also includes an
 interface compatible with existing System One clients.
-\item \textbf{A dataset built around the task} from public human annotations, with three test sets that were validated
-without new annotation and frozen before any model was trained, and with leakage controlled at the level of documents.
+\item \textbf{A sentence-level dataset derived from public annotations.} No label was annotated anew: the human
+annotations of RAGTruth, which mark spans of text, were converted into a three-way label for every sentence, with rules
+fixed in advance. The three test sets come from public benchmarks, were checked automatically, for instance on sentence
+segmentation, and were frozen before any model was trained, with leakage controlled at the level of documents.
 \item \textbf{A controlled decomposition of the gains.} The comparison isolates the contribution of specialisation, of the
 restricted readout and of model size. GroundOne is compared with cues that never verify a sentence, untrained models,
-generative judges with and without probabilities, a general-purpose System One, a general-purpose decision model of the
-same size and specialised encoders, all on the same hardware and with intervals obtained by cluster bootstrap.
+generative judges with and without probabilities, two general-purpose System One models (Rizzo-Flow, with 4B
+parameters, and Liquid AI's d1-3B, of the same size as the 3B) and specialised encoders, all on the same hardware and with intervals obtained by cluster bootstrap.
 \item \textbf{A study of calibration, time and energy}: how the probabilities can be calibrated and turned into consistent
 labels, how much they help in deferring uncertain decisions, and how the time and energy of a verification grow with the
 length of the answer. The study is set in an analysis of local inference that combines vendor specifications with own
@@ -172,21 +198,24 @@ does not.
 
 The results show that specialisation works in the domain it was aimed at. On the RAGTruth test set GroundOne reaches a
 three-way balanced accuracy of 0.769 with 0.5B parameters and 0.832 with 3B, against 0.37 and 0.44 for the same models
-before training. It ranks supported sentences better than the specialised encoders, and it clearly outperforms both a
-general-purpose System One eight times larger than the 0.5B and a general-purpose decision model of the same size as the
-3B. On LLM-AggreFact, a benchmark drawn from different sources, the 3B is on par with the best small encoder.
+before training. It ranks supported sentences better than the specialised encoders, and it clearly outperforms both
+general-purpose System One models: Rizzo-Flow, eight times larger than the 0.5B, and d1-3B, of the same size as the 3B. On LLM-AggreFact, a benchmark drawn from different sources, the 3B is on par with the best small encoder.
 
 The System One mechanism pays off in speed and in accuracy. When an answer contains fourteen or more sentences, GroundOne
 verifies it about two times faster than a terse judge and six times faster than a verbose judge of the same size, with an
-output that is always valid and with less energy. Restricting the decision to the three admissible letters is, by itself,
-more accurate than letting the same model generate its verdict. After calibration, the probabilities of GroundOne are
+output that is always valid and with less energy. How the decision is read also matters: with the same trained model,
+choosing the most probable of the three admissible letters is more accurate than letting the model generate its verdict
+freely, with a gain in balanced accuracy of 0.25 for the 0.5B and 0.07 for the 3B. After calibration, the probabilities of GroundOne are
 close to the observed frequencies, whereas the probabilities of generative judges asked for the same output barely
 separate correct from incorrect decisions.
 
 Some aspects remain to be improved, and they point to natural directions for future work. Performance drops on domains
-far from the training data, where the general-purpose decision model is stronger; the subtlest hallucinations, hidden in
+far from the training data, where the general-purpose System One d1-3B is stronger; the subtlest hallucinations, hidden in
 sentences that otherwise follow the source faithfully, are detected only in part; and training is not yet fully stable
-across random seeds.
+across random seeds\footnote{The \emph{seed} is the number that initialises the random number generator used during
+training, for instance to initialise the added weights and to shuffle the order of the data. Repeating the training with
+different seeds produces slightly different models: if the results change a lot from one seed to another, the procedure
+is not robust.}.
 
 \section{Thesis structure}
 \label{sec:intro-structure}

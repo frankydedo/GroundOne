@@ -40,9 +40,11 @@ datasets finds its choice probabilities well calibrated, but its binary probabil
 with respect to a fixed threshold of 0.5, and reports a mean balanced accuracy of 78.6 on LLM-AggreFact~\cite{deusser2026jev}; an independent reproduction of Laya finds a different calibration from the one claimed
 and a strong dependence on a temperature fitted to the target data~\cite{nandakishore2026laya}; contrastive benchmarks
 with clear protocols place small open models far behind Jev~\cite{yong2026decidebench}; and typed decision models have
-been shown to follow the label of an option rather than its definition when the two conflict~\cite{azizi2026labels}. In
-2026 the Hugging Face hub introduced a tag for these \emph{decision models}~\cite{hf2026decisionmodels}, which in
-October 2026 already grouped about 1{,}500 models from some 600 authors, of very different quality.
+been shown to follow the label of an option rather than its definition when the two conflict~\cite{azizi2026labels}. On
+9 October 2026 the Hugging Face hub officially introduced a tag for these \emph{decision models}~\cite{hf2026decisionmodels}, which the following day
+already grouped about 1{,}500 models from some 600 authors, of very different quality. In the rest of the thesis the
+two terms are used as synonyms: \emph{System One} is the name introduced by TypeSafe with Jev, \emph{decision model}
+the one later adopted by the ecosystem.
 
 Within weeks of Jev's release, established organisations published open decision models of their own. Cloudflare's Clef
 adds a dedicated decision head to a decoder and answers all questions in a single pass over the state, the design that had
@@ -65,7 +67,7 @@ disagree~\cite{wang2024myanswerc}, and the readout is biased towards particular 
 estimated and removed~\cite{zheng2024mcq}. Both findings concern zero-shot models and suggest that a letter readout used
 as a decision needs to be trained, calibrated, or both. No open System One has been specialised in groundedness
 verification and compared, under controlled conditions and on the same hardware, with generative judges, specialised
-verifiers and a general-purpose decision model of the same size.
+verifiers and general-purpose System One models, one of them of the same size.
 
 \section{Retrieval-augmented generation and hallucination}
 \label{sec:bg-rag}

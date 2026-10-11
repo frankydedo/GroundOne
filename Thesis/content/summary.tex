@@ -34,13 +34,14 @@ fitted on development data calibrate the probabilities, and a threshold chosen o
 consistent labels and strict or lenient flags. Everything, from building the dataset to training, evaluation and serving, runs on one Apple M4 laptop with 16\,GB
 of memory, with MLX and no external service, and every baseline is run on the same machine. The evaluation uses three test sets built and frozen before training (the RAGTruth test split,
 LLM-AggreFact and VitaminC) and compares GroundOne with cues that never read the document, the untrained models,
-generative judges of the same size with and without probabilities, a general-purpose System One and specialised encoders,
+generative judges of the same size with and without probabilities, two general-purpose System One models and specialised
+encoders,
 reporting cluster-bootstrap intervals.
 
 On the RAGTruth test set GroundOne reaches a three-way balanced accuracy of 0.769 with 0.5B parameters and 0.832 with 3B,
 against 0.37 and 0.44 for the untrained models; its AUROC (0.905 and 0.940) exceeds that of the encoders (about 0.82),
-and it clearly outperforms both a general-purpose System One eight times larger and a general-purpose decision model of
-the same size (0.657), which in turn is much stronger on the out-of-domain VitaminC test. On
+and it clearly outperforms both general-purpose System One models: Rizzo-Flow, eight times larger than the 0.5B, and
+Liquid AI's d1-3B, of the same size as the 3B (0.657), which in turn is much stronger on the out-of-domain VitaminC test. On
 LLM-AggreFact the 3B is on par with MiniCheck-RoBERTa (74.8 against 74.0), above
 the published zero-shot 7B model and below the closed System One Jev as measured independently (78.6). When an answer contains fourteen or more sentences ($K \geq 14$),
 GroundOne is about two times faster than a terse judge and six times faster than a verbose judge of the same size and,

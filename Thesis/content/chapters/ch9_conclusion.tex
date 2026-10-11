@@ -11,9 +11,9 @@ answer.
 
 Specialisation works where it was aimed. On the RAGTruth test set GroundOne reaches a three-way balanced accuracy of
 0.769 with 0.5B parameters and 0.832 with 3B, far above the same models untrained, above the specialised encoders in
-ranking supported sentences and well above a general-purpose System One eight times larger. On LLM-AggreFact the 3B is on
-par with the best small encoder, and on VitaminC the gain disappears: a specialist is not a general fact checker. A
-general-purpose decision model of the same size, trained to decide on a broad mixture of tasks, confirms the trade-off:
+ranking supported sentences and well above Rizzo-Flow, a general-purpose System One eight times larger. On LLM-AggreFact the 3B is on
+par with the best small encoder, and on VitaminC the gain disappears: a specialist is not a general fact checker. d1-3B,
+a general-purpose System One of the same size trained to decide on a broad mixture of tasks, confirms the trade-off:
 GroundOne is far ahead of it on RAGTruth, on par on LLM-AggreFact and far behind on VitaminC.
 
 The System One mechanism pays off in two ways. Reading all verdicts in one pass makes verification about two times
@@ -50,7 +50,7 @@ readout to llama.cpp would allow measuring GroundOne on a discrete graphics card
 machine, and on a phone, whose neural processing units accelerate exactly the prefill on which a System One relies. The
 remaining measurements of the locality pillar are the memory used when the verifier runs next
 to a generator and a retriever, and a complete evaluation with the network disabled. A fair latency comparison with the
-encoders requires running them in batches, and one with the general-purpose System One requires comparing both systems
+encoders requires running them in batches, and one with the general-purpose System One models requires comparing both systems
 through the same HTTP interface. Verification could also run while the answer is being generated, flagging each sentence
 as soon as it is complete, which the marker design makes natural. Finally, a local assistant built on the served
 interface would let users choose the policy and the threshold that suit their documents, which is where calibrated
