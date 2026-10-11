@@ -97,7 +97,12 @@ def d1_caller():
             out = model.system_one(state, qs)
         if dev == "mps":
             torch.mps.synchronize()
-        return out, time.perf_counter() - t
+        sec = time.perf_counter() - t
+        if dev == "mps":
+            torch.mps.empty_cache()  # the MPS allocator otherwise keeps blocks of every shape and runs out of memory
+        return out, sec
+    call.tokenizer = model.system_one_engine.tokenizer if hasattr(model, "system_one_engine") else None
+    call.path = path
     return call
 
 
@@ -106,28 +111,92 @@ def rizzo_caller(url):
     return lambda state, qs: post(url, {"model": "rizzo-latest", "state": state, "questions": qs})
 
 
-def run_systemone(call, recs, tag):
-    crit = CRIT
-    rows, skipped = [], 0
-    for n, r in enumerate(recs):
-        numbered = "\n".join(f"[{k + 1}] {s}" for k, s in enumerate(r["sentences"]))
-        state = f"DOCUMENT:\n{r['doc']}\n\nANSWER (numbered sentences):\n{numbered}"
-        idx = [i for i, y in enumerate(r["labels"]) if y is not None]
-        qs = {f"s{i}": {"type": "choice", "instructions": f"Compared with the DOCUMENT, sentence [{i + 1}] is:", "criteria": crit}
-              for i in idx}
+def _record_rows(call, r, qmax):
+    """One answer (T1/T3): state = document + numbered answer; one three-way choice per scored sentence."""
+    numbered = "\n".join(f"[{k + 1}] {s}" for k, s in enumerate(r["sentences"]))
+    state = f"DOCUMENT:\n{r['doc']}\n\nANSWER (numbered sentences):\n{numbered}"
+    idx = [i for i, y in enumerate(r["labels"]) if y is not None]
+    qs = {f"s{i}": {"type": "choice", "instructions": f"Compared with the DOCUMENT, sentence [{i + 1}] is:", "criteria": CRIT}
+          for i in idx}
+    keys = list(qs)
+    groups = [keys] if not qmax else [keys[j:j + qmax] for j in range(0, len(keys), qmax)]
+    answers, sec = {}, 0.0
+    for g in groups:
+        o, s_ = call(state, {k: qs[k] for k in g})
+        answers.update(o["answers"])
+        sec += s_
+    return [{"id": f"{r['id']}-{i}", "cls": r["labels"][i], "task": r["task"], "K": r["meta"]["K"],
+             "kband": k_band(r["meta"]["K"]), "p": [float(answers[f"s{i}"]["probabilities"][c]) for c in CLASSES],
+             "answer_seconds": sec, "ov": overlap(r["sentences"][i], r["doc"])} for i in idx]
+
+
+def _t2_rows(call, r, qtok):
+    """One LLM-AggreFact item: document chunked as for GroundOne, maximum P(supported) over chunks."""
+    from ..eval.evaluate import CHUNK_TOKENS, chunk_doc
+    claim = r["sentences"][0]
+    qs = {"c": {"type": "choice", "instructions": f"Compared with the DOCUMENT, the claim \"{claim}\" is:", "criteria": CRIT}}
+    best, sec_tot = None, 0.0
+    for chunk in chunk_doc(qtok, r["doc"], CHUNK_TOKENS):
+        out, sec = call(f"DOCUMENT:\n{chunk}", qs)
+        sec_tot += sec
+        pr = out["answers"]["c"]["probabilities"]
+        if best is None or pr["supported"] > best["supported"]:
+            best = pr
+    return [{"id": r["id"], "dataset": r["task"], "label": int(r["labels"][0] == "supported"),
+             "p_supported": float(best["supported"]), "p": [float(best[c]) for c in CLASSES], "seconds": sec_tot}]
+
+
+def _qwen_tokenizer():
+    from transformers import AutoTokenizer
+    from ..config import resolve_model
+    return AutoTokenizer.from_pretrained(resolve_model("0.5b", None)[0])  # same chunk boundaries as GroundOne
+
+
+def _loop(call, recs, suite, qmax, tag, stop=None):
+    """Score records in order; returns (rows, number of records consumed, skipped). `stop()` ends the loop early."""
+    qtok = _qwen_tokenizer() if suite == "t2" else None
+    rows, skipped, n = [], 0, 0
+    for n, r in enumerate(recs, 1):
         try:
-            out, sec = call(state, qs)
+            rows += _t2_rows(call, r, qtok) if suite == "t2" else _record_rows(call, r, qmax)
         except Exception as e:  # noqa: BLE001  (e.g. over Rizzo's context limit)
             skipped += 1
             print("  skip", r["id"], str(e)[:80], flush=True)
-            continue
-        for i in idx:
-            pr = out["answers"][f"s{i}"]["probabilities"]
-            rows.append({"id": f"{r['id']}-{i}", "cls": r["labels"][i], "task": r["task"], "K": r["meta"]["K"],
-                         "kband": k_band(r["meta"]["K"]), "p": [float(pr[c]) for c in CLASSES], "answer_seconds": sec,
-                         "ov": overlap(r["sentences"][i], r["doc"])})
-        if n % 25 == 0:
-            print(f"  [{tag}] {n}/{len(recs)} records", flush=True)
+        if stop and stop():
+            break
+    return rows, n, skipped
+
+
+def _d1_worker(recs, suite, qmax, limit_gb, q):
+    """Child process: load d1-3B and score records until the MPS driver memory exceeds limit_gb. PyTorch's MPS backend
+    keeps a compiled graph for every new input length; that memory is not released by empty_cache, so the parent
+    restarts the child instead (results are unaffected)."""
+    import torch
+    call = d1_caller()
+    rows, n, skipped = _loop(call, recs, suite, qmax, "d1",
+                             stop=lambda: torch.mps.driver_allocated_memory() / 1e9 > limit_gb)
+    q.put((rows, n, skipped))
+
+
+def run_d1_isolated(recs, suite, qmax=6, limit_gb=11.0):
+    import multiprocessing as mp
+    ctx = mp.get_context("spawn")
+    rows, skipped, i, restarts = [], 0, 0, 0
+    while i < len(recs):
+        q = ctx.Queue()
+        p = ctx.Process(target=_d1_worker, args=(recs[i:], suite, qmax, limit_gb, q))
+        p.start()
+        r_rows, n, sk = q.get()
+        p.join()
+        rows += r_rows
+        skipped += sk
+        i += max(n, 1)
+        restarts += 1
+        print(f"  [d1] {i}/{len(recs)} records ({restarts} worker runs, {skipped} skipped)", flush=True)
+    return rows, skipped, restarts
+
+
+def systemone_metrics(rows, skipped):
     df = pd.DataFrame(rows)
     lat = df.drop_duplicates(["answer_seconds"])
     m = {"all": three_way(df), "by_task": by(df, "task"), "by_K_band": by(df, "kband"),
@@ -136,31 +205,21 @@ def run_systemone(call, recs, tag):
     return df.drop(columns=["ov"]), m
 
 
-def run_systemone_t2(call, recs, tag):
-    """T2 (LLM-AggreFact, binary): state = document; one question about the claim; P(supported) at threshold 0.5."""
+def t2_metrics(rows, skipped):
     from ..eval.evaluate import RAG_SUBSET
-    rows, skipped = [], 0
-    for n, r in enumerate(recs):
-        claim = r["sentences"][0]
-        qs = {"c": {"type": "choice", "instructions": f"Compared with the DOCUMENT, the claim \"{claim}\" is:",
-                    "criteria": CRIT}}
-        try:
-            out, sec = call(f"DOCUMENT:\n{r['doc']}", qs)
-        except Exception as e:  # noqa: BLE001
-            skipped += 1
-            print("  skip", r["id"], str(e)[:80], flush=True)
-            continue
-        pr = out["answers"]["c"]["probabilities"]
-        rows.append({"id": r["id"], "dataset": r["task"], "label": int(r["labels"][0] == "supported"),
-                     "p_supported": float(pr["supported"]), "p": [float(pr[c]) for c in CLASSES], "seconds": sec})
-        if n % 500 == 0:
-            print(f"  [{tag} t2] {n}/{len(recs)} items", flush=True)
     df = pd.DataFrame(rows)
     per = {d: binary(g["label"], g["p_supported"]) for d, g in df.groupby("dataset")}
+    rag = [d for d in RAG_SUBSET if d in per]
     m = {"per_dataset": per, "macro_bacc": float(sum(v["bacc"] for v in per.values()) / len(per)),
-         "rag_subset_bacc": float(sum(per[d]["bacc"] for d in RAG_SUBSET if d in per) / len([d for d in RAG_SUBSET if d in per])),
+         "rag_subset_bacc": float(sum(per[d]["bacc"] for d in rag) / len(rag)),
          "pooled": binary(df["label"], df["p_supported"]), "skipped_records": skipped, "n": len(df)}
     return df, m
+
+
+def run_systemone(call, recs, tag, qmax=None):
+    """In-process / HTTP System One on T1 or T3 (used for Rizzo-Flow). qmax: at most this many questions per call."""
+    rows, _, skipped = _loop(call, recs, "t1", qmax, tag)
+    return systemone_metrics(rows, skipped)
 
 
 def main(argv=None):
@@ -179,9 +238,14 @@ def main(argv=None):
     t0 = time.time()
     if a.system == "encoder":
         df, m = run_encoder(a.model, recs)
+    elif a.system == "d1":  # one worker process at a time, restarted when MPS graph-cache memory grows too large
+        rows, skipped, restarts = run_d1_isolated(recs, a.suite)
+        df, m = (t2_metrics if a.suite == "t2" else systemone_metrics)(rows, skipped)
+        m["worker_runs"] = restarts
     else:
-        call = rizzo_caller(a.url) if a.system == "rizzo" else d1_caller()
-        df, m = (run_systemone_t2 if a.suite == "t2" else run_systemone)(call, recs, a.system)
+        if a.suite == "t2":
+            sys.exit("rizzo on T2: use the archived run")
+        df, m = run_systemone(rizzo_caller(a.url), recs, a.system)
     sd.mkdir(parents=True)
     df.to_parquet(sd / "predictions.parquet")
     model = {"encoder": a.model, "rizzo": "rizzo-flow (server)", "d1": f"{D1[0]}@{D1[1][:12]} (PyTorch MPS bf16)"}[a.system]

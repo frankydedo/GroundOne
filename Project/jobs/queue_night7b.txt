@@ -1,0 +1,8 @@
+# Night 2026-10-11, restart (author's go-ahead): d1-3B with restartable worker processes (MPS graph-cache growth caused
+# out-of-memory skips in queue_night7). T3 from queue_night7 is valid (0 skipped) and kept.
+HF_HUB_OFFLINE=1 GroundOne/.venv/bin/groundone baselines frozen --system d1 --suite t1 --name d1-3b
+HF_HUB_OFFLINE=1 GroundOne/.venv/bin/groundone baselines frozen --system d1 --suite t2 --limit 4000 --name d1-3b
+GroundOne/.venv/bin/groundone bootstrap
+GroundOne/.venv/bin/groundone figures all
+GroundOne/.venv/bin/groundone matrix
+END
