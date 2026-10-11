@@ -43,3 +43,9 @@ Source: thesis notes, `results/energy-*/energy/metrics.json`.
 ## Links
 - Concepts: [[Prefill and Decode]], [[On-Device Inference]], [[Apple Silicon and MLX]], [[System One Models]], [[When System One Beats an LLM]], [[GroundOne Results]], [[LLM-as-a-Judge]]
 - Sources: [[Samsi 2023 - From Words to Watts]], [[Luccioni 2024 - Power Hungry Processing]], [[Patel 2024 - Splitwise (prefill vs decode phases)]], [[Alizadeh 2024 - LLM in a flash]], [[Apple 2024 - MacBook Pro 14-inch M4 tech specs]]
+
+## Additional sources (ingest 2026-10-11)
+- **Phones**: a 13B INT4 model on a Xiaomi 11 (llama.cpp) uses about 56 J/token, about 700 tokens per 3,000 mAh battery ([[Qu 2024 - Mobile Edge Intelligence for LLMs, A Contemporary Survey (arXiv 2407.18921)|Qu 2024]] §IV). For comparison, GroundOne 3B spends 33 J for a whole answer of ≥ 14 sentences without generating any token ([[GroundOne Results]]); different hardware and task, context only.
+- **Reporting protocol**: report Wh per query with meter scope and workload description ([[Wang 2025 - Cognitive Edge Computing, Optimizing Large Models and AI Agents (arXiv 2501.03265)|Wang 2025]] §3.5, §6.7; weak preprint). The thesis already states scope (SoC power via powermetrics) and workload (100 latency answers).
+- **Power envelopes**: on-device tier under 10 W (Wang 2025); Strix Halo 55 W chip; DGX Spark 140 W chip; Mac Studio up to 480 W; RTX 5090 575 W ([[Local Inference Hardware]]).
+- **Generated tokens dominate time on slow decoders**: 2,200 generated tokens take about 38 s on an RTX 5090 and 234 s on a DGX Spark ([[Presenc 2026 - Local LLM tokens-per-second benchmarks]]); a zero-token verifier avoids this term entirely.

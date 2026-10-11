@@ -58,3 +58,8 @@ From the local HF `config.json` files (thesis machine): **0.5B** hidden 896, hea
 
 ## Observed in GroundOne (2026-10-10)
 After the marker " Verdict:", the fine-tuned model's most likely next token is the **spaced** letter (" A", " B", " C"), not the unspaced letters GroundOne reads; the three readout letters hold only about 4–5 % of the probability mass. Training with a loss restricted to the readout letters shapes their relative logits, not their absolute mass, so the readout behaves as a three-way classifier ([[Letter-Token Readout]]). Generating the token instead (control B2) loses 0.25 (0.5B) / 0.07 (3B) three-way accuracy.
+
+## Licence and terminology (ingest 2026-10-11)
+- Under the OSI definition Qwen2.5 is **open-weight, not open source**: weights are released, training code and data information are not ([[OSI 2024 - The Open Source AI Definition 1.0]], [[Open-Weight Models]]). The 0.5B is Apache 2.0; the 3B is under the Qwen Research licence. The thesis should use "open-weight" and state both licences.
+- Lu 2024 measures Qwen2.5-3B-Instruct at 91.71 % on Needle-in-a-Haystack and notes that small models are trained far past Chinchilla ([[Lu 2024 - Small Language Models, Survey, Measurements, and Insights (arXiv 2409.15790)|Lu 2024]]; see [[Small Language Models]]).
+- Under the EU AI Act, LoRA fine-tuning of Qwen2.5 is far below the one-third-of-training-compute threshold that would make the fine-tuner a model provider (own 6ND estimate ≈ 3×10^23 FLOPs for the 3B; [[WilmerHale 2025 - Commission guidelines for providers of general-purpose AI models]]).

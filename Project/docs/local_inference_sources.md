@@ -1,7 +1,9 @@
 # Local inference: candidate sources (to review)
 
 Collected 2026-10-11 from a web search on local LLM inference (hardware, open-weight models, consumer budgets).
-Nothing here is in the wiki or the thesis yet: the author selects what to ingest.
+Status 2026-10-11: up to five sources per section were downloaded to `Vault/raw/local_inference/` and ingested into the wiki
+(see `Vault/changelog.md`, entry 2026-10-11; concepts Local Inference Hardware, Open-Weight Models, Privacy and Data
+Sovereignty, Navier-Stokes Credit Dispute (2026)). Nothing is in the thesis yet.
 
 Reliability tags:
 - 🟢 primary: official spec page, paper, independent research group. Citable.

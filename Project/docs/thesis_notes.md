@@ -751,3 +751,11 @@ Findings that matter for the thesis (fixes in docs and code are in git):
   - The general decision model wins clearly out of domain (VitaminC) and is on par with the 3B on the broad grounding benchmark (LLM-AggreFact).
   - Specialisation buys in-domain accuracy and long-answer robustness at the cost of transfer. This is the cleanest statement of RQ1, now with a same-size generalist instead of only untrained models and a 4B generalist.
 - **Caution.** The 21-answer smoke test gave d1 0.838 on T1; the full run gives 0.657. Small samples mislead.
+
+## Ch. 1 / Ch. 2: local inference sources ingested (2026-10-11)
+- **Prefill/decode asymmetry, independent support.** Apple states that the M5's 3.3–4.1× faster time to first token comes from compute (GPU neural accelerators) and its 1.19–1.27× faster generation from a 1.28× bandwidth increase; EXO Labs measures DGX Spark prefill 3.8× faster and M3 Ultra decode 3.4× faster (Llama-3.1 8B, 8k prompt). Usable in Ch. 2 §Inference on the user's device next to Pope et al. and the own Phase 0 measurement. Wiki: Local Inference Hardware, Prefill and Decode.
+- **Terminology.** Qwen2.5 is open-weight, not open source (OSI Open Source AI Definition 1.0); licences differ (0.5B Apache 2.0, 3B Qwen Research). Check the thesis for "open model"/"open-source" wording.
+- **Motivation numbers for Ch. 1.** Consumer-GPU-sized open models reach frontier performance in 6–12 months (Epoch AI); open/closed gap on Chatbot Arena 8.04 % → 1.70 % (Stanford AI Index 2025); Jan–May 2026 open models lag about 4 months on ECI (Epoch AI).
+- **Privacy case study.** Navier–Stokes credit dispute (Sept 2026): drafts in OpenAI Codex; OpenAI: "While unlikely, we cannot rule out that de-identified data derived from their usage of our products helped improve our models." Use only as an example of unverifiable cloud data handling, not of proven misuse; cite NYU Shanghai RITS or Live Science for the quote.
+- **Counter-position to acknowledge.** Qu 2024 (IEEE COMST) argues pure on-device deployment is too limited and favours edge servers.
+- Not yet in the bibliography; to add only for the sources the author selects.

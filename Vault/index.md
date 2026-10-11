@@ -37,6 +37,8 @@ Knowledge base for the MSc thesis **[[GroundOne]]**: a specialist System One mod
 
 ## Local inference (thesis pillar)
 - [[On-Device Inference]], [[Apple Silicon and MLX]], [[Energy of LLM Inference]]
+- [[Local Inference Hardware]] (Mac Studio, DGX Spark, Strix Halo, consumer GPUs: capacity, bandwidth, compute, power, price), [[Quantization]], [[Small Language Models]], [[Edge-Cloud Collaborative Inference]]
+- [[Open-Weight Models]] (OSI definition, licences, open/closed gap, EU AI Act), [[Privacy and Data Sovereignty]], case study: [[Navier-Stokes Credit Dispute (2026)]]
 
 ## Archived (earlier tool-routing experiment)
 - [[Function Calling]], [[Berkeley Function Calling Leaderboard]]
@@ -84,6 +86,13 @@ Knowledge base for the MSc thesis **[[GroundOne]]**: a specialist System One mod
 
 **Local inference, hardware, energy**
 - [[Patel 2024 - Splitwise (prefill vs decode phases)]], [[Alizadeh 2024 - LLM in a flash]], [[Gunter 2024 - Apple Intelligence Foundation Language Models]], [[MLX README (ml-explore)]], [[llama.cpp README (ggml-org)]], [[Apple 2024 - MacBook Pro 14-inch M4 tech specs]]
+
+**Local inference landscape (ingest 2026-10-11; `raw/local_inference/`)**
+- Trends and open models: [[Epoch AI 2025 - Frontier AI performance becomes accessible on consumer hardware within a year]], [[Epoch AI 2025 - What's the best model you can run on a single consumer GPU]], [[Epoch AI - Open vs closed capability gap (ECI)]], [[Stanford HAI 2025 - AI Index Report, Technical performance]], [[Artificial Analysis - Announcing the Openness Index]], [[OSI 2024 - The Open Source AI Definition 1.0]], [[Stanford CRFM 2024 - Foundation models under the EU AI Act]], [[WilmerHale 2025 - Commission guidelines for providers of general-purpose AI models]], [[Lu 2024 - Small Language Models, Survey, Measurements, and Insights (arXiv 2409.15790)]], [[Google 2025 - Introducing Gemma 3n]]
+- Hardware: [[NVIDIA - DGX Spark hardware overview]], [[Apple 2025 - Mac Studio (2025) tech specs]], [[EXO Labs 2025 - NVIDIA DGX Spark and Mac Studio, disaggregated inference]], [[Hardware Corner 2025 - How fast is the AI Max+ 395 for LLM inference]], [[PCWorld - Framework Desktop review]], [[Apple ML Research 2025 - Exploring LLMs with MLX and the neural accelerators in the M5 GPU]], [[Rajesh 2025 - Local LLM inference on Apple Silicon, MLX vs MLC vs Ollama vs llama.cpp (arXiv 2511.05502)]], [[Corelab - Best GPU for local LLMs, VRAM tier list]], [[Level1Techs - ASRock Intel Arc Pro B60 24 GB for local AI]], [[Davies Meyer - Mac mini M4 Pro for local AI inference]]
+- Edge-inference surveys: [[Qu 2024 - Mobile Edge Intelligence for LLMs, A Contemporary Survey (arXiv 2407.18921)]], [[Li 2025 - Collaborative Inference between Edge SLMs and Cloud LLMs, A Survey (arXiv 2507.16731)]], [[Das 2026 - Large Models for Small Devices, Edge AI Deployment (arXiv 2608.15693)]], [[Wang 2025 - Cognitive Edge Computing, Optimizing Large Models and AI Agents (arXiv 2501.03265)]]
+- Tools, quantisation, privacy: [[Presenc 2026 - State of the llama.cpp ecosystem]], [[Presenc 2026 - Local LLM tokens-per-second benchmarks]], [[PremAI 2026 - LLM quantization guide, GGUF vs AWQ vs GPTQ vs bitsandbytes]], [[DasRoot 2026 - Privacy-preserving AI, local LLMs vs cloud APIs]]
+- Navier–Stokes case: [[Fortune 2026 - OpenAI says it cracked Navier-Stokes, Buckmaster accusation]], [[NYU Shanghai RITS 2026 - OpenAI claims a Navier-Stokes proof amid a dispute over credit]], [[OfficeChai 2026 - OpenAI says it didn't see Buckmaster and Alpoge's work]], [[Plagiarism Today 2026 - Who gets credit when AI makes a breakthrough]], [[Live Science 2026 - Why would you ruin your career, OpenAI Navier-Stokes claim]]
 - [[Samsi 2023 - From Words to Watts]], [[Luccioni 2024 - Power Hungry Processing]]
 
 **Hallucination and fine-grained verification**

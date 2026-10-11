@@ -59,3 +59,9 @@ From the [[MLX README (ml-explore)|README]]:
 ## Links
 - Concepts: [[On-Device Inference]], [[Prefill and Decode]], [[KV Cache]], [[Energy of LLM Inference]], [[Qwen2.5]], [[LoRA]], [[GroundOne]]
 - Sources: [[Apple 2024 - MacBook Pro 14-inch M4 tech specs]], [[MLX README (ml-explore)]], [[llama.cpp README (ggml-org)]], [[mlx-community 2026 - clef-flash-4bit model card]], [[Palmer 2026 - Kev-4B model card]], [[FluidInference 2026 - d1-omni-600M Core ML model card]], [[Alizadeh 2024 - LLM in a flash]], [[Gunter 2024 - Apple Intelligence Foundation Language Models]], [[Pope 2023 - Efficiently Scaling Transformer Inference]]
+
+## Apple silicon beyond the thesis machine (ingest 2026-10-11)
+- **Mac Studio (2025)**: M4 Max 410 GB/s (36 GB) or 546 GB/s (48–128 GB); M3 Ultra 819 GB/s, 96–256 GB on Apple's page (512 GB in EXO and Hardware Corner) ([[Apple 2025 - Mac Studio (2025) tech specs]]). Decode floor for a 3B 8-bit model: about 8 ms (410 GB/s) or 4 ms (819 GB/s), vs about 27 ms on the M4.
+- **M5**: 153 GB/s and GPU neural accelerators; with MLX, TTFT 3.3–4.1× faster than M4, generation 1.19–1.27× ([[Apple ML Research 2025 - Exploring LLMs with MLX and the neural accelerators in the M5 GPU]]). Qwen3-8B 4-bit needs 5.61 GB, a 30B MoE 4-bit 17.31 GB. GroundOne's prefill-only workload is the kind the M5 accelerates most (extrapolation, not measured).
+- **MLX vs other runtimes**: on an M2 Ultra decode is about 230 tok/s (MLX), 190 (MLC-LLM), 150 (llama.cpp), 20–40 (Ollama), 7–9 (PyTorch MPS); MLX cold start about 31 s ([[Rajesh 2025 - Local LLM inference on Apple Silicon, MLX vs MLC vs Ollama vs llama.cpp (arXiv 2511.05502)|Rajesh 2025]], internally inconsistent). On the same M4 Max, MLX decodes about 15 % faster than GGUF ([[Hardware Corner 2025 - How fast is the AI Max+ 395 for LLM inference]]).
+- Comparison with non-Apple hardware: [[Local Inference Hardware]]. Formats: [[Quantization]].
