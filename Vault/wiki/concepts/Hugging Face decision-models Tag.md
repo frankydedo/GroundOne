@@ -28,3 +28,7 @@ tags: [hugging-face, decision-models, system-one, ecosystem, evidence-quality]
 
 ## Links
 [[System One Models]], [[Decision-Model Benchmarks]], [[Decision-Model Landscape (Hugging Face, 2026)]], [[Laya]], [[Jev]], [[GroundOne]]
+
+## Date of introduction (author, 2026-10-11)
+- The author reports that Hugging Face officially introduced the `decision-model` tag on **2026-10-09**. The survey listing of 2026-10-10 (1,529 models) was therefore taken one day after; more than half of those models (862) had been created in September 2026, so they were uploaded before the tag existed officially and tagged afterwards. No ingested raw file documents the announcement itself; the thesis states the date on the author's authority and cites the tag listing.
+

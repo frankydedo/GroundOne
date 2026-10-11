@@ -117,8 +117,9 @@ può non rispettare il formato richiesto.}
 \end{figure}
 
 Il campo è giovane e si muove in fretta. Dopo il primo modello ospitato sono arrivate le implementazioni
-aperte~\cite{semif,rizzoflow}, e nel 2026 l'hub di Hugging Face ha introdotto un tag per questi \emph{decision model},
-che a ottobre 2026 raccoglieva già circa 1500 modelli~\cite{hf2026decisionmodels}. Anche organizzazioni affermate
+aperte~\cite{semif,rizzoflow}, e il 9 ottobre 2026 l'hub di Hugging Face ha introdotto ufficialmente un tag per questi
+\emph{decision model}, che il giorno successivo raccoglieva già circa 1500 modelli, più della metà dei quali pubblicati
+nelle settimane precedenti~\cite{hf2026decisionmodels}. Anche organizzazioni affermate
 hanno rilasciato i propri, come d1-3B di Liquid AI e Clef di Cloudflare~\cite{liquid2026d1,cloudflare2026clef}. Le
 evidenze, però, sono in ritardo rispetto ai rilasci. Provengono per lo più dagli autori di ciascun sistema, le valutazioni
 indipendenti sono recenti e spesso meno favorevoli~\cite{deusser2026jev,nandakishore2026laya}, e una leaderboard comune
@@ -126,10 +127,10 @@ rileva che i decision model generalisti con meno di un miliardo di parametri sup
 rilevamento delle allucinazioni nelle risposte RAG~\cite{decisionindex2026}. Tutte le implementazioni aperte, inoltre, sono
 sistemi generalisti in grado di rispondere a qualunque domanda tipizzata.
 
-Restano quindi aperte diverse questioni. Non è noto se l'approccio convenga per un task specifico, come si collochi un
-modello piccolo specializzato in quel task rispetto a uno generalista, ai giudici generativi e ai verificatori dedicati,
-né da dove derivi davvero l'eventuale vantaggio: dalla specializzazione, dal modo in cui si legge la decisione o
-semplicemente dalla dimensione del modello.
+Restano quindi aperte tre domande. La prima è se, per un singolo task, convenga usare un System One piccolo e
+specializzato. La seconda è come un modello di questo tipo si confronti con le alternative: un System One generalista,
+un giudice generativo e un verificatore dedicato. La terza è da dove derivi l'eventuale vantaggio: dalla
+specializzazione, dal modo in cui la decisione viene letta oppure, più semplicemente, dalla dimensione del modello.
 
 \section{Approccio e domande di ricerca}
 \label{sec:intro-rq}
