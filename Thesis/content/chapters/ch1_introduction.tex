@@ -1,61 +1,139 @@
 \chapter{Introduction}
 \label{sec:introduction}
 
-% Source notes: Project/docs/implementation_plan.md §1–2 (research questions), checkpoint_2026-10-10.md (results).
+% Source notes: Project/docs/implementation_plan.md §1–2 (research questions), checkpoint_2026-10-10.md (results),
+% thesis_notes.md (locality pillar; Phase 0 prefill/decode timings), appendix.tex (example answer rt-7784).
 
 \section{Motivation}
 \label{sec:intro-motivation}
 
-Retrieval-augmented generation has become the standard way to let a language model answer questions about documents it
-was never trained on: a retriever selects relevant passages and the model writes an answer with those passages in its
-context~\cite{lewis2020rag}. Because compact open models and efficient runtimes now run on consumer
-hardware~\cite{llamacpp,mlx2023}, the whole pipeline can stay on the user's own device. This matters whenever the
-documents are private, whenever the assistant must work without a network, and whenever its behaviour must not change
-with a provider's update.
+\subsection{Retrieval-augmented generation on the user's device}
+\label{sec:intro-local}
 
-Retrieval does not remove hallucination. Answers still contain sentences that the retrieved passages do not support, or
-that contradict them~\cite{niu2024ragtruth,huang2025hallucination}, and a user cannot be expected to check every
-sentence against its source. A trustworthy local assistant therefore needs a verifier that checks every answer, sentence
-by sentence, on the same machine that generated it. Such a verifier competes for the same memory, time and battery as
-the generator. The common solution, asking a language model to judge the answer, is expensive precisely where a laptop is
-weakest: a judge writes its verdicts token by token, and on local hardware each generated token costs far more than
-reading one. Small judges also break the required output format, and the confidence they express is rarely usable as a
-probability.
+Retrieval-augmented generation has become the standard way to let a language model answer questions about documents it
+was never trained on. A retriever selects the passages that are relevant to the question, and the model writes its answer
+with those passages in its context~\cite{lewis2020rag}. The same recipe serves a company searching its internal reports,
+a lawyer reading a contract and a student questioning their own notes, and in each case the value of the answer depends
+on its staying faithful to the documents.
+
+Until recently such a pipeline required a hosted model, reached over the network. This is no longer the case. Compact
+open models and efficient runtimes now run on consumer hardware~\cite{llamacpp,mlx2023}, and platform vendors ship
+models of a few billion parameters directly on their devices~\cite{gunter2024apple}. The whole pipeline, from retrieval
+to answer, can therefore stay on the user's own machine. This matters for four reasons. When the documents are private
+or regulated, they never leave the device. When there is no network, the assistant keeps working. When the behaviour of
+the system must stay stable, the weights change only if the user changes them, instead of following a provider's
+updates. Finally, the cost becomes that of the hardware and its energy, instead of a price per token. Local models also
+expose their logits, which hosted interfaces often hide or limit, and this property turns out to be essential for the
+approach studied here.
+
+Locality is a constraint as well as an advantage. A laptop has limited memory, limited bandwidth and a battery, and every
+component of the assistant must fit within them at the same time. This thesis treats locality as a requirement rather
+than as an afterthought: every step of the work, from building the dataset to training, evaluation and serving, runs on
+one consumer laptop with 16\,GB of memory, and no step depends on an external service.
+
+\subsection{Hallucination and the need for verification}
+\label{sec:intro-hallucination}
+
+Retrieval does not remove hallucination. Even with the right passages in context, generated answers still contain
+sentences that the passages do not support, or that contradict them~\cite{niu2024ragtruth,huang2025hallucination}. An
+example from the data used in this thesis shows how subtle the problem can be. Asked to describe a restaurant from a
+structured record, a model writes six fluent sentences. Four of them are correct. One states that the restaurant is open
+seven days a week, whereas the record shows that it is closed on Mondays: the sentence contradicts the source. Another
+states that the restaurant has a rating of 4.5 stars on Google, whereas the record gives the rating without naming any
+source: the sentence adds a detail that the source does not mention (Appendix~\ref{app:examples}).
+
+Two observations follow from this example. First, the error sits in a single sentence of an otherwise correct answer, so
+a verdict on the whole answer is of little help: the user needs to know which sentence to distrust. Second, the two
+erroneous sentences are wrong in different ways. A contradiction is a factual error with respect to the source, whereas
+an unsupported addition may be harmless background or an invention, and an application may want to treat the two
+differently. A useful verifier therefore decides, for every sentence, whether the document supports it, contradicts it or
+does not mention it. Since no user can be expected to check every sentence against its source, the verifier must run on
+every answer, automatically, and on the same machine that generated it.
+
+\subsection{The cost of checking an answer on a laptop}
+\label{sec:intro-cost}
+
+A verifier that runs next to the generator competes with it for the same memory, time and battery. The most common
+solution, asking a language model to judge the answer, is expensive precisely where a laptop is weakest. A judge writes
+its verdicts token by token, and on local hardware each generated token costs far more than each token it reads. Reading
+the prompt is limited by computation, which a laptop GPU handles well, whereas writing the output is limited by memory
+bandwidth, because every new token must read all the weights~\cite{pope2023scaling}. On the laptop used in this thesis,
+reading one token takes about 0.37 milliseconds for a model of 0.5B parameters, while writing one takes about 5.9, sixteen
+times more. A judge that explains its reasoning before each verdict multiplies this cost by the length of its
+explanation, and the cost grows again with the number of sentences in the answer. Small judges also break the required
+output format, and the confidence they express is rarely usable as a probability.
+
+Encoder-based verifiers avoid generation altogether. Models such as AlignScore, MiniCheck and HHEM read a pair of document
+and sentence and return a score of support~\cite{zha2023alignscore,tang2024minicheck,vectara2024hhem}. They are small and
+fast, but they give one fixed binary score per pair: they do not distinguish a contradiction from an omission, they read
+each sentence without the rest of the answer, and adapting them to a new decision requires a new model.
 
 \section{System One models}
 \label{sec:intro-systemone}
 
 A different way to use a language model for decisions has recently attracted attention under the name of \emph{System
-One models}~\cite{typesafe2026jev}. Instead of generating an answer, such a model reads the question and the context once
-and returns a probability for each admissible answer, for example by reading the logits of the option letters at the end
-of the prompt~\cite{semif,rizzoflow}. No text is generated, the output is always valid, and many questions about the same
-context can share one pass over it. The idea fits verification well: an answer of $K$ sentences poses $K$ closed
-questions about the same document, and a probability per sentence can be thresholded and calibrated.
+One models}~\cite{typesafe2026jev}. The name evokes the fast, intuitive mode of thinking, as opposed to deliberate
+reasoning. Instead of generating an answer, such a model reads the question and the context once and returns a
+probability for each admissible answer, for example by reading the logits of the option letters at the end of the
+prompt~\cite{semif,rizzoflow}. Three properties follow directly. No text is generated, so the decision costs only the
+reading of the input. The output is always one of the admissible answers, so it is always valid. Many questions about the
+same context can share a single pass over it, so each additional question costs little.
 
-The evidence for System One models, however, comes mostly from their authors, and the open implementations are
-general-purpose systems that answer any typed question. Whether the approach is worth it for a specific task, how a
-model specialised for that task compares with a general-purpose one, with generative judges and with dedicated
-verifiers, and where any advantage actually comes from are open questions.
+The idea fits verification well. An answer of $K$ sentences poses $K$ closed questions about the same document, and each
+of them has three admissible answers. A System One can answer all of them while reading the document only once, and the
+probability it returns for each sentence can be calibrated and compared with a threshold chosen by the application.
 
-\section{Research questions}
+The field is young and moves quickly. After the first hosted model, open implementations
+followed~\cite{semif,rizzoflow}, and in 2026 the Hugging Face hub introduced a tag for these \emph{decision models} which
+by October 2026 already grouped about 1{,}500 models~\cite{hf2026decisionmodels}. Established organisations released their own,
+such as Liquid AI's d1-3B and Cloudflare's Clef~\cite{liquid2026d1,cloudflare2026clef}. The evidence, however, lags
+behind the releases. Most of it comes from the authors of each system, independent evaluations are recent and often less
+favourable~\cite{deusser2026jev,nandakishore2026laya}, and a common leaderboard finds that general-purpose decision models
+with fewer than one billion parameters barely exceed the trivial baseline on hallucination detection in retrieval-augmented
+answers~\cite{decisionindex2026}. All the open implementations, moreover, are general-purpose systems that answer any
+typed question.
+
+Several questions therefore remain open. It is not known whether the approach is worth it for one specific task, how a
+small model specialised in that task compares with a general-purpose one, with generative judges and with dedicated
+verifiers, and where any advantage actually comes from: from the specialisation, from the way the decision is read, or
+simply from the size of the model.
+
+\section{Approach and research questions}
 \label{sec:intro-rq}
 
-This thesis designs, trains and evaluates GroundOne, a compact System One specialised in one decision: for every
-sentence of a RAG answer, whether the retrieved document supports it, contradicts it or does not mention it. Five
-research questions guide the work.
+This thesis designs, trains and evaluates GroundOne, a compact System One specialised in one decision: for every sentence
+of a RAG answer, whether the retrieved document supports it, contradicts it or does not mention it. The answer is written
+with a short marker after each sentence, and the verdicts of all sentences are read in one forward pass, from the logits
+of three answer letters at the markers, without generating any text. Qwen2.5 models with 0.5B and 3B parameters are
+fine-tuned with LoRA on human-labelled answers from RAGTruth~\cite{qwen2024qwen25,hu2022lora,niu2024ragtruth}, and their
+probabilities are calibrated on development data. Three test sets were built and frozen before any model was trained, so
+that no design choice could be tuned on them. Five research questions guide the work.
 
 \begin{description}
 \item[RQ1, specialisation.] Can a fine-tuned System One of 0.5B or 3B parameters match larger zero-shot models and the
-specialised encoders on sentence-level groundedness?
-\item[RQ2, readout versus generation.] What does the System One mechanism contribute at the same model size, against
-generative judges that write their verdicts and against the same model deciding by the token it would generate, and how
-does the difference grow with the number of decisions per answer?
-\item[RQ3, calibration.] Are the probabilities usable as confidence, for thresholds and for deferring uncertain
-decisions, and how do they compare with the probabilities that a generative judge can provide?
+specialised encoders on sentence-level groundedness, that is, on deciding whether each sentence is faithful to the
+document?
+\item[RQ2, readout versus generation.] What does the System One mechanism, the reading of the decision from the logits,
+contribute at the same model size? The comparison is twofold: against generative judges that write their verdicts, and
+against the same model deciding by the token it would generate. The question also asks how the difference grows with the
+number of decisions per answer.
+\item[RQ3, calibration.] Are the probabilities usable as confidence, to set thresholds and to defer uncertain decisions,
+and how do they compare with the probabilities that a generative judge can provide?
 \item[RQ4, cost on the device.] Does the verifier fit within the memory, time and energy budget of a 16\,GB laptop, and
-how does its cost compare with that of a judge on the same machine?
-\item[RQ5, beyond a binary score.] What does a three-way decision per sentence give that a binary verifier does not?
+how does its cost compare with that of a judge running on the same machine?
+\item[RQ5, beyond a binary score.] What does a three-way decision for every sentence offer that a binary verifier does
+not?
 \end{description}
+
+\section{Scope}
+\label{sec:intro-scope}
+
+The thesis studies the verification step in isolation. The retrieved document is given, so the quality of retrieval is
+not evaluated, and an answer is judged only against the document it was generated from, not against world knowledge.
+GroundOne flags sentences but does not correct them, and it returns verdicts and probabilities rather than written
+explanations. The data are in English. Documents longer than the context used in training are split into parts, as
+described in Chapter~\ref{sec:setup}. Finally, the experiments target one class of hardware, a consumer laptop with
+unified memory, and every system, including every baseline, runs on the same machine.
 
 \section{Contributions}
 \label{sec:intro-contributions}
@@ -63,37 +141,49 @@ how does its cost compare with that of a judge on the same machine?
 The thesis makes four contributions.
 \begin{enumerate}
 \item \textbf{GroundOne}, an open specialist System One for sentence-level groundedness verification that runs entirely
-on a laptop. It reads all the verdicts of an answer in one forward pass, through a marker placed after every sentence,
-and it is released as an installable package with a command-line interface and a local HTTP API, including an interface
-compatible with existing System One clients.
-\item \textbf{A task-driven dataset} built from public human annotations, with three test sets that were validated
-without new annotation and frozen before any model was trained, and with leakage controlled by document.
-\item \textbf{A controlled decomposition of the gains.} The comparison separates the contribution of specialisation, of
-the restricted readout and of model size, against cues that never verify a sentence, untrained models, generative judges
-with and without probabilities, a general-purpose System One and specialised encoders, all on the same hardware and with
-cluster-bootstrap intervals.
-\item \textbf{A study of calibration, time and energy}: how the probabilities can be calibrated and turned into
-consistent labels, how much they help in deferring uncertain decisions, and how time and energy per verification grow
-with the length of the answer.
+on a laptop. Thanks to a marker placed after every sentence, it reads all the verdicts of an answer in one forward pass.
+It is released as an installable package with a command-line interface and a local HTTP API, which also includes an
+interface compatible with existing System One clients.
+\item \textbf{A dataset built around the task} from public human annotations, with three test sets that were validated
+without new annotation and frozen before any model was trained, and with leakage controlled at the level of documents.
+\item \textbf{A controlled decomposition of the gains.} The comparison isolates the contribution of specialisation, of the
+restricted readout and of model size. GroundOne is compared with cues that never verify a sentence, untrained models,
+generative judges with and without probabilities, a general-purpose System One, a general-purpose decision model of the
+same size and specialised encoders, all on the same hardware and with intervals obtained by cluster bootstrap.
+\item \textbf{A study of calibration, time and energy}: how the probabilities can be calibrated and turned into consistent
+labels, how much they help in deferring uncertain decisions, and how the time and energy of a verification grow with the
+length of the answer.
 \end{enumerate}
 
-In brief, the results show that specialisation works in the RAG domain: on the RAGTruth test set GroundOne reaches a
-three-way balanced accuracy of 0.769 with 0.5B parameters and 0.832 with 3B, above the specialised encoders and well
-above a general-purpose System One eight times larger and above a general-purpose decision model of the same size, and
-on LLM-AggreFact the 3B is on par with the best small encoder.
-It verifies long answers about two times faster than a terse and six times faster than a verbose judge of the same size,
-with always valid output, much better probabilities and less energy. The restriction of the readout to the admissible
-answers adds accuracy by itself. The limits are equally clear: transfer to a different domain is weak, and there the general-purpose model is better, hallucinations
-hidden in sentences that otherwise copy the source remain hard, and the training recipe is not fully robust to the
-random seed.
+\section{Main results}
+\label{sec:intro-results}
+
+The results show that specialisation works in the domain it was aimed at. On the RAGTruth test set GroundOne reaches a
+three-way balanced accuracy of 0.769 with 0.5B parameters and 0.832 with 3B, against 0.37 and 0.44 for the same models
+before training. It ranks supported sentences better than the specialised encoders, and it clearly outperforms both a
+general-purpose System One eight times larger than the 0.5B and a general-purpose decision model of the same size as the
+3B. On LLM-AggreFact, a benchmark drawn from different sources, the 3B is on par with the best small encoder.
+
+The System One mechanism pays off in speed and in accuracy. When an answer contains fourteen or more sentences, GroundOne
+verifies it about two times faster than a terse judge and six times faster than a verbose judge of the same size, with an
+output that is always valid and with less energy. Restricting the decision to the three admissible letters is, by itself,
+more accurate than letting the same model generate its verdict. After calibration, the probabilities of GroundOne are
+close to the observed frequencies, whereas the probabilities of generative judges asked for the same output barely
+separate correct from incorrect decisions.
+
+Some aspects remain to be improved, and they point to natural directions for future work. Performance drops on domains
+far from the training data, where the general-purpose decision model is stronger; the subtlest hallucinations, hidden in
+sentences that otherwise follow the source faithfully, are detected only in part; and training is not yet fully stable
+across random seeds.
 
 \section{Thesis structure}
 \label{sec:intro-structure}
 
-Chapter~\ref{sec:background} reviews transformer inference, local inference, System One models, hallucination in
-retrieval-augmented generation, verification methods and calibration. Chapter~\ref{sec:method} describes GroundOne: the
-decision, the single-pass readout, the training objective, the calibration and the served output.
+Chapter~\ref{sec:background} reviews transformer inference, inference on the user's device, System One models,
+hallucination in retrieval-augmented generation, verification methods and calibration. Chapter~\ref{sec:method} describes
+GroundOne: the decision, the single-pass readout, the training objective, the calibration and the served output.
 Chapter~\ref{ch:data} defines the labels and describes how the training and test sets were built, checked and frozen.
 Chapter~\ref{sec:setup} presents the trained models, the baselines, the metrics and the measurement protocol.
 Chapter~\ref{sec:results} reports the results, Chapter~\ref{sec:discussion} discusses what they mean and where they stop,
-and Chapter~\ref{sec:conclusion} concludes. Appendix~\ref{app:examples} shows the output of every system on one answer.
+and Chapter~\ref{sec:conclusion} concludes. Appendix~\ref{app:examples} shows the output of every system on the example
+answer described in Section~\ref{sec:intro-hallucination}.

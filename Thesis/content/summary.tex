@@ -7,18 +7,18 @@ that the retrieved context does not support or that contradict it. Detecting the
 local assistants, and since the check must run on every answer, it has to fit on the same constrained machine as the
 generator.
 
-Verification currently follows two paradigms. Encoder-based checkers such as AlignScore, MiniCheck and HHEM are small
-and fast, but return one fixed score per pair of document and sentence. Generative judges are flexible but write their
+Verification currently follows two paradigms. \textbf{Encoder-based checkers}, such as AlignScore, MiniCheck and HHEM, are small
+and fast, but return one fixed score per pair of document and sentence. \textbf{Generative judges}, by contrast, are flexible but write their
 verdicts token by token, so their cost grows with what they write; small judges often break the output format, and the
 confidence they express is rarely usable as a probability. A third family has recently emerged: \textbf{System One
 models}, such as the proprietary Jev and the open SemIf and Rizzo-Flow, answer closed questions in a single forward pass
 by reading the probability of each answer option from the logits. The evidence for them is mostly reported by their
 authors, and the open implementations are general-purpose. Whether a compact System One specialised in one task can match
 generative judges and dedicated encoders, where its advantage comes from, and whether its probabilities are usable, all
-on a laptop, had not been studied in a controlled way.
+on consumer hardware, had not been studied in a controlled way.
 
 This thesis designs, trains and evaluates \textbf{GroundOne}, a System One specialised in one decision: for each sentence
-of an answer, whether the retrieved document supports it, contradicts it or does not mention it. A marker follows every
+of a RAG answer, whether the retrieved document supports it, contradicts it or does not mention it. A marker follows every
 sentence of the answer, and the verdicts for all $K$ sentences are read from the logits of three answer letters in one
 forward pass, without generating any text. Qwen2.5 models with 0.5B and 3B parameters are fine-tuned with LoRA on the
 human-labelled answers of RAGTruth, with a class-weighted loss restricted to the three letters; a temperature and a bias
@@ -33,13 +33,16 @@ On the RAGTruth test set GroundOne reaches a three-way balanced accuracy of 0.76
 against 0.37 and 0.44 for the untrained models; its AUROC (0.905 and 0.940) exceeds that of the encoders (about 0.82),
 and it clearly outperforms both a general-purpose System One eight times larger and a general-purpose decision model of
 the same size (0.657), which in turn is much stronger on the out-of-domain VitaminC test. On
-LLM-AggreFact the 3B is on par with MiniCheck-RoBERTa (74.8 against 74.0, a difference that is not significant), above
-the published zero-shot 7B model and below the closed System One Jev as measured independently (78.6). For answers with fourteen or more sentences GroundOne is about two times faster than a
-terse and six times faster than a verbose judge of the same size, with always valid output; it uses less energy (5.5 and
-33 joules per answer), though by a smaller factor than in time, because a long prefill draws more power than decoding.
-Asked for the same output, generative judges provide probabilities that barely separate correct from incorrect decisions,
-while calibration brings GroundOne's expected calibration error on the test set to 0.019. With the same weights,
-restricting the decision to the three letters is more accurate than taking the token the model would generate, by 0.25
-for the 0.5B and 0.07 for the 3B. The limits are equally clear: transfer to a different domain is weak, hallucinations
-hidden in sentences that otherwise copy the source remain hard, and the training recipe is not fully robust to the random
-seed.
+LLM-AggreFact the 3B is on par with MiniCheck-RoBERTa (74.8 against 74.0), above
+the published zero-shot 7B model and below the closed System One Jev as measured independently (78.6). When an answer contains fourteen or more sentences ($K \geq 14$),
+GroundOne is about two times faster than a terse judge and six times faster than a verbose judge of the same size and,
+unlike the judges, always produces a valid output. It also uses less energy (5.5 joules per answer with the 0.5B, 33 with
+the 3B), but the saving is smaller than the saving in time, because a long prefill draws more power than decoding. Asked
+for the same output, generative judges provide probabilities that barely separate correct from incorrect decisions,
+while calibration brings GroundOne's expected calibration error on the test set to 0.019. How the decision is read also
+matters: with the same trained model, comparing only the three admissible letters is more accurate than letting the model
+generate its verdict freely, with a gain in balanced accuracy of 0.25 for the 0.5B and 0.07 for the 3B. Some aspects
+remain to be improved, and they point to natural directions for future work: performance drops on domains far from the
+training data, such as the fact checking of VitaminC; the subtlest hallucinations, hidden in sentences that otherwise
+follow the source faithfully, are detected only in part; and training is not yet fully stable across random seeds, which
+simple changes to the optimiser could mitigate.

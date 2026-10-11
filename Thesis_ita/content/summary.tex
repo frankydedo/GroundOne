@@ -7,8 +7,8 @@ le risposte generate contengono ancora frasi che il contesto recuperato non supp
 è un prerequisito per assistenti locali affidabili e, poiché il controllo va eseguito su ogni risposta, deve trovare
 posto sulla stessa macchina, dalle risorse limitate, che ospita il generatore.
 
-La verifica segue oggi due paradigmi. I verificatori basati su encoder, come AlignScore, MiniCheck e HHEM, sono piccoli e
-veloci, ma restituiscono un unico punteggio fisso per ogni coppia di documento e frase. I giudici generativi sono
+La verifica segue oggi due paradigmi. I \textbf{verificatori basati su encoder}, come AlignScore, MiniCheck e HHEM, sono piccoli e
+veloci, ma restituiscono un unico punteggio fisso per ogni coppia di documento e frase. I \textbf{giudici generativi}, invece, sono
 flessibili, ma scrivono i verdetti token per token, per cui il loro costo cresce con la quantità di testo prodotto; i
 giudici piccoli violano spesso il formato di output, e la confidenza che esprimono è raramente utilizzabile come
 probabilità. Di recente è emersa una terza famiglia: i \textbf{modelli System One}, come il proprietario Jev e i modelli
@@ -16,10 +16,10 @@ aperti SemIf e Rizzo-Flow, che rispondono a domande chiuse in un unico forward p
 ciascuna opzione di risposta. Le evidenze a loro favore provengono per lo più dagli stessi autori, e le implementazioni
 aperte sono generaliste. Non era ancora stato studiato in modo controllato se un System One compatto, specializzato in un
 unico task, possa eguagliare i giudici generativi e gli encoder dedicati, da dove derivi il suo vantaggio e se le sue
-probabilità siano utilizzabili, il tutto su un portatile.
+probabilità siano utilizzabili, il tutto su hardware consumer.
 
 Questa tesi progetta, addestra e valuta \textbf{GroundOne}, un System One specializzato in un'unica decisione: stabilire,
-per ogni frase di una risposta, se il documento recuperato la supporta, la contraddice o non la menziona. Ogni frase
+per ogni frase di una risposta RAG, se il documento recuperato la supporta, la contraddice o non la menziona. Ogni frase
 della risposta è seguita da un marker, e i verdetti di tutte le $K$ frasi si leggono dai logit di tre lettere di risposta
 in un unico forward pass, senza generare testo. Modelli Qwen2.5 da 0.5B e 3B parametri sono sottoposti a fine-tuning con
 LoRA sulle risposte di RAGTruth annotate manualmente, con una loss pesata per classe e ristretta alle tre lettere; una
@@ -35,14 +35,18 @@ Sul test set di RAGTruth GroundOne raggiunge una balanced accuracy a tre classi 
 con 3B, contro 0.37 e 0.44 dei modelli non addestrati; la sua AUROC (0.905 e 0.940) supera quella degli encoder (circa
 0.82), e il modello supera nettamente sia un System One generalista otto volte più grande sia un decision model
 generalista della stessa dimensione (0.657), che a sua volta è molto più forte sul test fuori dominio VitaminC. Su
-LLM-AggreFact il 3B è alla pari con MiniCheck-RoBERTa (74.8 contro 74.0, differenza non significativa), sopra il modello
-7B zero-shot pubblicato e sotto il System One chiuso Jev, misurato in modo indipendente (78.6). Per risposte di
-quattordici o più frasi GroundOne è circa due volte più veloce di un giudice sintetico e sei volte più veloce di uno
-verboso della stessa dimensione, con un output sempre valido; consuma inoltre meno energia (5.5 e 33 joule per risposta),
-sebbene con un fattore inferiore a quello osservato sul tempo, perché un prefill lungo assorbe più potenza del decoding.
+LLM-AggreFact il 3B è alla pari con MiniCheck-RoBERTa (74.8 contro 74.0), sopra il modello
+7B zero-shot pubblicato e sotto il System One chiuso Jev, misurato in modo indipendente (78.6). Quando la risposta
+contiene quattordici o più frasi ($K \geq 14$), GroundOne risulta circa due volte più veloce di un giudice sintetico e sei
+volte più veloce di uno verboso della stessa dimensione e, a differenza dei giudici, produce sempre un output valido.
+Consuma anche meno energia (5.5 joule per risposta con il 0.5B, 33 con il 3B), ma il risparmio è minore di quello sul
+tempo, perché un prefill lungo assorbe più potenza del decoding.
 Quando si chiede loro lo stesso output, i giudici generativi forniscono probabilità che distinguono a stento le decisioni
-corrette da quelle errate, mentre la calibrazione porta l'Expected Calibration Error di GroundOne sul test set a 0.019. A
-parità di pesi, restringere la decisione alle tre lettere è più accurato che prendere il token che il modello
-genererebbe, di 0.25 per il 0.5B e di 0.07 per il 3B. I limiti sono altrettanto chiari: il trasferimento a un dominio
-diverso è debole, le allucinazioni nascoste in frasi che per il resto ricalcano la fonte restano difficili da
-individuare, e la ricetta di addestramento non è del tutto robusta rispetto alla scelta del seed.
+corrette da quelle errate, mentre la calibrazione porta l'Expected Calibration Error di GroundOne sul test set a 0.019. Anche
+il modo di leggere la decisione conta: a parità di modello addestrato, confrontare soltanto le tre lettere ammesse è più
+accurato che lasciare al modello generare liberamente il proprio verdetto, con un guadagno di balanced accuracy di 0.25
+per il 0.5B e di 0.07 per il 3B. Restano alcuni aspetti da migliorare, che indicano direzioni naturali per il lavoro
+futuro: le prestazioni calano su domini lontani da quello di addestramento, come il fact checking di VitaminC; le
+allucinazioni più sottili, nascoste in frasi che per il resto ricalcano fedelmente la fonte, vengono individuate solo in
+parte; infine, l'addestramento non è ancora del tutto stabile al variare del seed, un aspetto che semplici modifiche
+all'ottimizzatore potrebbero attenuare.
