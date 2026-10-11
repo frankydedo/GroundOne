@@ -725,3 +725,29 @@ Findings that matter for the thesis (fixes in docs and code are in git):
   - **The point estimate never misses the target** (targets 0.95 / 0.97 / 0.98; risk 0 over 200 dev resamples for every run).
   - The LCB rule raises realised accuracy slightly (e.g. 0.5B, target 0.97: 0.981 → 0.985) but **costs 3–12 points of coverage** (0.734 → 0.656).
 - **Reading.** In domain, T1 is cleaner than dev, so the point estimate is already safe and the conservative rule only defers more. Its value is under distribution shift (new workloads, VitaminC), where calibration is known not to transfer. Report as a negative/neutral finding: the current served threshold (D27) needs no change for the RAGTruth domain; a deployment on a new domain should use the LCB rule with a small local labelled sample (Li et al. 2026).
+
+## Ch. 5 / Ch. 6: a general-purpose decision model of the same size (Liquid AI d1-3B, B3b; 2026-10-11)
+
+**Setup.** `groundone baselines frozen --system d1`; results in `results/d1-3b/{t1,t2,t3}`; queues `jobs/queue_night7.txt` (T3) and `queue_night7b.txt` (T1, T2).
+- d1-3B is Liquid AI's open decision model (3.1B, LFM2.5-VL-3B base, licence LFM 1.0). It uses the restricted letter readout with the state shared across questions.
+- Run zero-shot, in process (PyTorch MPS, bf16, revision 051bcc4) and offline (`HF_HUB_OFFLINE=1`).
+- Same state and questions as Rizzo-Flow: document + numbered answer, one three-way choice per sentence, at most 6 questions per call. On T2, documents are chunked exactly as for GroundOne, keeping the maximum over chunks.
+- **Engineering note.** PyTorch's MPS backend keeps a compiled graph for every input length, and that memory (≈ 0.2 GB per new shape) is not released by `empty_cache`. The first night queue therefore lost almost all T1 answers to out-of-memory errors. The run now uses worker processes restarted when MPS driver memory exceeds 11 GB: 0 skipped, results unaffected. No latency comparison is made (different runtime).
+
+**Results (bootstrap pairs on the same items):**
+
+| Test | d1-3B | GroundOne 0.5B | GroundOne 3B | Difference (GroundOne − d1) |
+| --- | --- | --- | --- | --- |
+| T1 three-way (17,284 sentences) | 0.657 | 0.769 | 0.832 | +0.112 [+0.092, +0.133]; +0.175 [+0.157, +0.195] |
+| T1 AUROC | 0.863 | 0.905 | 0.940 | +0.042; +0.077 (both significant) |
+| T1 three-way, K ≥ 14 | 0.527 | 0.723 | 0.839 | 3B: +0.312 [+0.230, +0.405] |
+| T3 VitaminC three-way / AUROC | **0.724 / 0.913** | 0.442 / 0.722 | 0.527 / 0.817 | 3B: −0.197 / −0.096 (d1 better) |
+| T2 macro / RAG subset (4,000-item random subsample) | 75.7 / 76.5 | 69.2 / – | 74.3 / 75.8 | 3B: −1.3 [−4.0, +1.0] n.s.; RAG −0.7 n.s.; 0.5B: −6.5 significant |
+
+- d1-3B T1 recall: supported 0.895, contradicted 0.582, not mentioned 0.493. By task: Data2txt 0.654, QA 0.583, Summary 0.516.
+- On T2, d1's RAGTruth column is 78.9 vs 87.3 for GroundOne 3B (in-domain), and d1 is clearly better on WiCE (84.6) and TofuEval-MediaS (84.0).
+- **Reading.**
+  - At equal size, the specialist wins clearly in its domain, and by more on long answers. The 0.5B GroundOne, six times smaller, also beats d1-3B on T1.
+  - The general decision model wins clearly out of domain (VitaminC) and is on par with the 3B on the broad grounding benchmark (LLM-AggreFact).
+  - Specialisation buys in-domain accuracy and long-answer robustness at the cost of transfer. This is the cleanest statement of RQ1, now with a same-size generalist instead of only untrained models and a 4B generalist.
+- **Caution.** The 21-answer smoke test gave d1 0.838 on T1; the full run gives 0.657. Small samples mislead.

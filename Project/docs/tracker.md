@@ -46,12 +46,13 @@ Update the status column and the to-do list as work progresses.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | GroundOne 0.5B | 0.769 | 0.815 | 0.905 | 70.1 | 74.4 | 0.442 | 0.722 | **0.41** | **0.019** |  |
 | GroundOne 0.5B, run 2 | 0.767 | 0.832 | 0.907 | 71.5 | 74.3 | 0.434 | 0.747 | – | 0.020 | second completed seed (777); a further run was stopped after collapsing (D26) |
-| GroundOne 3B | **0.832** | **0.874** | **0.940** | **74.8** | **76.9** | 0.527 | 0.817 | 2.57 | **0.019** |  |
+| GroundOne 3B | **0.832** | **0.874** | **0.940** | 74.8 | **76.9** | 0.527 | 0.817 | 2.57 | **0.019** |  |
 | Untrained 0.5B (design a) | 0.372 | 0.500 | 0.502 | – | – | 0.334 | 0.503 | 0.59 | – |  |
 | Untrained 3B (design a) | 0.437 | 0.630 | 0.726 | – | – | 0.531 | 0.821 | 3.83 | – | T1 on 600 answers |
 | MiniCheck-RoBERTa | – | 0.762 | 0.814 | 74.0 | 74.6 | – | **0.968** | – | – | binary only; T2 from the earlier run on the same test; T3 in its training lineage |
 | HHEM-2.1-open | – | 0.731 | 0.821 | – | – | – | 0.795 | – | – | binary only |
-| Rizzo-Flow 4B Q4 | 0.603 | 0.769 | 0.894 | 61.5 | 58.2 | **0.712** | 0.909 | – | – | T1 300 answers, T3 600 pairs; T2 earlier run on 1,100 items |
+| Rizzo-Flow 4B Q4 | 0.603 | 0.769 | 0.894 | 61.5 | 58.2 | 0.712 | 0.909 | – | – | T1 300 answers, T3 600 pairs; T2 earlier run on 1,100 items |
+| Liquid AI d1-3B (zero-shot) | 0.657 | 0.792 | 0.863 | **75.7** | 76.5 | **0.724** | 0.913 | – | – | general-purpose open decision model, GroundOne's size; PyTorch MPS; T2 on a 6,000-item subsample |
 | Word overlap (no model) | – | – | 0.737 | – | – | – | 0.698 | – | – | never reads the document as a whole |
 | Sentence only (n-grams) | 0.570 | – | – | – | – | 0.331 | – | – | – | ignores the document |
 | B2: fine-tuned 0.5B, generated token | 0.521 | – | – | – | – | – | – | – | – | same pass as GroundOne; 24.7% format failures |
@@ -155,3 +156,4 @@ Add one line per significant event (date, what happened, impact on the plan).
 - 2026-10-10 13:12: served threshold τ fitted on dev for all runs (queue_day6): 0.935 / 0.895 / 0.925; the served rule matches the evaluated raw decision within 0.01 on T1
 - 2026-10-10: general audit (docs, thesis, code): stale statements fixed in docs and code (bootstrap now drops items skipped by Rizzo-Flow on T2: macro 61.5; run-2 and B2 pairs added); thesis chapter updates listed in the chapter table
 - 2026-10-10: wiki lint + 22 + 12 sources ingested (incl. the Hugging Face decision-models tag); whole thesis revised chapter by chapter: Ch. 1, 2, 7, 8 written, Ch. 3–6 revised, summary with results, output-examples appendix, 5 new figures, 26 new bibliography entries; compiles cleanly (68 pages)
+- 2026-10-11 07:39: night-7 queues done. Liquid AI d1-3B (same-size general decision model, zero-shot) on T1/T3/T2-subsample: GroundOne wins in domain (T1 +0.11 / +0.18), on par on T2 (3B), loses on VitaminC (−0.20). First d1 queue lost T1 to an MPS memory issue (fixed with restartable workers). CPU experiments: response-level F1 (Decision Index protocol) 0.73–0.78; LCB threshold not needed in domain

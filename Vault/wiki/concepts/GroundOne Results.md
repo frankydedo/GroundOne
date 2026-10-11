@@ -16,6 +16,7 @@ Results of [[GroundOne]] on the frozen tests. Source of truth: `Project/docs/che
 | [[MiniCheck]]-RoBERTa | – | 0.814 | 74.0 / 74.6 | AUROC **0.968** (VitaminC is in its training lineage) |
 | [[HHEM]]-2.1-open | – | 0.821 | – | AUROC 0.795 |
 | [[Rizzo-Flow]] 4B Q4 (subsamples) | 0.603 (GroundOne 0.798 / 0.840 on the same answers) | 0.894 | 61.5 (1,093 items) | **0.712** / 0.909 (GroundOne 0.537 / 0.845 on the same 600 pairs) |
+| Liquid AI d1-3B (zero-shot general decision model, same size; added 2026-10-11) | 0.657 | 0.863 | 75.7 / 76.5 (4,000-item subsample; GroundOne 3B 74.3 there, n.s.) | **0.724 / 0.913** |
 | Word overlap (no model) | – | 0.737 | – | AUROC 0.698 |
 
 **Significance** ([[Statistical Significance and Bootstrap]], cluster bootstrap by source document, B = 2000):
@@ -58,3 +59,6 @@ The model would write the **spaced** letter (" A"), and the readout letters hold
 3. The restricted readout adds accuracy by itself (B2).
 4. Calibration is cheap and effective in domain. Judge it with AUROC and AURC, not with ECE alone.
 5. Limits: weak transfer outside RAG; on T2 the 3B is on par with MiniCheck, not above it; the copy-and-alter blind spot; the recipe can collapse on some seeds.
+
+## Same-size generalist (2026-10-11)
+Against [[LiquidAI 2026 - d1-3B model card|Liquid AI d1-3B]], GroundOne wins in domain (T1 three-way +0.11 for the 0.5B, +0.18 for the 3B; +0.31 at K ≥ 14), is on par on LLM-AggreFact (3B) and loses clearly on VitaminC (−0.20). Specialisation buys in-domain accuracy and long-answer robustness at the cost of transfer ([[Decision-Model Landscape (Hugging Face, 2026)]]).

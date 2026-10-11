@@ -1,0 +1,90 @@
+{
+  "all": {
+    "n": 3000,
+    "macro_recall": 0.7243333333333334,
+    "recall": {
+      "supported": 0.841,
+      "contradicted": 0.694,
+      "not_mentioned": 0.638
+    },
+    "predicted_share": {
+      "supported": 0.392,
+      "contradicted": 0.3207,
+      "not_mentioned": 0.2873
+    },
+    "binary": {
+      "n": 3000,
+      "pos_rate": 0.3333,
+      "bacc": 0.8360000000000001,
+      "auroc": 0.9133212500000001,
+      "ece15": 0.042243924512660166,
+      "brier": 0.11083186813845354,
+      "nll": 0.35719973270356953
+    },
+    "lenient_auroc": 0.870784,
+    "lenient_bacc": 0.76325
+  },
+  "by_task": {
+    "VitaminC": {
+      "n": 3000,
+      "macro_recall": 0.7243333333333334,
+      "recall": {
+        "supported": 0.841,
+        "contradicted": 0.694,
+        "not_mentioned": 0.638
+      },
+      "predicted_share": {
+        "supported": 0.392,
+        "contradicted": 0.3207,
+        "not_mentioned": 0.2873
+      },
+      "binary": {
+        "n": 3000,
+        "pos_rate": 0.3333,
+        "bacc": 0.8360000000000001,
+        "auroc": 0.9133212500000001,
+        "ece15": 0.042243924512660166,
+        "brier": 0.11083186813845354,
+        "nll": 0.35719973270356953
+      },
+      "lenient_auroc": 0.870784,
+      "lenient_bacc": 0.76325
+    }
+  },
+  "by_K_band": {
+    "1-4": {
+      "n": 3000,
+      "macro_recall": 0.7243333333333334,
+      "recall": {
+        "supported": 0.841,
+        "contradicted": 0.694,
+        "not_mentioned": 0.638
+      },
+      "predicted_share": {
+        "supported": 0.392,
+        "contradicted": 0.3207,
+        "not_mentioned": 0.2873
+      },
+      "binary": {
+        "n": 3000,
+        "pos_rate": 0.3333,
+        "bacc": 0.8360000000000001,
+        "auroc": 0.9133212500000001,
+        "ece15": 0.042243924512660166,
+        "brier": 0.11083186813845354,
+        "nll": 0.35719973270356953
+      },
+      "lenient_auroc": 0.870784,
+      "lenient_bacc": 0.76325
+    }
+  },
+  "baseline_word_overlap_auroc": 0.6982060000000001,
+  "skipped_records": 0,
+  "latency_per_answer_p50_s": 0.23040758300339803,
+  "system": "d1",
+  "model": "LiquidAI/d1-3B@051bcc464b01 (PyTorch MPS bf16)",
+  "test_file": "test_vitaminc",
+  "records": 3000,
+  "limit": 0,
+  "wall_minutes": 12.6
+}

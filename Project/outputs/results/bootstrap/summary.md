@@ -6,66 +6,76 @@
 
 | Test | Metric | A | B | A | B | A − B [95 % CI] | p | rows (groups) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| T1 RAGTruth | three_way | GroundOne 3B | GroundOne 0.5B | 0.832 | 0.769 | +0.063 [+0.052, +0.075] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth | three_way | GroundOne 3B | GroundOne 0.5B | 0.832 | 0.769 | +0.063 [+0.051, +0.076] | < 0.0005 | 17284 (447) |
 | T1 RAGTruth | auroc | GroundOne 3B | GroundOne 0.5B | 0.940 | 0.905 | +0.035 [+0.028, +0.042] | < 0.0005 | 17284 (447) |
-| T1 RAGTruth, K ≥ 14 | three_way | GroundOne 3B | GroundOne 0.5B | 0.839 | 0.723 | +0.116 [+0.046, +0.179] | 0.001 | 1637 (93) |
-| T1 RAGTruth | three_way | GroundOne 0.5B | GroundOne 0.5B, run 2 | 0.769 | 0.767 | +0.001 [-0.008, +0.011] | 0.761 | 17284 (447) |
-| T1 RAGTruth | auroc | GroundOne 0.5B | GroundOne 0.5B, run 2 | 0.905 | 0.907 | -0.002 [-0.008, +0.003] | 0.367 | 17284 (447) |
-| T1 RAGTruth, K ≥ 14 | three_way | GroundOne 0.5B | GroundOne 0.5B, run 2 | 0.723 | 0.746 | -0.023 [-0.069, +0.016] | 0.265 | 1637 (93) |
-| T2 LLM-AggreFact | macro_bacc | GroundOne 0.5B | GroundOne 0.5B, run 2 | 0.701 | 0.715 | -0.013 [-0.024, -0.003] | 0.014 | 29320 (8329) |
-| T3 VitaminC | three_way | GroundOne 0.5B | GroundOne 0.5B, run 2 | 0.442 | 0.434 | +0.009 [-0.001, +0.018] | 0.074 | 3000 (1257) |
-| T3 VitaminC | auroc | GroundOne 0.5B | GroundOne 0.5B, run 2 | 0.722 | 0.747 | -0.025 [-0.037, -0.012] | < 0.0005 | 3000 (1257) |
-| T1 RAGTruth | three_way | GroundOne 0.5B | B2 0.5B (generated token) | 0.769 | 0.521 | +0.248 [+0.228, +0.269] | < 0.0005 | 17284 (447) |
-| T1 RAGTruth | three_way | GroundOne 3B | B2 3B (generated token) | 0.832 | 0.761 | +0.071 [+0.059, +0.083] | < 0.0005 | 17284 (447) |
-| T1 RAGTruth, K ≥ 14 | three_way | GroundOne 0.5B | B2 0.5B (generated token) | 0.723 | 0.377 | +0.346 [+0.260, +0.422] | < 0.0005 | 1637 (93) |
+| T1 RAGTruth, K ≥ 14 | three_way | GroundOne 3B | GroundOne 0.5B | 0.839 | 0.723 | +0.116 [+0.053, +0.186] | < 0.0005 | 1637 (93) |
+| T1 RAGTruth | three_way | GroundOne 0.5B | GroundOne 0.5B, run 2 | 0.769 | 0.767 | +0.001 [-0.008, +0.012] | 0.797 | 17284 (447) |
+| T1 RAGTruth | auroc | GroundOne 0.5B | GroundOne 0.5B, run 2 | 0.905 | 0.907 | -0.002 [-0.008, +0.002] | 0.353 | 17284 (447) |
+| T1 RAGTruth, K ≥ 14 | three_way | GroundOne 0.5B | GroundOne 0.5B, run 2 | 0.723 | 0.746 | -0.023 [-0.068, +0.017] | 0.299 | 1637 (93) |
+| T2 LLM-AggreFact | macro_bacc | GroundOne 0.5B | GroundOne 0.5B, run 2 | 0.701 | 0.715 | -0.013 [-0.024, -0.002] | 0.019 | 29320 (8329) |
+| T3 VitaminC | three_way | GroundOne 0.5B | GroundOne 0.5B, run 2 | 0.442 | 0.434 | +0.009 [-0.001, +0.019] | 0.080 | 3000 (1257) |
+| T3 VitaminC | auroc | GroundOne 0.5B | GroundOne 0.5B, run 2 | 0.722 | 0.747 | -0.025 [-0.037, -0.013] | < 0.0005 | 3000 (1257) |
+| T1 RAGTruth | three_way | GroundOne 0.5B | B2 0.5B (generated token) | 0.769 | 0.521 | +0.248 [+0.228, +0.268] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth | three_way | GroundOne 3B | B2 3B (generated token) | 0.832 | 0.761 | +0.071 [+0.059, +0.082] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth, K ≥ 14 | three_way | GroundOne 0.5B | B2 0.5B (generated token) | 0.723 | 0.377 | +0.346 [+0.265, +0.428] | < 0.0005 | 1637 (93) |
 | T1 RAGTruth, K ≥ 14 | three_way | GroundOne 3B | B2 3B (generated token) | 0.839 | 0.773 | +0.066 [+0.027, +0.120] | < 0.0005 | 1637 (93) |
-| T1 RAGTruth | three_way | GroundOne 0.5B | Untrained 0.5B | 0.769 | 0.372 | +0.397 [+0.368, +0.426] | < 0.0005 | 17284 (447) |
-| T1 RAGTruth | three_way | GroundOne 3B | Untrained 3B | 0.818 | 0.437 | +0.381 [+0.328, +0.429] | < 0.0005 | 3869 (349) |
+| T1 RAGTruth | three_way | GroundOne 0.5B | Untrained 0.5B | 0.769 | 0.372 | +0.397 [+0.369, +0.423] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth | three_way | GroundOne 3B | Untrained 3B | 0.818 | 0.437 | +0.381 [+0.331, +0.431] | < 0.0005 | 3869 (349) |
 | T1 RAGTruth | auroc | GroundOne 0.5B | Word overlap | 0.905 | 0.737 | +0.167 [+0.150, +0.185] | < 0.0005 | 17284 (447) |
-| T1 RAGTruth | auroc | GroundOne 3B | Word overlap | 0.940 | 0.737 | +0.203 [+0.184, +0.221] | < 0.0005 | 17284 (447) |
-| T1 RAGTruth | auroc | GroundOne 0.5B | MiniCheck-RoBERTa | 0.905 | 0.814 | +0.091 [+0.073, +0.107] | < 0.0005 | 17284 (447) |
-| T1 RAGTruth | auroc | GroundOne 0.5B | HHEM | 0.905 | 0.821 | +0.083 [+0.067, +0.100] | < 0.0005 | 17284 (447) |
-| T1 RAGTruth | auroc | GroundOne 3B | MiniCheck-RoBERTa | 0.940 | 0.814 | +0.126 [+0.110, +0.141] | < 0.0005 | 17284 (447) |
-| T1 RAGTruth | auroc | GroundOne 3B | HHEM | 0.940 | 0.821 | +0.119 [+0.101, +0.135] | < 0.0005 | 17284 (447) |
-| T1 RAGTruth | bacc | GroundOne 0.5B | MiniCheck-RoBERTa | 0.815 | 0.762 | +0.054 [+0.038, +0.068] | < 0.0005 | 17284 (447) |
-| T1 RAGTruth | bacc | GroundOne 0.5B | HHEM | 0.815 | 0.731 | +0.084 [+0.067, +0.102] | < 0.0005 | 17284 (447) |
-| T1 RAGTruth | bacc | GroundOne 3B | MiniCheck-RoBERTa | 0.874 | 0.762 | +0.112 [+0.097, +0.126] | < 0.0005 | 17284 (447) |
-| T1 RAGTruth | bacc | GroundOne 3B | HHEM | 0.874 | 0.731 | +0.142 [+0.125, +0.159] | < 0.0005 | 17284 (447) |
-| T1 RAGTruth | three_way | GroundOne 0.5B | Rizzo-Flow 4B | 0.798 | 0.603 | +0.195 [+0.138, +0.253] | < 0.0005 | 1971 (225) |
-| T1 RAGTruth | three_way | GroundOne 3B | Rizzo-Flow 4B | 0.840 | 0.603 | +0.237 [+0.185, +0.287] | < 0.0005 | 1971 (225) |
-| T1 RAGTruth | auroc | GroundOne 0.5B | Rizzo-Flow 4B | 0.916 | 0.894 | +0.023 [-0.008, +0.052] | 0.148 | 1971 (225) |
-| T1 RAGTruth | auroc | GroundOne 3B | Rizzo-Flow 4B | 0.950 | 0.894 | +0.056 [+0.034, +0.079] | < 0.0005 | 1971 (225) |
-| T2 LLM-AggreFact | macro_bacc | GroundOne 3B | MiniCheck-RoBERTa | 0.748 | 0.740 | +0.008 [-0.005, +0.020] | 0.236 | 29320 (8329) |
-| T2 LLM-AggreFact | rag_bacc | GroundOne 3B | MiniCheck-RoBERTa | 0.769 | 0.746 | +0.024 [+0.014, +0.033] | < 0.0005 | 29320 (8329) |
-| T2 LLM-AggreFact | macro_bacc | GroundOne 0.5B | MiniCheck-RoBERTa | 0.701 | 0.740 | -0.039 [-0.052, -0.026] | < 0.0005 | 29320 (8329) |
-| T2 LLM-AggreFact | rag_bacc | GroundOne 0.5B | MiniCheck-RoBERTa | 0.744 | 0.746 | -0.002 [-0.012, +0.008] | 0.748 | 29320 (8329) |
-| T2 LLM-AggreFact | macro_bacc | GroundOne 3B | GroundOne 0.5B | 0.748 | 0.701 | +0.047 [+0.035, +0.059] | < 0.0005 | 29320 (8329) |
-| T2 LLM-AggreFact | macro_bacc | GroundOne 0.5B | Rizzo-Flow 4B | 0.677 | 0.615 | +0.062 [+0.001, +0.122] | 0.047 | 1093 (747) |
-| T2 LLM-AggreFact | macro_bacc | GroundOne 3B | Rizzo-Flow 4B | 0.734 | 0.615 | +0.120 [+0.074, +0.165] | < 0.0005 | 1093 (747) |
-| T3 VitaminC | three_way | GroundOne 3B | GroundOne 0.5B | 0.527 | 0.442 | +0.085 [+0.070, +0.101] | < 0.0005 | 3000 (1257) |
+| T1 RAGTruth | auroc | GroundOne 3B | Word overlap | 0.940 | 0.737 | +0.203 [+0.184, +0.220] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth | auroc | GroundOne 0.5B | MiniCheck-RoBERTa | 0.905 | 0.814 | +0.091 [+0.074, +0.108] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth | auroc | GroundOne 0.5B | HHEM | 0.905 | 0.821 | +0.083 [+0.067, +0.099] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth | auroc | GroundOne 3B | MiniCheck-RoBERTa | 0.940 | 0.814 | +0.126 [+0.109, +0.141] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth | auroc | GroundOne 3B | HHEM | 0.940 | 0.821 | +0.119 [+0.101, +0.136] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth | bacc | GroundOne 0.5B | MiniCheck-RoBERTa | 0.815 | 0.762 | +0.054 [+0.039, +0.068] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth | bacc | GroundOne 0.5B | HHEM | 0.815 | 0.731 | +0.084 [+0.066, +0.101] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth | bacc | GroundOne 3B | MiniCheck-RoBERTa | 0.874 | 0.762 | +0.112 [+0.097, +0.127] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth | bacc | GroundOne 3B | HHEM | 0.874 | 0.731 | +0.142 [+0.125, +0.160] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth | three_way | GroundOne 0.5B | Rizzo-Flow 4B | 0.798 | 0.603 | +0.195 [+0.140, +0.251] | < 0.0005 | 1971 (225) |
+| T1 RAGTruth | three_way | GroundOne 3B | Rizzo-Flow 4B | 0.840 | 0.603 | +0.237 [+0.184, +0.289] | < 0.0005 | 1971 (225) |
+| T1 RAGTruth | auroc | GroundOne 0.5B | Rizzo-Flow 4B | 0.916 | 0.894 | +0.023 [-0.005, +0.054] | 0.103 | 1971 (225) |
+| T1 RAGTruth | auroc | GroundOne 3B | Rizzo-Flow 4B | 0.950 | 0.894 | +0.056 [+0.034, +0.081] | < 0.0005 | 1971 (225) |
+| T1 RAGTruth | three_way | GroundOne 0.5B | d1-3B | 0.769 | 0.657 | +0.112 [+0.092, +0.133] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth | three_way | GroundOne 3B | d1-3B | 0.832 | 0.657 | +0.175 [+0.157, +0.195] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth | auroc | GroundOne 0.5B | d1-3B | 0.905 | 0.863 | +0.042 [+0.030, +0.055] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth | auroc | GroundOne 3B | d1-3B | 0.940 | 0.863 | +0.077 [+0.065, +0.088] | < 0.0005 | 17284 (447) |
+| T1 RAGTruth, K ≥ 14 | three_way | GroundOne 3B | d1-3B | 0.839 | 0.527 | +0.312 [+0.230, +0.405] | < 0.0005 | 1637 (93) |
+| T3 VitaminC | three_way | GroundOne 3B | d1-3B | 0.527 | 0.724 | -0.197 [-0.220, -0.174] | < 0.0005 | 3000 (1257) |
+| T3 VitaminC | auroc | GroundOne 3B | d1-3B | 0.817 | 0.913 | -0.096 [-0.115, -0.077] | < 0.0005 | 3000 (1257) |
+| T2 LLM-AggreFact | macro_bacc | GroundOne 3B | d1-3B | 0.743 | 0.757 | -0.013 [-0.040, +0.010] | 0.271 | 4000 (1808) |
+| T2 LLM-AggreFact | macro_bacc | GroundOne 0.5B | d1-3B | 0.692 | 0.757 | -0.065 [-0.092, -0.034] | < 0.0005 | 4000 (1808) |
+| T2 LLM-AggreFact | rag_bacc | GroundOne 3B | d1-3B | 0.758 | 0.765 | -0.007 [-0.033, +0.018] | 0.582 | 4000 (1808) |
+| T2 LLM-AggreFact | macro_bacc | GroundOne 3B | MiniCheck-RoBERTa | 0.748 | 0.740 | +0.008 [-0.005, +0.020] | 0.230 | 29320 (8329) |
+| T2 LLM-AggreFact | rag_bacc | GroundOne 3B | MiniCheck-RoBERTa | 0.769 | 0.746 | +0.024 [+0.014, +0.034] | < 0.0005 | 29320 (8329) |
+| T2 LLM-AggreFact | macro_bacc | GroundOne 0.5B | MiniCheck-RoBERTa | 0.701 | 0.740 | -0.039 [-0.053, -0.026] | < 0.0005 | 29320 (8329) |
+| T2 LLM-AggreFact | rag_bacc | GroundOne 0.5B | MiniCheck-RoBERTa | 0.744 | 0.746 | -0.002 [-0.012, +0.008] | 0.735 | 29320 (8329) |
+| T2 LLM-AggreFact | macro_bacc | GroundOne 3B | GroundOne 0.5B | 0.748 | 0.701 | +0.047 [+0.034, +0.059] | < 0.0005 | 29320 (8329) |
+| T2 LLM-AggreFact | macro_bacc | GroundOne 0.5B | Rizzo-Flow 4B | 0.677 | 0.615 | +0.062 [+0.000, +0.122] | 0.049 | 1093 (747) |
+| T2 LLM-AggreFact | macro_bacc | GroundOne 3B | Rizzo-Flow 4B | 0.734 | 0.615 | +0.120 [+0.076, +0.164] | < 0.0005 | 1093 (747) |
+| T3 VitaminC | three_way | GroundOne 3B | GroundOne 0.5B | 0.527 | 0.442 | +0.085 [+0.069, +0.101] | < 0.0005 | 3000 (1257) |
 | T3 VitaminC | auroc | GroundOne 3B | GroundOne 0.5B | 0.817 | 0.722 | +0.095 [+0.076, +0.114] | < 0.0005 | 3000 (1257) |
-| T3 VitaminC | three_way | Rizzo-Flow 4B | GroundOne 3B | 0.712 | 0.537 | +0.175 [+0.130, +0.217] | < 0.0005 | 600 (402) |
-| T3 VitaminC | auroc | Rizzo-Flow 4B | GroundOne 3B | 0.909 | 0.845 | +0.064 [+0.033, +0.094] | < 0.0005 | 600 (402) |
-| T3 VitaminC | auroc | MiniCheck-RoBERTa | GroundOne 3B | 0.968 | 0.817 | +0.151 [+0.129, +0.171] | < 0.0005 | 3000 (1257) |
-| T3 VitaminC | auroc | GroundOne 3B | Word overlap | 0.817 | 0.698 | +0.119 [+0.100, +0.137] | < 0.0005 | 3000 (1257) |
-| Latency subset (200 T1 answers) | three_way | GroundOne 0.5B | Terse judge 0.5B | 0.835 | 0.233 | +0.602 [+0.526, +0.669] | < 0.0005 | 1747 (162) |
-| Latency subset (200 T1 answers) | three_way | GroundOne 0.5B | Verbose judge 0.5B | 0.835 | 0.017 | +0.818 [+0.760, +0.865] | < 0.0005 | 1747 (162) |
-| Latency subset (200 T1 answers) | three_way | GroundOne 0.5B | Equal-output, logits 0.5B | 0.835 | 0.234 | +0.601 [+0.525, +0.660] | < 0.0005 | 1747 (162) |
-| Latency subset (200 T1 answers) | three_way | GroundOne 0.5B | Equal-output, verbalised 0.5B | 0.835 | 0.234 | +0.601 [+0.528, +0.660] | < 0.0005 | 1747 (162) |
-| Latency subset (200 T1 answers) | three_way | GroundOne 3B | Terse judge 3B | 0.900 | 0.390 | +0.510 [+0.432, +0.573] | < 0.0005 | 1747 (162) |
-| Latency subset (200 T1 answers) | three_way | GroundOne 3B | Verbose judge 3B | 0.900 | 0.402 | +0.497 [+0.419, +0.564] | < 0.0005 | 1747 (162) |
-| Latency subset (200 T1 answers) | three_way | GroundOne 3B | Equal-output, logits 3B | 0.900 | 0.390 | +0.509 [+0.437, +0.575] | < 0.0005 | 1747 (162) |
-| Latency subset (200 T1 answers) | three_way | GroundOne 3B | Equal-output, verbalised 3B | 0.900 | 0.410 | +0.490 [+0.404, +0.571] | < 0.0005 | 1747 (162) |
+| T3 VitaminC | three_way | Rizzo-Flow 4B | GroundOne 3B | 0.712 | 0.537 | +0.175 [+0.131, +0.218] | < 0.0005 | 600 (402) |
+| T3 VitaminC | auroc | Rizzo-Flow 4B | GroundOne 3B | 0.909 | 0.845 | +0.064 [+0.032, +0.097] | < 0.0005 | 600 (402) |
+| T3 VitaminC | auroc | MiniCheck-RoBERTa | GroundOne 3B | 0.968 | 0.817 | +0.151 [+0.130, +0.171] | < 0.0005 | 3000 (1257) |
+| T3 VitaminC | auroc | GroundOne 3B | Word overlap | 0.817 | 0.698 | +0.119 [+0.099, +0.138] | < 0.0005 | 3000 (1257) |
+| Latency subset (200 T1 answers) | three_way | GroundOne 0.5B | Terse judge 0.5B | 0.835 | 0.233 | +0.602 [+0.524, +0.667] | < 0.0005 | 1747 (162) |
+| Latency subset (200 T1 answers) | three_way | GroundOne 0.5B | Verbose judge 0.5B | 0.835 | 0.017 | +0.818 [+0.759, +0.866] | < 0.0005 | 1747 (162) |
+| Latency subset (200 T1 answers) | three_way | GroundOne 0.5B | Equal-output, logits 0.5B | 0.835 | 0.234 | +0.601 [+0.519, +0.662] | < 0.0005 | 1747 (162) |
+| Latency subset (200 T1 answers) | three_way | GroundOne 0.5B | Equal-output, verbalised 0.5B | 0.835 | 0.234 | +0.601 [+0.525, +0.659] | < 0.0005 | 1747 (162) |
+| Latency subset (200 T1 answers) | three_way | GroundOne 3B | Terse judge 3B | 0.900 | 0.390 | +0.510 [+0.430, +0.569] | < 0.0005 | 1747 (162) |
+| Latency subset (200 T1 answers) | three_way | GroundOne 3B | Verbose judge 3B | 0.900 | 0.402 | +0.497 [+0.412, +0.566] | < 0.0005 | 1747 (162) |
+| Latency subset (200 T1 answers) | three_way | GroundOne 3B | Equal-output, logits 3B | 0.900 | 0.390 | +0.509 [+0.426, +0.574] | < 0.0005 | 1747 (162) |
+| Latency subset (200 T1 answers) | three_way | GroundOne 3B | Equal-output, verbalised 3B | 0.900 | 0.410 | +0.490 [+0.407, +0.565] | < 0.0005 | 1747 (162) |
 
 ## Speed-up at K ≥ 14 (median seconds of B / median seconds of A, paired answers)
 
 | A | B | Speed-up [95 % CI] | answers |
 | --- | --- | --- | --- |
-| GroundOne 0.5B | Terse judge 0.5B | 1.95× [1.82, 2.13] | 50 |
-| GroundOne 0.5B | Verbose judge 0.5B | 6.16× [5.74, 6.68] | 50 |
+| GroundOne 0.5B | Terse judge 0.5B | 1.95× [1.82, 2.12] | 50 |
+| GroundOne 0.5B | Verbose judge 0.5B | 6.16× [5.72, 6.66] | 50 |
 | GroundOne 0.5B | Equal-output, logits 0.5B | 1.98× [1.86, 2.15] | 50 |
-| GroundOne 0.5B | Equal-output, verbalised 0.5B | 6.05× [5.65, 6.56] | 50 |
-| GroundOne 3B | Terse judge 3B | 1.73× [1.65, 1.83] | 50 |
+| GroundOne 0.5B | Equal-output, verbalised 0.5B | 6.05× [5.64, 6.57] | 50 |
+| GroundOne 3B | Terse judge 3B | 1.73× [1.65, 1.82] | 50 |
 | GroundOne 3B | Verbose judge 3B | 6.18× [5.88, 6.63] | 50 |
 | GroundOne 3B | Equal-output, logits 3B | 1.71× [1.64, 1.81] | 50 |
 | GroundOne 3B | Equal-output, verbalised 3B | 6.62× [6.23, 7.18] | 50 |
@@ -92,54 +102,62 @@
 | T1 RAGTruth | Rizzo-Flow 4B | three_way | 0.603 [0.553, 0.649] | 1971 (225) |
 | T1 RAGTruth | Rizzo-Flow 4B | auroc | 0.894 [0.864, 0.920] | 1971 (225) |
 | T1 RAGTruth | Rizzo-Flow 4B | bacc | 0.769 [0.732, 0.803] | 1971 (225) |
-| T1 RAGTruth | MiniCheck-RoBERTa | auroc | 0.814 [0.797, 0.830] | 17284 (447) |
-| T1 RAGTruth | MiniCheck-RoBERTa | bacc | 0.762 [0.746, 0.777] | 17284 (447) |
-| T1 RAGTruth | HHEM | auroc | 0.821 [0.806, 0.838] | 17284 (447) |
-| T1 RAGTruth | HHEM | bacc | 0.731 [0.715, 0.749] | 17284 (447) |
-| T1 RAGTruth | B2 0.5B (generated token) | three_way | 0.521 [0.496, 0.546] | 17284 (447) |
-| T1 RAGTruth | B2 3B (generated token) | three_way | 0.761 [0.738, 0.782] | 17284 (447) |
+| T1 RAGTruth | d1-3B | three_way | 0.657 [0.635, 0.677] | 17284 (447) |
+| T1 RAGTruth | d1-3B | auroc | 0.863 [0.843, 0.878] | 17284 (447) |
+| T1 RAGTruth | d1-3B | bacc | 0.792 [0.775, 0.807] | 17284 (447) |
+| T1 RAGTruth | MiniCheck-RoBERTa | auroc | 0.814 [0.796, 0.831] | 17284 (447) |
+| T1 RAGTruth | MiniCheck-RoBERTa | bacc | 0.762 [0.745, 0.778] | 17284 (447) |
+| T1 RAGTruth | HHEM | auroc | 0.821 [0.805, 0.836] | 17284 (447) |
+| T1 RAGTruth | HHEM | bacc | 0.731 [0.715, 0.748] | 17284 (447) |
+| T1 RAGTruth | B2 0.5B (generated token) | three_way | 0.521 [0.496, 0.545] | 17284 (447) |
+| T1 RAGTruth | B2 3B (generated token) | three_way | 0.761 [0.740, 0.782] | 17284 (447) |
 | T1 RAGTruth | Word overlap | auroc | 0.737 [0.719, 0.755] | 17284 (447) |
-| T1 RAGTruth | Word overlap | bacc | 0.664 [0.647, 0.680] | 17284 (447) |
-| T1 RAGTruth, K ≥ 14 | GroundOne 0.5B | three_way | 0.723 [0.644, 0.812] | 1637 (93) |
-| T1 RAGTruth, K ≥ 14 | GroundOne 0.5B, run 2 | three_way | 0.746 [0.662, 0.834] | 1637 (93) |
-| T1 RAGTruth, K ≥ 14 | GroundOne 3B | three_way | 0.839 [0.742, 0.929] | 1637 (93) |
-| T1 RAGTruth, K ≥ 14 | Untrained 0.5B | three_way | 0.366 [0.279, 0.443] | 1637 (93) |
-| T1 RAGTruth, K ≥ 14 | Untrained 3B | three_way | 0.494 [0.283, 0.674] | 414 (26) |
-| T1 RAGTruth, K ≥ 14 | Rizzo-Flow 4B | three_way | 0.592 [0.460, 0.812] | 247 (15) |
-| T1 RAGTruth, K ≥ 14 | B2 0.5B (generated token) | three_way | 0.377 [0.331, 0.452] | 1637 (93) |
-| T1 RAGTruth, K ≥ 14 | B2 3B (generated token) | three_way | 0.773 [0.674, 0.871] | 1637 (93) |
-| T3 VitaminC | GroundOne 0.5B | three_way | 0.442 [0.427, 0.458] | 3000 (1257) |
-| T3 VitaminC | GroundOne 0.5B | auroc | 0.722 [0.699, 0.747] | 3000 (1257) |
-| T3 VitaminC | GroundOne 0.5B, run 2 | three_way | 0.434 [0.420, 0.448] | 3000 (1257) |
-| T3 VitaminC | GroundOne 0.5B, run 2 | auroc | 0.747 [0.725, 0.772] | 3000 (1257) |
-| T3 VitaminC | GroundOne 3B | three_way | 0.527 [0.507, 0.548] | 3000 (1257) |
-| T3 VitaminC | GroundOne 3B | auroc | 0.817 [0.797, 0.836] | 3000 (1257) |
+| T1 RAGTruth | Word overlap | bacc | 0.664 [0.647, 0.681] | 17284 (447) |
+| T1 RAGTruth, K ≥ 14 | GroundOne 0.5B | three_way | 0.723 [0.640, 0.815] | 1637 (93) |
+| T1 RAGTruth, K ≥ 14 | GroundOne 0.5B, run 2 | three_way | 0.746 [0.661, 0.830] | 1637 (93) |
+| T1 RAGTruth, K ≥ 14 | GroundOne 3B | three_way | 0.839 [0.743, 0.926] | 1637 (93) |
+| T1 RAGTruth, K ≥ 14 | Untrained 0.5B | three_way | 0.366 [0.278, 0.441] | 1637 (93) |
+| T1 RAGTruth, K ≥ 14 | Untrained 3B | three_way | 0.494 [0.288, 0.668] | 414 (26) |
+| T1 RAGTruth, K ≥ 14 | Rizzo-Flow 4B | three_way | 0.592 [0.457, 0.817] | 247 (15) |
+| T1 RAGTruth, K ≥ 14 | d1-3B | three_way | 0.527 [0.458, 0.587] | 1637 (93) |
+| T1 RAGTruth, K ≥ 14 | B2 0.5B (generated token) | three_way | 0.377 [0.330, 0.453] | 1637 (93) |
+| T1 RAGTruth, K ≥ 14 | B2 3B (generated token) | three_way | 0.773 [0.669, 0.865] | 1637 (93) |
+| T3 VitaminC | GroundOne 0.5B | three_way | 0.442 [0.427, 0.457] | 3000 (1257) |
+| T3 VitaminC | GroundOne 0.5B | auroc | 0.722 [0.699, 0.749] | 3000 (1257) |
+| T3 VitaminC | GroundOne 0.5B, run 2 | three_way | 0.434 [0.420, 0.449] | 3000 (1257) |
+| T3 VitaminC | GroundOne 0.5B, run 2 | auroc | 0.747 [0.725, 0.770] | 3000 (1257) |
+| T3 VitaminC | GroundOne 3B | three_way | 0.527 [0.506, 0.548] | 3000 (1257) |
+| T3 VitaminC | GroundOne 3B | auroc | 0.817 [0.798, 0.837] | 3000 (1257) |
 | T3 VitaminC | Untrained 0.5B | three_way | 0.334 [0.332, 0.337] | 3000 (1257) |
-| T3 VitaminC | Untrained 0.5B | auroc | 0.503 [0.480, 0.527] | 3000 (1257) |
-| T3 VitaminC | Untrained 3B | three_way | 0.531 [0.511, 0.554] | 3000 (1257) |
-| T3 VitaminC | Untrained 3B | auroc | 0.821 [0.804, 0.840] | 3000 (1257) |
-| T3 VitaminC | Rizzo-Flow 4B | three_way | 0.712 [0.677, 0.751] | 600 (402) |
-| T3 VitaminC | Rizzo-Flow 4B | auroc | 0.909 [0.885, 0.932] | 600 (402) |
+| T3 VitaminC | Untrained 0.5B | auroc | 0.503 [0.480, 0.526] | 3000 (1257) |
+| T3 VitaminC | Untrained 3B | three_way | 0.531 [0.511, 0.553] | 3000 (1257) |
+| T3 VitaminC | Untrained 3B | auroc | 0.821 [0.804, 0.839] | 3000 (1257) |
+| T3 VitaminC | Rizzo-Flow 4B | three_way | 0.712 [0.676, 0.749] | 600 (402) |
+| T3 VitaminC | Rizzo-Flow 4B | auroc | 0.909 [0.885, 0.931] | 600 (402) |
+| T3 VitaminC | d1-3B | three_way | 0.724 [0.706, 0.741] | 3000 (1257) |
+| T3 VitaminC | d1-3B | auroc | 0.913 [0.903, 0.923] | 3000 (1257) |
 | T3 VitaminC | MiniCheck-RoBERTa | auroc | 0.968 [0.960, 0.974] | 3000 (1257) |
-| T3 VitaminC | HHEM | auroc | 0.795 [0.776, 0.815] | 3000 (1257) |
-| T3 VitaminC | Word overlap | auroc | 0.698 [0.674, 0.722] | 3000 (1257) |
-| T2 LLM-AggreFact | GroundOne 0.5B | macro_bacc | 0.701 [0.686, 0.713] | 29320 (8329) |
+| T3 VitaminC | HHEM | auroc | 0.795 [0.775, 0.816] | 3000 (1257) |
+| T3 VitaminC | Word overlap | auroc | 0.698 [0.674, 0.724] | 3000 (1257) |
+| T2 LLM-AggreFact | GroundOne 0.5B | macro_bacc | 0.701 [0.687, 0.713] | 29320 (8329) |
 | T2 LLM-AggreFact | GroundOne 0.5B | rag_bacc | 0.744 [0.733, 0.755] | 29320 (8329) |
-| T2 LLM-AggreFact | GroundOne 0.5B, run 2 | macro_bacc | 0.715 [0.699, 0.727] | 29320 (8329) |
+| T2 LLM-AggreFact | GroundOne 0.5B, run 2 | macro_bacc | 0.715 [0.699, 0.728] | 29320 (8329) |
 | T2 LLM-AggreFact | GroundOne 0.5B, run 2 | rag_bacc | 0.743 [0.731, 0.755] | 29320 (8329) |
-| T2 LLM-AggreFact | GroundOne 3B | macro_bacc | 0.748 [0.730, 0.762] | 29320 (8329) |
+| T2 LLM-AggreFact | GroundOne 3B | macro_bacc | 0.748 [0.731, 0.762] | 29320 (8329) |
 | T2 LLM-AggreFact | GroundOne 3B | rag_bacc | 0.769 [0.759, 0.780] | 29320 (8329) |
 | T2 LLM-AggreFact | MiniCheck-RoBERTa | macro_bacc | 0.740 [0.725, 0.753] | 29320 (8329) |
 | T2 LLM-AggreFact | MiniCheck-RoBERTa | rag_bacc | 0.746 [0.735, 0.756] | 29320 (8329) |
-| T2 LLM-AggreFact | Rizzo-Flow 4B | macro_bacc | 0.615 [0.572, 0.664] | 1093 (747) |
-| T2 LLM-AggreFact | Rizzo-Flow 4B | rag_bacc | 0.582 [0.535, 0.626] | 1093 (747) |
-| Latency subset (200 T1 answers) | GroundOne 0.5B | three_way | 0.835 [0.776, 0.880] | 1747 (162) |
-| Latency subset (200 T1 answers) | Terse judge 0.5B | three_way | 0.233 [0.196, 0.274] | 1747 (162) |
+| T2 LLM-AggreFact | Rizzo-Flow 4B | macro_bacc | 0.615 [0.573, 0.664] | 1093 (747) |
+| T2 LLM-AggreFact | Rizzo-Flow 4B | rag_bacc | 0.582 [0.537, 0.626] | 1093 (747) |
+| T2 LLM-AggreFact | d1-3B | macro_bacc | 0.757 [0.728, 0.781] | 4000 (1808) |
+| T2 LLM-AggreFact | d1-3B | rag_bacc | 0.765 [0.737, 0.790] | 4000 (1808) |
+| Latency subset (200 T1 answers) | GroundOne 0.5B | three_way | 0.835 [0.775, 0.881] | 1747 (162) |
+| Latency subset (200 T1 answers) | Terse judge 0.5B | three_way | 0.233 [0.196, 0.279] | 1747 (162) |
 | Latency subset (200 T1 answers) | Verbose judge 0.5B | three_way | 0.017 [0.004, 0.040] | 1747 (162) |
-| Latency subset (200 T1 answers) | Equal-output, logits 0.5B | three_way | 0.234 [0.196, 0.281] | 1747 (162) |
-| Latency subset (200 T1 answers) | Equal-output, verbalised 0.5B | three_way | 0.234 [0.199, 0.277] | 1747 (162) |
-| Latency subset (200 T1 answers) | GroundOne 3B | three_way | 0.900 [0.850, 0.934] | 1747 (162) |
-| Latency subset (200 T1 answers) | Terse judge 3B | three_way | 0.390 [0.337, 0.456] | 1747 (162) |
-| Latency subset (200 T1 answers) | Verbose judge 3B | three_way | 0.402 [0.346, 0.473] | 1747 (162) |
-| Latency subset (200 T1 answers) | Equal-output, logits 3B | three_way | 0.390 [0.333, 0.459] | 1747 (162) |
-| Latency subset (200 T1 answers) | Equal-output, verbalised 3B | three_way | 0.410 [0.336, 0.492] | 1747 (162) |
+| Latency subset (200 T1 answers) | Equal-output, logits 0.5B | three_way | 0.234 [0.196, 0.278] | 1747 (162) |
+| Latency subset (200 T1 answers) | Equal-output, verbalised 0.5B | three_way | 0.234 [0.198, 0.279] | 1747 (162) |
+| Latency subset (200 T1 answers) | GroundOne 3B | three_way | 0.900 [0.854, 0.935] | 1747 (162) |
+| Latency subset (200 T1 answers) | Terse judge 3B | three_way | 0.390 [0.335, 0.460] | 1747 (162) |
+| Latency subset (200 T1 answers) | Verbose judge 3B | three_way | 0.402 [0.344, 0.470] | 1747 (162) |
+| Latency subset (200 T1 answers) | Equal-output, logits 3B | three_way | 0.390 [0.336, 0.459] | 1747 (162) |
+| Latency subset (200 T1 answers) | Equal-output, verbalised 3B | three_way | 0.410 [0.335, 0.488] | 1747 (162) |

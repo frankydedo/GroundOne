@@ -1,0 +1,216 @@
+{
+  "all": {
+    "n": 17284,
+    "macro_recall": 0.6566729049978856,
+    "recall": {
+      "supported": 0.8946332168942521,
+      "contradicted": 0.5821917808219178,
+      "not_mentioned": 0.4931937172774869
+    },
+    "predicted_share": {
+      "supported": 0.8448,
+      "contradicted": 0.0698,
+      "not_mentioned": 0.0854
+    },
+    "binary": {
+      "n": 17284,
+      "pos_rate": 0.911,
+      "bacc": 0.7924165617930834,
+      "auroc": 0.8627208819244163,
+      "ece15": 0.1759021567653685,
+      "brier": 0.11303907382688122,
+      "nll": 0.380426539930227
+    },
+    "lenient_auroc": 0.874507833647773,
+    "lenient_bacc": 0.75585247313592
+  },
+  "by_task": {
+    "Data2txt": {
+      "n": 7870,
+      "macro_recall": 0.6544690390870647,
+      "recall": {
+        "supported": 0.8181424862993942,
+        "contradicted": 0.7037861915367484,
+        "not_mentioned": 0.4414784394250513
+      },
+      "predicted_share": {
+        "supported": 0.7516,
+        "contradicted": 0.1295,
+        "not_mentioned": 0.1189
+      },
+      "binary": {
+        "n": 7870,
+        "pos_rate": 0.8811,
+        "bacc": 0.7796313347582456,
+        "auroc": 0.8508177837929785,
+        "ece15": 0.23668072471051915,
+        "brier": 0.16559075933276915,
+        "nll": 0.5273452006177238
+      },
+      "lenient_auroc": 0.8860114962985016,
+      "lenient_bacc": 0.7989801409291455
+    },
+    "QA": {
+      "n": 4876,
+      "macro_recall": 0.5825698872175634,
+      "recall": {
+        "supported": 0.9328028293545535,
+        "contradicted": 0.2,
+        "not_mentioned": 0.6149068322981367
+      },
+      "predicted_share": {
+        "supported": 0.8911,
+        "contradicted": 0.0248,
+        "not_mentioned": 0.0841
+      },
+      "binary": {
+        "n": 4876,
+        "pos_rate": 0.9278,
+        "bacc": 0.8141879672052086,
+        "auroc": 0.897731982457198,
+        "ece15": 0.16331124051537785,
+        "brier": 0.08668367443740994,
+        "nll": 0.3097294067821921
+      },
+      "lenient_auroc": 0.7811769156692805,
+      "lenient_bacc": 0.5924680148576146
+    },
+    "Summary": {
+      "n": 4538,
+      "macro_recall": 0.515587363364811,
+      "recall": {
+        "supported": 0.9780732446932587,
+        "contradicted": 0.17142857142857143,
+        "not_mentioned": 0.3972602739726027
+      },
+      "predicted_share": {
+        "supported": 0.9566,
+        "contradicted": 0.0148,
+        "not_mentioned": 0.0286
+      },
+      "binary": {
+        "n": 4538,
+        "pos_rate": 0.9447,
+        "bacc": 0.7227153898983028,
+        "auroc": 0.8476641602472776,
+        "ece15": 0.08402599499952873,
+        "brier": 0.050220026337177294,
+        "nll": 0.2015965182509009
+      },
+      "lenient_auroc": 0.8215010795655956,
+      "lenient_bacc": 0.5584082584082584
+    }
+  },
+  "by_K_band": {
+    "1-4": {
+      "n": 2434,
+      "macro_recall": 0.583388380227713,
+      "recall": {
+        "supported": 0.961369622475856,
+        "contradicted": 0.27450980392156865,
+        "not_mentioned": 0.5142857142857142
+      },
+      "predicted_share": {
+        "supported": 0.9293,
+        "contradicted": 0.0275,
+        "not_mentioned": 0.0431
+      },
+      "binary": {
+        "n": 2434,
+        "pos_rate": 0.9359,
+        "bacc": 0.7774898133765561,
+        "auroc": 0.8762803628914253,
+        "ece15": 0.11673693645852656,
+        "brier": 0.063764457120634,
+        "nll": 0.2407212948522782
+      },
+      "lenient_auroc": 0.8216286934412876,
+      "lenient_bacc": 0.600919091933878
+    },
+    "5-8": {
+      "n": 8012,
+      "macro_recall": 0.665018360507259,
+      "recall": {
+        "supported": 0.8766197959746347,
+        "contradicted": 0.6494845360824743,
+        "not_mentioned": 0.4689507494646681
+      },
+      "predicted_share": {
+        "supported": 0.8245,
+        "contradicted": 0.0804,
+        "not_mentioned": 0.0951
+      },
+      "binary": {
+        "n": 8012,
+        "pos_rate": 0.9054,
+        "bacc": 0.78794158149848,
+        "auroc": 0.8640156136219631,
+        "ece15": 0.18441854557230475,
+        "brier": 0.12345291887086432,
+        "nll": 0.40817840096893426
+      },
+      "lenient_auroc": 0.8860507181066855,
+      "lenient_bacc": 0.7903428459269605
+    },
+    "9-13": {
+      "n": 5201,
+      "macro_recall": 0.6689055924490014,
+      "recall": {
+        "supported": 0.8722635494155154,
+        "contradicted": 0.6090909090909091,
+        "not_mentioned": 0.5253623188405797
+      },
+      "predicted_share": {
+        "supported": 0.817,
+        "contradicted": 0.0865,
+        "not_mentioned": 0.0965
+      },
+      "binary": {
+        "n": 5201,
+        "pos_rate": 0.9046,
+        "bacc": 0.7934939666106751,
+        "auroc": 0.8539165609680848,
+        "ece15": 0.1986859480491111,
+        "brier": 0.13010228530658044,
+        "nll": 0.42904089780102145
+      },
+      "lenient_auroc": 0.8830556113230275,
+      "lenient_bacc": 0.7624368053147415
+    },
+    ">=14": {
+      "n": 1637,
+      "macro_recall": 0.5273186637189216,
+      "recall": {
+        "supported": 0.9502652519893899,
+        "contradicted": 0.13636363636363635,
+        "not_mentioned": 0.4953271028037383
+      },
+      "predicted_share": {
+        "supported": 0.9065,
+        "contradicted": 0.0281,
+        "not_mentioned": 0.0654
+      },
+      "binary": {
+        "n": 1637,
+        "pos_rate": 0.9212,
+        "bacc": 0.8010687187712047,
+        "auroc": 0.8732393642177123,
+        "ece15": 0.14980340333771686,
+        "brier": 0.08112271931539528,
+        "nll": 0.2978678231260745
+      },
+      "lenient_auroc": 0.7157613284548269,
+      "lenient_bacc": 0.5377146073740501
+    }
+  },
+  "baseline_word_overlap_auroc": 0.737294696935463,
+  "skipped_records": 0,
+  "latency_per_answer_p50_s": 2.1857348330086097,
+  "worker_runs": 155,
+  "system": "d1",
+  "model": "LiquidAI/d1-3B@051bcc464b01 (PyTorch MPS bf16)",
+  "test_file": "test_ragtruth",
+  "records": 2647,
+  "limit": 0,
+  "wall_minutes": 156.92
+}
