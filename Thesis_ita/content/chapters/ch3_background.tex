@@ -48,7 +48,8 @@ molto al di sotto di Jev~\cite{yong2026decidebench}; infine, è stato mostrato c
 l'etichetta di un'opzione anziché la sua definizione quando le due sono in conflitto~\cite{azizi2026labels}. Il 9
 ottobre 2026 l'hub di Hugging Face ha introdotto ufficialmente un tag dedicato a questi \emph{decision
 model}~\cite{hf2026decisionmodels}, che il giorno successivo raccoglieva già circa 1500 modelli pubblicati da circa 600
-autori, di qualità molto variabile.
+autori, di qualità molto variabile. Nel seguito i due termini sono usati come sinonimi: \emph{System One} è il nome
+introdotto da TypeSafe con Jev, \emph{decision model} quello adottato poi dall'ecosistema.
 
 A poche settimane dal rilascio di Jev, organizzazioni affermate hanno pubblicato i propri decision model aperti. Clef di
 Cloudflare aggiunge a un decoder una head decisionale dedicata e risponde a tutte le domande in un solo passaggio sullo
@@ -73,7 +74,7 @@ sono spesso in disaccordo~\cite{wang2024myanswerc}, e il readout privilegia part
 bias che si può stimare e rimuovere~\cite{zheng2024mcq}. Entrambi i risultati riguardano modelli zero-shot e suggeriscono
 che un readout sulle lettere usato come decisione vada addestrato, calibrato o entrambe le cose. Nessun System One aperto
 è stato specializzato nella verifica della groundedness e confrontato, in condizioni controllate e sullo stesso hardware,
-con giudici generativi, verificatori specializzati e un decision model generalista della stessa dimensione.
+con giudici generativi, verificatori specializzati e System One generalisti, uno dei quali della stessa dimensione.
 
 \section{Retrieval-augmented generation e allucinazioni}
 \label{sec:bg-rag}

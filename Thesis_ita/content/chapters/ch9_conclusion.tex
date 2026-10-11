@@ -11,10 +11,10 @@ in un solo forward pass, fornisce una risposta positiva, sebbene con alcune rise
 
 La specializzazione funziona là dove era mirata. Sul test set di RAGTruth GroundOne raggiunge una balanced accuracy a tre
 classi di 0.769 con 0.5B parametri e di 0.832 con 3B, molto al di sopra degli stessi modelli non addestrati, superiore
-agli encoder specializzati nell'ordinare le frasi supportate e nettamente superiore a un System One generalista otto
-volte più grande. Su LLM-AggreFact il 3B è alla pari con il miglior encoder di piccole dimensioni, mentre su VitaminC il
-guadagno scompare: uno specialista non è uno strumento generale di verifica dei fatti. Un decision model generalista della
-stessa dimensione, addestrato a decidere su un'ampia miscela di task, conferma il compromesso: GroundOne lo supera
+agli encoder specializzati nell'ordinare le frasi supportate e nettamente superiore a Rizzo-Flow, un System One
+generalista otto volte più grande. Su LLM-AggreFact il 3B è alla pari con il miglior encoder di piccole dimensioni, mentre su VitaminC il
+guadagno scompare: uno specialista non è uno strumento generale di verifica dei fatti. d1-3B, un System One generalista della
+stessa dimensione addestrato a decidere su un'ampia miscela di task, conferma il compromesso: GroundOne lo supera
 nettamente su RAGTruth, lo eguaglia su LLM-AggreFact e resta molto indietro su VitaminC.
 
 Il meccanismo System One ripaga su due fronti. Leggere tutti i verdetti in un solo passaggio rende la verifica delle
@@ -52,7 +52,7 @@ porting del readout su llama.cpp permetterebbe di misurare GroundOne su una sche
 su una macchina AMD Strix Halo, e su uno smartphone, le cui unità di elaborazione neurale accelerano proprio il prefill
 su cui si regge un System One. Per il pilastro della località restano inoltre da misurare la memoria occupata quando il verificatore
 opera accanto a un generatore e a un retriever, e da condurre una valutazione completa con la rete disattivata. Un
-confronto equo della latenza con gli encoder richiede di eseguirli in batch, mentre quello con il System One generalista
+confronto equo della latenza con gli encoder richiede di eseguirli in batch, mentre quello con i System One generalisti
 richiede di interrogare entrambi i sistemi attraverso la stessa interfaccia HTTP. La verifica potrebbe inoltre procedere
 durante la generazione della risposta, segnalando ogni frase non appena è completa, cosa che la soluzione basata sui
 marker rende naturale. Infine, un assistente locale costruito sull'interfaccia del servizio permetterebbe agli utenti di

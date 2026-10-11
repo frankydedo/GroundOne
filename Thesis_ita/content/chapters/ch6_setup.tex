@@ -8,7 +8,7 @@ Questo capitolo presenta i modelli addestrati, i sistemi con cui sono messi a co
 statistico e le modalità di misura di tempo ed energia. Tutti gli esperimenti si svolgono su un'unica macchina, un
 MacBook Pro con chip Apple M4 (CPU a 10 core, GPU a 10 core, banda di memoria di 120\,GB/s) e 16\,GB di memoria
 unificata~\cite{apple2024m4specs}: ogni risultato riflette così ciò che un verificatore può fare sullo stesso dispositivo
-su cui gira un assistente locale. Anche tutte le baseline, compresi gli encoder e il System One generalista, sono
+su cui gira un assistente locale. Anche tutte le baseline, compresi gli encoder e i due System One generalisti, sono
 eseguite su questo portatile, e nessun risultato dipende da un servizio remoto.
 
 \section{Modelli}
@@ -78,17 +78,17 @@ vocabolario, cioè quello che produrrebbe la generazione greedy di un solo token
 iniziale, corrispondono alle tre classi, e qualunque altro token è un errore di formato. Questo controllo lascia
 invariati pesi, prompt e costo, e cambia soltanto se la decisione sia ristretta o meno alle opzioni ammissibili.
 
-\paragraph{Un System One generalista (B3).} Il progetto open Rizzo-Flow~\cite{rizzoflow} realizza l'idea di System One
+\paragraph{Un System One generalista: Rizzo-Flow (B3).} Il progetto open Rizzo-Flow~\cite{rizzoflow} realizza l'idea di System One
 con un modello da 4B sottoposto a fine-tuning su decisioni tipizzate generiche. Gira in un server dedicato, basato su
 llama.cpp~\cite{llamacpp}, e viene interrogato via HTTP passando il documento e la risposta numerata come stato
 condiviso e una domanda a scelta fra tre opzioni per ogni frase. Si usa il modello quantizzato a 4 bit perché quello a
 8 bit non entra in memoria insieme al sistema operativo.
 
-\paragraph{Un decision model generalista della stessa dimensione (B3b).} d1-3B di Liquid AI~\cite{liquid2026d1} è un
-decision model open da 3.1B parametri, post-addestrato per decisioni tipizzate su un'ampia varietà di task, che legge
+\paragraph{Un System One generalista della stessa dimensione: d1-3B (B3b).} d1-3B di Liquid AI~\cite{liquid2026d1}
+è un decision model open da 3.1B parametri, post-addestrato per decisioni tipizzate su un'ampia varietà di task, che legge
 lettere di risposta ristrette con lo stato condiviso tra le domande: appartiene alla stessa famiglia di readout di
 GroundOne e ha la dimensione del suo modello più grande, ma è generalista. Consente così di isolare il valore della
-specializzazione rispetto a un decision model già addestrato a decidere, anziché rispetto a un modello non addestrato.
+specializzazione rispetto a un System One già addestrato a decidere, anziché rispetto a un modello non addestrato.
 Viene eseguito zero-shot con il proprio codice di inferenza, in PyTorch sulla GPU del portatile e senza accesso alla
 rete, con lo stesso stato e le stesse domande di Rizzo-Flow e al più sei domande per chiamata sullo stesso stato; su
 LLM-AggreFact i documenti sono suddivisi esattamente come per GroundOne e si conserva il massimo sui frammenti. Ai fini

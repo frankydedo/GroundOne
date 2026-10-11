@@ -153,20 +153,20 @@ misurato separatamente nella Sezione~\ref{sec:results-readout}.
 \includegraphics[width=\textwidth]{images/results/comparison_t1.png}
 \caption{T1: AUROC di $P(\text{supported})$ per ogni sistema (a sinistra) e balanced accuracy a tre classi per i sistemi
 con output a tre classi (a destra). Rizzo-Flow è valutato su 300 risposte e il 3B non addestrato su 600; tutti gli altri
-sistemi, compreso il decision model generalista d1-3B, sull'intero test set.}
+sistemi, compreso d1-3B, sull'intero test set.}
 \label{fig:results-comparison}
 \end{figure}
 
-Il confronto più istruttivo è quello con il System One generalista. Sulle stesse 300 risposte di T1, Rizzo-Flow, un
-modello da 4B sottoposto a fine-tuning per decisioni generiche, raggiunge una balanced accuracy a tre classi di 0.603,
+Il confronto più istruttivo è quello con Rizzo-Flow, il System One generalista più grande. Sulle stesse 300 risposte di
+T1, Rizzo-Flow, un modello da 4B sottoposto a fine-tuning per decisioni generiche, raggiunge una balanced accuracy a tre classi di 0.603,
 contro 0.798 del GroundOne 0.5B e 0.840 del 3B; le differenze, $+0.195$ (da $+0.136$ a $+0.249$) e $+0.237$ (da
 $+0.184$ a $+0.285$), sono ampie. Il suo AUROC (0.894) è vicino a quello del 0.5B su queste risposte (0.916; la
 differenza non è significativa), perché ordina bene le frasi ma predice ``supportata'' per il 90\,\% di esse; il 3B le
 ordina meglio ($+0.056$, da $+0.034$ a $+0.079$). Uno specialista otto volte più piccolo supera quindi il generalista
 nella decisione per cui è stato progettato, e lo eguaglia nella capacità di ordinare le frasi.
 
-Un decision model generalista della stessa dimensione offre la verifica più severa del valore della specializzazione,
-perché d1-3B è già addestrato a prendere decisioni tipizzate e si differenzia da GroundOne soprattutto per i dati su cui
+d1-3B, un System One generalista della stessa dimensione del 3B, offre la verifica più severa del valore della
+specializzazione, perché è già addestrato a prendere decisioni tipizzate e si differenzia da GroundOne soprattutto per i dati su cui
 è stato addestrato. Sull'intero T1 raggiunge una balanced accuracy a tre classi di 0.657 e un AUROC di 0.863. Entrambi i
 modelli GroundOne fanno nettamente meglio: il 0.5B, sei volte più piccolo, di $+0.112$ (da $+0.092$ a $+0.133$) nella
 balanced accuracy a tre classi e di $+0.042$ in AUROC, il 3B di $+0.175$ (da $+0.157$ a $+0.195$) e di $+0.077$. Il
@@ -210,7 +210,7 @@ e 0.845 del 3B. Due fatti aiutano a interpretare questi numeri. MiniCheck-RoBERT
 dati di addestramento comprendono VitaminC~\cite{zha2023alignscore}: T3 appartiene quindi alla sua distribuzione di
 addestramento, mentre per GroundOne misura il trasferimento da RAGTruth. Inoltre, il guadagno del 3B sul 0.5B in T3 si
 deve alla dimensione del modello più che all'addestramento su dati RAG: il 3B non addestrato raggiunge già 0.531 e un
-AUROC di 0.821. Il decision model generalista della stessa dimensione rende esplicito il contrasto: d1-3B raggiunge
+AUROC di 0.821. d1-3B, il System One generalista della stessa dimensione, rende esplicito il contrasto: raggiunge
 0.724 e un AUROC di 0.913 sull'intero T3, davanti al GroundOne 3B di 0.197 e 0.096, l'esatto opposto di quanto accade su
 T1. La specializzazione su risposte RAG migliora quindi in modo sostanziale il task RAG, ma non basta, da sola, a
 produrre un fact checker generale. La Sezione~\ref{sec:results-errors} mostra quali casi sfuggono.

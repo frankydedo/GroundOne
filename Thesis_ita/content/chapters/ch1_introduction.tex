@@ -127,9 +127,9 @@ rileva che i decision model generalisti con meno di un miliardo di parametri sup
 rilevamento delle allucinazioni nelle risposte RAG~\cite{decisionindex2026}. Tutte le implementazioni aperte, inoltre, sono
 sistemi generalisti in grado di rispondere a qualunque domanda tipizzata.
 
-Restano quindi aperte tre domande. La prima è se, per un singolo task, convenga usare un System One piccolo e
-specializzato. La seconda è come un modello di questo tipo si confronti con le alternative: un System One generalista,
-un giudice generativo e un verificatore dedicato. La terza è da dove derivi l'eventuale vantaggio: dalla
+Restano quindi aperti tre problemi. Il primo è capire se, per un singolo task, convenga usare un System One piccolo e
+specializzato. Il secondo è capire come un modello di questo tipo si confronti con le alternative: un System One
+generalista, un giudice generativo e un verificatore dedicato. Il terzo è capire da dove derivi l'eventuale vantaggio: dalla
 specializzazione, dal modo in cui la decisione viene letta oppure, più semplicemente, dalla dimensione del modello.
 
 \section{Approccio e domande di ricerca}
@@ -142,22 +142,28 @@ logit di tre lettere di risposta in corrispondenza dei marker, senza generare te
 parametri sono sottoposti a fine-tuning con LoRA sulle risposte di RAGTruth annotate
 manualmente~\cite{qwen2024qwen25,hu2022lora,niu2024ragtruth}, e le loro probabilità sono calibrate sul dev set. Tre test
 set sono stati costruiti e congelati prima di addestrare qualunque modello, così che nessuna scelta progettuale potesse
-essere ottimizzata su di essi. Il lavoro è guidato da cinque domande di ricerca.
+essere ottimizzata su di essi. I tre problemi aperti diventano cinque domande di ricerca: le prime due li riformulano in
+modo verificabile, le altre tre aggiungono ciò che conta per un uso reale sul dispositivo, cioè l'affidabilità delle
+probabilità, il costo e il valore di una decisione a tre classi.
 
 \begin{description}
-\item[RQ1, specializzazione.] Un System One da 0.5B o 3B parametri, sottoposto a fine-tuning, può eguagliare modelli
-zero-shot più grandi e gli encoder specializzati nella valutazione della groundedness a livello di frase, cioè
-nello stabilire se ciascuna frase è fedele al documento?
-\item[RQ2, readout contro generazione.] Che cosa apporta il meccanismo System One, ossia il readout della decisione dai
-logit, a parità di dimensione del modello? Il confronto è duplice: con giudici generativi che scrivono i propri verdetti
-e con lo stesso modello che decide in base al token che genererebbe. La domanda riguarda anche come cresce la differenza
-all'aumentare del numero di decisioni per risposta.
-\item[RQ3, calibrazione.] Le probabilità sono utilizzabili come misura di confidenza, per fissare soglie e per rinviare
-le decisioni incerte, e come si confrontano con quelle che un giudice generativo è in grado di fornire?
-\item[RQ4, costo sul dispositivo.] Il verificatore rientra nel budget di memoria, tempo ed energia di un laptop da
-16\,GB, e come si confronta il suo costo con quello di un giudice eseguito sulla stessa macchina?
-\item[RQ5, oltre il punteggio binario.] Che cosa offre una decisione a tre classi per ogni frase che un verificatore
-binario non offre?
+\item[RQ1, specializzazione.] Un System One da 0.5B o 3B parametri, addestrato con fine-tuning sul task, riesce a
+stabilire se ogni frase è fedele al documento? E lo fa bene quanto modelli più grandi usati zero-shot\footnote{Un modello è usato \emph{zero-shot} quando affronta un task senza alcun addestramento specifico
+e senza esempi nel prompt: riceve soltanto un'istruzione che descrive il compito.}
+e quanto gli encoder specializzati in questa verifica?
+\item[RQ2, readout contro generazione.] Quanto contribuisce il meccanismo System One, cioè il readout\footnote{Con \emph{readout} si indica la lettura della decisione direttamente dai logit del modello:
+invece di lasciargli scrivere una risposta, si confrontano i punteggi che assegna alle sole risposte ammesse (qui le
+lettere A, B e C) e si sceglie la più probabile.}
+della decisione dai logit, a parità di dimensione del modello? Il confronto è duplice: con giudici generativi che
+scrivono i propri verdetti e con lo stesso modello lasciato libero di generare la risposta. E come cambia la differenza
+quando aumenta il numero di frasi da verificare?
+\item[RQ3, calibrazione.] Le probabilità restituite dal modello sono affidabili come misura di confidenza? In
+particolare, si possono usare per fissare una soglia di decisione e per rinviare all'utente i casi incerti? E sono
+migliori di quelle che si possono ottenere da un giudice generativo?
+\item[RQ4, costo sul dispositivo.] Il verificatore rientra nei limiti di memoria, tempo ed energia di un laptop da
+16\,GB? E quanto costa rispetto a un giudice generativo eseguito sulla stessa macchina?
+\item[RQ5, oltre il punteggio binario.] Che cosa guadagna chi usa il verificatore da una decisione a tre classi per
+ogni frase, rispetto al semplice punteggio di un verificatore binario?
 \end{description}
 
 \section{Ambito}
@@ -179,13 +185,15 @@ La tesi offre quattro contributi.
 eseguito interamente su un laptop. Grazie a un marker inserito dopo ogni frase, legge tutti i verdetti di una risposta in
 un solo forward pass. È rilasciato come pacchetto installabile, con un'interfaccia a riga di comando e un'API HTTP locale
 che comprende anche un'interfaccia compatibile con i client System One esistenti.
-\item \textbf{Un dataset costruito attorno al task} a partire da annotazioni umane pubbliche, con tre test set validati
-senza nuove annotazioni e congelati prima di addestrare qualunque modello, e con il leakage controllato a livello di
-documento.
+\item \textbf{Un dataset a livello di frase derivato da annotazioni pubbliche.} Nessuna etichetta è stata annotata ex
+novo: le annotazioni umane di RAGTruth, che marcano porzioni di testo, sono state convertite in un'etichetta a tre
+classi per ogni frase, con regole fissate in anticipo. I tre test set provengono da benchmark pubblici, sono stati
+verificati con controlli automatici, per esempio sulla segmentazione in frasi, e congelati prima di addestrare
+qualunque modello, con il leakage controllato a livello di documento.
 \item \textbf{Una scomposizione controllata dei guadagni.} Il confronto isola il contributo della specializzazione, del
 readout ristretto e della dimensione del modello. GroundOne è confrontato con indizi che non verificano mai una frase,
-modelli non addestrati, giudici generativi con e senza probabilità, un System One generalista, un decision model
-generalista della stessa dimensione ed encoder specializzati, tutti sullo stesso hardware e con intervalli ottenuti
+modelli non addestrati, giudici generativi con e senza probabilità, due System One generalisti (Rizzo-Flow, da 4B parametri, e d1-3B di Liquid
+AI, della stessa dimensione del 3B) ed encoder specializzati, tutti sullo stesso hardware e con intervalli ottenuti
 tramite cluster bootstrap.
 \item \textbf{Uno studio di calibrazione, tempo ed energia}: come le probabilità possano essere calibrate e tradotte in
 etichette coerenti, quanto aiutino a rinviare le decisioni incerte e come tempo ed energia di una verifica crescano con la
@@ -200,7 +208,7 @@ che genera testo deve pagare e che un System One non paga.
 I risultati mostrano che la specializzazione funziona nel dominio per cui è stata pensata. Sul test set di RAGTruth
 GroundOne raggiunge una balanced accuracy a tre classi di 0.769 con 0.5B parametri e di 0.832 con 3B, contro 0.37 e 0.44
 degli stessi modelli prima dell'addestramento. Ordina le frasi supportate meglio degli encoder specializzati e supera
-nettamente sia un System One generalista otto volte più grande del 0.5B sia un decision model generalista della stessa
+nettamente entrambi i System One generalisti: Rizzo-Flow, otto volte più grande del 0.5B, e d1-3B, della stessa
 dimensione del 3B. Su LLM-AggreFact, un benchmark costruito da fonti diverse, il 3B è alla pari con il miglior encoder di
 piccole dimensioni.
 
@@ -212,7 +220,7 @@ calibrazione, le probabilità di GroundOne sono vicine alle frequenze osservate,
 si chiede lo stesso output distinguono a stento le decisioni corrette da quelle errate.
 
 Restano alcuni aspetti da migliorare, che indicano direzioni naturali per il lavoro futuro. Le prestazioni calano su
-domini lontani da quello di addestramento, dove il decision model generalista risulta più forte; le allucinazioni più
+domini lontani da quello di addestramento, dove il System One generalista d1-3B risulta più forte; le allucinazioni più
 sottili, nascoste in frasi che per il resto ricalcano fedelmente la fonte, vengono individuate solo in parte; infine,
 l'addestramento non è ancora del tutto stabile al variare del seed.
 
