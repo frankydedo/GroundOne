@@ -96,19 +96,17 @@ Table~\ref{tab:local-tradeoff} summarises the comparison.
 \caption{Hosted and local inference compared on the properties that matter for a verifier of private documents.}
 \label{tab:local-tradeoff}
 \small
-\begin{tabularx}{\textwidth}{@{}lXX@{}}
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
 \toprule
 Property & Hosted model & Local model \\
 \midrule
-Privacy & contractual: documents are sent to a processor; the user cannot verify how they are used & technical: documents
-never leave the device \\
-Regulation (GDPR) & processor contract (Art.~28); third-country transfers (Arts.~44--49) & no processor and no transfer;
-Art.~5 principles and device security still apply \\
-Availability & requires network and provider uptime & works offline \\
-Stability & the provider may update or withdraw the model & weights change only when the user changes them \\
-Cost & price per token & hardware once, then energy \\
-Logits & often hidden or limited & fully accessible: readout and calibration possible \\
-Capability & frontier models & small models, limited by memory, bandwidth and battery \\
+Privacy & Contractual: documents are sent to a processor; the user cannot verify how they are used. & Technical: documents never leave the device. \\
+Regulation (GDPR) & Processor contract (Art.~28); third-country transfers (Arts.~44--49). & No processor and no transfer; Art.~5 principles and device security still apply. \\
+Availability & Requires network and provider uptime. & Works offline. \\
+Stability & The provider may update or withdraw the model. & Weights change only when the user changes them. \\
+Cost & Price per token. & Hardware once, then energy. \\
+Logits & Often hidden or limited. & Fully accessible: readout and calibration possible. \\
+Capability & Frontier models. & Small models, limited by memory, bandwidth and battery. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -298,12 +296,12 @@ systems discussed, to give a concrete idea of what they look like (the photos ar
 
 \begin{figure}[htbp]
 \centering
-\subfloat[MacBook Pro of the M4 family (the 16-inch model is shown; the thesis machine is the 14-inch one).]{\includegraphics[width=0.31\textwidth]{images/hardware/macbook_pro_m4.jpg}}\hfill
-\subfloat[Mac mini (2024, M4).]{\includegraphics[width=0.31\textwidth]{images/hardware/mac_mini_m4.jpg}}\hfill
-\subfloat[Mac Studio.]{\includegraphics[width=0.31\textwidth]{images/hardware/mac_studio.jpg}}\\[0.6em]
-\subfloat[NVIDIA DGX Spark.]{\includegraphics[width=0.31\textwidth]{images/hardware/dgx_spark.jpg}}\hspace{0.035\textwidth}
-\subfloat[GeForce RTX 5090 graphics card (Palit GameRock model).]{\includegraphics[width=0.31\textwidth]{images/hardware/rtx_5090.jpg}}
-\caption{Some of the local inference systems compared in this section. Photos from Wikimedia Commons, cropped:
+\subfloat[MacBook Pro of the M4 family (the 16-inch model is shown; the thesis machine is the 14-inch one).]{\includegraphics[width=0.31\textwidth]{images/hardware/macbook_pro_m4.png}}\hfill
+\subfloat[Mac mini (2024, M4).]{\includegraphics[width=0.31\textwidth]{images/hardware/mac_mini_m4.png}}\hfill
+\subfloat[Mac Studio.]{\includegraphics[width=0.31\textwidth]{images/hardware/mac_studio.png}}\\[0.6em]
+\subfloat[NVIDIA DGX Spark.]{\includegraphics[width=0.31\textwidth]{images/hardware/dgx_spark.png}}\hspace{0.035\textwidth}
+\subfloat[GeForce RTX 5090 graphics card (Palit GameRock model).]{\includegraphics[width=0.31\textwidth]{images/hardware/rtx_5090.png}}
+\caption{Some of the local inference systems compared in this section. Photos from Wikimedia Commons, background removed:
 (a) AzureSaturn, CC0; (b) Seasider53, CC BY 4.0; (c) KKPCW, CC BY-SA 4.0; (d) Daniel Lu, CC BY-SA 4.0;
 (e) PantheraLeo1359531, CC BY 4.0.}
 \label{fig:local-photos}

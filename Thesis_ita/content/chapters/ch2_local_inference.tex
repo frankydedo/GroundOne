@@ -114,19 +114,19 @@ La Tabella~\ref{tab:local-tradeoff} riassume il confronto.
 privati.}
 \label{tab:local-tradeoff}
 \small
-\begin{tabularx}{\textwidth}{@{}lXX@{}}
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
 \toprule
 Proprietà & Modello remoto & Modello locale \\
 \midrule
-Privacy & contrattuale: i documenti sono inviati a un responsabile del trattamento; l'utente non può verificare come
-vengano usati & tecnica: i documenti non lasciano mai il dispositivo \\
-Normativa (GDPR) & contratto con il responsabile (Art.~28); trasferimenti verso paesi terzi (Artt.~44--49) & nessun
-responsabile e nessun trasferimento; restano i principi dell'Art.~5 e la sicurezza del dispositivo \\
-Disponibilità & richiede la rete e l'operatività del fornitore & funziona offline \\
-Stabilità & il fornitore può aggiornare o ritirare il modello & i pesi cambiano solo se è l'utente a cambiarli \\
-Costo & prezzo per token & hardware una tantum, poi energia \\
-Logit & spesso nascosti o limitati & pienamente accessibili: readout e calibrazione possibili \\
-Capacità & modelli di frontiera & modelli piccoli, limitati da memoria, banda e batteria \\
+Privacy & Contrattuale: i documenti sono inviati a un responsabile del trattamento; l'utente non può verificare come
+vengano usati. & Tecnica: i documenti non lasciano mai il dispositivo. \\
+Normativa (GDPR) & Contratto con il responsabile (Art.~28); trasferimenti verso paesi terzi (Artt.~44--49). & Nessun
+responsabile e nessun trasferimento; restano i principi dell'Art.~5 e la sicurezza del dispositivo. \\
+Disponibilità & Richiede la rete e l'operatività del fornitore. & Funziona offline. \\
+Stabilità & Il fornitore può aggiornare o ritirare il modello. & I pesi cambiano solo se è l'utente a cambiarli. \\
+Costo & Prezzo per token. & Hardware una tantum, poi energia. \\
+Logit & Spesso nascosti o limitati. & Pienamente accessibili: readout e calibrazione possibili. \\
+Capacità & Modelli di frontiera. & Modelli piccoli, limitati da memoria, banda e batteria. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -338,12 +338,12 @@ alcuni dei sistemi citati, per dare un'idea concreta di come si presentano (le f
 
 \begin{figure}[htbp]
 \centering
-\subfloat[MacBook Pro della famiglia M4 (nella foto il modello da 16 pollici; la macchina della tesi è quello da 14).]{\includegraphics[width=0.31\textwidth]{images/hardware/macbook_pro_m4.jpg}}\hfill
-\subfloat[Mac mini (2024, M4).]{\includegraphics[width=0.31\textwidth]{images/hardware/mac_mini_m4.jpg}}\hfill
-\subfloat[Mac Studio.]{\includegraphics[width=0.31\textwidth]{images/hardware/mac_studio.jpg}}\\[0.6em]
-\subfloat[NVIDIA DGX Spark.]{\includegraphics[width=0.31\textwidth]{images/hardware/dgx_spark.jpg}}\hspace{0.035\textwidth}
-\subfloat[Scheda grafica GeForce RTX 5090 (modello Palit GameRock).]{\includegraphics[width=0.31\textwidth]{images/hardware/rtx_5090.jpg}}
-\caption{Alcuni dei sistemi per l'inferenza locale confrontati in questa sezione. Foto da Wikimedia Commons, ritagliate:
+\subfloat[MacBook Pro della famiglia M4 (nella foto il modello da 16 pollici; la macchina della tesi è quello da 14).]{\includegraphics[width=0.31\textwidth]{images/hardware/macbook_pro_m4.png}}\hfill
+\subfloat[Mac mini (2024, M4).]{\includegraphics[width=0.31\textwidth]{images/hardware/mac_mini_m4.png}}\hfill
+\subfloat[Mac Studio.]{\includegraphics[width=0.31\textwidth]{images/hardware/mac_studio.png}}\\[0.6em]
+\subfloat[NVIDIA DGX Spark.]{\includegraphics[width=0.31\textwidth]{images/hardware/dgx_spark.png}}\hspace{0.035\textwidth}
+\subfloat[Scheda grafica GeForce RTX 5090 (modello Palit GameRock).]{\includegraphics[width=0.31\textwidth]{images/hardware/rtx_5090.png}}
+\caption{Alcuni dei sistemi per l'inferenza locale confrontati in questa sezione. Foto da Wikimedia Commons, scontornate:
 (a) AzureSaturn, CC0; (b) Seasider53, CC BY 4.0; (c) KKPCW, CC BY-SA 4.0; (d) Daniel Lu, CC BY-SA 4.0;
 (e) PantheraLeo1359531, CC BY 4.0.}
 \label{fig:local-photos}
