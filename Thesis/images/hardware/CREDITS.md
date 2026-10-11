@@ -1,12 +1,14 @@
-# Hardware photos (Wikimedia Commons; background removed with the macOS Vision subject-lifting API, cropped and resized for the thesis)
+# Hardware images (provided by the author, 2026-10-12)
 
-| File | Source | Author | Licence |
-| --- | --- | --- | --- |
-| macbook_pro_m4.png | https://commons.wikimedia.org/wiki/File:MacBook_Pro_(16-inch,_M4_Pro,_Silver).jpg | AzureSaturn | CC0 |
-| mac_mini_m4.png | https://commons.wikimedia.org/wiki/File:Mac_mini_2024_M4.jpg | Seasider53 | CC BY 4.0 |
-| mac_studio.png | https://commons.wikimedia.org/wiki/File:Mac_Studio_-_1.jpg | KKPCW | CC BY-SA 4.0 |
-| dgx_spark.png | https://commons.wikimedia.org/wiki/File:Nvidia_DGX_Spark_oblique_view_dllu.jpg | Daniel Lu (User:dllu) | CC BY-SA 4.0 |
-| rtx_5090.png | https://commons.wikimedia.org/wiki/File:Palit_GeForce_RTX_5090_Gamerock_20250530_HOF4166_RAW-Export.png | PantheraLeo1359531 | CC BY 4.0 |
+Originals in `source/` (Italian thesis folder). Figure files: cropped to the object, padded to 4:3 with transparency.
 
-Retrieved 2026-10-12. The cropped versions of the CC BY-SA photos are shared under the same licence.
-No freely licensed photo of an AMD Strix Halo desktop was found on Commons.
+| File | Origin | Credit |
+| --- | --- | --- |
+| macbook_pro_m4.png | mbp14-m4-2024.png | Apple (product image) |
+| mac_mini_m4.png | Apple_Mac_Mini_M4.svg (Wikimedia Commons) | LoMit, CC0 |
+| mac_studio.png | mac-studio.png | Apple (product image) |
+| dgx_spark.png | Nvidia-dgx-spark-.png (white background removed with macOS Vision subject lifting) | NVIDIA (product image) |
+| rtx_5090.png | RTX5090-3QTR-Back-Left-small.png | NVIDIA (press image) |
+
+Vendor images are promotional material reproduced for scientific documentation; check the publication terms of the
+university repository before final publication.
