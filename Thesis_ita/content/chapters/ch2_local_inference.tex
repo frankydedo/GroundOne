@@ -504,7 +504,19 @@ parametri, gira su un laptop con 25\,GB di memoria. Il prezzo è quello previsto
 è di pochi gigabyte al secondo, molto inferiore a quella della memoria, e secondo gli autori la generazione scende a
 0.05--0.1 token al secondo a freddo su quel laptop e a 1.83 token al secondo su una macchina Strix Halo da
 128\,GB~\cite{justvugg2026colibri}. È la stessa idea di LLM in a flash~\cite{alizadeh2024flash}, applicata ai modelli a
-esperti: la capacità di memoria smette di essere un limite rigido e si trasforma in un limite di banda, ancora più severo.
+esperti: la capacità di memoria smette di essere un limite rigido e si trasforma in un limite di banda, ancora più severo. La
+Figura~\ref{fig:local-ssd} illustra il meccanismo.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/diagrams/ssd_streaming_tikz.pdf}
+\caption{Lo streaming degli esperti dall'SSD in un motore come Colibri. In memoria restano la parte del modello usata da
+ogni token (attenzione, router, esperti condivisi) e una cache degli esperti usati di recente; tutti gli esperti stanno
+sull'SSD. Per ogni token il router sceglie pochi esperti: quelli già in cache si usano subito, quelli mancanti si leggono
+dal disco, con una banda di pochi gigabyte al secondo. Per esempio, GLM-5.2 tiene residenti circa 10\,GB e lascia
+sul disco circa 429\,GB di pesi~\cite{justvugg2026colibri}. Lo schema non è in scala.}
+\label{fig:local-ssd}
+\end{figure}
 
 Colibri interessa questa tesi anche per un secondo motivo. Espone la stessa interfaccia System One di Jev, con la quale
 qualunque modello che esegue risponde a domande chiuse leggendo la probabilità di ciascuna opzione invece di generare la
