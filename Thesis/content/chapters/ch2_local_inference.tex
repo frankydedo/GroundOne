@@ -290,7 +290,21 @@ using the vendors' published specifications.
 Two architectures dominate. In a \emph{discrete} system, the graphics card has its own memory, fast but small, and the
 model must fit in it. In a \emph{unified-memory} system, the processor and the graphics unit share one large pool of
 memory, so a model can use most of the machine's memory, at a lower bandwidth than a high-end graphics card. Apple's
-processors, NVIDIA's DGX Spark and AMD's Ryzen AI Max (Strix Halo) all follow the second design.
+processors, NVIDIA's DGX Spark and AMD's Ryzen AI Max (Strix Halo) all follow the second design. Figure~\ref{fig:local-memarch} compares the two architectures.
+
+\begin{figure}[htbp]
+\centering
+\subfloat[Discrete system: the GPU reads the weights from its own VRAM, very fast but limited to 16--32\,GB; the rest of
+the system is reachable only through PCIe.]{\includegraphics[width=0.53\textwidth]{images/diagrams/memory_discrete_tikz.pdf}\label{fig:local-memarch-discrete}}\hfill
+\subfloat[Unified memory: CPU, GPU and NPU on the same chip share one pool of memory, larger but with lower
+bandwidth.]{\includegraphics[width=0.43\textwidth]{images/diagrams/memory_unified_tikz.pdf}\label{fig:local-memarch-unified}}
+\caption{The two architectures of local inference hardware. Blue rectangles: compute units; green rectangles: memory;
+orange rectangle: the model weights; line width: indicative bandwidth. Capacity and bandwidth values from
+Table~\ref{tab:local-hardware}. In a discrete system a model that does not fit in VRAM must go through the much slower
+PCIe link; in a unified-memory system the model can occupy almost all of the machine's memory, but every generated token
+reads it at a lower speed than a high-end graphics card.}
+\label{fig:local-memarch}
+\end{figure}
 Table~\ref{tab:local-hardware} and Figure~\ref{fig:local-hardware} place the main options on the two memory axes. Figure~\ref{fig:local-photos} shows some of the
 systems discussed, to give a concrete idea of what they look like.
 

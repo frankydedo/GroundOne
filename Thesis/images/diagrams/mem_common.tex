@@ -1,0 +1,20 @@
+% Shared TikZ styles for the memory-architecture diagrams (compiled as standalone PDFs).
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{tikz}
+\usetikzlibrary{positioning,fit,arrows.meta,calc,backgrounds,shapes.geometric}
+\definecolor{procFill}{HTML}{E8F1FB}\definecolor{procLine}{HTML}{2A78D6}
+\definecolor{memFill}{HTML}{EAF7F1}\definecolor{memLine}{HTML}{1BAF7A}
+\definecolor{wFill}{HTML}{FFF6E0}\definecolor{wLine}{HTML}{EDA100}
+\definecolor{slowRed}{HTML}{E34948}\definecolor{boxLine}{HTML}{9A9890}\definecolor{ink2}{HTML}{52514E}
+\tikzset{
+  every node/.style={font=\small, align=center},
+  proc/.style={rectangle, rounded corners=2pt, draw=procLine, fill=procFill, very thick, minimum height=2.4em, inner sep=3pt},
+  mem/.style={rectangle, draw=memLine, fill=memFill, very thick, inner sep=4pt},
+  weights/.style={rectangle, draw=wLine, fill=wFill, thick, font=\footnotesize, inner sep=2pt},
+  box/.style={draw=boxLine, dashed, rounded corners=3pt, inner sep=6pt},
+  boxlabel/.style={font=\footnotesize\bfseries, text=ink2},
+  bus/.style={line width=#1, ink2},
+  buslabel/.style={font=\footnotesize, text=ink2, fill=white, inner sep=1pt},
+}

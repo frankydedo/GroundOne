@@ -1,0 +1,20 @@
+\documentclass[border=2pt]{standalone}
+\input{mem_common.tex}
+\begin{document}
+\begin{tikzpicture}
+  \node[proc, minimum width=1.25cm] (cpu) {CPU};
+  \node[proc, minimum width=1.25cm, right=3mm of cpu] (gpu) {GPU};
+  \node[proc, minimum width=1.25cm, right=3mm of gpu] (npu) {NPU};
+  \begin{scope}[on background layer]
+    \node[box, fit=(cpu)(gpu)(npu), label={[boxlabel]above:a single chip (SoC)}] (soc) {};
+  \end{scope}
+  \node[mem, minimum width=5.0cm, minimum height=1.7cm, below=13mm of gpu] (mem) {};
+  \node[font=\small, anchor=north] at (mem.north) {unified memory (16--256\,GB)};
+  \node[weights, minimum width=3.6cm, anchor=south] at ([yshift=4pt]mem.south) {model weights};
+  \draw[bus=3pt] (cpu.south) -- (cpu.south |- mem.north);
+  \draw[bus=3pt] (gpu.south) -- (gpu.south |- mem.north);
+  \node[font=\footnotesize, text=ink2, right=1mm of npu.south east, anchor=north west, yshift=-2mm, align=left] {120--819\,GB/s\\shared};
+  \draw[bus=3pt] (npu.south) -- (npu.south |- mem.north);
+  \node[font=\footnotesize, text=memLine!60!black, below=2mm of mem] {CPU, GPU and NPU read\\the same data, without copies};
+\end{tikzpicture}
+\end{document}

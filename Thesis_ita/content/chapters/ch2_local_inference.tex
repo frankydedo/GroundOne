@@ -332,7 +332,21 @@ Dominano due architetture. In un sistema \emph{discreto} la scheda grafica ha un
 il modello deve entrare in essa. In un sistema a \emph{memoria unificata} il processore e l'unità grafica condividono un
 unico, ampio blocco di memoria, così che un modello può usarne la maggior parte, con una banda però inferiore a quella di
 una scheda grafica di fascia alta. I processori di Apple, il DGX Spark di NVIDIA e il Ryzen AI Max (Strix Halo) di AMD
-seguono tutti questa seconda architettura. La Tabella~\ref{tab:local-hardware} e la Figura~\ref{fig:local-hardware}
+seguono tutti questa seconda architettura. La Figura~\ref{fig:local-memarch} mette a confronto le due architetture.
+
+\begin{figure}[htbp]
+\centering
+\subfloat[Sistema discreto: la GPU legge i pesi dalla propria VRAM, molto veloce ma limitata a 16--32\,GB; il resto del
+sistema è raggiungibile solo attraverso il PCIe.]{\includegraphics[width=0.53\textwidth]{images/diagrams/memory_discrete_tikz.pdf}\label{fig:local-memarch-discrete}}\hfill
+\subfloat[Memoria unificata: CPU, GPU e NPU sullo stesso chip condividono un unico blocco di memoria, più ampio ma con
+una banda inferiore.]{\includegraphics[width=0.43\textwidth]{images/diagrams/memory_unified_tikz.pdf}\label{fig:local-memarch-unified}}
+\caption{Le due architetture dell'hardware per l'inferenza locale. Rettangoli blu: unità di calcolo; rettangoli verdi:
+memoria; rettangolo arancione: i pesi del modello; spessore delle linee: banda indicativa. Valori di capacità e banda
+dalla Tabella~\ref{tab:local-hardware}. In un sistema discreto un modello che non entra nella VRAM deve passare dal
+collegamento PCIe, molto più lento; in un sistema a memoria unificata il modello può occupare quasi tutta la memoria della
+macchina, ma ogni token generato la legge a una velocità inferiore a quella di una scheda grafica di fascia alta.}
+\label{fig:local-memarch}
+\end{figure} La Tabella~\ref{tab:local-hardware} e la Figura~\ref{fig:local-hardware}
 collocano le principali opzioni sui due assi della memoria. La Figura~\ref{fig:local-photos} mostra
 alcuni dei sistemi citati, per dare un'idea concreta di come si presentano.
 
