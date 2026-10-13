@@ -550,8 +550,7 @@ Metodo & Idea e risultato principale & Fonte \\
 LLM.int8() & Pesi e attivazioni a 8 bit; le poche dimensioni con valori anomali molto grandi (outlier) restano a 16 bit. Nessuna
 perdita fino a 175B parametri; fa risparmiare memoria ma non accelera i modelli piccoli & \cite{dettmers2022llmint8} \\
 GPTQ & Pesi a 3--4 bit, quantizzati strato per strato stimando quanto ogni peso influisca sull'errore. OPT-175B a 4 bit
-perde 0.03 di perplexity\footnote{La \emph{perplexity} misura quanto un modello predice bene un testo: più è bassa,
-meno il modello è ``sorpreso'' dalle parole che incontra.}; i modelli piccoli perdono di più; decoding 3.2--4.5$\times$ più veloce grazie alla banda & \cite{frantar2023gptq} \\
+perde 0.03 di perplexity$^{a}$; i modelli piccoli perdono di più; decoding 3.2--4.5$\times$ più veloce grazie alla banda & \cite{frantar2023gptq} \\
 AWQ & Pesi a 4 bit; l'1\,\% di canali più importanti, individuato dall'ampiezza delle attivazioni, è protetto tramite
 scalatura. Robusto rispetto ai dati di calibrazione; pensato per l'uso sul dispositivo & \cite{lin2024awq} \\
 GGUF k-quant & Formati a blocchi da 2 a 8 bit di llama.cpp, standard di fatto per la distribuzione consumer & \cite{llamacpp} \\
@@ -561,6 +560,10 @@ QLoRA & Modello base a 4 bit in formato normal float con adapter a 16 bit, per i
 \cite{dettmers2023qlora} \\
 \bottomrule
 \end{tabularx}
+
+\smallskip
+{\footnotesize\raggedright $^{a}$\,La \emph{perplexity} misura quanto un modello predice bene un testo: più è bassa, meno
+il modello è ``sorpreso'' dalle parole che incontra.\par}
 \end{table}
 
 Due risultati di questa letteratura contano per la tesi. Il primo è che la quantizzazione aiuta la fase limitata dalla

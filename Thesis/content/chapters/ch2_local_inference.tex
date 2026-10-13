@@ -27,22 +27,27 @@ properties follow, and each of them matters for a retrieval-augmented assistant 
 third party, and what happens to them afterwards, how long they are kept, who can access them and whether they are used
 to improve future models, is governed by contract and policy. The user can read the policy but cannot verify that it is
 respected. With a local model the documents never leave the machine, so the question does not arise: privacy becomes a
-property of the system rather than a promise. Surveys of edge intelligence state the point directly: on-device inference
-eliminates privacy leakage and the need for an Internet connection~\cite{qu2025mobileedge}.
+property of the system rather than a promise. Surveys of edge intelligence, that is, of running models on peripheral
+devices close to the user, state the point directly: on-device inference eliminates privacy leakage and the need for an
+Internet connection~\cite{qu2025mobileedge}.
 
-European law makes the difference concrete. Under the General Data Protection Regulation, the processing of personal
-data explicitly includes its ``disclosure by transmission''~\cite[Art.~4(2)]{gdpr2016}. Sending a document that contains
-personal data to a hosted model therefore makes the provider a processor, bound by a contract with the specific
-guarantees of Article~28, and when the provider operates outside the European Union the transfer must rest on an
-adequacy decision, on appropriate safeguards or on one of the derogations of Articles~44--49~\cite{gdpr2016}. A verifier
-that runs on the user's device involves no processor and no transfer. It does not remove every obligation, since the
+European law makes the difference concrete. Under the General Data Protection Regulation (GDPR), the processing of
+personal data explicitly includes its ``disclosure by transmission''~\cite[Art.~4(2)]{gdpr2016}. Sending a document that
+contains personal data to a hosted model therefore makes the provider a processor\footnote{In the GDPR, the
+\emph{controller} decides why and how personal data are processed; the \emph{processor} processes them on behalf of the
+controller, for instance by providing a computing service.}, bound by a contract with the specific guarantees of
+Article~28. If, in addition, the provider operates outside the European Union, the transfer of the data must have a legal
+basis: an adequacy decision\footnote{A decision by which the European Commission recognises that a third country ensures
+a level of data protection essentially equivalent to that of the European Union.}, appropriate safeguards or one of the
+derogations provided by Articles~44--49~\cite{gdpr2016}. A verifier that runs on the user's device involves no processor
+and no transfer. It does not remove every obligation, since the
 organisation that uses it must still respect the principles of Article~5 and secure the device, but it removes the
 obligations that depend on trusting someone else. Many confidential documents, such as unpublished research, contracts
 or source code, contain no personal data at all; for them the regulation does not apply, and the argument becomes one
 of confidentiality.
 
 A recent episode illustrates what is at stake. In September 2026 OpenAI announced that an internal multi-agent system had
-produced a proof of blow-up for the forced Navier--Stokes equations, one of the Millennium Prize problems, formalised in
+produced a proof of blow-up (the formation of a singularity in finite time) for the forced Navier--Stokes equations, one of the Millennium Prize problems, formalised in
 the Lean proof assistant~\cite{rits2026navierstokes}. Two mathematicians, Tristan Buckmaster and Levent Alpöge, had
 released related results for the Euler equations at about the same time, and disputed the credit. Buckmaster had written his
 drafts in OpenAI's own coding assistant, and asked the company ``whether the model had been trained on, or had access
@@ -57,14 +62,15 @@ models. With a local model this question cannot be asked.
 Providers are aware of the problem. Apple describes on-device processing as the cornerstone of its approach to privacy,
 and for requests that exceed the device it built Private Cloud Compute, a dedicated cloud with custom servers, no
 privileged access for staff, no persistent storage of requests and a public log of the software images that run on
-it~\cite{apple2024pcc}. The design is a serious attempt to make hosted inference verifiable, and its complexity is
-itself an argument: privacy in the cloud requires custom silicon, a hardened operating system and cryptographic
-attestation, and it still rests on trust in the hardware, in the supply chain and in the attestation, which only
-security researchers, not users, can inspect~\cite{apple2024pcc}.
+it~\cite{apple2024pcc}. The design is a serious attempt to make hosted inference verifiable, and its very complexity is
+an argument for locality. Privacy in the cloud requires custom silicon, a hardened operating system and cryptographic
+attestation, that is, a signed proof of which software is running on the servers. Even so, the system rests on trust in
+the hardware, in the supply chain and in the attestation itself, which only security researchers, not users, can
+inspect~\cite{apple2024pcc}.
 
 \paragraph{Availability.} A local model works without a network and without depending on the availability of a
 provider. For an assistant used on a train, in a hospital ward with restricted connectivity or in an air-gapped
-environment, this is a requirement rather than a convenience.
+environment, that is, one physically isolated from any network, this is a requirement rather than a convenience.
 
 \paragraph{Stability and reproducibility.} The weights of a local model change only when the user changes them. A
 hosted model can be updated, re-tuned or withdrawn at any time, often silently, so that the same request produces a
@@ -82,11 +88,11 @@ access; it is, in this sense, possible only with a local model.
 \paragraph{The price of locality.} These advantages have a cost. A laptop holds only small models, and it must hold them
 next to the operating system, the user's applications and every other component of the assistant. It has less memory
 bandwidth and less computation than a datacenter accelerator, and it runs on a battery. Part of the literature concludes
-that pure on-device deployment is too limited and proposes to split the work with an edge server or with the
-cloud~\cite{qu2025mobileedge,li2025collaborative}: a small local model handles easy requests and forwards hard ones, or
-drafts an answer that a larger remote model checks. Apple's combination of an on-device model with Private Cloud Compute
-is the most visible example~\cite{gunter2024apple,apple2024pcc}. These hybrid designs reduce the cost of locality but
-give back part of its benefits, since whatever is forwarded leaves the device. This thesis takes the strict position:
+that pure on-device deployment is too limited and proposes to split the work with an edge server, that is, a server close
+to the user, or with the cloud~\cite{qu2025mobileedge,li2025collaborative}: a small local model handles easy requests and
+forwards hard ones, or drafts an answer that a larger remote model checks. Apple's combination of an on-device model with
+Private Cloud Compute is the most visible example~\cite{gunter2024apple,apple2024pcc}. These hybrid designs reduce the
+cost of locality but sacrifice part of its benefits, since whatever is forwarded leaves the device. This thesis takes the strict position:
 the whole verification stays on the device, and the rest of the chapter examines what this requires.
 
 Table~\ref{tab:local-tradeoff} summarises the comparison.
@@ -127,18 +133,21 @@ preferred for modifying it be available: the parameters, the complete code used 
 information about the training data for a skilled person to build a substantially equivalent system~\cite{osi2024osaid}.
 The data themselves need not be released, but weights alone do not qualify. Most models that are commonly called open
 publish their weights and an inference recipe, but neither the training code nor a detailed description of the data.
-Openness is therefore a scale rather than a binary property. An index that scores models on the availability of their
-weights, the disclosure of their pre-training and post-training data, their methodology and their licence finds that
-no model reaches the maximum, that fully documented research models such as OLMo score high, and that some popular
-open-weight models publish little beyond the weights~\cite{aa2025openness}.
+Openness is therefore a scale rather than a binary property. A recent index scores models on five aspects: the
+availability of the weights, the disclosure of the pre-training and of the post-training data (the two phases of
+training, first on generic text and then on instructions and preferences), the methodology and the
+licence~\cite{aa2025openness}. No model reaches the maximum score; fully documented research models such as OLMo score
+high, whereas some popular open-weight models publish little beyond the weights.
 
 Licences add a further distinction. The two models fine-tuned in this thesis come from the same family but carry
 different licences: Qwen2.5-0.5B is released under the permissive Apache 2.0 licence, whereas Qwen2.5-3B is released
 under a research licence that restricts commercial use~\cite{qwen2024qwen25}. In the terminology above both are
-open-weight models, and the thesis uses this term for them. The distinction also matters for regulation: the European AI
-Act relaxes some transparency obligations for general-purpose models released under free and open licences, but not for
-models that pose systemic risk, which it presumes above $10^{25}$ floating-point operations of training
-compute~\cite{bommasani2024euaiact}.
+open-weight models, and the thesis uses this term for them. The distinction also matters for regulation. The European
+AI Act relaxes some transparency obligations for general-purpose models released under free and open licences, but not
+for models that pose systemic risk. A model is presumed to pose systemic risk when its training required more than
+$10^{25}$ floating-point operations (FLOP\footnote{A FLOP is a single arithmetic operation on floating-point numbers,
+such as an addition or a multiplication. Computing speed is measured in FLOP per second: one TFLOP/s corresponds to
+$10^{12}$ operations per second.})~\cite{bommasani2024euaiact}, far more than those used for the models of this thesis.
 
 \subsection{The gap with closed models is closing}
 \label{sec:local-gap}
@@ -162,27 +171,29 @@ the best model that fits on consumer hardware. Epoch AI tracks this quantity dir
 run on a single consumer graphics card, at most about 28 billion parameters for a card with 24\,GB and about 40 billion
 for one with 32\,GB, it finds that across four benchmarks they reach the performance of the frontier model of the time
 after six to twelve months~\cite{epoch2025consumergpu}. Three forces drive the catch-up: open developers scale their
-training compute about as fast as closed ones, distillation transfers much of the capability of a large model into a
-small one, and each new generation of graphics cards raises the size of the models that fit~\cite{epoch2025bestmodel}.
-The same trend appears from the other side: the smallest model scoring above 60\,\% on the MMLU benchmark had 540 billion
-parameters in 2022 and 3.8 billion in 2024, a reduction of 142 times~\cite{stanford2025aiindex}.
+training compute about as fast as closed ones, distillation, that is, training a small model to imitate the answers of a
+large one, transfers much of its capability, and each new generation of graphics cards raises the size of the models that
+fit~\cite{epoch2025bestmodel}. The same trend appears from the other side: the smallest model scoring above 60\,\% on the
+MMLU benchmark, a set of multiple-choice questions on 57 subjects, had 540 billion parameters in 2022 and 3.8 billion in 2024, a reduction of 142 times~\cite{stanford2025aiindex}.
 
 \subsection{Small language models}
 \label{sec:local-slm}
 
 At the low end of the scale are \emph{small language models}. Definitions vary; a survey that measures several dozen of them on
-devices places the range at 100 million to 5 billion parameters, decoder-only~\cite{lu2024slm}. Small models are trained
-on far more data than the compute-optimal recipe would suggest for their size, because the cost that matters for them is
-not the training but the inference that follows: a model of half a billion parameters may see trillions of
+devices places the range at 100 million to 5 billion parameters, with a decoder-only architecture, that is, the
+architecture of common LLMs that generate text from left to right~\cite{lu2024slm}. Small models are trained on far more
+data than would be worthwhile if the only aim were to minimise the cost of training. The reason is that, for them, the
+cost that matters is inference, repeated millions of times after training: it is therefore worth spending more once to
+obtain a small but capable model. A model of half a billion parameters can thus see trillions of
 tokens~\cite{lu2024slm}. Measured on edge devices with 4-bit weights, models between 0.1 and 3 billion parameters need
-between 0.3 and 2.5\,GB of memory, and at long context the key-value cache and the computation buffers take most of
-it~\cite{lu2024slm}. Research on models below one billion parameters argues that, on phones, an application should not use
+between 0.3 and 2.5\,GB of memory, and at long context most of it is taken by the key-value cache, which stores the
+context already read (Section~\ref{sec:local-phases}), and by the computation buffers~\cite{lu2024slm}. Research on models below one billion parameters argues that, on phones, an application should not use
 more than about a tenth of the device's memory, and shows that a carefully designed 350-million-parameter model matches a
 general 7-billion-parameter model on a narrow task such as calling an application interface~\cite{liu2024mobilellm}.
 
 Platform vendors have adopted the same idea. Apple's foundation model for its devices has about three billion parameters,
-is quantised to under four bits per weight and is specialised for each feature with small low-rank
-adapters~\cite{gunter2024apple}; Google's Gemma~3n family is designed to run on phones and laptops with a reduced memory
+is quantised to under four bits per weight and is specialised for each feature with small low-rank adapters, additional
+modules with few parameters trained on the single task (Section~\ref{sec:bg-peft})~\cite{gunter2024apple}; Google's Gemma~3n family is designed to run on phones and laptops with a reduced memory
 footprint, and is marketed explicitly for privacy and offline use~\cite{google2025gemma3n}. GroundOne follows the same
 pattern: a small open-weight model, quantised, specialised by an adapter for one task.
 
@@ -196,9 +207,11 @@ costs to run one, and why the cost depends so strongly on what the model is aske
 \label{sec:local-phases}
 
 A decoder-only language model processes a request in two phases. In the \emph{prefill} phase it reads the whole prompt at
-once: every layer computes, for every input token, the keys and values that later tokens will attend to, and stores them
-in a key-value cache. In the \emph{decode} phase it produces the output one token at a time, each new token attending to
-the cache and extending it by one position~\cite{pope2023scaling}. Prefill processes many tokens in parallel; decoding
+once. To do so it uses the attention mechanism, through which each token gathers information from the tokens that
+precede it: every layer computes, for each input token, two vectors (a \emph{key} and a \emph{value}) that later tokens
+will consult, and stores them in the \emph{key-value cache}. In the \emph{decode} phase it produces the output
+one token at a time; each new token consults the cache through attention and extends it by one
+position~\cite{pope2023scaling}. Prefill processes many tokens in parallel; decoding
 processes one. Serving systems exploit the difference in several ways, for instance by managing the cache in pages to fit
 more concurrent requests~\cite{kwon2023pagedattention} or by running the two phases on different machines suited to
 each~\cite{patel2024splitwise}.
@@ -212,7 +225,7 @@ short paragraph thus spends more time on it than on reading a document of severa
 \centering
 \includegraphics[width=0.85\textwidth]{images/locality/prefill_vs_decode_m4.png}
 \caption{Time per token when the model reads its input (prefill) and when it writes its output (decode), measured on the
-thesis machine (Apple M4, 16\,GB, MLX 8-bit, batch 1). Prefill: median over contexts of 500, 1,000 and 2,000 tokens.}
+thesis machine (Apple M4, 16\,GB, MLX 8-bit, one request at a time). Prefill: median over contexts of 500, 1,000 and 2,000 tokens.}
 \label{fig:local-prefill-decode}
 \end{figure}
 
@@ -239,7 +252,7 @@ remedy: this is where the asymmetry between the two phases weighs most.
 
 Figure~\ref{fig:local-roofline} draws the roofline of the thesis machine. Apple publishes its memory bandwidth, 120\,GB/s,
 but no peak rate of computation~\cite{apple2024m4specs}; the flat roof in the figure is therefore the rate actually reached
-during prefill, about 2.8 trillion operations per second, a lower bound of the peak. The ridge point lies at about 23
+during prefill, about 2.8 TFLOP/s, which is a lower bound of the peak. The ridge point lies at about 23
 operations per byte. Generating a token sits at about two operations per byte, an order of magnitude below the ridge,
 whereas reading a document of hundreds of tokens sits an order of magnitude above it. The two phases of the same model,
 on the same machine, live in different regimes.
@@ -264,8 +277,8 @@ it applies to every model that generates text. It is the key to comparing hardwa
 and to the consequence drawn in Section~\ref{sec:local-verification}.
 
 Memory capacity sets a second, harder limit: the weights must fit. A model needs about two bytes per parameter in the
-16-bit format used for training, one in 8 bits and half in 4 bits, plus small per-group scales
-(Figure~\ref{fig:local-memory}). A 7-billion-parameter model in 16 bits needs 14\,GB for its weights alone, beyond what most
+16-bit format used for training, one in 8 bits and half in 4 bits, plus a few small scale factors for each group of
+weights, needed to reconstruct their values (Figure~\ref{fig:local-memory}). A 7-billion-parameter model in 16 bits needs 14\,GB for its weights alone, beyond what most
 personal devices can spare~\cite{alizadeh2024flash}; in 4 bits it needs about 4\,GB. The key-value cache, the activations,
 the operating system and every other model that runs at the same time come on top. A laptop with 16\,GB can therefore
 hold a generator of 7--8 billion parameters in 4 bits next to a small verifier, but not much more.
@@ -368,13 +381,15 @@ dollars, offers much more memory at moderate bandwidth. AMD's Strix Halo process
 Desktop, lets the graphics unit use up to 96\,GB of its 128\,GB of memory; the 128\,GB configuration was priced at
 1,999 dollars at launch in August 2025, with a processor power of 55\,W~\cite{hachman2025framework}. Apple's Mac mini with
 the M5 Pro reaches 64\,GB at 307\,GB/s~\cite{apple2026macmini}. Such machines can hold models of tens of billions of
-parameters or mixture-of-experts models, whose decoding reads only the active experts, at the price of a slower
-generation than a graphics card.
+parameters or mixture-of-experts models, which are composed of many sub-networks (the experts) of which each token
+activates only a part, so that decoding reads only the weights of the active experts, at the price of a slower
+generation than on a graphics card.
 
 \paragraph{Dedicated AI machines.} Above this budget, the Mac Studio with the M3 Ultra combines up to 256\,GB with
-819\,GB/s~\cite{apple2025macstudio}, and NVIDIA's DGX Spark packs 128\,GB of unified memory, a Blackwell graphics unit
-rated at one petaflop in 4-bit arithmetic with sparsity and 273\,GB/s into a desktop box with a 240\,W power
-supply~\cite{nvidia2026dgxspark}. The two machines make opposite choices, and a direct comparison shows the cost model at
+819\,GB/s~\cite{apple2025macstudio}, whereas NVIDIA's DGX Spark is a small desktop box, with a 240\,W power supply, that
+contains 128\,GB of unified memory with 273\,GB/s of bandwidth and a Blackwell graphics unit rated at one petaflop
+($10^{15}$ operations per second) in 4-bit arithmetic, a figure that exploits sparsity, that is, the skipping of zero
+weights~\cite{nvidia2026dgxspark}. The two machines make opposite choices, and a direct comparison shows the cost model at
 work: on an 8-billion-parameter model with an 8,000-token prompt, the DGX Spark completes the prefill 3.8 times faster
 than the Mac Studio, thanks to its higher computation, while the Mac Studio generates 3.4 times faster, thanks to its
 three times higher bandwidth~\cite{exo2025spark}. The same study combines the two machines, running the prefill on the
@@ -387,17 +402,17 @@ model that fits, and unusable for any model that does not.
 
 \paragraph{Phones and mobile processors.} At the other end, phones have 6 to 16\,GB of memory and a bandwidth of a few
 tens of gigabytes per second shared by all processors~\cite{li2025collaborative,xue2024powerinfer2}. Their neural
-processing units are fast at 8-bit matrix multiplication and therefore at prefill: on a phone, a 7-billion-parameter
-model in 4 bits reads its prompt at about 770 tokens per second on the neural unit, against 37 on the graphics unit and 8
-on the processor cores~\cite{xue2024powerinfer2}. Research systems exploit this by running the prefill on the neural unit
-and the decoding elsewhere~\cite{xu2025npu}.
+processing units (NPUs) are fast at 8-bit matrix multiplication and therefore at prefill: on a phone, a
+7-billion-parameter model in 4 bits reads its prompt at about 770 tokens per second on the NPU, against 37 on the
+graphics unit and 8 on the processor cores~\cite{xue2024powerinfer2}. Research systems exploit this by running the
+prefill on the NPU and the decoding elsewhere~\cite{xu2025npu}.
 
 \subsection{The asymmetry holds on every class}
 \label{sec:local-asymmetry}
 
 The two phases respond to different properties of the hardware, and recent hardware generations make the point
 explicit. Apple reports that its M5 processor, which adds dedicated matrix units to each graphics core, reduces the time
-to the first token, which is dominated by prefill, by 3.3 to 4.1 times with respect to the M4, while generation becomes
+to first token, that is, the wait before the model starts answering, which is dominated by prefill, by 3.3 to 4.1 times with respect to the M4, while generation becomes
 only 1.19 to 1.27 times faster, in line with a memory bandwidth that grew from 120 to 153\,GB/s~\cite{apple2025m5mlx}.
 Apple itself attributes the first figure to computation and the second to bandwidth. On edge devices, a study that
 compares 18 pairs of configurations finds that slowdowns accumulate in decoding, while the time to evaluate the prompt
@@ -426,13 +441,13 @@ of the latency protocol). A System One generates no token, so both costs are zer
 \subsection{Runtimes}
 \label{sec:local-runtimes}
 
-The software for local inference has matured quickly. llama.cpp provides inference in C and C++ without dependencies,
-with integer quantisation and back ends for most consumer accelerators, and it defined the GGUF file format, which stores
-a quantised model together with its tokenizer and chat template in one file~\cite{llamacpp}. Distribution tools such as
-Ollama and LM Studio build on it and make downloading and serving a model a matter of one command. MLX is an array
-framework designed by Apple for the unified memory of its processors, with lazy evaluation and an interface close to
-NumPy~\cite{mlx2023}; its language-model package supports quantisation and LoRA fine-tuning directly on the
-device~\cite{mlxlm}, and it is the runtime used throughout this thesis.
+The software for local inference has matured quickly. llama.cpp provides inference in C and C++ without external
+dependencies, with quantisation and support for most consumer accelerators~\cite{llamacpp}. It also defined the GGUF
+format, which gathers in a single file the quantised model and everything needed to use it, such as the tokenizer and
+the conversation format. Tools such as Ollama and LM Studio build on it and reduce downloading and starting a model to a
+single command. MLX is a computing framework designed by Apple for the unified memory of its processors, with an
+interface close to NumPy~\cite{mlx2023}. Its language-model package supports quantisation and LoRA fine-tuning directly
+on the device~\cite{mlxlm}, and it is the runtime used throughout this thesis.
 
 The runtime matters as much as the chip. A comparison of five runtimes on the same Apple machine reports decoding rates
 that differ by more than an order of magnitude, with MLX and MLC-LLM at the top and PyTorch's generic Metal back end at
@@ -499,10 +514,11 @@ weights. Table~\ref{tab:local-quant} summarises the methods that shaped the fiel
 \toprule
 Method & Idea and main result & Source \\
 \midrule
-LLM.int8() & 8-bit weights and activations; the few feature dimensions with large outliers are kept in 16 bits. No loss up to
-175B parameters; saves memory but does not speed up small models & \cite{dettmers2022llmint8} \\
-GPTQ & 3--4-bit weights, quantised layer by layer with second-order information. 4-bit OPT-175B loses 0.03 perplexity;
-small models lose more; 3.2--4.5$\times$ faster decoding from bandwidth & \cite{frantar2023gptq} \\
+LLM.int8() & 8-bit weights and activations; the few dimensions with very large anomalous values (outliers) are kept in
+16 bits. No loss up to 175B parameters; saves memory but does not speed up small models & \cite{dettmers2022llmint8} \\
+GPTQ & 3--4-bit weights, quantised layer by layer by estimating how much each weight affects the error. 4-bit OPT-175B
+loses 0.03 perplexity$^{a}$; small models lose more; 3.2--4.5$\times$ faster decoding from
+bandwidth & \cite{frantar2023gptq} \\
 AWQ & 4-bit weights; the 1\,\% of channels that matter most, found from activation magnitudes, are protected by scaling.
 Robust to the calibration data; designed for on-device use & \cite{lin2024awq} \\
 GGUF k-quants & 2--8-bit block formats of llama.cpp, the de facto standard for consumer distribution & \cite{llamacpp} \\
@@ -511,6 +527,10 @@ MLX affine & 4- or 8-bit weights with a scale and a bias per group of 64; suppor
 QLoRA & 4-bit normal-float base model with 16-bit adapters, for fine-tuning on limited memory & \cite{dettmers2023qlora} \\
 \bottomrule
 \end{tabularx}
+
+\smallskip
+{\footnotesize\raggedright $^{a}$\,\emph{Perplexity} measures how well a model predicts a text: the lower it is, the less
+the model is ``surprised'' by the words it encounters.\par}
 \end{table}
 
 Two results from this literature matter for this thesis. The first is that quantisation helps the bandwidth-bound phase.
@@ -542,7 +562,7 @@ hardware show that the energy of a request grows with the number of generated to
 and task~\cite{samsi2023words,luccioni2024power}. On phones, a 3-billion-parameter model in 4 bits spends between 0.58 and
 0.76 joules per generated token, with sustained power around 14\,W and surface temperatures close to
 48\,\textdegree C~\cite{laskaridis2024melting}; a rule of thumb from work on small models puts the cost at about 0.1 joules
-per generated token for each billion parameters~\cite{liu2024mobilellm}. Moving the prefill to a phone's neural unit
+per generated token for each billion parameters~\cite{liu2024mobilellm}. Moving the prefill to a phone's NPU
 reduces its energy by 1.9 to 4.3 times with respect to the graphics unit~\cite{xu2025npu}.
 
 The distinction between the two phases also applies to power. Prefill keeps the arithmetic units busy and draws more
