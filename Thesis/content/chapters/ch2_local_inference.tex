@@ -10,7 +10,7 @@ This thesis builds a verifier that runs entirely on the user's own machine, and 
 size of the models, the way decisions are read from them, the measurements and the comparisons. This chapter explains
 why local inference matters, what makes it possible today and what it costs. It starts from the reasons for keeping a
 model on the device and from the open-weight models that make this possible. It then derives a simple cost model of
-inference on one device, which shows why reading is cheap and writing is expensive, and surveys the hardware on which
+inference on one device, which shows why reading a token costs far less than writing one, and surveys the hardware on which
 local models run, from the laptop used in this work to dedicated desktop machines. It continues with the software and
 the quantisation that bring models within reach of that hardware, and with energy. It closes by drawing the consequence
 for verification, which motivates the design of GroundOne in the following chapters.
@@ -232,7 +232,10 @@ of hundreds or thousands of tokens, so each byte of weights is used for hundreds
 the computation is the limit. During decoding, the matrix multiplies a single vector, so each weight is used for about
 two operations: the intensity is close to one and the bandwidth is the limit. For a 7-billion-parameter model in 16-bit
 precision, the linear layers reach intensities above one thousand operations per byte in prefill and about one in
-decode~\cite{yuan2024unveiled}.
+decode~\cite{yuan2024unveiled}. In datacenters this imbalance is softened: the decoding of many concurrent requests is
+grouped into batches, so that each weight read from memory serves to generate several tokens and the intensity
+rises~\cite{pope2023scaling}. A personal device serves a single user, one request at a time, and cannot rely on this
+remedy: this is where the asymmetry between the two phases weighs most.
 
 Figure~\ref{fig:local-roofline} draws the roofline of the thesis machine. Apple publishes its memory bandwidth, 120\,GB/s,
 but no peak rate of computation~\cite{apple2024m4specs}; the flat roof in the figure is therefore the rate actually reached
@@ -551,8 +554,10 @@ judge of the same size, but with an advantage smaller than in time (Section~\ref
 \section{Consequences for verification on the device}
 \label{sec:local-verification}
 
-The chapter can now be summarised in one observation: on local hardware, reading is cheap and writing is expensive, and
-the hardware trend widens the gap. This has a direct consequence for a verifier that runs next to the generator.
+The chapter can now be summarised in one observation: on a local device, which serves one request at a time, reading a
+token costs far less than writing one, fourteen to sixteen times less on the thesis machine
+(Sections~\ref{sec:local-phases}--\ref{sec:local-floor}), and recent hardware generations accelerate reading much more
+than writing (Section~\ref{sec:local-asymmetry}). This has a direct consequence for a verifier that runs next to the generator.
 
 A generative judge verifies an answer by reading the document and the answer and then writing its verdicts. It pays a
 prefill, like any method that reads the document, and then one decoding step for every token it writes. In the latency

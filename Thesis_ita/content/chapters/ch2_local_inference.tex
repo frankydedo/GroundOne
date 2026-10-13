@@ -10,7 +10,7 @@ Questa tesi costruisce un verificatore che gira interamente sulla macchina dell'
 le altre: la dimensione dei modelli, il modo in cui se ne leggono le decisioni, le misure e i confronti. Il capitolo
 spiega perché l'inferenza locale conta, che cosa la rende possibile oggi e quanto costa. Si parte dalle ragioni per
 mantenere un modello sul dispositivo e dai modelli open-weight che lo consentono. Si ricava poi un semplice modello di
-costo dell'inferenza su un singolo dispositivo, che mostra perché leggere costa poco e scrivere costa molto, e si passa
+costo dell'inferenza su un singolo dispositivo, che mostra perché leggere un token costa molto meno che scriverlo, e si passa
 in rassegna l'hardware su cui girano i modelli locali, dal laptop usato in questo lavoro alle macchine desktop dedicate.
 Seguono il software e la quantizzazione, che portano i modelli alla portata di quell'hardware, e l'energia. Il capitolo
 si chiude traendo la conseguenza per la verifica, da cui discende il progetto di GroundOne descritto nei capitoli
@@ -269,7 +269,10 @@ moltiplica gli stati nascosti di centinaia o migliaia di token, quindi ogni byte
 operazioni: l'intensità è alta e il limite è il calcolo. Durante il decoding la matrice moltiplica un singolo vettore,
 quindi ogni peso serve per circa due operazioni: l'intensità è vicina a uno e il limite è la banda. Per un modello da 7
 miliardi di parametri a 16 bit, gli strati lineari raggiungono intensità superiori a mille operazioni per byte nel
-prefill e di circa una nel decoding~\cite{yuan2024unveiled}.
+prefill e di circa una nel decoding~\cite{yuan2024unveiled}. Nei datacenter questo squilibrio si attenua: il decoding di
+molte richieste contemporanee viene raggruppato in batch, così che ogni peso letto dalla memoria serve a generare più
+token e l'intensità sale~\cite{pope2023scaling}. Un dispositivo personale serve invece un solo utente, una richiesta alla
+volta, e non può contare su questo rimedio: è qui che l'asimmetria tra le due fasi pesa di più.
 
 La Figura~\ref{fig:local-roofline} traccia il roofline della macchina della tesi. Apple pubblica la banda di memoria,
 120\,GB/s, ma non la velocità di calcolo di picco~\cite{apple2024m4specs}; il tetto piatto della figura è quindi la
@@ -604,8 +607,10 @@ di qualunque giudice generativo della stessa dimensione, ma con un vantaggio inf
 \section{Conseguenze per la verifica sul dispositivo}
 \label{sec:local-verification}
 
-Il capitolo si può ora riassumere in un'unica osservazione: sull'hardware locale leggere costa poco e scrivere costa
-molto, e l'evoluzione dell'hardware allarga il divario. Ne discende una conseguenza diretta per un verificatore che gira
+Il capitolo si può ora riassumere in un'unica osservazione: su un dispositivo locale, che serve una richiesta alla
+volta, leggere un token costa molto meno che scriverne uno, quattordici-sedici volte meno sulla macchina della tesi
+(Sezioni~\ref{sec:local-phases}--\ref{sec:local-floor}), e le generazioni più recenti di hardware accelerano la lettura
+molto più della scrittura (Sezione~\ref{sec:local-asymmetry}). Ne discende una conseguenza diretta per un verificatore che gira
 accanto al generatore.
 
 Un giudice generativo verifica una risposta leggendo il documento e la risposta e poi scrivendo i propri verdetti. Paga
