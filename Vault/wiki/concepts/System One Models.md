@@ -81,3 +81,6 @@ Within three weeks of Jev, established organisations released open-weight decisi
 
 ## Terminology note (ingest 2026-10-11)
 - In the edge-inference literature "System 1 / System 2" also names **small-model / large-model collaboration** (e.g. FS-GEN: the small model is System 1, the LLM System 2; [[Li 2025 - Collaborative Inference between Edge SLMs and Cloud LLMs, A Survey (arXiv 2507.16731)|Li 2025]]). That is a different sense from System One models as single-pass typed deciders; do not conflate them ([[Edge-Cloud Collaborative Inference]]).
+
+## colibri serves System One natively (ingest 2026-10-13)
+- The colibri engine exposes a Jev-compatible `/v1/systemone` endpoint: any chat model it runs answers by scoring options, and Laya, GLiNER2.5-Decide and Clef run natively. Self-reported: four questions about one document 5.7× faster than generating the answers on the same CPU (Qwen3.6) ([[JustVugg 2026 - Colibri, frontier MoE models with experts streamed from disk (GitHub README)]]). With llama.cpp (PR 29818), the System One interface is now served by two independent local runtimes.

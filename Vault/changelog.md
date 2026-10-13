@@ -114,3 +114,8 @@
 - **Updated concepts (appended):** [[Prefill and Decode]] (roofline view, M4 ridge ≈ 23 FLOP/byte, AWQ 4090 roofline, phones, speculative decoding), [[Quantization]] (classic methods, small-model fragility, thesis position), [[Energy of LLM Inference]] (phones, rules of thumb), [[Privacy and Data Sovereignty]] (GDPR articles, PCC), [[Small Language Models]] (MobileLLM), [[Local Inference Hardware]] (current Apple/NVIDIA specs, thesis figures).
 - **Thesis:** these sources and the first batch support the new Ch. 2 "Local Inference of Language Models" (≈ 17 pages, 7 figures from `groundone figures locality`, 3 tables); 36 BibTeX entries added.
 - Raw files renamed `_ingested` (15 files); `index.md` updated. All `raw/` references and wiki links checked.
+
+## [2026-10-13] ingest | Specialised local inference engines (ds4, colibri)
+- **Sources (2):** GitHub READMEs of DwarfStar/ds4 (antirez, MIT) and colibri (JustVugg, Apache-2.0), suggested by the author.
+- **Updated:** [[On-Device Inference]], [[System One Models]] (colibri serves `/v1/systemone`; 5.7× reading vs generating, self-reported), [[Local Inference Hardware]] (SSD as a fourth tier).
+- **Thesis:** new Ch. 2 §2.5.2 "Specialised inference engines" (both languages); bib entries antirez2026ds4, justvugg2026colibri.

@@ -471,6 +471,37 @@ ma la dispersione è abbastanza ampia da resistere all'incertezza. Sugli smartph
 dispositivi rileva grandi differenze di velocità, energia e comportamento termico sia tra runtime sia tra
 dispositivi~\cite{laskaridis2024melting}.
 
+\subsection{Motori di inferenza specializzati}
+\label{sec:local-engines}
+
+Accanto ai runtime generali è comparsa, nel 2026, una seconda famiglia di software: motori di inferenza scritti per pochi
+modelli, che rinunciano alla generalità per spingere più in là i limiti di memoria descritti nella
+Sezione~\ref{sec:bg-inference}. DwarfStar (ds4), sviluppato da Salvatore Sanfilippo, è un motore nativo ottimizzato per
+alcuni grandi modelli open-weight, a partire da DeepSeek V4 Flash, e pensato per Mac con almeno 96\,GB di memoria, per il
+DGX Spark e per le macchine Strix Halo~\cite{antirez2026ds4}. Due sue scelte riguardano da vicino questa tesi. La prima è
+una KV cache salvata su disco: una conversazione già letta si può riprendere senza rifare il prefill, che su modelli di
+queste dimensioni è la parte più costosa di una richiesta lunga. La seconda è la lettura dei pesi direttamente dall'SSD,
+che consente di eseguire modelli più grandi della memoria disponibile, al prezzo della velocità.
+
+Colibri porta questa seconda idea all'estremo~\cite{justvugg2026colibri}. Sfrutta il fatto che un modello
+mixture-of-experts usa per ogni token solo una piccola parte dei propri pesi: tiene in memoria la parte sempre attiva e
+legge gli esperti dal disco quando il router li richiede. In questo modo GLM-5.2, un modello da 744 miliardi di
+parametri, gira su un laptop con 25\,GB di memoria. Il prezzo è quello previsto dal modello di costo: la banda di un SSD
+è di pochi gigabyte al secondo, molto inferiore a quella della memoria, e secondo gli autori la generazione scende a
+0.05--0.1 token al secondo a freddo su quel laptop e a 1.83 token al secondo su una macchina Strix Halo da
+128\,GB~\cite{justvugg2026colibri}. È la stessa idea di LLM in a flash~\cite{alizadeh2024flash}, applicata ai modelli a
+esperti: la capacità di memoria smette di essere un limite rigido e si trasforma in un limite di banda, ancora più severo.
+
+Colibri interessa questa tesi anche per un secondo motivo. Espone la stessa interfaccia System One di Jev, con la quale
+qualunque modello che esegue risponde a domande chiuse leggendo la probabilità di ciascuna opzione invece di generare la
+risposta, e include in modo nativo tre decision model: Laya, GLiNER2.5-Decide e Clef~\cite{justvugg2026colibri}. Gli
+autori riportano che, con Qwen3.6, quattro domande sullo stesso documento ricevono risposta 5.7 volte più velocemente che
+generando le stesse risposte sulla stessa CPU. Si tratta di una misura dichiarata dal progetto e non verificata in questa
+tesi, ottenuta con modello e hardware diversi, ma va nella stessa direzione dei risultati del
+Capitolo~\ref{sec:results}. Che un motore pensato per eseguire modelli enormi su hardware modesto adotti la lettura delle
+decisioni come modalità di prima classe conferma che l'idea del System One si sta diffondendo proprio dove generare costa
+di più.
+
 \subsection{Quantizzazione}
 \label{sec:local-quantisation}
 

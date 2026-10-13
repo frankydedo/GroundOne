@@ -424,6 +424,36 @@ indicative, but the spread is large enough to survive the uncertainty. On phones
 devices finds large differences in speed, energy and thermal behaviour between runtimes and between
 devices~\cite{laskaridis2024melting}.
 
+\subsection{Specialised inference engines}
+\label{sec:local-engines}
+
+Next to the general runtimes, a second family of software appeared in 2026: inference engines written for a few models,
+which give up generality to push further the memory limits described in Section~\ref{sec:bg-inference}. DwarfStar (ds4),
+developed by Salvatore Sanfilippo, is a native engine optimised for a few large open-weight models, starting from DeepSeek
+V4 Flash, and aimed at Macs with at least 96\,GB of memory, the DGX Spark and Strix Halo machines~\cite{antirez2026ds4}.
+Two of its choices concern this thesis directly. The first is a key-value cache saved on disk: a conversation that has
+already been read can be resumed without repeating the prefill, which for models of this size is the most expensive part
+of a long request. The second is reading the weights directly from the SSD, which makes it possible to run models larger
+than the available memory, at the price of speed.
+
+Colibri takes this second idea to the extreme~\cite{justvugg2026colibri}. It exploits the fact that a mixture-of-experts
+model uses only a small part of its weights for each token: it keeps the always-active part in memory and reads the experts
+from disk when the router requests them. In this way GLM-5.2, a model of 744 billion parameters, runs on a laptop with
+25\,GB of memory. The price is the one predicted by the cost model: the bandwidth of an SSD is a few gigabytes per second,
+far below that of memory, and according to the authors generation drops to 0.05--0.1 tokens per second when cold on that
+laptop and to 1.83 tokens per second on a 128\,GB Strix Halo machine~\cite{justvugg2026colibri}. It is the idea of LLM in a
+flash~\cite{alizadeh2024flash} applied to expert models: memory capacity stops being a hard limit and turns into a
+bandwidth limit, an even stricter one.
+
+Colibri matters to this thesis for a second reason. It exposes the same System One interface as Jev, through which any
+model it runs answers closed questions by reading the probability of each option instead of generating the answer, and it
+includes three decision models natively: Laya, GLiNER2.5-Decide and Clef~\cite{justvugg2026colibri}. The authors report
+that, with Qwen3.6, four questions about the same document are answered 5.7 times faster than by generating the same
+answers on the same CPU. This is a figure reported by the project and not verified in this thesis, obtained with a
+different model and hardware, but it points in the same direction as the results of Chapter~\ref{sec:results}. That an
+engine designed to run huge models on modest hardware adopts the reading of decisions as a first-class mode confirms that
+the System One idea is spreading precisely where generation costs the most.
+
 \subsection{Quantisation}
 \label{sec:local-quantisation}
 
