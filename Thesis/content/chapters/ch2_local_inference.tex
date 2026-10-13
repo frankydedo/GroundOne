@@ -457,7 +457,19 @@ from disk when the router requests them. In this way GLM-5.2, a model of 744 bil
 far below that of memory, and according to the authors generation drops to 0.05--0.1 tokens per second when cold on that
 laptop and to 1.83 tokens per second on a 128\,GB Strix Halo machine~\cite{justvugg2026colibri}. It is the idea of LLM in a
 flash~\cite{alizadeh2024flash} applied to expert models: memory capacity stops being a hard limit and turns into a
-bandwidth limit, an even stricter one.
+bandwidth limit, an even stricter one. Figure~\ref{fig:local-ssd}
+illustrates the mechanism.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/diagrams/ssd_streaming_tikz.pdf}
+\caption{Streaming experts from the SSD in an engine such as Colibri. Memory holds the part of the model used by every
+token (attention, router, shared experts) and a cache of recently used experts; every expert is stored on the SSD. For
+each token the router chooses a few experts: those already cached are used at once, the missing ones are read from disk,
+at a bandwidth of a few gigabytes per second. For example, GLM-5.2 keeps about 10\,GB resident and leaves about 429\,GB of
+weights on disk~\cite{justvugg2026colibri}. The diagram is not to scale.}
+\label{fig:local-ssd}
+\end{figure}
 
 Colibri matters to this thesis for a second reason. It exposes the same System One interface as Jev, through which any
 model it runs answers closed questions by reading the probability of each option instead of generating the answer, and it
