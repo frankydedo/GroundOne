@@ -113,7 +113,7 @@ Numbers are from `thesis_notes.md`; T1 = RAGTruth test, T2 = LLM-AggreFact, T3 =
 | H2b speed vs generative judges | At K ≥ 14: 0.5B 0.41 s vs 0.80 s (terse) and 2.51 s (verbose); 3B 2.57 s vs 4.44 s and 15.86 s. The gain grows with K | **Supported** |
 | H2c format reliability | 0.5B judges: 23 % (terse) and 97 % (verbose) unparsable verdicts; 3B: 0.1 % and 7.6 %. System One: 0 % | **Supported** |
 | H3 calibration | Temperature + bias on dev: T1 binary ECE 0.30 → 0.019 (0.5B), 0.18 → 0.019 (3B); AURC 0.015 / 0.010. Does not transfer to T3 | **Supported in domain** |
-| H4 on-device cost | Training peak 2.6 GB (0.5B) and 5.9 GB (3B); verification 0.33 s / 1.99 s median per answer (3B at K 5–8: 1.93 s, above the provisional < 1 s); energy 5.5 J / 33 J per answer. Co-resident memory with a generator not yet measured | **Partly supported** (0.5B yes; 3B slower than the target; co-residence pending) |
+| H4 on-device cost | Training peak 2.6 GB (0.5B) and 5.9 GB (3B); verification 0.33 s / 1.99 s median per answer (3B at K 5–8: 1.93 s, above the provisional < 1 s); energy 5.5 J / 33 J per answer. Co-residence (2026-10-18): 3B 4-bit generator + GroundOne in one process, MLX peak 6.1 GB (3B) / 3.3 GB (0.5B), below the 11 GB target; offline run bit-identical in a network-denying sandbox | **Supported for memory and independence**; latency: 0.5B within target, 3B slower |
 | H5 beyond a binary score | Three-way 0.769 / 0.832 on T1; contradicted recall low outside data-to-text (QA and Summary 0.03 → 0.30 with the 3B) | **Partly supported** |
 
 ---

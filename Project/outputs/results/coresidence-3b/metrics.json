@@ -1,0 +1,32 @@
+{
+  "verifier": "g1-3b-b1/best",
+  "generator": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+  "answers": 30,
+  "max_tokens": 300,
+  "memory": {
+    "start_rss_gb": 0.134,
+    "verifier_load_s": 4.44,
+    "after_verifier": {
+      "mlx_active_gb": 3.279,
+      "peak_rss_gb": 2.854
+    },
+    "generator_load_s": 0.99,
+    "after_generator": {
+      "mlx_active_gb": 5.015,
+      "peak_rss_gb": 2.854
+    },
+    "peak_during_loop": {
+      "mlx_peak_gb": 6.145,
+      "peak_rss_gb": 2.854
+    }
+  },
+  "median": {
+    "generation_s": 4.753,
+    "verification_s": 1.684,
+    "generated_tokens": 169,
+    "K": 7,
+    "prompt_tokens": 506
+  },
+  "verification_share_of_total": 0.2986,
+  "protocol": "one process, generator 4-bit + GroundOne design b calibrated; greedy generation; T1 documents, stratified by task (seed 0); MLX memory from mx.get_*_memory, RSS from getrusage"
+}

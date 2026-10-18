@@ -1,0 +1,223 @@
+{
+  "all": {
+    "n": 17284,
+    "macro_recall": 0.7683683295887479,
+    "recall": {
+      "supported": 0.8234995236583043,
+      "contradicted": 0.6763698630136986,
+      "not_mentioned": 0.8052356020942408
+    },
+    "predicted_share": {
+      "supported": 0.7654,
+      "contradicted": 0.066,
+      "not_mentioned": 0.1686
+    },
+    "binary": {
+      "n": 17284,
+      "pos_rate": 0.911,
+      "bacc": 0.8127249984575897,
+      "auroc": 0.9043877085065322,
+      "ece15": 0.3058319125137605,
+      "brier": 0.1731155298908793,
+      "nll": 0.533097838831848
+    },
+    "lenient_auroc": 0.9074397096218522,
+    "lenient_bacc": 0.8044212943975064
+  },
+  "by_task": {
+    "Data2txt": {
+      "n": 7870,
+      "macro_recall": 0.811750243462329,
+      "recall": {
+        "supported": 0.7819440438419383,
+        "contradicted": 0.8463251670378619,
+        "not_mentioned": 0.8069815195071869
+      },
+      "predicted_share": {
+        "supported": 0.7003,
+        "contradicted": 0.1205,
+        "not_mentioned": 0.1793
+      },
+      "binary": {
+        "n": 7870,
+        "pos_rate": 0.8811,
+        "bacc": 0.8241085361614637,
+        "auroc": 0.9293825606019146,
+        "ece15": 0.3095465742260228,
+        "brier": 0.18394396434396082,
+        "nll": 0.5662915198958597
+      },
+      "lenient_auroc": 0.950895985599165,
+      "lenient_bacc": 0.8831933935749059
+    },
+    "QA": {
+      "n": 4876,
+      "macro_recall": 0.6004134379696598,
+      "recall": {
+        "supported": 0.8463748894783377,
+        "contradicted": 0.06666666666666667,
+        "not_mentioned": 0.8881987577639752
+      },
+      "predicted_share": {
+        "supported": 0.7972,
+        "contradicted": 0.0055,
+        "not_mentioned": 0.1973
+      },
+      "binary": {
+        "n": 4876,
+        "pos_rate": 0.9278,
+        "bacc": 0.8329138533879914,
+        "auroc": 0.9148465130415564,
+        "ece15": 0.2786144968705535,
+        "brier": 0.15059812647073498,
+        "nll": 0.47265464685548964
+      },
+      "lenient_auroc": 0.6668695831613702,
+      "lenient_bacc": 0.4998968221213372
+    },
+    "Summary": {
+      "n": 4538,
+      "macro_recall": 0.5356070804329477,
+      "recall": {
+        "supported": 0.8665733613249359,
+        "contradicted": 0.12380952380952381,
+        "not_mentioned": 0.6164383561643836
+      },
+      "predicted_share": {
+        "supported": 0.8444,
+        "contradicted": 0.0364,
+        "not_mentioned": 0.1192
+      },
+      "binary": {
+        "n": 4538,
+        "pos_rate": 0.9447,
+        "bacc": 0.7150251338940947,
+        "auroc": 0.7716802489133738,
+        "ece15": 0.32863440942887134,
+        "brier": 0.17853092872976709,
+        "nll": 0.5404770221952138
+      },
+      "lenient_auroc": 0.692257205160431,
+      "lenient_bacc": 0.49909767651703135
+    }
+  },
+  "by_K_band": {
+    "1-4": {
+      "n": 2434,
+      "macro_recall": 0.6157099655782711,
+      "recall": {
+        "supported": 0.8415276558384548,
+        "contradicted": 0.19607843137254902,
+        "not_mentioned": 0.8095238095238095
+      },
+      "predicted_share": {
+        "supported": 0.8069,
+        "contradicted": 0.0304,
+        "not_mentioned": 0.1627
+      },
+      "binary": {
+        "n": 2434,
+        "pos_rate": 0.9359,
+        "bacc": 0.766444924697778,
+        "auroc": 0.8583158866301974,
+        "ece15": 0.3415518880023741,
+        "brier": 0.18615374496825923,
+        "nll": 0.5605100172782778
+      },
+      "lenient_auroc": 0.6967490311273481,
+      "lenient_bacc": 0.5292019451506997
+    },
+    "5-8": {
+      "n": 8012,
+      "macro_recall": 0.758833817643063,
+      "recall": {
+        "supported": 0.811965811965812,
+        "contradicted": 0.6701030927835051,
+        "not_mentioned": 0.7944325481798715
+      },
+      "predicted_share": {
+        "supported": 0.7522,
+        "contradicted": 0.0628,
+        "not_mentioned": 0.185
+      },
+      "binary": {
+        "n": 8012,
+        "pos_rate": 0.9054,
+        "bacc": 0.8017836397060161,
+        "auroc": 0.8980276917548174,
+        "ece15": 0.3172664851213682,
+        "brier": 0.1825034239014698,
+        "nll": 0.5562242717021989
+      },
+      "lenient_auroc": 0.9129005510476849,
+      "lenient_bacc": 0.8035535699264424
+    },
+    "9-13": {
+      "n": 5201,
+      "macro_recall": 0.8197088474730206,
+      "recall": {
+        "supported": 0.8221041445270988,
+        "contradicted": 0.8181818181818182,
+        "not_mentioned": 0.8188405797101449
+      },
+      "predicted_share": {
+        "supported": 0.7539,
+        "contradicted": 0.0892,
+        "not_mentioned": 0.1569
+      },
+      "binary": {
+        "n": 5201,
+        "pos_rate": 0.9046,
+        "bacc": 0.8390610537862946,
+        "auroc": 0.9254612886085495,
+        "ece15": 0.2892856993251015,
+        "brier": 0.16392971134056694,
+        "nll": 0.5145249497097308
+      },
+      "lenient_auroc": 0.9482396743990802,
+      "lenient_bacc": 0.877715318209195
+    },
+    ">=14": {
+      "n": 1637,
+      "macro_recall": 0.7079101208169852,
+      "recall": {
+        "supported": 0.8561007957559682,
+        "contradicted": 0.45454545454545453,
+        "not_mentioned": 0.8130841121495327
+      },
+      "predicted_share": {
+        "supported": 0.8051,
+        "contradicted": 0.0605,
+        "not_mentioned": 0.1344
+      },
+      "binary": {
+        "n": 1637,
+        "pos_rate": 0.9212,
+        "bacc": 0.8293108588818292,
+        "auroc": 0.9073160199864289,
+        "ece15": 0.24932649939389298,
+        "brier": 0.13696685546753234,
+        "nll": 0.4381603762956676
+      },
+      "lenient_auroc": 0.7837883478750352,
+      "lenient_bacc": 0.7028145229383619
+    }
+  },
+  "baseline_word_overlap_auroc": 0.737294696935463,
+  "n_answers": 2647,
+  "design": "b",
+  "model": {
+    "name": "groundone-0.5b-best-on-Qwen2.5-0.5B-Instruct",
+    "base_model": "Qwen/Qwen2.5-0.5B-Instruct",
+    "adapter": "/Users/francescodedominicis/Desktop/THESIS/Project/outputs/models/g1-05b-b1/best",
+    "adapter_sha256": "0235fc66605dbf474806e150067419eea7258548a582b73368eb87b259b93245",
+    "prompt_version": "groundone-v1",
+    "runtime": "mlx",
+    "load_seconds": 0.53,
+    "fingerprint": "7f396e21ee5bc736"
+  },
+  "calibrated": false,
+  "test_file": "test_ragtruth",
+  "limit": 0,
+  "wall_minutes": 15.3
+}

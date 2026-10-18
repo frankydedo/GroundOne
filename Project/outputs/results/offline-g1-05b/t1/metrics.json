@@ -1,0 +1,223 @@
+{
+  "all": {
+    "n": 17284,
+    "macro_recall": 0.7687182035075879,
+    "recall": {
+      "supported": 0.8252143537630994,
+      "contradicted": 0.6746575342465754,
+      "not_mentioned": 0.806282722513089
+    },
+    "predicted_share": {
+      "supported": 0.7672,
+      "contradicted": 0.0665,
+      "not_mentioned": 0.1663
+    },
+    "binary": {
+      "n": 17284,
+      "pos_rate": 0.911,
+      "bacc": 0.815228861705326,
+      "auroc": 0.9047355607182452,
+      "ece15": 0.3005036060183736,
+      "brier": 0.16937535467508225,
+      "nll": 0.523423535514618
+    },
+    "lenient_auroc": 0.9079803235993765,
+    "lenient_bacc": 0.8050379378229842
+  },
+  "by_task": {
+    "Data2txt": {
+      "n": 7870,
+      "macro_recall": 0.8118250820775127,
+      "recall": {
+        "supported": 0.7843957311796943,
+        "contradicted": 0.844097995545657,
+        "not_mentioned": 0.8069815195071869
+      },
+      "predicted_share": {
+        "supported": 0.7029,
+        "contradicted": 0.1211,
+        "not_mentioned": 0.176
+      },
+      "binary": {
+        "n": 7870,
+        "pos_rate": 0.8811,
+        "bacc": 0.8295593495694448,
+        "auroc": 0.9287813486868868,
+        "ece15": 0.3033678106132034,
+        "brier": 0.17973100960944025,
+        "nll": 0.5554457896188156
+      },
+      "lenient_auroc": 0.9511281264358743,
+      "lenient_bacc": 0.8839027211347801
+    },
+    "QA": {
+      "n": 4876,
+      "macro_recall": 0.5886355357119974,
+      "recall": {
+        "supported": 0.8474801061007957,
+        "contradicted": 0.03333333333333333,
+        "not_mentioned": 0.8850931677018633
+      },
+      "predicted_share": {
+        "supported": 0.7982,
+        "contradicted": 0.0051,
+        "not_mentioned": 0.1967
+      },
+      "binary": {
+        "n": 4876,
+        "pos_rate": 0.9278,
+        "bacc": 0.8315260529700186,
+        "auroc": 0.9155140387629612,
+        "ece15": 0.2732294531239894,
+        "brier": 0.1467265435622173,
+        "nll": 0.46230743891719206
+      },
+      "lenient_auroc": 0.6694868620167836,
+      "lenient_bacc": 0.5
+    },
+    "Summary": {
+      "n": 4538,
+      "macro_recall": 0.5437366659104247,
+      "recall": {
+        "supported": 0.867739678096571,
+        "contradicted": 0.13333333333333333,
+        "not_mentioned": 0.6301369863013698
+      },
+      "predicted_share": {
+        "supported": 0.8453,
+        "contradicted": 0.0379,
+        "not_mentioned": 0.1168
+      },
+      "binary": {
+        "n": 4538,
+        "pos_rate": 0.9447,
+        "bacc": 0.7154823672420185,
+        "auroc": 0.7748650836355999,
+        "ece15": 0.3248419663867534,
+        "brier": 0.17575186385378042,
+        "nll": 0.5335572832468817
+      },
+      "lenient_auroc": 0.6939565810533552,
+      "lenient_bacc": 0.4987593052109181
+    }
+  },
+  "by_K_band": {
+    "1-4": {
+      "n": 2434,
+      "macro_recall": 0.6058530875036582,
+      "recall": {
+        "supported": 0.8410886742756805,
+        "contradicted": 0.17647058823529413,
+        "not_mentioned": 0.8
+      },
+      "predicted_share": {
+        "supported": 0.8069,
+        "contradicted": 0.0329,
+        "not_mentioned": 0.1602
+      },
+      "binary": {
+        "n": 2434,
+        "pos_rate": 0.9359,
+        "bacc": 0.7710542311069088,
+        "auroc": 0.8569342203012089,
+        "ece15": 0.33688646876554995,
+        "brier": 0.18288559277134886,
+        "nll": 0.5523005233668482
+      },
+      "lenient_auroc": 0.7019616071355105,
+      "lenient_bacc": 0.5289921255955172
+    },
+    "5-8": {
+      "n": 8012,
+      "macro_recall": 0.7576638412792311,
+      "recall": {
+        "supported": 0.8140336366142817,
+        "contradicted": 0.6666666666666666,
+        "not_mentioned": 0.7922912205567452
+      },
+      "predicted_share": {
+        "supported": 0.7545,
+        "contradicted": 0.0624,
+        "not_mentioned": 0.1831
+      },
+      "binary": {
+        "n": 8012,
+        "pos_rate": 0.9054,
+        "bacc": 0.8033200497878343,
+        "auroc": 0.8985635620561998,
+        "ece15": 0.311867442561261,
+        "brier": 0.17864740122479772,
+        "nll": 0.5461023701975947
+      },
+      "lenient_auroc": 0.9126760105767685,
+      "lenient_bacc": 0.8034240530244867
+    },
+    "9-13": {
+      "n": 5201,
+      "macro_recall": 0.8242530419007802,
+      "recall": {
+        "supported": 0.8248671625929862,
+        "contradicted": 0.8181818181818182,
+        "not_mentioned": 0.8297101449275363
+      },
+      "predicted_share": {
+        "supported": 0.7562,
+        "contradicted": 0.0896,
+        "not_mentioned": 0.1542
+      },
+      "binary": {
+        "n": 5201,
+        "pos_rate": 0.9046,
+        "bacc": 0.8431539456994961,
+        "auroc": 0.9257250351376367,
+        "ece15": 0.2838787970720981,
+        "brier": 0.16010891198134164,
+        "nll": 0.5048399660131938
+      },
+      "lenient_auroc": 0.9487575514226789,
+      "lenient_bacc": 0.8774141738606706
+    },
+    ">=14": {
+      "n": 1637,
+      "macro_recall": 0.7230616359685004,
+      "recall": {
+        "supported": 0.8561007957559682,
+        "contradicted": 0.5,
+        "not_mentioned": 0.8130841121495327
+      },
+      "predicted_share": {
+        "supported": 0.8051,
+        "contradicted": 0.0635,
+        "not_mentioned": 0.1313
+      },
+      "binary": {
+        "n": 1637,
+        "pos_rate": 0.9212,
+        "bacc": 0.8287505397569552,
+        "auroc": 0.9080613986387845,
+        "ece15": 0.24360848385669787,
+        "brier": 0.13334799485071558,
+        "nll": 0.4285327188161259
+      },
+      "lenient_auroc": 0.7822122150295524,
+      "lenient_bacc": 0.7249226006191951
+    }
+  },
+  "baseline_word_overlap_auroc": 0.737294696935463,
+  "n_answers": 2647,
+  "design": "b",
+  "model": {
+    "name": "groundone-0.5b-best",
+    "base_model": "lmstudio-community/Qwen2.5-0.5B-Instruct-MLX-8bit",
+    "adapter": "/Users/francescodedominicis/Desktop/THESIS/Project/outputs/models/g1-05b-b1/best",
+    "adapter_sha256": "0235fc66605dbf474806e150067419eea7258548a582b73368eb87b259b93245",
+    "prompt_version": "groundone-v1",
+    "runtime": "mlx",
+    "load_seconds": 0.48,
+    "fingerprint": "69752a9099c176cd"
+  },
+  "calibrated": false,
+  "test_file": "test_ragtruth",
+  "limit": 0,
+  "wall_minutes": 14.53
+}

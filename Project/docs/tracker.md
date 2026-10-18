@@ -105,9 +105,9 @@ Chapters renumbered on 2026-10-11 after the new Ch. 2. Italian version (`Thesis_
 5. [x] First draft of the new thesis chapters from `thesis_notes.md` (Ch. 3 method, Ch. 5 setup, Ch. 6 results)
 
 **Remaining experiment items before the freeze (2026-10-30)**, in priority order (2026-10-18; GPU runs only with the author's go-ahead, under the guard):
-1. [ ] 🟡 running (queue_day8, started 21:05) **Co-residence (RQ4, H4 still "partly supported")**: one Python process with the 3B 4-bit generator + GroundOne 3B (and 0.5B); RAG-style queries from T1 (question + document → answer → verification); peak memory, generation vs verification time. No demo needed; gives the demo chapter its reference numbers. ≈ 1 h GPU
-2. [ ] **Offline proof** (locality pillar): a subset evaluation with `HF_HUB_OFFLINE=1` and Wi-Fi off; report that it completes with identical predictions. ≈ 30 min
-3. [ ] **8-bit vs bf16** (Ch. 2 quantisation section, measured instead of cited): 0.5B with the bf16 base (cached) and the same adapter: probability differences and T1 metrics. The 3B needs a ≈ 6 GB bf16 download (ask). ≈ 1–2 h
+1. [x] (2026-10-18, queue_day8: MLX peak 6.1 GB with the 3B verifier, 3.3 GB with the 0.5B; verification 30 % / 6.7 % of the time) **Co-residence (RQ4, H4 still "partly supported")**: one Python process with the 3B 4-bit generator + GroundOne 3B (and 0.5B); RAG-style queries from T1 (question + document → answer → verification); peak memory, generation vs verification time. No demo needed; gives the demo chapter its reference numbers. ≈ 1 h GPU
+2. [x] (2026-10-18: bit-identical T1 predictions inside a network-denying sandbox) **Offline proof** (locality pillar): a subset evaluation with `HF_HUB_OFFLINE=1` and Wi-Fi off; report that it completes with identical predictions. ≈ 30 min
+3. [x] (2026-10-18: mean |Δp| 0.011, argmax agreement 98.3 %, balanced accuracy 0.7687 vs 0.7684) **8-bit vs bf16** (Ch. 2 quantisation section, measured instead of cited): 0.5B with the bf16 base (cached) and the same adapter: probability differences and T1 metrics. The 3B needs a ≈ 6 GB bf16 download (ask). ≈ 1–2 h
 4. [x] ~~Seed 4321 re-run~~: not done (author, 2026-10-18)
 5. [x] ~~A3–A5~~: cut, not mentioned in the thesis (D29, 2026-10-18)
 6. [ ] Desk items (no GPU): licence table; hosted-judge cost comparison; Ch. 6 sentence that every baseline ran on the laptop; Italian figure labels for Ch. 3–9; git tag per reported experiment and reproducibility notes at the freeze
@@ -130,9 +130,9 @@ Chapters renumbered on 2026-10-11 after the new Ch. 2. Italian version (`Thesis_
 - [x] Thesis: show one real output example per system (GroundOne JSON, terse and verbose judge text, encoders, Rizzo-Flow) on the same answer (author request, 2026-10-09)
 - [ ] **Pillar "full locality"** (all items approved by the author, 2026-10-08):
    - [x] overview of local inference: became the whole Ch. 2 (2026-10-11), revised 2026-10-12/13
-   - [ ] proof of independence: full evaluation with the network disabled (`HF_HUB_OFFLINE=1`, Wi-Fi off); report that it completes
+   - [x] proof of independence (2026-10-18): full T1 inside a sandbox that denies all network access, predictions bit-identical
    - [x] energy per verification with `powermetrics` (2026-10-10): GroundOne 5.5 J / 33 J per answer vs terse 8.9 / 43 and verbose 22.5 / 112
-   - [ ] co-residence: peak memory of generator (3B) + GroundOne verifier + retriever running together, against the 16 GB budget (measured in the demo's measurement mode, D28)
+   - [x] co-residence (2026-10-18): generator 3B 4-bit + GroundOne in one process, MLX peak 6.1 GB (3B verifier) / 3.3 GB (0.5B); retriever to measure in the demo
    - [ ] licences as part of independence: one table (models, datasets, baselines) with licence and allowed use
    - [ ] cost comparison with a hosted LLM judge for N answers (provider prices on a stated date, cited)
    - [ ] state in Ch. 6 (setup) that every baseline also ran on the same laptop
@@ -186,3 +186,4 @@ Add one line per significant event (date, what happened, impact on the plan).
 - 2026-10-18: demo decided (D28): native macOS app in Swift/SwiftUI with MLX Swift, GroundOne in-process with a conformance test, verify-and-revise loop and policies; spec in `demo_architecture.md`; 31 demo sources saved in `Vault/raw/demo/` and ingested (MLX Swift ecosystem, alternatives, app components, verify-and-revise and guardrails papers)
 - 2026-10-18: demo details decided by the author (GroundOne Studio provisional, 3B 4-bit generator, hybrid retrieval, own thesis chapter); remaining experiment items listed and prioritised (co-residence, offline proof, 8-bit vs bf16; optional seed re-run; A3–A5 to decide)
 - 2026-10-18: Ch. 3–9 of the Italian thesis revised (clarity, footnotes, 12 TikZ diagrams, 6 more plots, Italian figure labels; 127 pages). D29: A3–A5 cut and not cited; seed re-run and 3B bf16 dropped. queue_day8 started 21:05 (offline proof in a network-denying sandbox, 8-bit vs bf16 on the 0.5B, co-residence)
+- 2026-10-18 21:44: queue_day8 done (39 min, no guard intervention). Offline proof: T1 predictions bit-identical inside a network-denying sandbox. 8-bit vs bf16 (0.5B): mean |Δp| 0.011, argmax agreement 98.3 %, no accuracy change. Co-residence: generator + GroundOne 3B peak 6.1 GB, + 0.5B 3.3 GB; verification 30 % / 6.7 % of the time per answer. H4 co-residence supported
