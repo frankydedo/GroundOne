@@ -34,6 +34,14 @@ Control B2 on the full T1: with the same fine-tuned weights and the same forward
 
 *Source: results/b2-*/t1/metrics.json*
 
+## gain_decomposition.png
+
+![](gain_decomposition.png)
+
+Where GroundOne's accuracy on T1 comes from: the same base model untrained (readout, design a), fine-tuned but deciding with the token it would generate (control B2, format failures counted as wrong), and fine-tuned with the restricted readout. In brackets, the gain over the previous step. The untrained 3B is evaluated on 600 answers. Dashed: chance.
+
+*Source: results/{untrained,b2,g1}-*/t1/metrics.json*
+
 ## comparison_t1.png
 
 ![](comparison_t1.png)

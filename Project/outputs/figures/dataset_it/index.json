@@ -1,0 +1,27 @@
+[
+  {
+    "file": "class_balance_by_split.png",
+    "caption": "Class balance of the labelled sentences in each split. RAGTruth (train, dev, T1) is about 89 % supported; T3 is sampled to 1,000 pairs per class.",
+    "source": "data/processed/groundone/*.jsonl"
+  },
+  {
+    "file": "minority_classes_by_task.png",
+    "caption": "Contradicted and not-mentioned sentences per RAGTruth task. Contradictions come mostly from data-to-text; in T1 QA has very few, so its contradicted recall is only indicative.",
+    "source": "data/processed/groundone/{train,test_ragtruth}.jsonl"
+  },
+  {
+    "file": "K_distribution.png",
+    "caption": "Distribution of K (scored sentences per answer) in train and T1, with the K bands used for the K curves.",
+    "source": "data/processed/groundone/{train,test_ragtruth}.jsonl"
+  },
+  {
+    "file": "prompt_length.png",
+    "caption": "Length of document plus answer in Qwen2.5 tokens; answers over the 2,048-token cap are excluded (counts in the data card).",
+    "source": "data/processed/groundone/{train,test_ragtruth}.jsonl"
+  },
+  {
+    "file": "unsupported_by_position.png",
+    "caption": "Share of contradicted or not-mentioned sentences by position in the answer: the first sentence is rarely unsupported (3\u20137 %), the share peaks at positions 3\u20135 (12\u201315 %) and stays at 8\u201311 % in late positions, so long answers still contain errors to catch at the end.",
+    "source": "data/processed/groundone/{train,test_ragtruth}.jsonl"
+  }
+]

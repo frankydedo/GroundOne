@@ -1,0 +1,7 @@
+[
+  {
+    "file": "paired_differences.png",
+    "caption": "Paired differences between systems on the frozen test sets with 95 % cluster-bootstrap intervals (resampling by source document / page; T2 within dataset). An interval that crosses zero means the difference is not significant at the 5 % level.",
+    "source": "results/bootstrap/metrics.json"
+  }
+]
