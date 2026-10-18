@@ -131,6 +131,16 @@ def main(argv=None):
     np.savez_compressed(out / "dev_logits.npz", logits=L, labels=y)
     (out / "metrics.json").write_text(json.dumps(report, indent=2, default=float))
 
+    plot_figures(run, curves, maps)
+    short = {s: {m: {"macro": round(v[m]["three_way"]["macro_recall"], 4), "ece_bin": round(v[m]["binary"]["ece15"], 4),
+                     "ece_top": round(v[m]["three_way"]["ece_top_label"], 4), "nll": round(v[m]["three_way"]["nll"], 4)}
+                 for m in maps} for s, v in report.items() if s in ("dev", "t1", "t3")}
+    print(json.dumps({"maps": report["maps"], "served_rule": report["served_rule"], "summary": short}, indent=1))
+
+
+def plot_figures(run, curves, maps):
+    """Reliability diagram and risk-coverage curve of one run (dev, T1, T3)."""
+    from ..figures.style import NEUTRAL, SERIES, Group, plt
     g = Group(f"calibration-{run}")
     labels = {"dev": "dev", "t1": "T1 RAGTruth", "t3": "T3 VitaminC"}
     fig, axes = plt.subplots(1, len(curves), figsize=(4 * len(curves), 3.6), sharey=True)
@@ -163,10 +173,22 @@ def main(argv=None):
     g.save(fig, "risk_coverage", f"Selective prediction: error rate of the supported / unsupported decision as the least "
            f"confident sentences are deferred (calibrated probabilities, run {run}).", f"results/{run}/calibration/metrics.json")
     g.write_index(f"Calibration: {run}")
-    short = {s: {m: {"macro": round(v[m]["three_way"]["macro_recall"], 4), "ece_bin": round(v[m]["binary"]["ece15"], 4),
-                     "ece_top": round(v[m]["three_way"]["ece_top_label"], 4), "nll": round(v[m]["three_way"]["nll"], 4)}
-                 for m in maps} for s, v in report.items() if s in ("dev", "t1", "t3")}
-    print(json.dumps({"maps": report["maps"], "served_rule": report["served_rule"], "summary": short}, indent=1))
+
+
+def figures_only(run):
+    """Redraw the calibration figures from saved artefacts (dev logits, test predictions, fitted maps): no model run."""
+    out = RESULTS_DIR / run / "calibration"
+    d = np.load(out / "dev_logits.npz")
+    report = json.loads((out / "metrics.json").read_text())
+    maps = {k: (v["temperature"], v["bias"]) for k, v in report["maps"].items()}
+    curves = {"dev": (d["logits"], d["labels"])}
+    for suite in ("t1", "t3"):
+        p = RESULTS_DIR / run / suite / "predictions.parquet"
+        if p.exists():
+            df = pd.read_parquet(p)
+            curves[suite] = (np.log(np.clip(np.array(df["p"].tolist()), 1e-12, 1)),
+                             np.array([CLASSES.index(c) for c in df["cls"]]))
+    plot_figures(run, curves, maps)
 
 
 if __name__ == "__main__":

@@ -47,6 +47,18 @@ def main(argv=None):
     if what in ("benchmarks", "all"):
         from . import benchmarks
         benchmarks.main()
+    if what == "calibration":  # redraw from saved artefacts, no model run
+        from ..eval.calibrate_b import figures_only
+        figures_only(argv[1])
+    if what == "bootstrap":  # redraw from results/bootstrap/metrics.json
+        import json
+
+        from ..config import RESULTS_DIR
+        from ..eval.bootstrap import figure
+        figure(json.loads((RESULTS_DIR / "bootstrap" / "metrics.json").read_text()))
+    if what in ("method", "all"):
+        from . import method
+        method.main()
     if what in ("locality", "all"):
         from . import locality
         locality.main()

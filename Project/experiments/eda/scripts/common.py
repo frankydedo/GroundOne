@@ -11,13 +11,13 @@ from pathlib import Path
 
 import pandas as pd
 
-from groundone.figures.style import NEUTRAL, SERIES, plt  # noqa: F401  (shared thesis style)
+from groundone.figures.style import LANG, NEUTRAL, SERIES, localise, plt  # noqa: F401  (shared thesis style)
 
 PROJECT = Path(__file__).resolve().parents[3]  # Project/ (scripts live in Project/experiments/eda/scripts)
 RAW = PROJECT / "data" / "raw"
 DATASET = PROJECT / "data" / "processed" / "groundone"
 REPORT = PROJECT / "experiments" / "eda" / "report"
-FIG = REPORT / "figures"
+FIG = REPORT / ("figures_it" if LANG == "it" else "figures")  # GROUNDONE_FIG_LANG=it: Italian labels for Thesis_ita
 STATS = REPORT / "stats"
 FIG.mkdir(parents=True, exist_ok=True)
 STATS.mkdir(parents=True, exist_ok=True)
@@ -50,6 +50,7 @@ def norm(text):
 
 
 def save_fig(fig, name, caption):
+    localise(fig)
     fig.tight_layout()
     fig.savefig(FIG / f"{name}.png", bbox_inches="tight")
     plt.close(fig)

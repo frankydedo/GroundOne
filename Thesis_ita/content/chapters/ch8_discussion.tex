@@ -3,132 +3,142 @@
 
 % Source notes: Project/docs/thesis_notes.md, checkpoint_2026-10-10.md (takeaways and caveats).
 
-Questo capitolo interpreta i risultati alla luce delle cinque domande di ricerca, quindi indica ciò che gli esperimenti
-non possono dimostrare e quali scelte potrebbero averli distorti.
+Questo capitolo interpreta i risultati alla luce delle cinque domande di ricerca. Indica poi ciò che gli esperimenti non
+possono dimostrare e quali scelte potrebbero averli distorti.
 
 \section{Quando conviene un System One specialista}
 \label{sec:disc-synthesis}
 
 \paragraph{Specializzazione (RQ1).} A rendere GroundOne accurato è l'addestramento sulla decisione. I modelli non
 addestrati restano vicini al caso, mentre gli stessi modelli, una volta addestrati, raggiungono sul test set di RAGTruth
-una balanced accuracy a tre classi di 0.769 e 0.832, superando in AUROC gli encoder specializzati e, in accuratezza a tre
-classi, Rizzo-Flow, un System One generalista otto volte più grande. Il vantaggio si concentra dove si trovano i dati di
-addestramento: su LLM-AggreFact il 3B si porta alla pari con il miglior encoder di piccole dimensioni, senza superarlo, e
-resta sotto il System One chiuso Jev e un modello aperto da 27B, misurati in modo indipendente; il 0.5B rimane al di sotto
-dell'encoder e, su VitaminC, il 3B addestrato non fa meglio di quello non addestrato. Il confronto con d1-3B, un System
-One generalista della stessa dimensione, rende esplicito il compromesso. d1-3B, già addestrato a decidere ma su un'ampia
-miscela di task, è molto lontano da GroundOne su RAGTruth, soprattutto sulle risposte lunghe, alla pari con il 3B su
-LLM-AggreFact e nettamente superiore su VitaminC. Uno specialista è dunque una scelta solida per il dominio su cui è stato
-addestrato, ma uno strumento debole per la verifica dei fatti in generale: la specializzazione garantisce accuratezza e
-robustezza sulle risposte lunghe all'interno del dominio a scapito del trasferimento, mentre fuori dal dominio sono la
-dimensione del modello, oppure un'ampia miscela di addestramento, a migliorare il trasferimento.
+una balanced accuracy a tre classi di 0.769 (0.5B) e 0.832 (3B). Superano così gli encoder specializzati in AUROC, e
+Rizzo-Flow, un System One generalista otto volte più grande, in balanced accuracy a tre classi. Il vantaggio, però, si
+concentra dove si trovano i dati di addestramento. Su LLM-AggreFact il 3B si porta alla pari con il miglior encoder di
+piccole dimensioni, senza superarlo, e resta sotto il System One chiuso Jev e un modello aperto da 27B, misurati in modo
+indipendente; il 0.5B rimane al di sotto dell'encoder. Su VitaminC, infine, il 3B addestrato non fa meglio di quello non
+addestrato.
+
+Il confronto con d1-3B, un System One generalista della stessa dimensione, rende esplicito il compromesso. d1-3B è già
+addestrato a decidere, ma su un'ampia miscela di task. Su RAGTruth è molto lontano da GroundOne, soprattutto sulle
+risposte lunghe; su LLM-AggreFact è alla pari con il 3B; su VitaminC è nettamente superiore. Uno specialista è dunque una
+scelta solida per il dominio su cui è stato addestrato, ma uno strumento debole per la verifica dei fatti in generale.
+All'interno del dominio la specializzazione garantisce accuratezza e robustezza sulle risposte lunghe, a scapito del
+trasferimento; fuori dal dominio, invece, sono la dimensione del modello oppure un'ampia miscela di addestramento a
+migliorare il trasferimento.
 
 \paragraph{Readout e generazione a confronto (RQ2).} Il meccanismo System One contribuisce in due modi distinti. Il primo
 riguarda il costo: un solo forward pass sulla risposta sostituisce la generazione di $K$ verdetti, per cui il tempo
-risparmiato cresce con la lunghezza della risposta, fino a un fattore di circa due rispetto a un giudice sintetico e di sei
-rispetto a uno verboso per risposte di quattordici o più frasi. Il secondo, che questa tesi non aveva previsto, riguarda
-l'accuratezza. A parità di pesi e di costo, scegliere tra le tre lettere ammissibili è più accurato che prendere il token
-che il modello genererebbe, con un guadagno di 0.25 per il 0.5B e di 0.07 per il 3B. Un System One sottoposto a
-fine-tuning si comprende meglio come un classificatore a tre classi innestato su un modello linguistico che come un
-generatore che si ferma dopo un token; la distinzione pesa soprattutto per i modelli piccoli, cioè proprio quelli che un
+risparmiato cresce con la lunghezza della risposta. Quando la risposta contiene quattordici o più frasi, il risparmio
+arriva a un fattore di circa due rispetto a un giudice sintetico e di circa sei rispetto a uno verboso. Il secondo
+contributo, che questa tesi non aveva previsto, riguarda l'accuratezza. Con gli stessi pesi e lo stesso costo, scegliere
+tra le tre lettere ammissibili è più accurato che prendere il token che il modello genererebbe, con un guadagno di
+balanced accuracy a tre classi di 0.25 per il 0.5B e di 0.07 per il 3B. Un System One sottoposto a fine-tuning si
+comprende quindi meglio come un classificatore a tre classi innestato su un modello linguistico che come un generatore
+che si ferma dopo un token. La distinzione pesa soprattutto per i modelli piccoli, cioè proprio per quelli che un
 portatile può permettersi. Il confronto con i giudici generativi, infine, misura anche l'effetto dell'addestramento:
 poiché i giudici non sono addestrati, le ampie differenze di accuratezza rispetto a GroundOne vanno lette come l'effetto
-congiunto di specializzazione e readout.
+congiunto della specializzazione e del readout.
 
 \paragraph{Calibrazione (RQ3).} Una temperatura e un bias stimati sul dev set allineano le probabilità alle frequenze
 osservate sul test set dello stesso dominio, e le probabilità calibrate rendono efficace la selective prediction. Due
-indicazioni valgono al di là di GroundOne. In primo luogo, l'Expected Calibration Error da solo non basta a ordinare i
-sistemi: dopo la stessa calibrazione, giudici le cui probabilità separano a malapena le classi raggiungono lo stesso ECE di
-GroundOne, e soltanto l'AUROC e la risk--coverage curve ne rivelano la differenza. In secondo luogo, decisioni e
-probabilità vanno ricavate in modo coerente: la classe calibrata più probabile collassa verso la classe maggioritaria,
-mentre una soglia stimata sul dev set recupera la decisione bilanciata e mantiene l'etichetta coerente con la probabilità
-mostrata all'utente. La calibrazione, come mostrano i risultati su VitaminC, vale soltanto per la distribuzione su cui è
-stata stimata.
+indicazioni valgono al di là di GroundOne. La prima è che l'Expected Calibration Error, da solo, non basta a ordinare i
+sistemi. Dopo la stessa calibrazione, giudici le cui probabilità separano a malapena le classi raggiungono lo stesso ECE
+di GroundOne, e soltanto l'AUROC e la risk--coverage curve ne rivelano la differenza. La seconda è che decisioni e
+probabilità vanno ricavate in modo coerente. Se si sceglie la classe calibrata più probabile, la decisione collassa verso
+la classe maggioritaria; una soglia stimata sul dev set, invece, recupera la decisione bilanciata e mantiene l'etichetta
+coerente con la probabilità mostrata all'utente. Come mostrano i risultati su VitaminC, infine, la calibrazione vale
+soltanto per la distribuzione su cui è stata stimata.
 
-\paragraph{Costo sul dispositivo (RQ4).} Il verificatore sta comodamente nel portatile da 16\,GB: l'addestramento ha
-picchi di 2.6 e 5.9\,GB, e verificare una risposta lunga richiede 0.41 secondi con il 0.5B e 2.57 con il 3B, con un
-consumo di 5.5 e 33 joule. Il 0.5B rientra in un budget interattivo; il 3B, su una risposta tipica, è più lento di quanto
-un uso interattivo richiederebbe e scambia tempo con accuratezza. Le misure di energia precisano la portata dei risultati
-sulla velocità: un singolo prefill lungo assorbe più potenza del decoding token per token, per cui l'energia risparmiata
-è inferiore al tempo risparmiato, e la maggiore velocità non va letta come un risparmio equivalente di batteria. Non è
-stata misurata la memoria necessaria quando il verificatore gira accanto a un generatore e a un retriever.
+\paragraph{Costo sul dispositivo (RQ4).} Il verificatore sta comodamente nel portatile da 16\,GB. Durante
+l'addestramento la memoria occupata raggiunge un picco di 2.6\,GB con il 0.5B e di 5.9\,GB con il 3B. Verificare una
+risposta lunga richiede 0.41 secondi e 5.5 joule con il 0.5B, 2.57 secondi e 33 joule con il 3B. Il 0.5B rientra in un
+budget interattivo; il 3B, invece, su una risposta tipica è più lento di quanto un uso interattivo richiederebbe, e
+scambia tempo con accuratezza. Le misure di energia precisano la portata dei risultati sulla velocità. Un singolo
+prefill lungo assorbe più potenza del decoding token per token, per cui l'energia risparmiata è inferiore al tempo
+risparmiato, e la maggiore velocità non va letta come un risparmio equivalente di batteria. Resta invece da misurare la
+memoria necessaria quando il verificatore gira accanto a un generatore e a un retriever.
 
 \paragraph{Oltre un punteggio binario (RQ5).} L'output a tre classi distingue bene le frasi contraddette da quelle non
-menzionate nel data-to-text, dove RAGTruth concentra le proprie contraddizioni, e molto meno nel question answering e nella
-summarization, dove nei dati di addestramento le contraddizioni sono rare. Il 3B migliora sensibilmente su questo fronte,
-il che suggerisce che al modello piccolo manchino, più che un'architettura diversa, contraddizioni più varie in
-addestramento. Poiché le policy strict e lenient e la soglia derivano dalle stesse tre probabilità, l'utente può
-cambiare la nozione di errore senza riaddestrare il modello, cosa che nessun verificatore binario consente.
+menzionate nel data-to-text, il task in cui RAGTruth concentra le proprie contraddizioni. Le distingue molto meno nel
+question answering e nella summarization, dove nei dati di addestramento le contraddizioni sono rare. Il 3B migliora
+sensibilmente su questo fronte, e ciò suggerisce che al modello piccolo manchino, più che un'architettura diversa,
+contraddizioni più varie in addestramento. Le policy strict e lenient e la soglia derivano tutte dalle stesse tre
+probabilità. L'utente può quindi cambiare la nozione di errore senza riaddestrare il modello, cosa che nessun
+verificatore binario consente.
 
 \section{Limiti}
 \label{sec:disc-limitations}
 
 \paragraph{Una sola piattaforma e una sola famiglia di modelli.} Tutti i risultati provengono da un unico portatile, un
 unico runtime e un'unica famiglia di modelli. Latenza ed energia dipendono dall'hardware e dall'implementazione: ciò che
-dovrebbe valere anche altrove sono i rapporti tra i metodi, non i valori assoluti. Non si confronta la latenza con gli
-encoder né con i System One generalisti, perché questi sono stati eseguiti in runtime diversi e in condizioni che
-renderebbero il confronto iniquo.
+dovrebbe valere anche altrove sono i rapporti tra i metodi, non i valori assoluti. La latenza di GroundOne non viene
+confrontata con quella degli encoder né con quella dei System One generalisti, perché questi sono stati eseguiti in
+runtime diversi e in condizioni che renderebbero il confronto iniquo.
 
 \paragraph{Stabilità dell'addestramento.} Due run completi del 0.5B concordano su tutte le metriche aggregate, ma un
 terzo run è collassato nelle prime fasi ed è stato interrotto. La ricetta di addestramento non prevede gradient clipping
 e usa Adam senza bias correction, due cause note di fine-tuning
-instabile~\cite{pascanu2013difficulty,mosbach2021stability}: l'una o l'altra potrebbe spiegare il collasso, ma nessuna
-delle due ipotesi è stata verificata. Il 3B è stato addestrato una sola volta, su metà delle risposte di addestramento, e
-la sua variabilità al cambiare del seed è ignota.
+instabile~\cite{pascanu2013difficulty,mosbach2021stability}. L'una o l'altra potrebbe spiegare il collasso, ma nessuna
+delle due ipotesi è stata verificata. Il 3B, inoltre, è stato addestrato una sola volta, su metà delle risposte di
+addestramento, e la sua variabilità al cambiare del seed resta ignota.
 
 \paragraph{Dati di addestramento.} RAGTruth è l'unica fonte di addestramento. Le sue contraddizioni sono concentrate nel
-data-to-text e, al di fuori di questo task, vengono apprese solo in parte. I modelli si affidano inoltre in parte alla
-sovrapposizione lessicale: quando il supporto è espresso con parole diverse la frase appare non supportata, e una piccola
-modifica in una frase che per il resto copia la fonte passa spesso inosservata. Questo punto cieco si riduce al crescere
-del modello, ma resta il limite principale di entrambi.
+data-to-text e, al di fuori di questo task, vengono apprese solo in parte. I modelli, inoltre, si affidano in parte alla
+sovrapposizione lessicale. Quando il supporto è espresso con parole diverse, la frase appare non supportata; quando una
+frase copia la fonte salvo una piccola modifica, la modifica passa spesso inosservata. Questo punto cieco si riduce al
+crescere del modello, ma resta il limite principale di entrambi.
 
 \paragraph{Ambito della decisione.} La verifica avviene frase per frase e soltanto rispetto al documento recuperato. Una
-frase vera nel mondo ma assente dal documento conta come non menzionata: è il comportamento corretto per la groundedness,
-non per la verifica dei fatti. Le frasi prive di contenuto verificabile vengono escluse da una regola, e la segmentazione
-stessa può dividere o accorpare le affermazioni diversamente da un lettore umano. Il verdetto su una frase dipende
-soltanto dal documento e dalle frasi che la precedono.
+frase vera nel mondo ma assente dal documento conta quindi come non menzionata: è il comportamento corretto per la
+groundedness, ma non per la verifica dei fatti. Le frasi prive di contenuto verificabile vengono escluse da una regola, e
+la segmentazione stessa può dividere o accorpare le affermazioni in modo diverso da un lettore umano. Infine, il verdetto
+su una frase dipende soltanto dal documento e dalle frasi che la precedono.
 
 \paragraph{Portata statistica.} Gli intervalli bootstrap descrivono la variabilità del test set, non quella
-dell'addestramento, e circa cinquanta confronti sono stati sottoposti a test senza correzione per confronti multipli. Le
-conclusioni poggiano quindi su effetti ben lontani dallo zero, e non si rivendicano differenze su LLM-AggreFact e VitaminC
-inferiori alla dispersione tra seed. Diverse baseline sono state valutate su sottocampioni, il che ne allarga gli
-intervalli.
+dell'addestramento. Inoltre, circa cinquanta confronti sono stati sottoposti a test senza correzione per confronti
+multipli. Per questo le conclusioni poggiano su effetti ben lontani dallo zero, e non si rivendicano differenze su
+LLM-AggreFact e VitaminC inferiori alla dispersione tra seed. Diverse baseline, infine, sono state valutate su
+sottocampioni, il che ne allarga gli intervalli.
 
 \section{Minacce alla validità}
 \label{sec:disc-threats}
 
 \paragraph{Etichette.} La distinzione tra frase contraddetta e non menzionata si basa sugli annotatori di RAGTruth, il
-cui accordo sul tipo di allucinazione non è pubblicato; inoltre, una recente riannotazione della partizione di test di
+cui accordo sul tipo di allucinazione non è pubblicato. Inoltre, una recente riannotazione della partizione di test di
 RAGTruth ha individuato un numero di risposte allucinate considerevolmente superiore a quello indicato dalle etichette
 originali~\cite{yu2026retromorphic}. Il test set potrebbe quindi sottostimare le classi minoritarie. Per questo i
-risultati a tre classi su RAGTruth vanno sempre letti insieme a quelli su VitaminC, le cui etichette hanno un accordo
-misurato. LLM-AggreFact unifica le etichette di undici dataset di qualità diversa, e alcune delle sue colonne sono
-notoriamente rumorose.
+risultati a tre classi su RAGTruth vanno sempre letti insieme a quelli su VitaminC, le cui etichette hanno un accordo tra
+annotatori misurato. LLM-AggreFact, infine, unifica le etichette di undici dataset di qualità diversa, e alcune delle sue
+colonne sono notoriamente rumorose.
 
-\paragraph{Vantaggio nel dominio.} GroundOne è addestrato su RAGTruth, per cui i suoi risultati sul test set di RAGTruth e
-sulla colonna RAGTruth di LLM-AggreFact lo avvantaggiano rispetto a sistemi addestrati altrove; per contro, VitaminC fa
-parte della genealogia dei dati di addestramento di MiniCheck-RoBERTa. Ogni confronto è riportato con la relativa
+\paragraph{Vantaggio nel dominio.} GroundOne è addestrato su RAGTruth. I suoi risultati sul test set di RAGTruth e sulla
+colonna RAGTruth di LLM-AggreFact lo avvantaggiano quindi rispetto a sistemi addestrati altrove. Per contro, VitaminC fa
+parte dei dati da cui discende l'addestramento di MiniCheck-RoBERTa. Ogni confronto è riportato con la relativa
 avvertenza, e le conclusioni poggiano sull'andamento complessivo nei tre test set anziché su uno solo.
 
 \paragraph{Configurazione delle baseline.} I giudici generativi sono sensibili al prompt. I loro prompt sono stati
 fissati prima di esaminare i risultati di test, e quello del giudice a parità di output è stato scelto sul dev set
-unicamente in base alla validità del formato; il parsing dell'output è stato permissivo, a loro vantaggio; il decoding
-non era vincolato da una grammatica, il che incide soprattutto sugli errori di formato del modello più piccolo. Non sono
-stati valutati né un giudice sottoposto a fine-tuning sugli stessi dati né un giudice più grande: il confronto misura
-dunque ciò che offre, senza addestramento, un giudice della stessa dimensione. Rizzo-Flow è stato eseguito
-con pesi a 4 bit perché il modello a 8 bit non trovava posto accanto al sistema operativo, il che potrebbe sottostimarne
-l'accuratezza. d1-3B è stato eseguito zero-shot, con le domande usate per tutte le baseline
-System One, che potrebbero non essere la formulazione a esso più congeniale, e su un sottocampione di LLM-AggreFact.
+unicamente in base alla validità del formato. Il parsing dell'output è stato permissivo, a vantaggio dei giudici. Il
+decoding non era vincolato da una grammatica, e questo incide soprattutto sugli errori di formato del modello più
+piccolo. Non sono stati valutati né un giudice sottoposto a fine-tuning sugli stessi dati né un giudice più grande: il
+confronto misura dunque ciò che offre, senza addestramento, un giudice della stessa dimensione. Rizzo-Flow è stato
+eseguito con pesi a 4 bit, perché il modello a 8 bit non trovava posto in memoria accanto al sistema operativo, e questo
+potrebbe sottostimarne l'accuratezza. d1-3B, infine, è stato eseguito zero-shot e, su LLM-AggreFact, soltanto su un
+sottocampione. Ha ricevuto le domande usate per tutte le baseline System One, che potrebbero non essere la formulazione
+a esso più congeniale.
 
-\paragraph{Contaminazione.} I modelli base sono stati preaddestrati su ampi corpora web che potrebbero includere parti dei
-test set pubblici. Poiché gli stessi modelli base, usati senza addestramento come baseline, raggiungono un'accuratezza
-vicina al caso sul task a tre classi, la contaminazione non può spiegare i guadagni dovuti all'addestramento; per i
-valori assoluti, tuttavia, non può essere esclusa del tutto.
+\paragraph{Contaminazione.} I modelli base sono stati preaddestrati su ampi corpora web che potrebbero includere parti
+dei test set pubblici\footnote{Si parla di \emph{contaminazione} dei dati quando esempi di un test set compaiono, anche
+solo in parte, nei dati di preaddestramento di un modello. Un modello contaminato può ricordare gli esempi anziché
+valutarli, e i suoi punteggi su quel test set risultano allora troppo ottimistici.}. Gli stessi modelli base, però,
+usati senza addestramento come baseline, raggiungono un'accuratezza vicina al caso sul task a tre classi. La
+contaminazione non può quindi spiegare i guadagni dovuti all'addestramento; per i valori assoluti, invece, non può essere
+esclusa del tutto.
 
 \paragraph{Una sola macchina.} Tutte le misure di tempo e di energia provengono da un unico portatile, un Apple M4 con
 16\,GB, e da un unico runtime, MLX. Il modello di costo del Capitolo~\ref{sec:local} prevede che il vantaggio di un
 System One valga su ogni classe di hardware locale, perché poggia sulla differenza tra prefill e decoding, che produttori
-e studi indipendenti osservano ovunque; i limiti inferiori al decoding calcolati in quel capitolo per altre macchine
-discendono dalle specifiche pubblicate. Gli speed-up effettivi su una scheda grafica dedicata, su un DGX Spark o su uno
-smartphone non sono stati misurati: la loro entità dipende dall'equilibrio tra calcolo e banda di ciascuna macchina, e il
-modello di costo sostiene la direzione del vantaggio, non la sua entità.
+e studi indipendenti osservano ovunque. Anche i limiti inferiori al costo del decoding calcolati in quel capitolo per
+altre macchine discendono dalle specifiche pubblicate. Gli speed-up effettivi su una scheda grafica dedicata, su un DGX
+Spark o su uno smartphone, invece, non sono stati misurati. La loro entità dipende dall'equilibrio tra calcolo e banda di
+ciascuna macchina: il modello di costo sostiene la direzione del vantaggio, non la sua entità.

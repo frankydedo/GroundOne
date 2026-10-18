@@ -5,6 +5,8 @@ assigned to *entities*, never to ranks: a system has the same colour in every fi
 Every figure is saved as PNG (300 dpi) together with a caption in the group's index.md.
 """
 import json
+import os
+import re
 from pathlib import Path
 
 import matplotlib
@@ -37,15 +39,52 @@ plt.rcParams.update({
 })
 
 
+# Language of the figure text. With GROUNDONE_FIG_LANG=it every text of a figure (labels, ticks, legends, titles,
+# annotations) is translated with figures/i18n.py just before saving, and the group is written to figures/<name>_it/.
+# Strings left untranslated are listed in figures/_untranslated_it.txt so that the dictionary can be completed.
+LANG = os.environ.get("GROUNDONE_FIG_LANG", "en")
+_MISSING = set()
+
+
+def _tr_text(t):
+    from .i18n import IT, SUB
+    if t in IT:
+        return IT[t]
+    out = t
+    for a, b in SUB:
+        out = out.replace(a, b)
+    if out == t and re.search(r"[A-Za-z]{3,}", t) and t not in IT.values():
+        _MISSING.add(t)
+    return out
+
+
+def localise(fig):
+    """Translate every text artist of `fig` in place when LANG is 'it' (no-op otherwise)."""
+    if LANG != "it":
+        return
+    from matplotlib.text import Text
+    for t in fig.findobj(Text):
+        s = t.get_text()
+        if s and s.strip():
+            t.set_text(_tr_text(s))
+    if _MISSING:
+        f = FIG_ROOT / "_untranslated_it.txt"
+        old = set(f.read_text().splitlines()) if f.exists() else set()
+        f.write_text("\n".join(sorted(old | _MISSING)) + "\n")
+
+
 class Group:
-    """A folder of figures (figures/<name>/) with an index.md of captions."""
+    """A folder of figures (figures/<name>/, or figures/<name>_it/ for the Italian version) with an index.md of captions."""
 
     def __init__(self, name):
+        if LANG == "it" and not name.endswith("_it"):
+            name = f"{name}_it"
         self.dir = FIG_ROOT / name
         self.dir.mkdir(parents=True, exist_ok=True)
         self.items = []
 
     def save(self, fig, stem, caption, source):
+        localise(fig)
         fig.tight_layout()
         fig.savefig(self.dir / f"{stem}.png", bbox_inches="tight", facecolor=SURFACE)
         plt.close(fig)
