@@ -31,10 +31,10 @@ class Engine:
         self._worker = ThreadPoolExecutor(max_workers=1, thread_name_prefix="groundone-mlx")
 
     @classmethod
-    def load(cls, size=None, adapter=None, calibration=None):
+    def load(cls, size=None, adapter=None, calibration=None, base=None):
         from .backend import Backend
         from .config import resolve_model
-        base, adir, name = resolve_model(size, adapter)
+        base, adir, name = resolve_model(size, adapter, base)
         ex = ThreadPoolExecutor(max_workers=1, thread_name_prefix="groundone-mlx")
         backend = ex.submit(Backend, base, adir, name).result()  # load on the same thread that will run inference
         meta = Path(adir) / "groundone.json" if adir else None

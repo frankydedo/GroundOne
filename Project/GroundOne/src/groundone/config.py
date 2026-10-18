@@ -30,11 +30,12 @@ MAX_BATCH = int(os.environ.get("GROUNDONE_MAX_BATCH", 32))             # suffixe
 MLX_MEMORY_LIMIT_GB = float(os.environ.get("GROUNDONE_MLX_MEM_GB", 8))
 
 
-def resolve_model(size=None, adapter=None):
+def resolve_model(size=None, adapter=None, base=None):
     """Return (base_repo, adapter_dir or None, display name).
 
     `adapter` may be a directory or the name of a run under models/. Its groundone.json (written by
-    `groundone train`) records the base model, so `size` is optional when an adapter is given.
+    `groundone train`) records the base model, so `size` is optional when an adapter is given. `base` overrides the
+    base checkpoint (e.g. the bf16 weights, to measure the effect of the 8-bit base the adapter was trained on).
     """
     import json
     adir = None
@@ -50,4 +51,6 @@ def resolve_model(size=None, adapter=None):
     if size not in BASE_MODELS:
         raise ValueError(f"Unknown size {size!r}; choose from {list(BASE_MODELS)}")
     name = f"groundone-{size}" + (f"-{adir.name}" if adir else "-base")
-    return BASE_MODELS[size], (str(adir) if adir else None), name
+    if base:
+        name += f"-on-{base.split('/')[-1]}"
+    return base or BASE_MODELS[size], (str(adir) if adir else None), name

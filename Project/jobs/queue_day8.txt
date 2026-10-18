@@ -1,0 +1,14 @@
+# Day 2026-10-18 (author's go-ahead, item 1): locality experiments. Every job runs offline twice over:
+# HF_HUB_OFFLINE=1 and a macOS sandbox that denies all network access to the process (stronger than Wi-Fi off).
+# (1) Offline proof: full T1 with GroundOne 0.5B inside the sandbox; predictions compared with the original run.
+HF_HUB_OFFLINE=1 sandbox-exec -p '(version 1)(allow default)(deny network*)' GroundOne/.venv/bin/groundone test --suite t1 --adapter g1-05b-b1/best --name offline-g1-05b
+GroundOne/.venv/bin/python experiments/locality/scripts/compare_predictions.py g1-05b-b1 offline-g1-05b t1 locality/offline_check_t1.json
+# (2) 8-bit vs bf16 base under the same adapter (0.5B; bf16 weights already cached): T1 and T3.
+HF_HUB_OFFLINE=1 sandbox-exec -p '(version 1)(allow default)(deny network*)' GroundOne/.venv/bin/groundone test --suite t1 --adapter g1-05b-b1/best --base Qwen/Qwen2.5-0.5B-Instruct --name bf16-g1-05b
+HF_HUB_OFFLINE=1 sandbox-exec -p '(version 1)(allow default)(deny network*)' GroundOne/.venv/bin/groundone test --suite t3 --adapter g1-05b-b1/best --base Qwen/Qwen2.5-0.5B-Instruct --name bf16-g1-05b
+GroundOne/.venv/bin/python experiments/locality/scripts/compare_predictions.py g1-05b-b1 bf16-g1-05b t1 locality/bf16_vs_8bit_t1.json
+GroundOne/.venv/bin/python experiments/locality/scripts/compare_predictions.py g1-05b-b1 bf16-g1-05b t3 locality/bf16_vs_8bit_t3.json
+# (3) Co-residence (RQ4): generator Qwen2.5-3B-Instruct 4-bit + GroundOne verifier in one process, 30 T1 documents.
+HF_HUB_OFFLINE=1 sandbox-exec -p '(version 1)(allow default)(deny network*)' GroundOne/.venv/bin/python experiments/locality/scripts/coresidence.py --verifier g1-3b-b1/best --name coresidence-3b
+HF_HUB_OFFLINE=1 sandbox-exec -p '(version 1)(allow default)(deny network*)' GroundOne/.venv/bin/python experiments/locality/scripts/coresidence.py --verifier g1-05b-b1/best --name coresidence-05b
+END

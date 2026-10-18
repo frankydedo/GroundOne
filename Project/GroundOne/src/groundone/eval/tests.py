@@ -176,6 +176,7 @@ def main(argv=None):
     ap.add_argument("--size")
     ap.add_argument("--adapter")
     ap.add_argument("--calibration")
+    ap.add_argument("--base", help="override the base checkpoint (e.g. Qwen/Qwen2.5-0.5B-Instruct, bf16) under the same adapter")
     ap.add_argument("--name", required=True)
     ap.add_argument("--limit", type=int, default=0, help="debug: random N records only")
     ap.add_argument("--design", choices=["a", "b"], default="b", help="readout design the adapter was trained for")
@@ -185,7 +186,7 @@ def main(argv=None):
     sd = RESULTS_DIR / a.name / a.suite
     if sd.exists():
         sys.exit(f"{sd} exists: results are create-only")
-    engine = Engine.load(a.size, a.adapter, a.calibration)
+    engine = Engine.load(a.size, a.adapter, a.calibration, a.base)
     file = {"t1": "test_ragtruth", "t2": "test_aggrefact", "t3": "test_vitaminc"}[a.suite]
     recs = load(file)
     if a.limit:
