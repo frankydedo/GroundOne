@@ -1,0 +1,40 @@
+\documentclass[border=3pt]{standalone}
+\input{g1_common.tex}
+\begin{document}
+\begin{tikzpicture}[node distance=4mm]
+  % column 2: RAGTruth processing chain
+  \node[post=4.9cm, font=\footnotesize] (seg) at (0,0) {segmentazione: a capo + PySBD,\\via i simboli di elenco};
+  \node[post=4.9cm, below=of seg, font=\footnotesize] (chk) {regola del contenuto verificabile\\(8.2\,\% delle frasi senza decisione)};
+  \node[post=4.9cm, below=of chk, font=\footnotesize] (lab) {etichette dagli span annotati\\(conflitto, informazione infondata)};
+  \node[post=4.9cm, below=of lab, font=\footnotesize] (exc) {esclusioni: rifiuti scorretti, troncate,\\senza frasi valutate, $> 2{,}048$ token};
+  \foreach \a/\b in {seg/chk,chk/lab,lab/exc} \draw[arrow] (\a) -- (\b);
+  % column 1: sources
+  \node[data=2.3cm, font=\footnotesize, left=10mm of lab.north west, anchor=east] (rt) {RAGTruth\\(train + test)};
+  \draw[arrow] (rt.east) -- ++(4mm,0) |- (seg.west);
+  % column 3: splits
+  \node[decision, font=\footnotesize, aspect=1.7, right=9mm of exc] (spl) {split\\ufficiale?};
+  \draw[arrow] (exc) -- (spl);
+  \node[post=3.0cm, font=\footnotesize, right=10mm of spl, yshift=13mm] (src) {fonti di train mescolate\\(seed fisso), divise\\\textbf{per fonte}};
+  \node[outcome=okLine, fill=okFill, font=\footnotesize, right=6mm of src, yshift=4.5mm] (tr) {training set (90\,\%)};
+  \node[outcome=okLine, fill=okFill, font=\footnotesize, right=6mm of src, yshift=-4.5mm] (dv) {dev set (10\,\%)};
+  \node[outcome=modLine, fill=modFill, font=\footnotesize, anchor=west] (t1) at ([xshift=10mm, yshift=-8mm]spl.east) {T1: test di RAGTruth};
+  \draw[arrow] (spl.north) |- node[pos=0.3, left, font=\footnotesize] {train} (src.west);
+  \draw[arrow] (spl.east) -- ++(4mm,0) |- node[pos=0.75, below, font=\footnotesize] {test} (t1.west);
+  \draw[arrow] (src.east) -- ++(2mm,0) |- (tr.west); \draw[arrow] (src.east) -- ++(2mm,0) |- (dv.west);
+  % other sources
+  \node[post=4.9cm, font=\footnotesize, below=14mm of exc] (afp) {etichette binarie come rilasciate;\\solo valutazione (licenza)};
+  \node[data=2.3cm, font=\footnotesize] (af) at (rt |- afp) {LLM-AggreFact\\(test)};
+  \node[outcome=modLine, fill=modFill, font=\footnotesize, anchor=west] (t2) at (t1.west |- afp) {T2: LLM-AggreFact};
+  \node[post=4.9cm, font=\footnotesize, below=6mm of afp] (vcp) {supports / refutes / NEI $\rightarrow$ tre classi;\\1{,}000 coppie per classe (seed fisso)};
+  \node[data=2.3cm, font=\footnotesize] (vc) at (rt |- vcp) {VitaminC\\(test, parte reale)};
+  \node[outcome=modLine, fill=modFill, font=\footnotesize, anchor=west] (t3) at (t1.west |- vcp) {T3: VitaminC};
+  \draw[arrow] (af) -- (afp); \draw[arrow] (afp) -- (t2);
+  \draw[arrow] (vc) -- (vcp); \draw[arrow] (vcp) -- (t3);
+  % checks
+  \node[model=11.6cm, font=\footnotesize, below=8mm of vcp.south west, anchor=north west] (lk) {controllo del leakage a ogni costruzione (fonte, documento, coppia documento--frase)\\e test set congelati con un hash crittografico prima di qualsiasi addestramento};
+  \begin{scope}[on background layer]
+    \node[cluster, fit=(tr)(dv)(t1)(t2)(t3)(src), inner sep=3mm] (outs) {};
+  \end{scope}
+  \draw[dashedarrow] (outs.south) |- (lk.east);
+\end{tikzpicture}
+\end{document}

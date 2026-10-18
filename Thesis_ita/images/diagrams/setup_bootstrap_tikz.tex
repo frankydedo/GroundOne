@@ -1,0 +1,29 @@
+\documentclass[border=3pt]{standalone}
+\input{g1_common.tex}
+\begin{document}
+\begin{tikzpicture}
+  \foreach \i/\c in {1/okLine,2/modLine,3/orangeA,4/decLine,5/badLine}
+    \node[rectangle, draw=\c, thick, fill=white, minimum width=1.0cm, minimum height=1.2cm, inner sep=1pt, font=\scriptsize] (g\i) at ({(\i-1)*1.2},0) {fonte \i\\[1pt]risposte\\e frasi};
+  \node[clusterlabel, above=1.5mm of g3] {test set: frasi raggruppate per fonte};
+  \node[post=4.6cm, font=\footnotesize] (rs) at (2.4,-1.9) {estrai 5 fonti \textbf{con reinserimento}\\(stessa estrazione per A e per B)};
+  \draw[arrow] (g3.south) -- (rs);
+  \foreach \i/\c/\x in {2/modLine/0,2/modLine/1,4/decLine/2,1/okLine/3,5/badLine/4}
+    \node[rectangle, draw=\c, thick, fill=white, minimum width=0.7cm, minimum height=0.7cm, font=\scriptsize] (r\x) at ({\x*1.2},-3.2) {\i};
+  \draw[arrow] (rs) -- (r2);
+  \node[model=4.6cm, font=\footnotesize] (dm) at (2.4,-4.6) {metrica di A e di B sul resampling\\$\Rightarrow$ differenza $d_b = \mathrm{A} - \mathrm{B}$};
+  \draw[arrow] (r2) -- (dm);
+  \draw[loop] (dm.west) -- ++(-6mm,0) |- node[pos=0.25, left, note, text=loopRed, align=right] {ripeti\\$B = 2{,}000$\\volte} (rs.west);
+  \begin{scope}[shift={(9.4,-4.4)}]
+    \fill[modFill] plot[domain=-2.2:2.2, samples=50, smooth] (\x, {1.7*exp(-\x*\x/1.2)}) -- (2.2,0) -- (-2.2,0) -- cycle;
+    \draw[thick, modLine] plot[domain=-2.2:2.2, samples=50, smooth] (\x, {1.7*exp(-\x*\x/1.2)});
+    \draw[thick, ioLine, -{Latex[length=2mm]}] (-2.8,0) -- (2.7,0) node[right, note] {$d$};
+    \draw[densely dashed, ink2] (-1.55,0) -- (-1.55,0.25) (1.55,0) -- (1.55,0.25);
+    \draw[decorate, decoration={brace, amplitude=4pt, mirror}] (-1.55,-0.12) -- node[below=4pt, note] {intervallo al 95\,\%: percentili 2.5 e 97.5} (1.55,-0.12);
+    \draw[thick, badLine] (-2.5,0) -- (-2.5,0.6);
+    \node[note, text=badLine, above=0mm] at (-2.5,0.6) {$d = 0$};
+    \node[note] at (0,2.0) {distribuzione delle $B$ differenze $d_b$};
+    \node[note, text width=6.0cm, align=left, anchor=north] at (0,-0.9) {$p$ bilaterale: il doppio della quota di $d_b$ di segno opposto a quello osservato. Se l'intervallo non contiene lo zero, la differenza è significativa al 5\,\%.};
+  \end{scope}
+  \draw[arrow] (dm.east) -- (6.4,-4.6);
+\end{tikzpicture}
+\end{document}

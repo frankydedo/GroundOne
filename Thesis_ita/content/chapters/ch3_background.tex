@@ -54,8 +54,8 @@ differenza dell'accuratezza semplice, non premia un modello che predice sempre l
 costante ottiene 0.5 nel caso binario (50 se espressa in percentuale, come qui) e circa 0.33 con tre classi.} media di
 78.6 su LLM-AggreFact~\cite{deusser2026jev}. Una riproduzione indipendente di Laya osserva una calibrazione diversa da
 quella dichiarata e una forte dipendenza da una temperatura di calibrazione stimata sui dati di
-destinazione~\cite{nandakishore2026laya}. Benchmark contrastivi con protocolli chiari collocano i piccoli modelli aperti
-molto al di sotto di Jev~\cite{yong2026decidebench}. Infine, è stato mostrato che, quando l'etichetta di un'opzione e la
+destinazione~\cite{nandakishore2026laya}. Un benchmark costruito su coppie contrastive, cioè su decisioni quasi identiche che differiscono per un solo
+dettaglio decisivo, colloca i piccoli modelli aperti molto al di sotto di Jev~\cite{yong2026decidebench}. Infine, è stato mostrato che, quando l'etichetta di un'opzione e la
 sua definizione sono in conflitto, i decision model tipizzati seguono l'etichetta anziché la
 definizione~\cite{azizi2026labels}.
 
@@ -125,7 +125,7 @@ ribalta il verdetto: il modello è così costretto a guardare al fatto preciso e
 Applicare questi modelli a testi generati lunghi richiede di scomporli. SummaC suddivide in frasi sia il documento sia il
 riassunto e aggrega i punteggi di inferenza calcolati frase per frase~\cite{laban2022summac}. FActScore, invece, scompone
 le generazioni lunghe in fatti atomici e li verifica uno per uno~\cite{min2023factscore}. La verifica a livello di frase,
-adottata da GroundOne, è una via di mezzo. Le frasi sono le unità naturali di una risposta, l'utente può intervenire su
+adottata da GroundOne, è una via di mezzo tra un unico punteggio per l'intera risposta e la scomposizione in fatti atomici. Le frasi sono le unità naturali di una risposta, l'utente può intervenire su
 una frase segnalata e il numero di decisioni cresce con la lunghezza della risposta.
 
 Nella pratica prevalgono due famiglie di verificatori. La prima è quella degli encoder specializzati, piccoli e veloci.
@@ -147,7 +147,14 @@ violano spesso il formato di output richiesto. Per garantire una risposta che il
 un decoding vincolato da una grammatica, che a ogni passo ammette soltanto i token compatibili con il formato
 richiesto~\cite{willard2023outlines}. Il benchmark di riferimento per entrambe le famiglie è LLM-AggreFact, che riunisce
 undici dataset di grounding annotati manualmente e li riconduce a un protocollo binario
-comune~\cite{tang2024minicheck,llmaggrefact}.
+comune~\cite{tang2024minicheck,llmaggrefact}. La Figura~\ref{fig:bg-verifiers} mette a confronto le due famiglie con il System One specialista studiato in questa tesi.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/diagrams/bg_verifier_families_tikz.pdf}
+\caption{Tre modi di verificare le $K$ frasi di una risposta. Un encoder specializzato valuta ogni coppia (documento, frase) in un passaggio separato e restituisce solo una probabilità di supporto. Un giudice generativo legge tutto, ma scrive il proprio verdetto token per token (ciclo rosso), quindi il costo cresce con il testo prodotto e l'output va interpretato da un parser. Un System One specialista legge documento e risposta in un solo prefill e ricava da ogni marker tre probabilità, senza generare alcun token.}
+\label{fig:bg-verifiers}
+\end{figure}
 
 \section{Calibrazione e selective prediction}
 \label{sec:bg-calibration}
@@ -173,7 +180,14 @@ valori concentrati su pochi numeri tondi~\cite{xiong2024uncertainty}.
 Una probabilità calibrata diventa utile grazie alla selective prediction: il sistema agisce sulle decisioni di cui è
 sicuro e rinvia le altre. La curva risk--coverage descrive questo compromesso. Per ogni quota di decisioni accettate
 (la coverage) riporta il tasso di errore su di esse (il risk), e mostra così come il tasso di errore scenda man mano che
-si rinviano più decisioni~\cite{geifman2017selective}.
+si rinviano più decisioni~\cite{geifman2017selective}. La Figura~\ref{fig:bg-risk-coverage} ne illustra la forma tipica.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.75\textwidth]{images/diagrams/bg_risk_coverage_tikz.pdf}
+\caption{Schema di una curva risk--coverage (forma illustrativa, non un risultato). Le decisioni sono ordinate dalla più sicura alla meno sicura; per ogni quota decisa (coverage) si riporta il tasso di errore (rischio) delle decisioni accettate. A coverage 1 il rischio coincide con l'errore complessivo; rinunciando alle decisioni meno sicure l'errore scende. L'area sotto la curva (AURC) riassume la curva in un numero: più è piccola, meglio la confidenza separa le decisioni corrette da quelle errate.}
+\label{fig:bg-risk-coverage}
+\end{figure}
 
 \section{Parameter-efficient fine-tuning}
 \label{sec:bg-peft}
@@ -188,7 +202,14 @@ completa.}. Al termine dell'addestramento, l'aggiornamento si può fondere nei p
 separato~\cite{hu2022lora}. Applicare LoRA a tutti gli strati lineari conta più che usare un rango elevato, e la tecnica
 si combina con pesi di base quantizzati, così che anche modelli grandi stiano in poca memoria~\cite{dettmers2023qlora}.
 La famiglia Qwen2.5 offre modelli aperti a partire da 0.5B parametri con un tokenizer condiviso, e permette quindi di
-confrontare dimensioni diverse con la stessa ricetta~\cite{qwen2024qwen25}.
+confrontare dimensioni diverse con la stessa ricetta~\cite{qwen2024qwen25}. La Figura~\ref{fig:bg-lora} schematizza un adapter LoRA applicato a uno strato lineare.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{images/diagrams/bg_lora_tikz.pdf}
+\caption{Low-rank adaptation applicata a uno strato lineare. La matrice dei pesi $W$ resta congelata (in GroundOne a 8 bit); si addestrano soltanto le due matrici piccole $A$ e $B$, il cui prodotto, scalato di $\alpha$, si somma all'output dello strato. Con rango $r$ l'adapter ha $r(d+k)$ parametri invece dei $dk$ di $W$.}
+\label{fig:bg-lora}
+\end{figure}
 
 Il fine-tuning su dataset piccoli, però, è notoriamente instabile. I risultati variano con il seed casuale, che determina
 sia l'inizializzazione dei nuovi parametri sia l'ordine dei dati di addestramento~\cite{dodge2020finetuning}. Alcuni

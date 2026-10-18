@@ -1,0 +1,17 @@
+\documentclass[border=3pt]{standalone}
+\input{g1_common.tex}
+\begin{document}
+\begin{tikzpicture}[x=7cm, y=22cm]
+  \fill[modFill] (0,0) -- plot[domain=0.02:1, samples=60, smooth] (\x, {0.012+0.13*\x^3}) -- (1,0) -- cycle;
+  \draw[thick, ioLine, -{Latex[length=2mm]}] (0,0) -- (1.06,0) node[right, font=\footnotesize] {coverage};
+  \draw[thick, ioLine, -{Latex[length=2mm]}] (0,0) -- (0,0.165) node[above, font=\footnotesize] {rischio (tasso di errore)};
+  \draw[line width=1.6pt, modLine] plot[domain=0.02:1, samples=60, smooth] (\x, {0.012+0.13*\x^3});
+  \foreach \c in {0,0.5,1} \draw (\c,0) -- (\c,-0.003) node[below, font=\footnotesize] {\c};
+  \draw[densely dashed, ink2] (0.8,0) -- (0.8,{0.012+0.13*0.512}) -- (0,{0.012+0.13*0.512});
+  \fill[modLine] (0.8,{0.012+0.13*0.512}) circle (1.3pt);
+  \node[note, anchor=west, align=left] at (0.82,0.045) {decidere solo l'80\,\% più sicuro\\delle frasi e rimandare il resto\\a un controllo umano};
+  \fill[orangeA] (1,0.142) circle (1.6pt);
+  \node[note, anchor=east, align=right] at (0.98,0.15) {coverage 1: si decide tutto,\\rischio = errore complessivo};
+  \node[font=\footnotesize, text=modLine] at (0.55,0.012) {area = AURC};
+\end{tikzpicture}
+\end{document}

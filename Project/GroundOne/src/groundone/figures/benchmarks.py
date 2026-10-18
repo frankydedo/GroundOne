@@ -259,12 +259,43 @@ def seed_runs(g):
            "was stopped at step ≈ 470.", "models/g1-05b-{b1,s3,s2}/train_log.jsonl")
 
 
+def gain_decomposition(g):
+    """T1 three-way balanced accuracy: untrained readout -> fine-tuned with generated token (B2) -> restricted readout."""
+    rows = []
+    for size, unt, b2, g1 in (("0.5B", "untrained-05b", "b2-05b", "g1-05b-b1"), ("3B", "untrained-3b", "b2-3b", "g1-3b-b1")):
+        mu, mb, mg = load(unt, "t1"), load(b2, "t1"), load(g1, "t1")
+        if not (mu and mb and mg):
+            return
+        rows.append((size, mu["all"]["macro_recall"], mb["macro_recall_generate_failures_wrong"], mg["all"]["macro_recall"]))
+    labels = ["untrained (readout)", "fine-tuned, generated token (B2)", "fine-tuned, restricted readout (GroundOne)"]
+    cols = [NEUTRAL, SERIES[3], SERIES[0]]
+    fig, ax = plt.subplots(figsize=(7.5, 3.4))
+    w = 0.26
+    for k, (lab, col) in enumerate(zip(labels, cols)):
+        xs = np.arange(len(rows)) + (k - 1) * w
+        vals = [r[k + 1] for r in rows]
+        bars = ax.bar(xs, vals, w * 0.92, color=col, label=lab)
+        for b, r, v in zip(bars, rows, vals):
+            txt = f"{v:.3f}" if k == 0 else f"{v:.3f}\n(+{v - r[k]:.2f})"
+            ax.text(b.get_x() + b.get_width() / 2, v + 0.01, txt, ha="center", va="bottom", fontsize=7)
+    ax.axhline(1 / 3, color=NEUTRAL, ls="--", lw=1)
+    ax.set_xticks(range(len(rows)), [f"Qwen2.5 {r[0]}" for r in rows])
+    ax.set_ylim(0, 1.05)
+    ax.set_ylabel("T1 three-way balanced accuracy")
+    ax.legend(fontsize=7, loc="upper left")
+    g.save(fig, "gain_decomposition", "Where GroundOne's accuracy on T1 comes from: the same base model untrained (readout, design "
+           "a), fine-tuned but deciding with the token it would generate (control B2, format failures counted as wrong), and "
+           "fine-tuned with the restricted readout. In brackets, the gain over the previous step. The untrained 3B "
+           "is evaluated on 600 answers. Dashed: chance.", "results/{untrained,b2,g1}-*/t1/metrics.json")
+
+
 def main():
     g = Group("benchmarks")
     seed_runs(g)
     energy(g)
     equal_output(g)
     readout_vs_generation(g)
+    gain_decomposition(g)
     comparison(g, "t1", "T1 RAGTruth test")
     comparison(g, "t3", "T3 VitaminC test")
     by_task(g)

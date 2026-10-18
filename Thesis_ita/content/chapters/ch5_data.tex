@@ -79,7 +79,7 @@ all'addestramento.
 
 \paragraph{LLM-AggreFact.} LLM-AggreFact~\cite{tang2024minicheck,llmaggrefact} aggrega undici dataset di fact checking
 annotati manualmente, ciascuno composto da coppie (documento, affermazione). I dataset coprono tre ambiti: la
-summarization (AggreFact-CNN e XSum~\cite{tang2023aggrefact}, TofuEval~\cite{tang2024tofueval}), il question answering
+summarization (AggreFact-CNN e XSum~\cite{tang2023aggrefact}, TofuEval~\cite{tang2024tofueval}, con i due sottoinsiemi MediaS e MeetB), il question answering
 basato su retrieval o con risposte in forma estesa (RAGTruth~\cite{niu2024ragtruth}, ClaimVerify~\cite{liu2023verifiability},
 ExpertQA~\cite{malaviya2024expertqa}, LFQA~\cite{chen2024lfqa}) e il fact checking vero e proprio
 (WiCE~\cite{kamoi2023wice}, REVEAL~\cite{jacovi2024reveal}, FactCheck-GPT~\cite{wang2024factcheckbench}). Il benchmark
@@ -113,7 +113,14 @@ indipendenti.
 in corrispondenza degli a capo. Ogni riga viene poi divisa in frasi con PySBD~\cite{sadvilkar2020pysbd}, un
 segmentatore basato su regole che gestisce abbreviazioni e numeri decimali. I simboli di elenco iniziali, come ``3.'' o
 ``*'', vengono rimossi, perché riguardano l'impaginazione e non il contenuto. Lo stesso segmentatore è usato in
-addestramento, in valutazione e in inferenza, così che il modello veda sempre frasi tagliate allo stesso modo.
+addestramento, in valutazione e in inferenza, così che il modello veda sempre frasi tagliate allo stesso modo. La Figura~\ref{fig:data-pipeline} riassume l'intero processo di costruzione, dalle fonti ai test set congelati.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/diagrams/data_pipeline_tikz.pdf}
+\caption{Costruzione del dataset. Le risposte di RAGTruth sono segmentate, filtrate dalle frasi senza contenuto verificabile, etichettate a partire dagli span e ripulite dalle esclusioni; lo split ufficiale di test diventa T1, mentre le fonti di addestramento sono divise per fonte in training set e dev set. LLM-AggreFact e VitaminC forniscono soltanto test set (T2 e T3). Un controllo automatico del leakage accompagna ogni costruzione, e i test set sono congelati con un hash prima di qualsiasi addestramento.}
+\label{fig:data-pipeline}
+\end{figure}
 
 \paragraph{Frasi senza contenuto verificabile.} Alcune frasi non affermano nulla sul documento: saluti, intestazioni
 che introducono un elenco, righe che contengono soltanto una citazione, come ``(Passage 2)'', e formule di rifiuto.
@@ -128,7 +135,14 @@ La frase è contraddetta se si sovrappone a uno span di conflitto, non menzionat
 informazione infondata, e supportata in tutti gli altri casi. Soltanto 27 dei 14{,}226 span annotati (0.19\,\%) non
 toccano alcuna frase valutata, quindi la conversione non perde quasi nessuna annotazione. Per LLM-AggreFact, invece,
 l'etichetta binaria è mantenuta così come rilasciata. Le etichette di VitaminC sono convertite direttamente:
-\emph{supports} diventa supportata, \emph{refutes} contraddetta e \emph{not enough information} non menzionata.
+\emph{supports} diventa supportata, \emph{refutes} contraddetta e \emph{not enough information} non menzionata. La Figura~\ref{fig:data-label-rule} riassume la regola applicata a RAGTruth.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{images/diagrams/data_label_rule_tikz.pdf}
+\caption{Regola con cui le annotazioni a livello di span di RAGTruth diventano etichette di frase. Le frasi senza contenuto verificabile restano nel prompt come contesto ma non sono decisioni; fra le altre, il conflitto prevale sull'informazione infondata.}
+\label{fig:data-label-rule}
+\end{figure}
 
 \paragraph{Esclusioni e split.} Vengono rimosse tre categorie di risposte: quelle che RAGTruth segnala come rifiuti
 scorretti o come troncate, quelle senza alcuna frase valutata e quelle in cui documento e risposta superano insieme i
@@ -270,7 +284,7 @@ contraddetto lo 0.6\,\% delle frasi di T1, contro l'1.6\,\% di quelle del traini
 dipendono dalla frequenza di base delle classi, come la precisione o l'F1 sulle classi minoritarie\footnote{La
 \emph{recall} di una classe è la quota dei suoi esempi che il modello riconosce. La \emph{precisione} è la quota delle
 predizioni di quella classe che risultano corrette, e per questo cambia con la frequenza della classe anche quando il
-modello resta lo stesso. L'F1 è la media armonica delle due.}, non sono confrontabili tra dev set e test set. Le metriche
+modello resta lo stesso. L'F1 è la media armonica delle due.}, non sono confrontabili tra dev set e test set, perché il dev set, estratto dal training set, ne conserva la distribuzione. Le metriche
 principali sono quindi la balanced accuracy, la recall macro e l'AUROC, che dalla frequenza di base non dipendono.
 
 \paragraph{Le contraddizioni sono per lo più evidenti.} Circa l'85\,\% delle frasi contraddette del training set deriva

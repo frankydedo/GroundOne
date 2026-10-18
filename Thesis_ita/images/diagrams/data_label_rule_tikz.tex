@@ -1,0 +1,23 @@
+\documentclass[border=3pt]{standalone}
+\input{g1_common.tex}
+\begin{document}
+\begin{tikzpicture}[node distance=7mm]
+  \node[io, text width=3.6cm] (s) {frase della risposta\\(dopo la segmentazione)};
+  \node[decision, below=of s, font=\footnotesize, text width=2.6cm] (d0) {contenuto\\verificabile?};
+  \node[outcome=clusterLine, fill=white, right=12mm of d0, font=\footnotesize] (ctx) {nessuna etichetta: resta come contesto, senza marker};
+  \node[decision, below=of d0, font=\footnotesize, text width=2.6cm] (d1) {tocca uno span\\di conflitto?};
+  \node[outcome=badLine, fill=badFill, right=12mm of d1] (con) {contraddetta};
+  \node[decision, below=of d1, font=\footnotesize, text width=2.6cm] (d2) {tocca uno span di\\informazione infondata?};
+  \node[outcome=nmLine, fill=nmFill, right=12mm of d2] (nm) {non menzionata};
+  \node[outcome=okLine, fill=okFill, below=of d2] (sup) {supportata};
+  \draw[arrow] (s) -- (d0);
+  \draw[arrow] (d0) -- node[above, font=\footnotesize] {no} (ctx);
+  \draw[arrow] (d0) -- node[right, font=\footnotesize] {sì} (d1);
+  \draw[arrow] (d1) -- node[above, font=\footnotesize] {sì} (con);
+  \draw[arrow] (d1) -- node[right, font=\footnotesize] {no} (d2);
+  \draw[arrow] (d2) -- node[above, font=\footnotesize] {sì} (nm);
+  \draw[arrow] (d2) -- node[right, font=\footnotesize] {no} (sup);
+  \node[note, right=6mm of con, text width=4.4cm, align=left] {il conflitto prevale: una frase con una parte in conflitto e una non verificabile è contraddetta};
+  \node[note, right=6mm of sup, text width=4.4cm, align=left] {27 dei 14{,}226 span annotati (0.19\,\%) non toccano alcuna frase valutata};
+\end{tikzpicture}
+\end{document}

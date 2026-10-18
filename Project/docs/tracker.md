@@ -57,7 +57,7 @@ Chapters renumbered on 2026-10-11 after the new Ch. 2. Italian version (`Thesis_
 | MiniCheck-RoBERTa | – | 0.762 | 0.814 | 74.0 | 74.6 | – | **0.968** | – | – | binary only; T2 from the earlier run on the same test; T3 in its training lineage |
 | HHEM-2.1-open | – | 0.731 | 0.821 | – | – | – | 0.795 | – | – | binary only |
 | Rizzo-Flow 4B Q4 | 0.603 | 0.769 | 0.894 | 61.5 | 58.2 | 0.712 | 0.909 | – | – | T1 300 answers, T3 600 pairs; T2 earlier run on 1,100 items |
-| Liquid AI d1-3B (zero-shot) | 0.657 | 0.792 | 0.863 | **75.7** | 76.5 | **0.724** | 0.913 | – | – | general-purpose open decision model, GroundOne's size; PyTorch MPS; T2 on a 6,000-item subsample |
+| Liquid AI d1-3B (zero-shot) | 0.657 | 0.792 | 0.863 | **75.7** | 76.5 | **0.724** | 0.913 | – | – | general-purpose open decision model, GroundOne's size; PyTorch MPS; T2 on a 4,000-item random subsample |
 | Word overlap (no model) | – | – | 0.737 | – | – | – | 0.698 | – | – | never reads the document as a whole |
 | Sentence only (n-grams) | 0.570 | – | – | – | – | 0.331 | – | – | – | ignores the document |
 | B2: fine-tuned 0.5B, generated token | 0.521 | – | – | – | – | – | – | – | – | same pass as GroundOne; 24.7% format failures |

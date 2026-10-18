@@ -36,7 +36,14 @@ distribuzione di probabilità: ogni punteggio $z_i$ diventa $e^{z_i} / \sum_j e^
 significa calcolarla soltanto sui loro tre logit, ignorando il resto del vocabolario.} ristretta a queste tre lettere.
 In un decoder ogni posizione vede soltanto quelle precedenti, quindi il verdetto sulla frase $i$ dipende dal documento e
 dalle frasi $1, \dots, i$. È esattamente ciò che serve alla verifica, perché i riferimenti, come i pronomi, puntano
-all'indietro. Quanto segue l'ultimo marker non influisce su alcun verdetto, quindi la sequenza si chiude lì.
+all'indietro. Quanto segue l'ultimo marker non influisce su alcun verdetto, quindi la sequenza si chiude lì. La Figura~\ref{fig:method-marked} mostra la struttura del prompt e i punti in cui avviene il readout.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/diagrams/method_marked_prompt_tikz.pdf}
+\caption{Il prompt a marker di GroundOne (design b). Le frasi della risposta sono numerate e ogni frase valutata è seguita dal marker ``\texttt{~Verdict:}''; una frase senza contenuto verificabile (qui un'intestazione) resta come contesto, senza marker. Il modello elabora l'intera sequenza in un solo forward pass, e la testa di output, ristretta alle lettere A, B e C, si applica soltanto nelle posizioni dei marker. Per l'attenzione causale il verdetto della frase $i$ dipende dal documento e dalle frasi da 1 a $i$.}
+\label{fig:method-marked}
+\end{figure}
 
 Due accorgimenti rendono il readout esatto ed efficiente. Il primo riguarda l'esattezza: il prompt viene costruito
 tokenizzando separatamente le sue parti e poi concatenandole, così che la posizione di ogni marker sia nota con
@@ -56,14 +63,28 @@ decoding 5.9\,ms per token generato; con il 3B i due valori sono 2.2 e 31.8\,ms.
 quanto quattordici-sedici token in prefill. Le due fasi, inoltre, sollecitano l'hardware in modo diverso. Il prefill
 elabora molti token insieme ed è limitato dalla capacità di calcolo, mentre il decoding produce un token alla volta ed è
 limitato dalla banda necessaria a leggere i pesi~\cite{pope2023scaling,patel2024splitwise}. La differenza riemerge nelle
-misure di energia del Capitolo~\ref{sec:results}.
+misure di energia del Capitolo~\ref{sec:results}. La Figura~\ref{fig:method-cost} traduce il modello di costo in secondi per risposta, usando soltanto queste costanti misurate.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/method/cost_model.png}
+\caption{Costo stimato della verifica di una risposta di $S = 800$ token in funzione di $K$, calcolato con le sole costanti misurate sull'M4: il tempo per token del prefill e del decoding e il numero medio di token che ciascun giudice genera per verdetto sul sottoinsieme di latenza ($K$ medio 8.7). È un modello analitico, non una misura: le latenze misurate sono nella Sezione~\ref{sec:results-latency}. Il costo del System One cresce di soli tre token di prefill per decisione, quello dei giudici di alcuni token di decoding per decisione.}
+\label{fig:method-cost}
+\end{figure}
 
 Esiste anche una seconda soluzione, che legge una sola volta il prefisso condiviso e vi accoda poi una breve domanda per
 ogni frase, valutando le domande in batch. A differenza della soluzione a marker, che si accontenta di un solo
 passaggio, questa richiede però una KV cache replicata $K$ volte. È mantenuta come alternativa di riserva ed è il formato
 naturale per un modello non addestrato, che comprende una domanda esplicita ma non ha motivo di interpretare un marker
 come una richiesta di verdetto. Per questo è il formato usato dalla baseline non addestrata
-(Sezione~\ref{sec:setup-baselines}).
+(Sezione~\ref{sec:setup-baselines}). La Figura~\ref{fig:method-designs} confronta le due soluzioni.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/diagrams/method_designs_ab_tikz.pdf}
+\caption{Le due soluzioni per ottenere $K$ verdetti da una sola lettura. (b) Il readout a marker, adottato come predefinito, inserisce un marker dopo ogni frase e legge tutti i verdetti nello stesso passaggio. (a) La soluzione di riserva legge una volta il prefisso condiviso e vi accoda una breve domanda per ogni frase, valutate in batch; richiede però $K$ copie della KV cache del prefisso, ed è il formato naturale per un modello non addestrato.}
+\label{fig:method-designs}
+\end{figure}
 
 \paragraph{Un classificatore, non un generatore più veloce.} Il readout restringe la decisione a tre lettere, e la
 restrizione non è un dettaglio. Dopo il marker, il modello sottoposto a fine-tuning non scriverebbe la lettera che viene
@@ -118,14 +139,14 @@ dell'ottimizzatore veda circa 16 risposte, ovvero circa 110 decisioni. Così ogn
 contraddetta, nonostante la rarità della classe. Il gradient checkpointing, che durante il calcolo dei gradienti
 ricalcola alcune attivazioni invece di conservarle, mantiene l'occupazione di memoria entro i 16\,GB del portatile.
 Durante l'addestramento il modello viene valutato periodicamente sul dev set, e si conserva il checkpoint, cioè la copia
-dei pesi, con la balanced accuracy a tre classi più alta, mediata sui tre task. La Sezione~\ref{sec:setup-models} riporta
+dei pesi, con la balanced accuracy a tre classi più alta, mediata sui tre task di RAGTruth (question answering, summarization e data-to-text). La Sezione~\ref{sec:setup-models} riporta
 le impostazioni di ciascun run.
 
 \section{Calibrazione}
 \label{sec:method-calibration}
 
 I pesi delle classi addestrano il modello come se le tre classi fossero ugualmente frequenti, per cui le sue
-probabilità grezze non rispecchiano la frequenza reale degli errori. Sul dev set si stima quindi una trasformazione
+probabilità grezze non rispecchiano le frequenze reali delle classi. Sul dev set si stima quindi una trasformazione
 post-hoc, applicata ai logit dopo l'addestramento e senza modificare i pesi. I tre logit vengono divisi per una
 temperatura $T$ e traslati di un bias per classe, $\mathrm{softmax}(z / T + b)$, con il bias della classe supportata
 fissato a zero. I parametri $T$ e $b$ sono scelti minimizzando la negative log-likelihood delle etichette del dev set,
@@ -170,7 +191,14 @@ mezzo. L'output restituito ricava quindi ogni elemento dalle probabilità calibr
 etichettata come supportata se e solo se $P(\text{supported}) \geq \tau$; altrimenti riceve la più probabile fra le due
 classi restanti. La policy strict segnala ogni frase non supportata, quella lenient soltanto le contraddette. La soglia
 $\tau$ è stimata sul dev set in modo da massimizzare la balanced accuracy a tre classi. L'utente può modificarla a ogni
-richiesta, scegliendo così un diverso punto operativo senza riaddestrare il modello.
+richiesta, scegliendo così un diverso punto operativo senza riaddestrare il modello. La Figura~\ref{fig:method-calflow} riassume il percorso dai logit grezzi alle etichette restituite.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/diagrams/method_calibration_flow_tikz.pdf}
+\caption{Dai logit alle etichette restituite. La decisione grezza, cioè l'argmax dei logit, serve alle metriche di classificazione del Capitolo~\ref{sec:results}. Le probabilità calibrate, ottenute con temperatura e bias stimati sul dev set, alimentano invece l'unica regola dell'output restituito: supportata se $P(\text{supported}) \geq \tau$, altrimenti la più probabile fra contraddetta e non menzionata. Da qui derivano i flag strict e lenient.}
+\label{fig:method-calflow}
+\end{figure}
 
 \section{Software}
 \label{sec:method-software}
@@ -191,4 +219,11 @@ in ingresso, il numero di token generati, sempre pari a zero, e il tempo impiega
 risponde a domande chiuse generiche su un contesto condiviso, con il formato a una domanda per frase. Tutto il calcolo del
 modello avviene su un unico worker thread di lunga durata, perché il contesto Metal della GPU, cioè lo stato con cui il
 programma la usa attraverso l'interfaccia grafica di Apple, non deve spostarsi da un thread all'altro. Infine, nulla esce
-dalla macchina: modelli, dati e richieste restano in locale.
+dalla macchina: modelli, dati e richieste restano in locale. La Figura~\ref{fig:method-software} riassume l'architettura del pacchetto.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/diagrams/method_software_tikz.pdf}
+\caption{Architettura del software. In alto la pipeline sperimentale, dai dataset pubblici ai test congelati, eseguita sotto il memory guard; in basso il servizio di verifica, in cui riga di comando e server HTTP (endpoint nativo e compatibile) condividono lo stesso Engine, che serializza le richieste ed esegue ogni chiamata MLX su un unico worker thread. L'adapter e il file di calibrazione prodotti dalla pipeline sono gli unici artefatti che il servizio legge.}
+\label{fig:method-software}
+\end{figure}

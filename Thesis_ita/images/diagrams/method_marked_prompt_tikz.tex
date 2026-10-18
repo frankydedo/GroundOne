@@ -1,0 +1,30 @@
+\documentclass[border=3pt]{standalone}
+\input{g1_common.tex}
+\begin{document}
+\begin{tikzpicture}[node distance=0.9mm]
+  % token sequence
+  \node[tok, text width=1.55cm] (ins) {istruzione};
+  \node[tok, right=of ins, text width=2.3cm] (doc) {DOCUMENTO\\recuperato};
+  \node[tok, right=of doc, text width=1.35cm] (s1) {[1] frase 1};
+  \node[vmark, right=of s1] (m1) {Verdict:};
+  \node[tok, right=of m1, text width=2.45cm, fill=white, densely dashed] (s2) {[2] intestazione:};
+  \node[tok, right=of s2, text width=1.35cm] (s3) {[3] frase 3};
+  \node[vmark, right=of s3] (m3) {Verdict:};
+  \node[right=0.6mm of m3, font=\footnotesize] (dots) {$\cdots$};
+  \node[tok, right=0.6mm of dots, text width=1.55cm] (sk) {[$K$] frase $K$};
+  \node[vmark, right=of sk] (mk) {Verdict:};
+  \draw[decorate, decoration={brace, amplitude=4pt, mirror}] ([yshift=-1mm]s1.south west) -- node[below=5pt, note] {risposta numerata: una frase senza contenuto verificabile resta come contesto, senza marker} ([yshift=-1mm]mk.south east);
+  % transformer
+  \path let \p1=(ins.west), \p2=(mk.east) in node[model=\x2-\x1-8pt-1.6pt, minimum height=1.1cm, anchor=south west] (tr) at ([yshift=9mm]ins.north west) {Transformer decoder di Qwen2.5 con adapter LoRA: \textbf{un solo forward pass} sull'intera sequenza (attenzione causale)};
+  \foreach \n in {ins,doc,s1,m1,s2,s3,m3,sk,mk} \draw[arrow, thin] (\n.north) -- (\n.north |- tr.south);
+  % heads only at markers
+  \foreach \n/\k in {m1/1,m3/3,mk/K} {
+    \node[post=1.55cm, above=7mm of \n.north |- tr.north, font=\footnotesize] (h\k) {testa ristretta\\a A, B, C};
+    \draw[arrow] (\n.north |- tr.north) -- (h\k);
+    \node[io, above=4mm of h\k, font=\footnotesize, text width=2.1cm] (o\k) {$(P_A, P_B, P_C)_{\k}$};
+    \draw[arrow] (h\k) -- (o\k);
+  }
+  \node[note, anchor=east, align=right, text width=6.2cm] at ([xshift=-4mm]h1.west |- h1) {la proiezione sul vocabolario si applica\\solo nelle posizioni dei marker; altrove\\gli stati nascosti non vengono letti};
+  \node[note, anchor=east, align=right, text width=6.2cm] at ([xshift=-4mm]o1.west |- o1) {verdetto della frase $i$: dipende dal documento\\e dalle frasi $1,\dots,i$};
+\end{tikzpicture}
+\end{document}

@@ -10,7 +10,14 @@ addestramento sia stabile. Seguono i risultati sui tre test set congelati, il co
 che il readout del System One dà di per sé. Il capitolo esamina poi la qualità delle probabilità, il tempo e l'energia
 necessari per verificare una risposta e, infine, gli errori che restano. Gli intervalli, riportati tra parentesi nella
 forma ``da $a$ a $b$'', sono intervalli di confidenza al 95\,\% ottenuti con un bootstrap a cluster, calcolati come
-descritto nella Sezione~\ref{sec:setup-statistics}.
+descritto nella Sezione~\ref{sec:setup-statistics}. La Figura~\ref{fig:results-bootstrap} raccoglie in un unico grafico le differenze appaiate discusse nel capitolo.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/bootstrap_paired_differences.png}
+\caption{Tutte le differenze appaiate tra sistemi sui test set congelati, con l'intervallo bootstrap a cluster al 95\,\%. In blu le differenze a favore del primo sistema (A), in arancione quelle a favore del secondo (B), in grigio quelle non significative, il cui intervallo contiene lo zero.}
+\label{fig:results-bootstrap}
+\end{figure}
 
 \section{Addestramento}
 \label{sec:results-training}
@@ -45,7 +52,7 @@ l'inizializzazione degli adapter e l'ordine dei batch. Quando l'addestramento co
 (Figura~\ref{fig:results-seeds}). Su T1 la seconda esecuzione raggiunge una balanced accuracy a tre classi di 0.767,
 contro 0.769 della prima, e un AUROC di 0.907 contro 0.905. Su LLM-AggreFact la balanced accuracy media macro è 71.5
 contro 70.1, e su VitaminC la balanced accuracy a tre classi è 0.434 contro 0.442. Su T1 la differenza appaiata tra le
-due esecuzioni è $+0.001$ (da $-0.008$ a $+0.011$) e non è significativa.
+due esecuzioni, calcolata come prima meno seconda, è $+0.001$ (da $-0.008$ a $+0.011$) e non è significativa.
 
 Le differenze emergono nei dettagli. Anzitutto, gli errori si distribuiscono in modo diverso tra le classi: la recall
 delle frasi supportate e quella delle frasi non menzionate si spostano di circa 0.04, in direzioni opposte. Inoltre, le
@@ -64,7 +71,7 @@ stata interrotta.}
 
 Da questi risultati seguono due conseguenze. La prima riguarda gli intervalli: il bootstrap ricampiona i dati di test,
 e quindi non coglie la variabilità dovuta all'addestramento. Su LLM-AggreFact e su VitaminC, infatti, le due esecuzioni
-della stessa procedura differiscono più di quanto i loro intervalli consentirebbero ($-0.013$ sulla media macro di T2,
+della stessa procedura differiscono più di quanto i loro intervalli consentirebbero (prima meno seconda esecuzione: $-0.013$ sulla media macro di T2,
 $-0.025$ sull'AUROC di T3). Per questo non vengono interpretate le differenze tra sistemi inferiori alla dispersione tra
 seed, cioè a circa 1.5 punti sulla media macro di LLM-AggreFact e a 0.025 di AUROC su VitaminC. Lo stesso vale per i
 singoli dataset di LLM-AggreFact quando lo scarto non supera circa cinque punti.
@@ -152,9 +159,16 @@ La Figura~\ref{fig:results-comparison} mette a confronto tutti i sistemi su T1. 
 AUROC di 0.814 (MiniCheck-RoBERTa) e di 0.821 (HHEM): più della sovrapposizione lessicale, ma meno di entrambi i modelli
 GroundOne. Il 0.5B supera MiniCheck-RoBERTa di $+0.091$ (da $+0.074$ a $+0.107$) e HHEM di $+0.083$ (da $+0.066$ a
 $+0.099$); il 3B li supera rispettivamente di $+0.126$ e $+0.119$. Il confronto per task, però, ridimensiona questo
-risultato. Il vantaggio di GroundOne viene in gran parte dal data-to-text, dove è addestrato nel dominio e dove gli
+risultato. Il vantaggio di GroundOne viene in gran parte dal data-to-text, dove lo avvantaggiano l'addestramento nel dominio e la struttura ricorrente dei template, e dove gli
 encoder sono più deboli (AUROC 0.71--0.75). Nella summarization, invece, MiniCheck-RoBERTa supera il modello 0.5B (0.872
-contro 0.775) ed è alla pari con il 3B (0.873).
+contro 0.775) ed è alla pari con il 3B (0.873). La Figura~\ref{fig:results-by-task} riporta l'AUROC per task di tutti i sistemi.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/t1_by_task.png}
+\caption{AUROC di $P(\text{supported})$ su T1 per task (question answering, riassunto, data-to-text) e per sistema. Il vantaggio di GroundOne si concentra nel data-to-text; nella summarization MiniCheck-RoBERTa supera il 0.5B ed è alla pari con il 3B.}
+\label{fig:results-by-task}
+\end{figure}
 
 I modelli non addestrati mostrano quanta parte dell'accuratezza si debba all'addestramento. Il 0.5B non addestrato è al
 livello casuale, perché non risponde mai ``supportata''. Il 3B non addestrato, a cui si pone la stessa domanda, raggiunge
@@ -193,7 +207,7 @@ specializzazione vale molto più di un addestramento generico a prendere decisio
 Su LLM-AggreFact (T2) il modello 0.5B raggiunge una balanced accuracy media macro di 70.1 sugli undici dataset, contro
 64.2 dello stesso modello usato zero-shot e 72.8 del modello 7B zero-shot riportato nella leaderboard pubblica. Resta
 invece 3.9 punti sotto MiniCheck-RoBERTa (74.0), una differenza significativa. Sui quattro dataset più vicini alla
-retrieval-augmented generation i due sistemi sono alla pari (74.4 contro 74.6). Nella colonna di RAGTruth GroundOne è in
+retrieval-augmented generation i due sistemi sono alla pari (74.4 per GroundOne 0.5B, 74.6 per MiniCheck-RoBERTa). Nella colonna di RAGTruth GroundOne è in
 vantaggio, 82.1 contro 76.5, ma il confronto lo favorisce, perché è stato addestrato sulle risposte del training set di
 RAGTruth. Al di fuori del RAG, invece, il 0.5B è inferiore all'encoder di sette-nove punti su AggreFact-CNN,
 AggreFact-XSum, FactCheck-GPT e REVEAL: è il costo atteso di un addestramento sui soli dati RAG.
@@ -225,7 +239,14 @@ di dialoghi.
 Su VitaminC il quadro si rovescia. Sull'intero test set il 0.5B raggiunge una balanced accuracy a tre classi di 0.442 e
 il 3B di 0.527, con un AUROC rispettivamente di 0.722 e di 0.817, mentre MiniCheck-RoBERTa arriva a un AUROC di 0.968.
 Sulle 600 coppie valutate con Rizzo-Flow, il modello generalista ottiene una balanced accuracy a tre classi di 0.712 e un
-AUROC di 0.909, contro 0.442 e 0.744 del 0.5B e 0.537 e 0.845 del 3B.
+AUROC di 0.909, contro 0.442 e 0.744 del 0.5B e 0.537 e 0.845 del 3B. La Figura~\ref{fig:results-comparison-t3} mostra il confronto completo su T3.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/comparison_t3.png}
+\caption{Confronto dei sistemi su T3 (VitaminC): a sinistra l'AUROC di $P(\text{supported})$, a destra la balanced accuracy a tre classi per i sistemi con un output a tre classi. Rizzo-Flow è valutato su un sottocampione di 600 coppie; il tratteggio indica il livello casuale. Per MiniCheck-RoBERTa VitaminC fa parte della genealogia dei dati di addestramento.}
+\label{fig:results-comparison-t3}
+\end{figure}
 
 Due fatti aiutano a interpretare questi numeri. Il primo è che MiniCheck-RoBERTa parte dal modello AlignScore, i cui
 dati di addestramento comprendono VitaminC~\cite{zha2023alignscore}. Per l'encoder, quindi, T3 appartiene alla
@@ -274,7 +295,14 @@ classi addestrano il modello come se le classi fossero bilanciate. L'ECE binario
 3B. La temperatura e il bias stimati sul dev set lo portano a 0.019 per entrambi i modelli, e a 0.020 per la seconda
 esecuzione del 0.5B. Riducono inoltre la negative log-likelihood da 0.55 a 0.21 per il 0.5B e da 0.36 a 0.17 per il 3B,
 lasciando l'AUROC praticamente invariato. La mappa stimata sul dev set si trasferisce quindi al test set dello stesso
-dominio.
+dominio. La Figura~\ref{fig:results-reliability-3b} mostra lo stesso diagramma per il 3B.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/g1-3b-reliability.png}
+\caption{Reliability diagram di $P(\text{supported})$ del 3B, prima e dopo la calibrazione stimata sul dev set, per il dev set, T1 e T3; ogni punto è una fascia di probabilità con almeno 20 frasi. Come per il 0.5B, la calibrazione si trasferisce a T1 ma non a T3.}
+\label{fig:results-reliability-3b}
+\end{figure}
 
 \begin{figure}[htbp]
 \centering
@@ -378,7 +406,7 @@ sintetico e verboso. Scala logaritmica.}
 La velocità non è l'unica differenza (Figura~\ref{fig:results-judges}). I giudici generativi non addestrati sono anche
 molto meno accurati, e non sempre rispettano il formato di output. Il giudice verboso 0.5B produce un verdetto
 interpretabile soltanto per il 3\,\% delle frasi, perché per lo più ricopia la risposta, mentre il giudice sintetico
-0.5B fallisce sul 23\,\% delle frasi. I giudici 3B rispettano il formato molto meglio (0.1\,\% e 7.6\,\% di errori di
+0.5B fallisce sul 23\,\% delle frasi. I giudici 3B rispettano il formato molto meglio (0.1\,\% di errori di formato per il giudice sintetico e 7.6\,\% per quello verboso
 formato), ma si fermano a una balanced accuracy a tre classi di circa 0.40, contro 0.90 del GroundOne 3B sulle stesse
 risposte. Il giudice verboso 3B, infine, scrive in media 248 token per risposta, che vanno tutti generati prima di poter
 usare il verdetto; GroundOne, invece, non ne genera nessuno.

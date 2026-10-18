@@ -37,7 +37,14 @@ comprende quindi meglio come un classificatore a tre classi innestato su un mode
 che si ferma dopo un token. La distinzione pesa soprattutto per i modelli piccoli, cioè proprio per quelli che un
 portatile può permettersi. Il confronto con i giudici generativi, infine, misura anche l'effetto dell'addestramento:
 poiché i giudici non sono addestrati, le ampie differenze di accuratezza rispetto a GroundOne vanno lette come l'effetto
-congiunto della specializzazione e del readout.
+congiunto della specializzazione e del readout. La Figura~\ref{fig:disc-gains} scompone il guadagno su T1 nei due passaggi, l'addestramento e il readout ristretto.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/gain_decomposition.png}
+\caption{Da dove viene l'accuratezza di GroundOne su T1: lo stesso modello base non addestrato (readout, design a), addestrato ma con la decisione presa dal token che genererebbe (controllo B2, errori di formato contati come errori) e addestrato con il readout ristretto. Tra parentesi il guadagno rispetto al passaggio precedente. Il 3B non addestrato è valutato su 600 risposte; il tratteggio indica il livello casuale.}
+\label{fig:disc-gains}
+\end{figure}
 
 \paragraph{Calibrazione (RQ3).} Una temperatura e un bias stimati sul dev set allineano le probabilità alle frequenze
 osservate sul test set dello stesso dominio, e le probabilità calibrate rendono efficace la selective prediction. Due
@@ -64,7 +71,14 @@ question answering e nella summarization, dove nei dati di addestramento le cont
 sensibilmente su questo fronte, e ciò suggerisce che al modello piccolo manchino, più che un'architettura diversa,
 contraddizioni più varie in addestramento. Le policy strict e lenient e la soglia derivano tutte dalle stesse tre
 probabilità. L'utente può quindi cambiare la nozione di errore senza riaddestrare il modello, cosa che nessun
-verificatore binario consente.
+verificatore binario consente. La Figura~\ref{fig:disc-when} riassume queste indicazioni in forma di albero decisionale.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/diagrams/disc_when_specialist_tikz.pdf}
+\caption{Quando conviene un System One specialista, secondo i risultati di questa tesi. È una sintesi qualitativa: i tempi si riferiscono al portatile M4 e alle risposte con 14 o più frasi, e il trasferimento fuori dominio è quello osservato su LLM-AggreFact e VitaminC.}
+\label{fig:disc-when}
+\end{figure}
 
 \section{Limiti}
 \label{sec:disc-limitations}
@@ -77,7 +91,7 @@ runtime diversi e in condizioni che renderebbero il confronto iniquo.
 
 \paragraph{Stabilità dell'addestramento.} Due run completi del 0.5B concordano su tutte le metriche aggregate, ma un
 terzo run è collassato nelle prime fasi ed è stato interrotto. La ricetta di addestramento non prevede gradient clipping
-e usa Adam senza bias correction, due cause note di fine-tuning
+e usa AdamW senza bias correction, due cause note di fine-tuning
 instabile~\cite{pascanu2013difficulty,mosbach2021stability}. L'una o l'altra potrebbe spiegare il collasso, ma nessuna
 delle due ipotesi è stata verificata. Il 3B, inoltre, è stato addestrato una sola volta, su metà delle risposte di
 addestramento, e la sua variabilità al cambiare del seed resta ignota.

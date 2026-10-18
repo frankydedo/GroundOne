@@ -27,7 +27,7 @@ passi il modello è stato valutato sull'intero dev set. Il modello 3B, invece, �
 questo viene addestrato nell'arco di una notte su un sottoinsieme casuale di 6{,}500 risposte, pari a circa 45{,}000
 decisioni: 403 passi in 12.25 ore, con un picco di 5.9\,GB. Una valutazione completa sul dev set richiederebbe circa
 un'ora, quindi il 3B viene valutato ogni 80 passi su un sottoinsieme fisso di 200 risposte. In entrambi i casi si
-conserva il checkpoint con il miglior punteggio sul dev set, che viene poi calibrato come descritto nella
+conserva il checkpoint con la balanced accuracy a tre classi più alta sul dev set, che viene poi calibrato come descritto nella
 Sezione~\ref{sec:method-calibration}; per il 3B si tratta del passo 320.
 
 Il seed determina l'inizializzazione degli adapter e l'ordine dei batch, ed è noto che l'esito del fine-tuning varia con
@@ -41,7 +41,14 @@ tabelle e viene discussa nella Sezione~\ref{sec:results-seeds}.
 \label{sec:setup-baselines}
 
 Le baseline servono a isolare l'origine di un eventuale vantaggio di GroundOne, e ciascuna risponde a una domanda
-precisa.
+precisa. La Figura~\ref{fig:setup-baselines} riassume che cosa ciascuna baseline cambia rispetto a GroundOne.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/diagrams/setup_baseline_map_tikz.pdf}
+\caption{Mappa delle baseline. Ciascuna differisce da GroundOne per un aspetto preciso e risponde quindi a una domanda diversa: quanto conta l'addestramento (B1), quanto il readout ristretto rispetto al token generato (B2), quanto il modo di produrre il verdetto (giudici B0a, B0b, B0d), quanto la specializzazione rispetto a un System One generalista (B3, B3b), quanto l'architettura (encoder B4) e quanto basta senza leggere il documento (segnali elementari).}
+\label{fig:setup-baselines}
+\end{figure}
 
 \paragraph{Segnali che non leggono mai il documento nella sua interezza.} Due predittori elementari fissano il livello
 minimo che qualsiasi verificatore deve superare. Il primo assegna a una frase un punteggio pari alla frazione delle sue
@@ -101,7 +108,7 @@ confronto con d1-3B isola così il valore della specializzazione rispetto a un S
 anziché rispetto a un modello non addestrato. Il modello viene eseguito zero-shot con il proprio codice di inferenza, in
 PyTorch sulla GPU del portatile e senza accesso alla rete. Riceve lo stesso stato e le stesse domande di Rizzo-Flow, con
 al più sei domande per chiamata sullo stesso stato. Su LLM-AggreFact i documenti sono suddivisi esattamente come per
-GroundOne, e si conserva il massimo sui frammenti. Ai fini della riproducibilità conta un dettaglio pratico. Sulla GPU
+GroundOne, e per ogni frase si conserva la probabilità di supporto più alta fra i frammenti. Ai fini della riproducibilità conta un dettaglio pratico. Sulla GPU
 Apple, PyTorch conserva i kernel compilati, cioè i programmi eseguiti dalla GPU, per ogni nuova lunghezza di input, e
 non ne rilascia mai la memoria. Per questo la valutazione si svolge in processi worker che vengono riavviati quando la
 memoria occupata dal driver della GPU supera 11\,GB; i riavvii non hanno alcun effetto sugli output.
@@ -109,7 +116,7 @@ memoria occupata dal driver della GPU supera 11\,GB; i riavvii non hanno alcun e
 \paragraph{Encoder specializzati (B4).} MiniCheck-RoBERTa~\cite{tang2024minicheck} e HHEM-2.1-open~\cite{vectara2024hhem}
 sono i verificatori di piccole dimensioni più forti oggi disponibili. Valutano ogni coppia (documento, frase) in modo
 indipendente e restituiscono un'unica probabilità di supporto. Come in MiniCheck, i documenti lunghi vengono suddivisi in
-frammenti di circa 400 parole, e si conserva il massimo sui frammenti. Gli encoder non hanno un output a tre classi,
+frammenti di circa 400 parole, e per ogni frase si conserva la probabilità di supporto più alta fra i frammenti. Gli encoder non hanno un output a tre classi,
 quindi sono confrontati soltanto sulla decisione binaria. Girano in PyTorch sulla GPU del portatile.
 
 \paragraph{Risultati pubblicati.} Per LLM-AggreFact si riportano anche i punteggi di sistemi più grandi presenti nella
@@ -142,15 +149,22 @@ le metriche su T1 sono riportate anche per task e per fascia di $K$.
 \label{sec:setup-statistics}
 
 Ogni differenza tra due sistemi è accompagnata da un intervallo di confidenza al 95\,\%, ottenuto con un paired
-bootstrap con 2{,}000 resampling~\cite{koehn2004significance,bergkirkpatrick2012significance,dror2018hitchhiker}. Il
+bootstrap con $B = 2{,}000$ resampling~\cite{koehn2004significance,bergkirkpatrick2012significance,dror2018hitchhiker}. Il
 bootstrap ricalcola la differenza su molti campioni estratti con reimmissione dal test set, e la dispersione dei valori
 ottenuti ne misura l'incertezza. L'unità di resampling, però, non è la frase, ma il gruppo impiegato nel controllo del
 leakage: il documento sorgente in RAGTruth, il documento in LLM-AggreFact e la pagina di Wikipedia in VitaminC. Le frasi
 di una stessa risposta, e le risposte relative a uno stesso documento, sono infatti fortemente correlate, e ricampionarle
 in modo indipendente porterebbe a intervalli troppo stretti. Su LLM-AggreFact i gruppi sono ricampionati all'interno di
 ciascuno degli undici dataset, perché la media macro assegna a ogni dataset lo stesso peso. Il bootstrap è
-\emph{paired} perché i due sistemi di un confronto sono valutati sugli stessi resampling. Il $p$-value riportato è la
-frazione bilaterale di resampling in cui la differenza cambia segno.
+\emph{paired} perché i due sistemi di un confronto sono valutati sugli stessi resampling. Il $p$-value riportato è bilaterale: è il doppio della quota di resampling in cui la differenza ha segno opposto a
+quello osservato, con un minimo di $1/B$, dove $B$ è il numero di resampling. La Figura~\ref{fig:setup-bootstrap} schematizza la procedura.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/diagrams/setup_bootstrap_tikz.pdf}
+\caption{Bootstrap appaiato a cluster. Le frasi del test set sono raggruppate per fonte; a ogni ripetizione si estraggono le fonti con reinserimento, si calcola la metrica dei due sistemi sulle stesse fonti estratte e se ne registra la differenza. Dopo $B = 2{,}000$ ripetizioni, i percentili 2.5 e 97.5 delle differenze danno l'intervallo al 95\,\%, e la quota di differenze di segno opposto a quello osservato dà il $p$-value.}
+\label{fig:setup-bootstrap}
+\end{figure}
 
 Due limiti del protocollo vanno dichiarati in anticipo. Il primo è che si eseguono circa cinquanta confronti senza
 alcuna correzione per confronti multipli\footnote{Quando si eseguono molti test statistici, cresce la probabilità che

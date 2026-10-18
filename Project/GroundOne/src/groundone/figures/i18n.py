@@ -69,6 +69,9 @@ IT = {
     "System One: prefill of S + 3K tokens": "System One: prefill di S + 3K token",
     "K = decisions per answer": "K = decisioni per risposta",
     "seconds per answer (model)": "secondi per risposta (modello)",
+    "untrained (readout)": "non addestrato (readout)",
+    "fine-tuned, generated token (B2)": "addestrato, token generato (B2)",
+    "fine-tuned, restricted readout (GroundOne)": "addestrato, readout ristretto (GroundOne)",
     # categories
     "all": "tutte", "all T1": "tutto T1", "test": "test", "train": "train", "dev": "dev", "three": "tre classi",
     "supported": "supportata", "contradicted": "contraddetta", "not_mentioned": "non menzionata",
