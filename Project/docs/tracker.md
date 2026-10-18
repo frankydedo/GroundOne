@@ -104,13 +104,22 @@ Chapters renumbered on 2026-10-11 after the new Ch. 2. Italian version (`Thesis_
    - [x] latency protocol as a function of K (central figure `outputs/figures/benchmarks/latency_vs_K.png`)
 5. [x] First draft of the new thesis chapters from `thesis_notes.md` (Ch. 3 method, Ch. 5 setup, Ch. 6 results)
 
+**Remaining experiment items before the freeze (2026-10-30)**, in priority order (2026-10-18; GPU runs only with the author's go-ahead, under the guard):
+1. [ ] **Co-residence (RQ4, H4 still "partly supported")**: one Python process with the 3B 4-bit generator + GroundOne 3B (and 0.5B); RAG-style queries from T1 (question + document → answer → verification); peak memory, generation vs verification time. No demo needed; gives the demo chapter its reference numbers. ≈ 1 h GPU
+2. [ ] **Offline proof** (locality pillar): a subset evaluation with `HF_HUB_OFFLINE=1` and Wi-Fi off; report that it completes with identical predictions. ≈ 30 min
+3. [ ] **8-bit vs bf16** (Ch. 2 quantisation section, measured instead of cited): 0.5B with the bf16 base (cached) and the same adapter: probability differences and T1 metrics. The 3B needs a ≈ 6 GB bf16 download (ask). ≈ 1–2 h
+4. [ ] Optional: seed 4321 re-run with gradient clipping / bias correction as a recorded ablation (one night, ≈ 5.5 h)
+5. [ ] A3–A5: cut formally (record in §1.5) or run A4 (learning curve, 2–3 extra 0.5B runs)
+6. [ ] Desk items (no GPU): licence table; hosted-judge cost comparison; Ch. 6 sentence that every baseline ran on the laptop; Italian figure labels for Ch. 3–9; git tag per reported experiment and reproducibility notes at the freeze
+7. [ ] Then the demo (M0–M5 above)
+
 **Standing rules:** every phase leaves figures (`groundone figures all` → `Project/outputs/figures/`); every result or insight goes into `docs/thesis_notes.md`.
 
 **Later**
 - [x] HTTP API on design (b) with one coherent output rule (D27, 2026-10-10)
 - [x] Served threshold τ fitted on dev (2026-10-10): 0.935 / 0.895 / 0.925 (0.5B run 1, run 2, 3B); served rule = raw decision within 0.01 on T1
 - [ ] **Demo (D28, `demo_architecture.md`)**, milestones:
-   - [ ] answer the open questions (§12: name, generator, retriever, location, thesis placement, loop evaluation, segmentation, time budget)
+   - [x] open questions answered (2026-10-18; segmentation approach to confirm)
    - [ ] M0 Xcode project; MLX Swift streams an answer from Qwen2.5-3B
    - [ ] M1 GroundOne in Swift + fixture export in Python + conformance test (gate, by 2026-10-24)
    - [ ] M2 library + SQLite FTS5 retrieval + coloured chat
@@ -175,3 +184,4 @@ Add one line per significant event (date, what happened, impact on the plan).
 - 2026-10-11/12: author's review of the Italian summary and Ch. 1 (System One vs LLM TikZ figure, RQs rewritten, footnotes, dataset contribution stated as derived, baselines named); Ch. 2 clarity pass, hardware photos from the author's images, Table 2.1 formatted
 - 2026-10-13: Ch. 2 additions: specialised engines (ds4, colibri), discrete vs unified memory and SSD streaming diagrams, reading-vs-writing claim made precise; author's review of Ch. 2 done; English summary, Ch. 1 and Ch. 2 aligned; abstract v0.4; draft PDF (summary + Ch. 1–2) prepared for the supervisor
 - 2026-10-18: demo decided (D28): native macOS app in Swift/SwiftUI with MLX Swift, GroundOne in-process with a conformance test, verify-and-revise loop and policies; spec in `demo_architecture.md`; 31 demo sources saved in `Vault/raw/demo/` and ingested (MLX Swift ecosystem, alternatives, app components, verify-and-revise and guardrails papers)
+- 2026-10-18: demo details decided by the author (GroundOne Studio provisional, 3B 4-bit generator, hybrid retrieval, own thesis chapter); remaining experiment items listed and prioritised (co-residence, offline proof, 8-bit vs bf16; optional seed re-run; A3–A5 to decide)

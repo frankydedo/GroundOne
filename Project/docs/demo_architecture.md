@@ -1,6 +1,7 @@
 # Demo application: runtime choice and architecture
 
-> **Status:** v0.1 draft (2026-10-18). Runtime decided by the author (option A, D28). Every point tagged **[DECIDE]** is still open and listed in §12; nothing below is implemented yet.
+> **Status:** v0.2 (2026-10-18). Runtime decided by the author (option A, D28); answers to the open questions in §12. Nothing below is implemented yet; the app is the last part of the thesis work, after the remaining experiment items (`tracker.md`).
+> Working name: **GroundOne Studio** (provisional, to confirm).
 > Supersedes the demo specification in `implementation_plan.md` §11 (web page, flag only, two days). Sources are summarised in the wiki (`Vault/wiki/concepts/Demo Runtime Choice.md` and the pages linked there).
 
 ---
@@ -18,7 +19,7 @@ It must make four things visible, each tied to a thesis claim:
 | A timing panel: generation vs verification time, iterations, peak memory | Co-residence within 16 GB; verifier overhead relative to generation |
 | Optional comparison with a generative judge on the same answer | RQ2 (latency vs K), shown live instead of in a table |
 
-Nothing in the demo is a new benchmark: measurements taken in it are reported as a case study (Ch. 6 or a demo chapter, **[DECIDE]** Q5), never mixed into the results matrix.
+Nothing in the demo is a new benchmark: measurements taken in it are reported as a case study in a dedicated thesis chapter (Q5), never mixed into the results matrix.
 
 ## 2. Why Swift and MLX Swift (option A)
 
@@ -106,7 +107,7 @@ struct SentenceVerdict { let range: Range<String.Index>; let scored: Bool
 
 ## 4. One query, step by step
 
-1. **Retrieve.** Top-k passages for the question (BM25 by default; hybrid with embeddings if retained, **[DECIDE]** Q3). The concatenated passages are the *document* that GroundOne reads, exactly as in training.
+1. **Retrieve.** Top-k passages for the question, hybrid: BM25 (SQLite FTS5) and dense embeddings, scores fused (e.g. reciprocal rank fusion). The embedding model (NLEmbedding, built in, or a small MLX embedding model through `MLXEmbedders`) is chosen in M2 on a small retrieval check. The concatenated passages are the *document* that GroundOne reads, exactly as in training.
 2. **Generate.** The 3B generator streams an answer grounded in the passages.
 3. **Segment.** The answer is split with the training rule (pysbd-equivalent + checkable-content rule, §5.2).
 4. **Verify.** One GroundOne pass over document + numbered sentences; calibrated probabilities and labels by the served rule (supported iff P(supported) ≥ τ, else the argmax of the other two; D27).
@@ -145,7 +146,7 @@ pysbd has no Swift port. Options:
 2. **Use `NLTokenizer(unit: .sentence)`** plus the same list-marker and checkable-content rules; measure agreement with pysbd on T1.
 3. **Ship the segmentation as data at first**: the conformance test runs on pre-segmented answers, and the app uses option 2 until agreement is measured.
 
-Proposal: start with 3 + 2, measure agreement on T1, port pysbd rules only if disagreement is material (say > 2 % of answers). **[DECIDE]** Q7.
+Proposal: start with 3 + 2, measure agreement on T1, port pysbd rules only if disagreement is material (say > 2 % of answers). Explained to the author on 2026-10-18; confirmation pending (Q7).
 
 ### 5.3 Conformance test (the gate)
 
@@ -166,12 +167,12 @@ If the test passes, the thesis numbers hold for the app and nothing is retrained
 | Component | Size | Source |
 | --- | --- | --- |
 | GroundOne 3B verifier (8-bit base + LoRA) | 3.28 GB + 0.12 GB | measured file sizes |
-| Generator Qwen2.5-3B-Instruct 4-bit | ≈ 1.8 GB *(estimate)* | |
+| Generator Qwen2.5-3B-Instruct 4-bit (`mlx-community/Qwen2.5-3B-Instruct-4bit`, already cached) | 1.6 GB on disk | measured file size |
 | KV caches (3B: 36 layers × 2 KV heads × 128 dims, bf16) | ≈ 36 KB per token, ≈ 0.15 GB at 4k tokens | arithmetic |
 | Retrieval index (SQLite FTS5, embeddings) | tens of MB for hundreds of pages *(estimate)* | |
 | App, macOS, other processes | several GB | measured at run time |
 
-**Alternative worth measuring: one shared base.** The verifier's base *is* Qwen2.5-3B-Instruct (8-bit). The generator could be the same weights with the adapter switched off (`LoRAContainer.unload` / `load`, or LoRA layers kept with a zero scale), so one 3.3 GB copy serves both roles. This saves ≈ 1.8 GB but decodes at the 8-bit floor (≈ 27 ms/token on the M4) instead of the 4-bit one. **[DECIDE]** Q2.
+**Alternative worth measuring: one shared base.** The verifier's base *is* Qwen2.5-3B-Instruct (8-bit). The generator could be the same weights with the adapter switched off (`LoRAContainer.unload` / `load`, or LoRA layers kept with a zero scale), so one 3.3 GB copy serves both roles. This saves ≈ 1.8 GB but decodes at the 8-bit floor (≈ 27 ms/token on the M4) instead of the 4-bit one. Decision (Q2): separate 4-bit generator; the shared base stays an option to measure if memory is tight.
 
 ## 7. Policies
 
@@ -221,7 +222,7 @@ About 5.5–6 working days. **Fallback if M1 fails by 2026-10-24:** the SwiftUI 
 ## 10. Repository layout (proposal)
 
 ```
-Project/<AppName>/            # Xcode project, own README; **[DECIDE]** Q1 (name), Q4 (location)
+Project/GroundOneStudio/      # Xcode project, own README (name provisional, Q1; location confirmed, Q4)
   App/                        # SwiftUI views
   Core/                       # orchestrator, loop, policy, audit (no ML imports)
   Engines/                    # MLXGenerator, GroundOneVerifier, FTSRetriever, Embeddings
@@ -242,13 +243,15 @@ Models are not copied into the app bundle: the app reads them from the Hugging F
 | The loop does not converge (verifier keeps flagging) | `max_attempts`, on-failure action; report the distribution of rounds |
 | Time: the demo eats the thesis | M1 is a gate; fallback to the Python server; demo polish is first on the cut list (`implementation_plan.md` §9) |
 
-## 12. Open questions for the author
+## 12. Decisions on the open questions (author, 2026-10-18)
 
-1. **Name and location** of the app (candidates discussed: Ancora, G1RAG, GroundOne Studio, Vaglio, Riscontro).
-2. **Generator:** separate Qwen2.5-3B 4-bit, or shared 8-bit base with the verifier (§6)?
-3. **Retriever:** BM25 (FTS5) only, or hybrid with sentence embeddings?
-4. **Repository location** (`Project/<AppName>/` proposed).
-5. **Thesis placement:** its own chapter (application and case study) or a section of Ch. 6 / Ch. 8?
-6. **Evaluation of the revise loop:** case study only, or an independent faithfulness check before 2026-10-30?
-7. **Segmentation:** NLTokenizer with measured agreement, or a pysbd rule port?
-8. **Time budget:** the plan assumes about six working days before the freeze, against two in the original plan.
+| # | Question | Answer |
+| --- | --- | --- |
+| 1 | Name | **GroundOne Studio**, provisional |
+| 2 | Generator | **separate Qwen2.5-3B-Instruct 4-bit** (cached, 1.6 GB); shared base only as a measured option |
+| 3 | Retriever | **hybrid**: BM25 (FTS5) + embeddings; embedding model chosen in M2 |
+| 4 | Location | `Project/GroundOneStudio/` |
+| 5 | Thesis placement | **own chapter** (application and case study) |
+| 6 | Loop evaluation | Author's view: GroundOne does not repair; it flags, the generator rewrites, GroundOne re-checks, so the design has no circularity. Agreed for the app. The only caution is in the wording of results: "accepted by GroundOne" is what the loop guarantees by construction (it stops when GroundOne accepts), not "correct"; GroundOne's misses survive the loop and its false alarms cause needless rewrites. Optional, low cost: score the case-study answers before and after the loop with MiniCheck-RoBERTa (already in the pipeline) as an independent check |
+| 7 | Segmentation | explained (NLTokenizer vs pysbd, agreement measured on T1); confirmation pending |
+| 8 | Time budget | about six working days, accepted; the app comes after the remaining experiment items |
