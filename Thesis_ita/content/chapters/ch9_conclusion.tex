@@ -51,9 +51,8 @@ spontaneamente dopo il marker potrebbe allineare readout e generazione, con effe
 Sul versante dei sistemi, il modello di costo del Capitolo~\ref{sec:local} andrebbe verificato su altro hardware. Un
 porting del readout su llama.cpp permetterebbe di misurare GroundOne su una scheda grafica dedicata, su un DGX Spark o
 su una macchina AMD Strix Halo, e su uno smartphone, le cui unità di elaborazione neurale accelerano proprio il prefill
-su cui si regge un System One. Per il pilastro della località restano inoltre da misurare la memoria occupata quando il
-verificatore opera accanto a un generatore e a un retriever, e da condurre una valutazione completa con la rete
-disattivata. Anche i confronti di latenza con le altre famiglie di verificatori richiedono condizioni eque: gli encoder
+su cui si regge un System One. Per il pilastro della località resta inoltre da misurare la memoria del retriever accanto a
+generatore e verificatore, già misurati insieme in questa tesi. Anche i confronti di latenza con le altre famiglie di verificatori richiedono condizioni eque: gli encoder
 vanno eseguiti in batch, mentre GroundOne e i System One generalisti vanno interrogati attraverso la stessa interfaccia
 HTTP.
 

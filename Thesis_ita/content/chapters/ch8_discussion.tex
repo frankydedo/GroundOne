@@ -62,8 +62,11 @@ risposta lunga richiede 0.41 secondi e 5.5 joule con il 0.5B, 2.57 secondi e 33 
 budget interattivo; il 3B, invece, su una risposta tipica è più lento di quanto un uso interattivo richiederebbe, e
 scambia tempo con accuratezza. Le misure di energia precisano la portata dei risultati sulla velocità. Un singolo
 prefill lungo assorbe più potenza del decoding token per token, per cui l'energia risparmiata è inferiore al tempo
-risparmiato, e la maggiore velocità non va letta come un risparmio equivalente di batteria. Resta invece da misurare la
-memoria necessaria quando il verificatore gira accanto a un generatore e a un retriever.
+risparmiato, e la maggiore velocità non va letta come un risparmio equivalente di batteria. Il verificatore convive
+inoltre con un generatore nello stesso processo: insieme a un generatore 3B a 4 bit, il picco di memoria è di 6.1\,GB con
+il 3B e di 3.3\,GB con il 0.5B. L'intera valutazione gira senza alcun accesso alla rete, con risultati identici bit per
+bit, e i pesi a 8 bit non costano accuratezza rispetto a quelli in bf16 (Sezione~\ref{sec:results-locality}). Resta da
+misurare il retriever, che verrà valutato nell'applicazione dimostrativa.
 
 \paragraph{Oltre un punteggio binario (RQ5).} L'output a tre classi distingue bene le frasi contraddette da quelle non
 menzionate nel data-to-text, il task in cui RAGTruth concentra le proprie contraddizioni. Le distingue molto meno nel

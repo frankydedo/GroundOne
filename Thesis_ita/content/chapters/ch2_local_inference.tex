@@ -576,7 +576,10 @@ da 175 miliardi, e sugli smartphone i modelli da tre miliardi di parametri o men
 bit~\cite{frantar2023gptq,laskaridis2024melting}. LLM.int8() mostra che un pugno di feature outlier controlla una quota
 rilevante della massa di probabilità dell'attenzione~\cite{dettmers2022llmint8}. Per un modello il cui output è una
 probabilità da calibrare, e non un testo che deve soltanto risultare scorrevole, queste osservazioni suggeriscono una
-precisione prudente: GroundOne usa pesi a 8 bit.
+precisione prudente: GroundOne usa pesi a 8 bit. Una misura condotta in questa tesi conferma che, a questa precisione,
+la quantizzazione non costa accuratezza: applicando lo stesso adapter del modello 0.5B ai pesi originali a 16 bit,
+la balanced accuracy a tre classi su T1 resta praticamente identica (0.768 contro 0.769), le probabilità cambiano in
+media di 0.011 e la classe predetta coincide nel 98\,\% delle frasi (Sezione~\ref{sec:results-locality}).
 
 \subsection{Generare più in fretta senza generare meno}
 \label{sec:local-speculative}

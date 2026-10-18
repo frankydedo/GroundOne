@@ -200,6 +200,17 @@ netto della potenza a riposo, moltiplicata per la durata dell'esecuzione e divis
 comprende le unità di calcolo del chip, ma non la memoria, lo schermo o l'archiviazione. È stata effettuata di notte,
 con la macchina altrimenti inattiva.
 
+Tre misure riguardano direttamente la località. La prima verifica l'indipendenza dalla rete: una valutazione completa di
+T1 viene ripetuta con le librerie in modalità offline e all'interno di una sandbox di macOS che nega al processo
+qualsiasi accesso alla rete, e le sue predizioni vengono confrontate con quelle dell'esecuzione originale. La seconda
+misura l'effetto della quantizzazione: lo stesso adapter del modello 0.5B viene applicato ai pesi originali a 16 bit
+(bf16) e valutato su T1 e T3. La terza misura la co-residenza: in un unico processo vengono caricati il generatore
+previste per l'applicazione dimostrativa, Qwen2.5-3B-Instruct quantizzato a 4 bit, e un verificatore GroundOne; per
+30 documenti di T1, dieci per task, il generatore scrive una risposta di al più 300 token e GroundOne la verifica.
+Si registrano il picco di memoria allocata da MLX e i tempi di generazione e di verifica. Il documento è fornito
+direttamente, come in RAGTruth, per cui il retriever non è incluso. Anche queste misure girano interamente nella
+sandbox priva di rete.
+
 In ogni esperimento è in esecuzione un solo modello alla volta, e una guardia di memoria (memory guard) sorveglia ogni
 job lungo, registrando per tutta la sua durata la memoria libera e lo swap. I risultati vengono scritti una sola volta e
 mai sovrascritti, e ogni esecuzione conserva la propria configurazione. In questo modo ogni numero del

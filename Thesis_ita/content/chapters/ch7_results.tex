@@ -445,6 +445,49 @@ GPU e Neural Engine al netto della potenza a riposo, insieme alla potenza netta 
 In termini assoluti i valori sono piccoli. Un consumo di 5.5 joule corrisponde a circa 0.0015 wattora: con l'energia di
 un wattora, quindi, il GroundOne 0.5B potrebbe verificare circa seicento risposte, interamente sul portatile.
 
+\section{Località: esecuzione offline, quantizzazione e co-residenza}
+\label{sec:results-locality}
+
+Tre misure completano il quadro del costo sul dispositivo (Sezione~\ref{sec:setup-protocol}). La prima riguarda
+l'indipendenza dalla rete. La valutazione completa di T1 con il modello 0.5B, ripetuta all'interno di una sandbox che
+nega al processo qualsiasi accesso alla rete, produce predizioni identiche bit per bit a quelle dell'esecuzione
+originale su tutte le 17{,}284 frasi. Caricamento del modello, inferenza e valutazione non richiedono quindi alcuna
+connessione. La prova è più forte di una macchina disconnessa, perché il processo non può raggiungere la rete nemmeno
+quando la macchina è collegata.
+
+La seconda riguarda la quantizzazione. Quando lo stesso adapter del 0.5B viene applicato ai pesi originali in bf16
+invece che a quelli a 8 bit, le probabilità cambiano in media di 0.011 su T1 e di 0.007 su T3, e la classe predetta
+coincide nel 98.3\,\% e nel 98.9\,\% delle frasi. Le metriche restano invariate: la balanced accuracy a tre classi è
+0.769 con la base a 8 bit e 0.768 con quella in bf16 su T1, 0.442 in entrambi i casi su T3, e l'AUROC su T1 è 0.905
+contro 0.904. La base a 8 bit, che dimezza la memoria dei pesi, non costa quindi accuratezza misurabile. La misura
+riguarda però la sensibilità alla precisione della base di un adapter addestrato sulla base a 8 bit, non un modello
+addestrato interamente in bf16.
+
+La terza riguarda la co-residenza con il generatore. Nello stesso processo, il generatore Qwen2.5-3B-Instruct a 4 bit e
+GroundOne verificano 30 risposte generate da documenti di T1, con una mediana di 169 token generati e di sette frasi
+valutate per risposta (Tabella~\ref{tab:results-coresidence}). Con il verificatore 3B il picco di memoria allocata da MLX
+è di 6.1\,GB, con il 0.5B di 3.3\,GB: entrambi ben al di sotto dei 16\,GB della macchina. La verifica occupa il
+30\,\% del tempo complessivo per risposta con il 3B e il 6.7\,\% con il 0.5B. Il modello piccolo aggiunge quindi
+una frazione modesta al tempo della generazione, mentre il 3B lo allunga di circa un terzo in cambio di una maggiore
+accuratezza. Durante l'esecuzione con il 3B, con le normali applicazioni del desktop aperte, la memoria libera
+dell'intero sistema è scesa per qualche istante a circa 1.6\,GB: la coppia sta comodamente nel processo, ma su un
+portatile da 16\,GB lascia poco margine a un uso intenso del desktop. Il retriever non è incluso in questa misura.
+
+\begin{table}[htbp]
+\centering
+\caption{Co-residenza di generatore e verificatore in un unico processo: Qwen2.5-3B-Instruct a 4 bit come generatore,
+30 documenti di T1, generazione greedy fino a 300 token. Memoria allocata da MLX; tempi mediani per risposta.}
+\label{tab:results-coresidence}
+\begin{tabular}{lccccc}
+\toprule
+Verificatore & \makecell{Memoria dopo\\il caricamento} & \makecell{Picco di\\memoria} & Generazione & Verifica & \makecell{Quota della\\verifica} \\
+\midrule
+GroundOne 3B & 5.0\,GB & 6.1\,GB & 4.75\,s & 1.68\,s & 30\,\% \\
+GroundOne 0.5B & 2.3\,GB & 3.3\,GB & 4.65\,s & 0.28\,s & 6.7\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \section{Analisi degli errori}
 \label{sec:results-errors}
 
