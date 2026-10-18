@@ -2,7 +2,7 @@
 
 A specialist System One for local RAG: single-pass, calibrated groundedness verification with compact Qwen2.5 models on a 16 GB Apple Silicon laptop.
 
-> **Status:** v0.7.4 (2026-10-10; D25 equal-output judge, D26 seed runs, D27 API on design b). Done: feasibility (Phase 0/0b), EDA, the GroundOne package, the dataset (built, validated, test sets frozen 2026-10-07, `dataset_plan.md`), GroundOne 0.5B (two completed runs) and 3B (readout design b), calibration, all baselines on the frozen tests, the latency protocol, the 3B on the full LLM-AggreFact test, the equal-output judge, bootstrap CIs, control B2, energy per verification. First drafts of thesis Ch. 3–6. Pending: the other locality items, demo, Ch. 1/2/7/8, chapter updates. All findings: `thesis_notes.md`; summary: `checkpoint_2026-10-10.md`.
+> **Status:** v0.8 (2026-10-18; D28 demo as a native Swift app). Done: feasibility (Phase 0/0b), EDA, the GroundOne package, the dataset (built, validated, test sets frozen 2026-10-07, `dataset_plan.md`), GroundOne 0.5B (two completed runs) and 3B (readout design b), calibration and served threshold, all baselines on the frozen tests (incl. the same-size general decision model d1-3B), the latency protocol, the 3B on the full LLM-AggreFact test, the equal-output judge, bootstrap CIs, control B2, energy per verification. Thesis: full drafts of all nine chapters (2026-10-10/11), new Ch. 2 on local inference; Ch. 1–2 and the summary revised by the author in Italian and aligned in English (2026-10-13); abstract v0.4. Pending: the demo (`demo_architecture.md`), the other locality items, the author's review of Ch. 3–9. All findings: `thesis_notes.md`; summary: `checkpoint_2026-10-10.md`.
 > **Hard constraint: the experiment *and* the written thesis (`Thesis/`) must be done by the submission date, 2026-11-10. New experiments only until 2026-10-30.** The schedule (§9) and the scope cuts (§1.5) follow from this.
 > Every number marked *(estimate)* or *(provisional)* is a planning figure to be replaced by a measurement.
 > Companion document: `abstract.md`.
@@ -129,7 +129,7 @@ Numbers are from `thesis_notes.md`; T1 = RAGTruth test, T2 = LLM-AggreFact, T3 =
 | D5 | Custom training loop: cross-entropy over the restricted answer logits, prompt masked | `mlx_lm` rejects prompt masking for the `text` format; previous runs trained on every prompt token (label < 1 % of the loss) | `mlx_lm.lora` with completion format + `mask_prompt` as a first version |
 | D6 | Calibration = temperature scaling fitted on a held-out dev set | One parameter, no leakage risk if dev is separate from test | RLCD (out of scope), isotonic (needs more data) |
 | D7 | English only | Author's decision | Italian |
-| D8 | Demo = local RAG chat app with coloured sentences and a threshold slider | Author's decision | CLI only |
+| D8 | Demo = local RAG chat app with coloured sentences and a threshold slider *(UI and scope refined by D28)* | Author's decision | CLI only |
 | D9 | Always include the two "honest controls": same-size single-token LLM, and a specialised encoder | They are the comparisons a reviewer will ask for | – |
 | D10 | No hand-labelled local set | Author's decision (2026-10-04): no time | Small manual set |
 | D11 | One-month scope cuts (§1.5) | Deadline: experiment + thesis in one month | Full plan |
@@ -149,6 +149,7 @@ Numbers are from `thesis_notes.md`; T1 = RAGTruth test, T2 = LLM-AggreFact, T3 =
 | D25 | **Equal-output judge B0d** (2026-10-09): a zero-shot generative judge of the same size that must return the same content as GroundOne, i.e. per scored sentence a label and P(A), P(B), P(C). Two variants: **B0d-verbal** writes the probabilities in a JSON object (the stated label is the decision); **B0d-logit** is the terse judge with the three probabilities read from the logits at the generated letter. Both are calibrated with the same temperature + bias as GroundOne, fitted on 200 K-stratified dev answers (`judges-calibrate`); GroundOne is re-evaluated on the same latency subset with its own calibration. JSON prompt with placeholders, no numeric example (an example was copied verbatim by both sizes; chosen on 12 dev answers on format validity only). Lenient parsing (per-entry regex; a missing label is taken as the argmax of p) | Author's request: B0a/B0b give less information than GroundOne (no probabilities, so no ECE, thresholds or strict/lenient policy), so the comparison was not at equal output. B0d-logit is the strongest generative opponent and also answers the open B2 question at the judge level | Compare only with B0a/B0b; constrained (grammar) decoding, noted as a limitation |
 | D26 | **Seed runs of the 0.5B** (2026-10-09): seed 4321 (`g1-05b-s2`) collapsed (dev macro 0.369 → 0.333 → 0.444 at steps 150/300/450) and was stopped at step ≈ 470; replaced by seed 777 (`g1-05b-s3`), presented in the thesis as the second run. The stopped run is disclosed in one sentence (thesis notes), and its logs are kept | Incomplete runs cannot be compared with complete ones, but omitting them would be selective reporting; the collapse is evidence on the robustness of the recipe (no gradient clipping) | Let seed 4321 finish (≈ 3.5 h of training plus ≈ 3 h of tests on a collapsed model); hide the stopped run |
 | D27 | **HTTP API on design (b) with one coherent output rule** (2026-10-10): `/v1/verify` follows the adapter's design; with design (b) it segments with the training rule, runs one pass, and derives labels, strict/lenient flags and the shown probabilities from the calibrated probabilities: "supported" iff P(supported) ≥ τ, else the more probable of contradicted / not mentioned. τ is fitted on dev by `calibrate-b` (maximising three-way macro recall) and stored in `calibration.json`; a request may override it; without τ the label is the raw class-balanced argmax (D24). `/v1/systemone` stays on design (a) | The served output showed raw-argmax labels next to calibrated probabilities that contradicted them (thesis notes 2026-10-09); a single rule on calibrated probabilities with a dev threshold keeps labels, flags and probabilities consistent while approximating the evaluated balanced decision | Raw-argmax labels next to calibrated probabilities; argmax of calibrated probabilities (three-way 0.77 → 0.63, D24) |
+| D28 | **Demo = native macOS app in Swift/SwiftUI with MLX Swift** (2026-10-18): retrieval, generator and GroundOne verifier in one process; GroundOne ported to Swift (prompt, segmentation, marker readout, calibration) and gated by a conformance test against the Python probabilities (\|Δp\| < 0.01); a verify-and-revise loop that rewrites only flagged sentences; policies (strict/lenient, τ, attempts, on-failure action) and an audit log; measurement mode for the co-residence and overhead figures. Engines behind protocols, so a llama.cpp backend can replace MLX later. Spec: `demo_architecture.md` | Locality as a product property (one signed app, no interpreter, no server); reuses the trained MLX adapters and calibration unchanged (no retraining, no recalibration); native PDF, sentence and SQLite APIs | Python app around the existing server (B); Rust with Tauri + mlx-rs or candle (C); llama.cpp/GGUF (D: requantisation and recalibration) |
 
 Record future changes below (date, decision, reason).
 
@@ -161,6 +162,8 @@ Record future changes below (date, decision, reason).
 - 2026-10-09: **D25** (equal-output judge B0d), bootstrap CIs (T2 claim vs MiniCheck tempered to "on par").
 - 2026-10-09/10: **D26** (seed 4321 collapsed and stopped; seed 777 completed, presented as run 2); control B2 and energy measured.
 - 2026-10-10: **D27** (HTTP API on design b, one coherent output rule; served threshold fitted on dev).
+- 2026-10-11: new thesis chapter on local inference (Ch. 2, author's decision; chapters renumbered 1–9). No experiment changed.
+- 2026-10-18: **D28** (demo as a native Swift/SwiftUI app with MLX Swift; §11 replaced by `demo_architecture.md`). Open details listed there (§12) and in §14.
 
 ---
 
@@ -375,16 +378,17 @@ Rules:
 - If a step slips by more than 2 days, cut from the bottom of the priority list: demo polish → B3 Rizzo-Flow → B0b verbose judge on the full matrix (keep the Phase 0b numbers) → 3B fine-tuning (fall back to 0.5B fine-tuned + 3B zero-shot).
 - Figures and tables are produced by scripts from `outputs/results/`, never by hand, so that late re-runs do not cost writing time.
 
-Thesis chapter outline (to fill in `Thesis/content/chapters/`):
-1. Introduction (motivation: trustworthy local RAG; System One vs LLM; RQs; contributions)
-2. Background and related work (LLM inference: prefill vs decode, KV cache; System One models; hallucination detection and RAG verification; calibration and selective prediction; parameter-efficient fine-tuning)
-3. GroundOne: method and implementation
-4. Data (written, `Thesis/content/chapters/ch5_data.tex`): task and labels; sources (RAGTruth, LLM-AggreFact, VitaminC); construction; resulting dataset; reliability of the test sets; exploratory analysis; leakage control
-5. Experimental setup (baselines, metrics, protocol, hardware)
-6. Results
-   - First draft written (training; T1; baselines; T2; T3; calibration; latency vs K; error analysis by word overlap). Still to add: CIs, energy, ablations if run
-7. Discussion, limitations and threats to validity
-8. Conclusion and future work (streaming verification, larger models, more rules)
+Thesis chapter outline (`Thesis/content/chapters/`, English; Italian reference version in `Thesis_ita/`; renumbered 2026-10-11):
+1. Introduction (`ch1_introduction.tex`): motivation, System One vs autoregressive LLM, open problems, RQ1–RQ5, contributions
+2. Local inference of language models (`ch2_local_inference.tex`): hosted vs local, open-weight and small models, cost model (prefill vs decode, roofline), hardware, runtimes and specialised engines, quantisation, energy, consequences for GroundOne
+3. Background and related work (`ch3_background.tex`)
+4. GroundOne: method and implementation (`ch4_method.tex`)
+5. Data (`ch5_data.tex`)
+6. Experimental setup (`ch6_setup.tex`)
+7. Results (`ch7_results.tex`)
+8. Discussion, limitations and threats to validity (`ch8_discussion.tex`)
+9. Conclusion and future work (`ch9_conclusion.tex`)
+Appendix: output examples. The demo (D28) goes into its own chapter or into Ch. 7/8: to decide (`demo_architecture.md` §12).
 
 ---
 
@@ -461,21 +465,9 @@ A privacy gate before cloud LLM calls (multi-label, K ≈ 10 categories); prompt
 
 ## 11. Demo specification
 
-**Local RAG chat with a live groundedness verifier**, fully on-device.
+**Superseded by `demo_architecture.md` (D28, 2026-10-18).** In short: a native macOS app (Swift, SwiftUI, MLX Swift) running retrieval (SQLite FTS5, optional embeddings), the Qwen2.5-3B-Instruct generator (D12) and GroundOne in one process; every answer sentence coloured by the served rule (D27); flagged sentences rewritten from the document and re-verified up to a policy limit; strict/lenient policies, audit log, a measurement mode (generation vs verification time, revision rounds, peak memory) and a comparison mode with a terse generative judge. The GroundOne port is gated by a conformance test against the Python probabilities; if it fails by 2026-10-24, the app calls the existing `groundone serve` on localhost instead.
 
-| Component | Choice *(to confirm)* |
-| --- | --- |
-| Ingestion | Markdown/PDF/text files → chunks of ~300–500 tokens |
-| Embeddings and retrieval | small local embedding model, cosine search in memory (no external vector DB) |
-| Generator | Qwen2.5-3B-Instruct (D12), MLX |
-| Verifier | GroundOne 0.5B or 3B, in-process or via the local API |
-| UI | single local web page: answer text with each sentence coloured by `P(supported)`, a threshold slider, per-sentence probability on hover, a panel with timings |
-| Policy actions | flag only (one-month plan); "regenerate flagged sentences" is future work |
-| Time budget | **2 days, week 4.** If it runs late, a CLI demo with coloured terminal output is acceptable |
-
-Demo metrics: generation time vs verification time per answer, verifier overhead relative to generation, memory in use, and the generative-judge alternative's overhead for comparison. Memory budget to check: macOS + generator + verifier + embeddings + KV caches within 16 GB (the 7B 4-bit generator plus 3B verifier is likely too tight; prefer 3B generator with 0.5B/3B verifier).
-
-Stretch: verify each sentence while the generator is still producing the next one (both models share the GPU, so measure the contention honestly).
+Changes with respect to the first spec (2026-10-04): native app instead of a web page; regeneration of flagged sentences moved from future work into the demo; time budget about six working days instead of two (to confirm, `demo_architecture.md` §12).
 
 ---
 
@@ -493,6 +485,7 @@ Stretch: verify each sentence while the generator is still producing the next on
 | Timing noise (thermal throttling, background processes) | High | Medium | Protocol in §8.3; repeated runs; report spread |
 | Rizzo-Flow cannot run on the Mac or with Qwen | Medium | Low | Present as external reference with its own model; checked in a daytime session (not done in Phase 0) |
 | Fixed-size answer slots irrelevant here (binary) but position bias still possible | Low | Low | Fixed mapping + fine-tuning; test by swapping letter order on a dev subset |
+| Demo port to Swift takes longer than planned (D28) | Medium | Medium | Conformance test as a gate (M1); fallback to the existing local HTTP server; demo polish first on the cut list |
 | Scope creep (demo, extra datasets, 7B fine-tune) | High | High | Anything not tied to RQ1–RQ5 or the demo is a stretch item; revisit at each gate |
 | **Schedule: one month for experiment and thesis** | High | High | Night-time runs, experiment freeze Oct 30, cut list in §9, writing in parallel from week 1, scripted figures |
 | 3B training too slow to finish overnight | High (≈17 h per full epoch, measured) | Medium | Train the 3B on a ~10K subset; fall back to 0.5B fine-tuned + 3B zero-shot |
@@ -549,12 +542,13 @@ Answered: D1 confirmed; no hand-labelled set (D10); submission 2026-11-10, exper
 Also answered: Phase 0/0b run (GO); demo generator = 3B (D12); 7B not run (D13).
 
 
-Still open (updated 2026-10-10):
+Still open (updated 2026-10-18):
 1. ~~B2 control~~: done 2026-10-10 on full T1 (readout +0.25 / +0.07 over the generated token; §2 H2a).
 2. ~~T2 for the 3B~~: done 2026-10-09 (macro 74.8).
 3. ~~Bootstrap confidence intervals~~: done 2026-10-09 (`groundone bootstrap`, `results/bootstrap/`). Every claimed difference is significant except: T2 macro 3B vs MiniCheck-RoBERTa (+0.8, CI −0.5 to +2.1), T2 RAG subset 0.5B vs RoBERTa, T1 AUROC 0.5B vs Rizzo-Flow on its subsample.
-4. ~~HTTP API on design (b)~~: done 2026-10-10 (D27). Open: the **demo**, plus the optional extension (grounded ingestion loop for an LLM wiki, `thesis_notes.md` Ch. 8).
-5. Supervisor requirements (length/format, mandatory comparisons), if any.
+4. ~~HTTP API on design (b)~~: done 2026-10-10 (D27). Optional extension (grounded ingestion loop for an LLM wiki, `thesis_notes.md` Ch. 8) still open.
+5. ~~Supervisor requirements~~: none specific (author, 2026-10-11); target 120–150 pages.
+6. **Demo (D28)**: name, generator (separate 4-bit or shared base), retriever, repository location, thesis placement, evaluation of the revise loop, segmentation port, time budget. Listed in `demo_architecture.md` §12 (2026-10-18).
 
 ---
 

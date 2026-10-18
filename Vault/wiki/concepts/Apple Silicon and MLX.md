@@ -65,3 +65,6 @@ From the [[MLX README (ml-explore)|README]]:
 - **M5**: 153 GB/s and GPU neural accelerators; with MLX, TTFT 3.3–4.1× faster than M4, generation 1.19–1.27× ([[Apple ML Research 2025 - Exploring LLMs with MLX and the neural accelerators in the M5 GPU]]). Qwen3-8B 4-bit needs 5.61 GB, a 30B MoE 4-bit 17.31 GB. GroundOne's prefill-only workload is the kind the M5 accelerates most (extrapolation, not measured).
 - **MLX vs other runtimes**: on an M2 Ultra decode is about 230 tok/s (MLX), 190 (MLC-LLM), 150 (llama.cpp), 20–40 (Ollama), 7–9 (PyTorch MPS); MLX cold start about 31 s ([[Rajesh 2025 - Local LLM inference on Apple Silicon, MLX vs MLC vs Ollama vs llama.cpp (arXiv 2511.05502)|Rajesh 2025]], internally inconsistent). On the same M4 Max, MLX decodes about 15 % faster than GGUF ([[Hardware Corner 2025 - How fast is the AI Max+ 395 for LLM inference]]).
 - Comparison with non-Apple hardware: [[Local Inference Hardware]]. Formats: [[Quantization]].
+
+## Software layers for applications (ingest 2026-10-18)
+- Bindings (Python, Swift, C, Rust), their maturity and build facts are on [[MLX Ecosystem]]. MLX runs on macOS 14+ (Metal), Linux CUDA and Linux CPU; no Windows ([[Apple ML Explore 2026 - MLX documentation, build and install]]). The demo uses MLX Swift ([[Demo Runtime Choice]]).

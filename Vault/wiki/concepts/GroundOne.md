@@ -51,3 +51,6 @@ New experiments until 2026-10-30; submission 2026-11-10.
 
 ## Source of truth
 `Project/docs/checkpoint_2026-10-10.md` (current summary), `Project/docs/implementation_plan.md` (decision log D1–D27) and `Project/docs/thesis_notes.md`. This page is a summary and may lag behind them.
+
+## Demo application (2026-10-18, D28)
+- Native macOS app (Swift, SwiftUI, MLX Swift) with retrieval, generator and GroundOne in one process, a verify-and-revise loop and policies; see [[Demo Application]] and [[Demo Runtime Choice]].

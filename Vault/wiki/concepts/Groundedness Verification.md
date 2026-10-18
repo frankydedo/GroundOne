@@ -74,3 +74,6 @@ The 2026 decision-model wave touches groundedness in three ways. All numbers bel
 
 ## Links
 [[Laban 2022 - SummaC]], [[Min 2023 - FActScore]], [[Huang 2023 - A Survey on Hallucination in LLMs]], [[Decision-Model Landscape (Hugging Face, 2026)]], [[Decision-Model Benchmarks]], [[On-Device Inference]], [[GroundOne Results]], [[Hallucination Detection]], [[LLM-AggreFact]], [[RAGTruth]], [[Natural Language Inference]], [[MiniCheck]], [[HHEM]], [[AlignScore]], [[LLM-as-a-Judge]], [[Rizzo-Flow]], [[RAG Evaluation Frameworks]], [[Qwen2.5]], [[LoRA]]
+
+## As the critic of a repair loop (ingest 2026-10-18)
+- Verify-and-revise methods (RARR, CRITIC, CoVe, Self-Refine) and guardrail toolkits use a verifier to gate or trigger rewrites; external feedback is what makes them work ([[Verify-and-Revise Loops]], [[Guardrails and Policies]]). NeMo Guardrails' fact-checking rail is a yes/no prompt on the whole response (about 80 % on MS MARCO), not a per-sentence calibrated verdict.

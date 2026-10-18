@@ -24,3 +24,6 @@ Language models small enough to run on personal devices. Definitions disagree: t
 
 ## MobileLLM (ingest 2026-10-11, second batch)
 - Phone guidance: an app should use ≤ 10 % of DRAM; a 350M model designed for depth (SwiGLU, embedding sharing, GQA) matches LLaMA-2 7B on API-calling exact match ([[Liu 2024 - MobileLLM, Optimizing Sub-billion Parameter Language Models for On-Device Use Cases (arXiv 2402.14905)|Liu 2024]]). Qwen2.5-0.5B already follows that recipe. The 10 % rule applied to a 16 GB laptop (1.6 GB: the 0.5B fits, the 3B does not) is an extrapolation.
+
+## As repairers (ingest 2026-10-18)
+- In Self-Refine, Vicuna-13B could not refine its output even with oracle feedback ([[Madaan 2023 - Self-Refine, Iterative Refinement with Self-Feedback (arXiv 2303.17651)]]): a risk for the 3B generator in the demo's repair loop ([[Demo Application]]). Conversely, CRAG's 0.77B evaluator judges retrieval better than ChatGPT, a further case of a small specialist beating a generalist.

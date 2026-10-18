@@ -19,24 +19,29 @@ Update the status column and the to-do list as work progresses.
 | 5 | Baselines | Run the comparison systems: terse and verbose generative judges, untrained models, encoders, Rizzo-Flow | Oct 7–10 | ✅ | All on the frozen tests (subsamples for Rizzo-Flow, untrained 3B on T1, judges); equal-output judge B0d (D25); control B2 on full T1 |
 | 6 | Main benchmarks | Accuracy and latency of all systems on the test sets | Oct 7–10 | ✅ | Accuracy, latency vs K, bootstrap CIs and paired tests, energy (powermetrics), second 0.5B run |
 | 7 | Calibration and analysis | Calibration, ablations, error analysis | Oct 7–10 | ✅ | Calibration (all runs) + served threshold τ (D27); error analysis by word overlap; A1 = B1 and A2 = B2 done, A3–A5 not run |
-| 8 | Demo | Local RAG chat (Qwen2.5-3B generator) with sentences coloured by GroundOne | Week 4 (Oct 26–30) | ⬜ | Max 2 days |
+| 8 | Demo | Native macOS app (Swift, SwiftUI, MLX Swift): local RAG with the Qwen2.5-3B generator, GroundOne in-process, verify-and-revise loop, policies, measurement mode (D28) | Oct 19–30 | 🟡 | Runtime chosen and spec drafted (`demo_architecture.md`, 2026-10-18); open questions there (§12); conformance test is the gate (M1), fallback to the local HTTP server |
 | — | **Experiment freeze** | No new experiments after this date | **Oct 30** | ⬜ | |
-| 9 | Thesis writing | Chapters in `Thesis/`, in parallel from week 1 | Oct 5 – Nov 8 | 🟡 | First drafts of Ch. 3, 4, 5, 6 and summary; Ch. 1, 2, 7, 8 to write |
+| 9 | Thesis writing | Chapters in `Thesis/` (EN) and `Thesis_ita/` (IT, author's reference), in parallel from week 1 | Oct 5 – Nov 8 | 🟡 | Full drafts of all nine chapters; summary, Ch. 1 and Ch. 2 revised by the author (IT) and aligned (EN) on 2026-10-13; Ch. 3–9 to review; demo chapter/section to write |
 | 10 | Submission | Proofreading, formatting, submit | Nov 9–10 | ⬜ | |
 
 ## Thesis chapters
 
-| Chapter | Planned | Status |
-| --- | --- | --- |
-| 1 Introduction | Week 5 | 🟡 first full draft (2026-10-10) |
-| 2 Background and related work | Weeks 1–2 | 🟡 first full draft (2026-10-10; incl. local inference, decision-models literature) |
-| 3 Method (GroundOne) | Week 2 | 🟡 revised 2026-10-10 (System One framing, served rule, optimiser) |
-| 4 Data and exploratory analysis | after Phase 1 | 🟡 revised 2026-10-10 |
-| 5 Experimental setup | Week 3 | 🟡 rewritten 2026-10-10 (B0d, B2, seeds, statistics, energy) |
-| 6 Results (incl. ablations) | Weeks 3–4 | 🟡 rewritten 2026-10-10 (all results, CIs, audit fixes) |
-| 7 Discussion and limitations | Week 4 | 🟡 first full draft (2026-10-10) |
-| 8 Conclusion | Week 5 | 🟡 first full draft (2026-10-10) |
-| Abstract / summary (final, with numbers) | Week 5 | 🟡 `summary.tex` with results (2026-10-10); appendix with output examples |
+Chapters renumbered on 2026-10-11 after the new Ch. 2. Italian version (`Thesis_ita/`) is the one the author reviews; English is aligned after each review.
+
+| Chapter | Status |
+| --- | --- |
+| Summary | ✅ revised by the author (IT), aligned (EN) 2026-10-13; locality paragraph added |
+| 1 Introduction | ✅ revised by the author (IT), aligned (EN) 2026-10-11/13: System One vs LLM TikZ figure, RQs rewritten, footnotes |
+| 2 Local inference of language models (new) | ✅ revised by the author (IT), aligned (EN) 2026-10-13: 13+ figures and tables (cost model, roofline, hardware photos, memory architectures, SSD streaming, engines ds4/colibri) |
+| 3 Background and related work | 🟡 draft; author review pending |
+| 4 Method (GroundOne) | 🟡 draft; author review pending |
+| 5 Data and exploratory analysis | 🟡 draft; author review pending |
+| 6 Experimental setup | 🟡 draft; author review pending; add "every baseline ran on the same laptop" |
+| 7 Results | 🟡 draft with all results; author review pending; demo case study if placed here |
+| 8 Discussion and limitations | 🟡 draft; author review pending |
+| 9 Conclusion | 🟡 draft; llama.cpp port as future work |
+| Appendix: output examples | ✅ 2026-10-10 |
+| Draft for the supervisor (summary + Ch. 1–2, EN PDF) | ✅ 2026-10-13, repository root (not committed) |
 
 ## Results matrix
 
@@ -104,20 +109,28 @@ Update the status column and the to-do list as work progresses.
 **Later**
 - [x] HTTP API on design (b) with one coherent output rule (D27, 2026-10-10)
 - [x] Served threshold τ fitted on dev (2026-10-10): 0.935 / 0.895 / 0.925 (0.5B run 1, run 2, 3B); served rule = raw decision within 0.01 on T1
-- [ ] Demo on the design (b) API
+- [ ] **Demo (D28, `demo_architecture.md`)**, milestones:
+   - [ ] answer the open questions (§12: name, generator, retriever, location, thesis placement, loop evaluation, segmentation, time budget)
+   - [ ] M0 Xcode project; MLX Swift streams an answer from Qwen2.5-3B
+   - [ ] M1 GroundOne in Swift + fixture export in Python + conformance test (gate, by 2026-10-24)
+   - [ ] M2 library + SQLite FTS5 retrieval + coloured chat
+   - [ ] M3 policy engine, verify-and-revise loop, audit log
+   - [ ] M4 measurement and comparison modes, export, figures (before the freeze, 2026-10-30)
+   - [ ] M5 polish, screenshots, README
 - [x] B2 control on full T1 (2026-10-10): generated token 0.521 / 0.761 vs readout 0.769 / 0.832 (0.5B / 3B)
-- [ ] Thesis: show one real output example per system (GroundOne JSON, terse and verbose judge text, encoders, Rizzo-Flow) on the same answer (author request, 2026-10-09)
+- [x] Thesis: show one real output example per system (GroundOne JSON, terse and verbose judge text, encoders, Rizzo-Flow) on the same answer (author request, 2026-10-09)
 - [ ] **Pillar "full locality"** (all items approved by the author, 2026-10-08):
-   - [ ] overview of local inference for Ch. 1–2: local vs remote, evolution of runtimes, hardware comparison with cited vendor specs
+   - [x] overview of local inference: became the whole Ch. 2 (2026-10-11), revised 2026-10-12/13
    - [ ] proof of independence: full evaluation with the network disabled (`HF_HUB_OFFLINE=1`, Wi-Fi off); report that it completes
    - [x] energy per verification with `powermetrics` (2026-10-10): GroundOne 5.5 J / 33 J per answer vs terse 8.9 / 43 and verbose 22.5 / 112
-   - [ ] co-residence: peak memory of generator (3B) + GroundOne verifier + retriever running together, against the 16 GB budget
+   - [ ] co-residence: peak memory of generator (3B) + GroundOne verifier + retriever running together, against the 16 GB budget (measured in the demo's measurement mode, D28)
    - [ ] licences as part of independence: one table (models, datasets, baselines) with licence and allowed use
    - [ ] cost comparison with a hosted LLM judge for N answers (provider prices on a stated date, cited)
-   - [ ] state in Ch. 5 that every baseline also ran on the same laptop
+   - [ ] state in Ch. 6 (setup) that every baseline also ran on the same laptop
 - [x] ~~Second night of 3B training~~: not needed, the dev score plateaued (0.705 at step 320, 0.700 at the end)
 - [ ] Optional extension (week 4): grounded ingestion loop for an LLM wiki, evaluated with injected errors (`thesis_notes.md`, Ch. 8)
-- [ ] Ch. 2 (background), Ch. 1, 7, 8
+- [x] Ch. 1, 2 (local inference), 3, 8, 9 written (2026-10-10/11)
+- [ ] Author's review of Ch. 3–9 (Italian first), then alignment of the English version
 
 ## Already done
 
@@ -158,3 +171,7 @@ Add one line per significant event (date, what happened, impact on the plan).
 - 2026-10-10: wiki lint + 22 + 12 sources ingested (incl. the Hugging Face decision-models tag); whole thesis revised chapter by chapter: Ch. 1, 2, 7, 8 written, Ch. 3–6 revised, summary with results, output-examples appendix, 5 new figures, 26 new bibliography entries; compiles cleanly (68 pages)
 - 2026-10-11 07:39: night-7 queues done. Liquid AI d1-3B (same-size general decision model, zero-shot) on T1/T3/T2-subsample: GroundOne wins in domain (T1 +0.11 / +0.18), on par on T2 (3B), loses on VitaminC (−0.20). First d1 queue lost T1 to an MPS memory issue (fixed with restartable workers). CPU experiments: response-level F1 (Decision Index protocol) 0.73–0.78; LCB threshold not needed in domain
 - 2026-10-11: thesis updated with the same-size general decision model (d1-3B, B3b) in Ch. 1, 5, 6, 7, 8 and the summary; decision-model ecosystem (Clef, d1, pplx-decider, Decision Index, Jev studies) in Ch. 2; response-level comparison with the Decision Index in Ch. 6; comparison figures regenerated with d1-3B; compiles cleanly (72 pages)
+- 2026-10-11: new Ch. 2 "Local inference of language models" (author's decision: locality is the backbone; thesis target 120–150 pages); about 50 local-inference sources in `Vault/raw/local_inference/` ingested; chapters renumbered 1–9 in both languages; figures `groundone figures locality` (EN and IT)
+- 2026-10-11/12: author's review of the Italian summary and Ch. 1 (System One vs LLM TikZ figure, RQs rewritten, footnotes, dataset contribution stated as derived, baselines named); Ch. 2 clarity pass, hardware photos from the author's images, Table 2.1 formatted
+- 2026-10-13: Ch. 2 additions: specialised engines (ds4, colibri), discrete vs unified memory and SSD streaming diagrams, reading-vs-writing claim made precise; author's review of Ch. 2 done; English summary, Ch. 1 and Ch. 2 aligned; abstract v0.4; draft PDF (summary + Ch. 1–2) prepared for the supervisor
+- 2026-10-18: demo decided (D28): native macOS app in Swift/SwiftUI with MLX Swift, GroundOne in-process with a conformance test, verify-and-revise loop and policies; spec in `demo_architecture.md`; 31 demo sources saved in `Vault/raw/demo/` and ingested (MLX Swift ecosystem, alternatives, app components, verify-and-revise and guardrails papers)

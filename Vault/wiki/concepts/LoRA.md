@@ -43,3 +43,6 @@ LoRA is how GroundOne turns [[Qwen2.5]] 0.5B/3B into a System One verifier. The 
 
 ## As run in GroundOne (2026-10-10)
 Custom MLX loop (not `mlx_lm.lora`): rank 16, α 32 (scale 2.0), dropout 0.05 on **all** linear layers of all blocks; lr 1e-4, cosine with warm-up; token-budget length-bucketed batches; best checkpoint by dev balanced accuracy. 0.5B: all 13,203 answers, 802 steps, 5.5 h, peak 2.6 GB; 3B: 6,500 answers, 403 steps, 12.25 h, peak 5.9 GB. **No gradient clipping**: one 0.5B seed collapsed to a constant predictor and was stopped; the two completed seeds agree ([[Fine-tuning Instability and Seeds]], [[GroundOne Results]]).
+
+## Loading GroundOne adapters outside Python (ingest 2026-10-18)
+- MLX Swift LM reads the same `adapter_config.json` + `adapters.safetensors` that mlx-lm writes, wraps quantised layers with `QLoRALinear`, and can fuse or unload an adapter at runtime ([[ml-explore 2026 - mlx-swift-lm LoRA adapters reference]]). Fusing into an 8-bit base re-quantises the weights ([[Apple WWDC 2025 - Explore large language models on Apple silicon with MLX]]), so the demo loads the adapter unfused. Unloading enables one shared base for generator and verifier ([[Demo Application]]).

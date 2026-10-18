@@ -79,3 +79,6 @@ The two agree only when the model already puts most of its mass on the labels. T
 - Concepts: [[System One Models]], [[Constrained Decoding]], [[Calibration]], [[Verbalised vs Logit Confidence]], [[LLM-as-a-Judge]], [[When System One Beats an LLM]], [[Prefill and Decode]]
 - Systems: [[GroundOne]], [[SemIf]], [[Rizzo-Flow]], [[Jev]], [[Laya]]
 - 2026 evidence: [[Azizi 2026 - Labels Override Definitions in Jev-Style Typed Decision Models (arXiv 2610.02586)]], [[Deusser 2026 - Evaluating and Benchmarking the System One Model Jev (arXiv 2609.37647)]] (open LLMs scored by exact option-code probabilities), [[Decision-Model Benchmarks]]
+
+## In Swift (ingest 2026-10-18)
+- MLX Swift LM's Qwen2 exposes the final hidden states publicly but keeps the head internal; the readout at the markers is a gather plus a product with the three letter embeddings (tied head) ([[ml-explore 2026 - mlx-swift-lm Qwen2 model source]]).

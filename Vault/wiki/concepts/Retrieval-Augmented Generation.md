@@ -45,3 +45,6 @@ GroundOne is a [[System One Models|System One]] verifier placed after the genera
 ## Links
 - Sources: [[Huang 2023 - A Survey on Hallucination in LLMs]], [[Lewis 2020 - Retrieval-Augmented Generation]], [[Asai 2024 - Self-RAG]], [[Es 2024 - RAGAS]], [[Saad-Falcon 2024 - ARES]]
 - Concepts: [[On-Device Inference]], [[RAG Evaluation Frameworks]], [[Groundedness Verification]], [[Hallucination Detection]], [[LLM-as-a-Judge]], [[System One Models]], [[When System One Beats an LLM]], [[Calibration]], [[RAGTruth]], [[LLM-AggreFact]]
+
+## Fully local retrieval (ingest 2026-10-18)
+- SQLite FTS5 (BM25), sqlite-vec and on-device embeddings: [[Local RAG Retrieval]]. Corrective retrieval before generation (CRAG): [[Verify-and-Revise Loops]].

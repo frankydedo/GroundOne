@@ -40,6 +40,11 @@ Knowledge base for the MSc thesis **[[GroundOne]]**: a specialist System One mod
 - [[Local Inference Hardware]] (Mac Studio, DGX Spark, Strix Halo, consumer GPUs: capacity, bandwidth, compute, power, price), [[Quantization]], [[Small Language Models]], [[Edge-Cloud Collaborative Inference]]
 - [[Open-Weight Models]] (OSI definition, licences, open/closed gap, EU AI Act), [[Privacy and Data Sovereignty]], case study: [[Navier-Stokes Credit Dispute (2026)]]
 
+## Demo application (thesis, D28)
+- [[Demo Application]] (native macOS app: retrieval, generator and GroundOne in one process; conformance test; repair loop; policies; measurement mode)
+- [[Demo Runtime Choice]] (why Swift + MLX Swift; Python, Rust/Tauri, candle, llama.cpp, Core ML, Foundation Models compared), [[MLX Ecosystem]] (bindings and build facts)
+- [[Local RAG Retrieval]] (SQLite FTS5, sqlite-vec, on-device embeddings), [[Verify-and-Revise Loops]] (Self-Refine, RARR, CRITIC, CoVe, CRAG; why external feedback matters), [[Guardrails and Policies]] (NeMo Guardrails, thresholded actions, policy design)
+
 ## Archived (earlier tool-routing experiment)
 - [[Function Calling]], [[Berkeley Function Calling Leaderboard]]
 
@@ -102,3 +107,8 @@ Knowledge base for the MSc thesis **[[GroundOne]]**: a specialist System One mod
 
 **Archived**
 - [[Berkeley Function Calling Leaderboard V4]], [[Hugging Face Datasets BFCL]]
+
+**Demo application (ingest 2026-10-18)**
+- MLX ecosystem: [[Apple ML Explore 2026 - MLX C API (GitHub README)]], [[Apple ML Explore 2026 - MLX Swift (GitHub README)]], [[Apple ML Explore 2026 - MLX Swift Examples (GitHub README)]], [[Apple ML Explore 2026 - MLX Swift LM, LLMs and VLMs with MLX Swift (GitHub README)]], [[Apple ML Explore 2026 - MLX documentation, build and install]], [[Apple WWDC 2025 - Explore large language models on Apple silicon with MLX]], [[Apple WWDC 2025 - Get started with MLX for Apple silicon]], [[LM Studio 2026 - mlx-engine, LM Studio Apple MLX engine (GitHub README)]], [[ml-explore 2026 - mlx-swift-lm LoRA adapters reference]], [[ml-explore 2026 - mlx-swift-lm Qwen2 model source]], [[oxiglade 2026 - mlx-rs, unofficial Rust bindings to MLX (GitHub README)]]
+- Alternatives and app components: [[Apple 2026 - Core ML documentation]], [[Apple 2026 - Foundation Models framework documentation]], [[Apple 2026 - NLEmbedding documentation]], [[Apple 2026 - NLTokenizer documentation]], [[Apple 2026 - PDFKit documentation]], [[Garcia 2026 - sqlite-vec, vector search SQLite extension (GitHub README)]], [[Hugging Face 2026 - candle, minimalist ML framework for Rust (GitHub README)]], [[NVIDIA 2026 - NeMo Guardrails (GitHub README)]], [[SQLite 2026 - FTS5 full-text search extension]], [[Sadvilkar - pySBD, rule-based sentence boundary detection (GitHub README)]], [[Swift.org 2026 - Platform support]], [[Tauri 2026 - Tauri, desktop and mobile apps with a web frontend (GitHub README)]], [[Tauri 2026 - What is Tauri]]
+- Verify-and-revise and guardrails: [[Dhuliawala 2024 - Chain-of-Verification Reduces Hallucination in LLMs (arXiv 2309.11495)]], [[Gao 2023 - RARR, Researching and Revising What Language Models Say (arXiv 2210.08726)]], [[Gou 2024 - CRITIC, LLMs Can Self-Correct with Tool-Interactive Critiquing (arXiv 2305.11738)]], [[Huang 2024 - Large Language Models Cannot Self-Correct Reasoning Yet (arXiv 2310.01798)]], [[Madaan 2023 - Self-Refine, Iterative Refinement with Self-Feedback (arXiv 2303.17651)]], [[Rebedea 2023 - NeMo Guardrails, Controllable and Safe LLM Applications (arXiv 2310.10501)]], [[Yan 2024 - Corrective Retrieval Augmented Generation (arXiv 2401.15884)]]
