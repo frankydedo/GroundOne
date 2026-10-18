@@ -56,39 +56,45 @@ Nothing in the demo is a new benchmark: measurements taken in it are reported as
 ```mermaid
 flowchart TB
   subgraph UI["SwiftUI layer"]
-    Chat["Chat view: coloured sentences, hover probabilities"]
+    Chat["Chat view: each answer sentence coloured by its GroundOne verdict, GroundOne probabilities on hover"]
     Docs["Library: add PDF / text / Markdown"]
-    Pol["Policy editor"]
-    Meas["Timing and memory panel, export"]
+    Pol["Policy editor: GroundOne threshold τ, blocking GroundOne classes, attempts"]
+    Meas["Timing and memory panel: generation time vs GroundOne verification time, export"]
   end
   subgraph Core["Core (pure Swift, no ML imports)"]
     Orc["Orchestrator"]
-    Loop["Verify-and-revise loop"]
-    PE["Policy engine"]
-    Audit["Audit log (JSONL)"]
+    Loop["Verify-and-revise loop: GroundOne flags sentences → generator rewrites them → GroundOne re-checks"]
+    PE["Policy engine: acts on GroundOne verdicts (accept / rewrite / hide / abstain)"]
+    Audit["Audit log (JSONL): drafts + GroundOne verdicts + policy decisions"]
   end
   subgraph Ports["Protocols"]
     R["Retriever"]
     G["Generator"]
-    V["Verifier"]
+    V["Verifier, implemented by GroundOne"]
   end
   subgraph Engines["Engines"]
     BM25["SQLite FTS5 (BM25)"]
     Emb["Embeddings (NLEmbedding or MLXEmbedders)"]
-    Gen["MLX Swift generator: Qwen2.5-3B-Instruct"]
-    G1["MLX Swift GroundOne: prompt, segmentation, marker readout, calibration"]
+    Gen["Generator: Qwen2.5-3B-Instruct 4-bit on MLX Swift"]
+    G1["GroundOne 3B on MLX Swift: Qwen2.5-3B 8-bit + LoRA adapter g1-3b-b1, marked prompt, segmentation, readout at the Verdict markers, calibration.json (T, bias, τ)"]
   end
   Chat --> Orc
   Docs --> R
   Pol --> PE
   Orc --> R & G & Loop
-  Loop --> V & G & PE
+  Loop -- "document + answer" --> V
+  V -- "verdicts + probabilities" --> Loop
+  Loop --> G & PE
   Orc --> Audit
   Orc --> Meas
   R --> BM25 & Emb
   G --> Gen
   V --> G1
+  classDef g1 fill:#e8f1ff,stroke:#1f5fbf,stroke-width:2px
+  class Chat,Pol,Meas,Loop,PE,Audit,V,G1 g1
 ```
+
+Blue nodes are where GroundOne is used: as the engine behind the `Verifier` protocol (one forward pass per draft), and through its verdicts in the loop, the policy engine, the audit log, the chat colouring and the timing panel.
 
 - **Core** knows only the three protocols and the policy. It can be unit-tested with fake engines, as the Python package is tested with the fake backend.
 - **Engines** are replaceable: a llama.cpp generator, a remote judge for the comparison mode, or a GroundOne port on another runtime implement the same protocols.
@@ -99,7 +105,7 @@ Protocol sketch (names indicative):
 ```swift
 protocol Retriever { func search(_ query: String, k: Int) async throws -> [Passage] }
 protocol Generator { func answer(question: String, context: [Passage], instructions: String?) -> AsyncThrowingStream<String, Error> }
-protocol Verifier  { func verify(document: String, answer: String) async throws -> Verdicts }   // one forward pass
+protocol Verifier  { func verify(document: String, answer: String) async throws -> Verdicts }   // implemented by GroundOneVerifier: one forward pass
 
 struct SentenceVerdict { let range: Range<String.Index>; let scored: Bool
                          let probs: (supported: Double, contradicted: Double, notMentioned: Double); let label: Label }
