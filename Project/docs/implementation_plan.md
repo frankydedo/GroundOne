@@ -77,7 +77,7 @@ The test of specialisation is the head-to-head with Rizzo-Flow on our benchmarks
 | Hand-labelled local set | 150–300 sentences | **Cut.** The demo is evaluated qualitatively plus latency/memory only |
 | Seeds | 0.5B ×3, 3B ×1–2 | 0.5B ×2 if time allows (else ×1), 3B ×1 |
 | Hyper-parameter sweep | small sweep on 0.5B | at most 2–3 configurations, chosen on dev |
-| Ablations | A1–A5 | **A1, A2 required** (they come for free from baselines B1, B2); A3–A5 in week 4 only if the main matrix is complete |
+| Ablations | A1–A5 | **A1, A2 done** (baselines B1, B2); **A3–A5 cut (D29)**, not mentioned in the thesis |
 | Extensions | E1, E2 | E1 cut. E2 (rules in the prompt) replaced by rules derived from the three-way output (D20) |
 | Slow baselines (B0b verbose judge) | full test sets | **stratified subsample** (e.g. 300–500 items), stated in the thesis. B0c (7B) not run (D13) |
 | Training sources | 3–4 sources | see `dataset_plan.md` |
@@ -150,6 +150,7 @@ Numbers are from `thesis_notes.md`; T1 = RAGTruth test, T2 = LLM-AggreFact, T3 =
 | D26 | **Seed runs of the 0.5B** (2026-10-09): seed 4321 (`g1-05b-s2`) collapsed (dev macro 0.369 → 0.333 → 0.444 at steps 150/300/450) and was stopped at step ≈ 470; replaced by seed 777 (`g1-05b-s3`), presented in the thesis as the second run. The stopped run is disclosed in one sentence (thesis notes), and its logs are kept | Incomplete runs cannot be compared with complete ones, but omitting them would be selective reporting; the collapse is evidence on the robustness of the recipe (no gradient clipping) | Let seed 4321 finish (≈ 3.5 h of training plus ≈ 3 h of tests on a collapsed model); hide the stopped run |
 | D27 | **HTTP API on design (b) with one coherent output rule** (2026-10-10): `/v1/verify` follows the adapter's design; with design (b) it segments with the training rule, runs one pass, and derives labels, strict/lenient flags and the shown probabilities from the calibrated probabilities: "supported" iff P(supported) ≥ τ, else the more probable of contradicted / not mentioned. τ is fitted on dev by `calibrate-b` (maximising three-way macro recall) and stored in `calibration.json`; a request may override it; without τ the label is the raw class-balanced argmax (D24). `/v1/systemone` stays on design (a) | The served output showed raw-argmax labels next to calibrated probabilities that contradicted them (thesis notes 2026-10-09); a single rule on calibrated probabilities with a dev threshold keeps labels, flags and probabilities consistent while approximating the evaluated balanced decision | Raw-argmax labels next to calibrated probabilities; argmax of calibrated probabilities (three-way 0.77 → 0.63, D24) |
 | D28 | **Demo = native macOS app in Swift/SwiftUI with MLX Swift** (2026-10-18): retrieval (hybrid BM25 + embeddings), generator (Qwen2.5-3B-Instruct 4-bit) and GroundOne verifier in one process; GroundOne ported to Swift (prompt, segmentation, marker readout, calibration) and gated by a conformance test against the Python probabilities (\|Δp\| < 0.01); a verify-and-revise loop that rewrites only flagged sentences; policies (strict/lenient, τ, attempts, on-failure action) and an audit log; measurement mode for the co-residence and overhead figures. Engines behind protocols, so a llama.cpp backend can replace MLX later. Spec: `demo_architecture.md` | Locality as a product property (one signed app, no interpreter, no server); reuses the trained MLX adapters and calibration unchanged (no retraining, no recalibration); native PDF, sentence and SQLite APIs | Python app around the existing server (B); Rust with Tauri + mlx-rs or candle (C); llama.cpp/GGUF (D: requantisation and recalibration) |
+| D29 | **Ablations A3–A5 cut and not mentioned in the thesis** (author, 2026-10-18); seed 4321 not re-run with clipping; 8-bit vs bf16 measured only on the 0.5B | A1 and A2 (the required ablations) are done as B1 and B2, plus six further controls (B0d, model size, calibration variants, served threshold, design a vs b latency, two seeds); the remaining time goes to the locality items and the demo | Run A4 (learning curve, 2–3 extra 0.5B runs) |
 
 Record future changes below (date, decision, reason).
 
@@ -164,6 +165,7 @@ Record future changes below (date, decision, reason).
 - 2026-10-10: **D27** (HTTP API on design b, one coherent output rule; served threshold fitted on dev).
 - 2026-10-11: new thesis chapter on local inference (Ch. 2, author's decision; chapters renumbered 1–9). No experiment changed.
 - 2026-10-18: **D28** (demo as a native Swift/SwiftUI app with MLX Swift; §11 replaced by `demo_architecture.md`). Open details listed there (§12) and in §14.
+- 2026-10-18: **D29** (ablations A3–A5 cut and not mentioned in the thesis; seed 4321 not re-run; 8-bit vs bf16 only on the 0.5B).
 
 ---
 
@@ -284,15 +286,15 @@ The risk is long contexts. Rules of thumb *(to measure)*:
 4. Save adapters, configs, loss curves, dataset hash, git commit for every run.
 
 ### 6.5 Ablations and extensions
-**A1 and A2 are required.** A3–A5 run in week 4 only if the main experiment matrix is complete (§1.5, §9). E1 is future work; E2 is evaluated from the three-way output (D20). Results go in thesis §6.4.
+**A1 and A2 are required (done: B1, B2).** A3–A5 were cut on 2026-10-18 (D29) and are not mentioned in the thesis. E1 is future work; E2 is evaluated from the three-way output (D20). Results go in thesis §6.4.
 
 | ID | Experiment | Purpose |
 | --- | --- | --- |
 | A1 | Base vs fine-tuned, same readout | Isolates the effect of fine-tuning |
 | A2 | Readout vs single-token generation, same fine-tuned weights | Confirms equivalence (H2a) |
-| A3 | Restricted-softmax vs full-vocab loss; hard vs soft labels | Effect of the loss on calibration |
-| A4 | Training-set size curve (e.g. 5k / 10k / 20k / all) | Data efficiency |
-| A5 | Prefix with and without the full answer | Value of context for resolving references |
+| ~~A3~~ | ~~Restricted-softmax vs full-vocab loss; hard vs soft labels~~ (cut, D29) | Effect of the loss on calibration |
+| ~~A4~~ | ~~Training-set size curve~~ (cut, D29) | Data efficiency |
+| ~~A5~~ | ~~Prefix with and without the full answer~~ (cut, D29) | Value of context for resolving references |
 | E1 (stretch) | Sentence-level vs claim-decomposed verification | Granularity |
 | E2 (superseded by D20) | Rules applied at inference from the three-way probabilities (strict: `P(supported) < τ`; lenient: `P(contradicted) > τ`), evaluated against gold rule labels derived from the three-way test labels | RQ5 |
 
@@ -369,7 +371,7 @@ Experiment and thesis together. The machine trains or benchmarks **at night**; d
 | **1** ✅ (ahead) | Oct 5–11 | Phase 0 + 0b ✅ (Oct 5) → **Phase 1a EDA** of ANLI and RAGTruth (`Project/experiments/eda/`) → Phase 1 data pipeline + leakage check → engine + harness; first 0.5B training run overnight | Thesis skeleton (chapters, bib); Ch. 2 Background & related work (wiki ingest ✅); Ch. 4 Data and EDA (material ready) | Datasets frozen ✅ (Oct 7); 0.5B and 3B trained, baselines and latency done (Oct 8), i.e. most of weeks 2–3 |
 | **2** ✅ (done by Oct 10) | Oct 12–18 | 0.5B final run(s); 3B training overnight; baselines B0a, B1, B2 on full test sets; B0b/B0c on subsample; B4 encoders; B3 Rizzo-Flow | Ch. 3 Method (task, prompt, engine, loss, calibration) | 0.5B beats B1 on dev; 3B adapter exists |
 | **3** ✅ (done by Oct 10; A3–A5 not run) | Oct 19–25 | GroundOne 3B eval; latency protocol (§8.3); calibration (temperature, reliability, risk-coverage); ablations A1/A2; error analysis | Ch. 5 Experimental setup; start Ch. 6 Results as numbers arrive | All main tables and figures generated from `outputs/results/` |
-| **4** | Oct 26–Nov 1 | Stretch ablations (A3–A5) if the main matrix is complete; minimal demo (2 days max); **feature freeze Fri Oct 30** | Ch. 6 Results, Ch. 7 Discussion | Experiments closed |
+| **4** | Oct 26–Nov 1 | Demo application (D28; A3–A5 cut, D29); **feature freeze Fri Oct 30** | Ch. 6 Results, Ch. 7 Discussion | Experiments closed |
 | **5** | Nov 2–8 | Fixes and re-runs of already-defined experiments only; reproducibility package | Ch. 1 Introduction, Ch. 8 Conclusion, final abstract with numbers; complete draft to supervisor by ~Nov 5; revisions | Complete thesis |
 | **buffer** | Nov 9–10 | – | Formatting, proofreading | **Submission Nov 10** |
 
@@ -549,7 +551,7 @@ Still open (updated 2026-10-18):
 4. ~~HTTP API on design (b)~~: done 2026-10-10 (D27). Optional extension (grounded ingestion loop for an LLM wiki, `thesis_notes.md` Ch. 8) still open.
 5. ~~Supervisor requirements~~: none specific (author, 2026-10-11); target 120–150 pages.
 6. ~~Demo (D28) details~~: answered 2026-10-18 (`demo_architecture.md` §12): GroundOne Studio (provisional), separate 3B 4-bit generator, hybrid retrieval, `Project/GroundOneStudio/`, own chapter, ~6 days. Segmentation approach still to confirm.
-7. **Remaining experiment items before the freeze** (2026-10-18, `tracker.md` to-dos): co-residence (RQ4/H4), offline proof, 8-bit vs bf16; optional seed re-run with clipping; A3–A5 to cut or run.
+7. **Remaining experiment items before the freeze** (2026-10-18, `tracker.md` to-dos): co-residence (RQ4/H4), offline proof, 8-bit vs bf16 (running, queue_day8). Seed re-run and 3B bf16: not done (author). A3–A5 cut (D29).
 
 ---
 

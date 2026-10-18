@@ -105,11 +105,11 @@ Chapters renumbered on 2026-10-11 after the new Ch. 2. Italian version (`Thesis_
 5. [x] First draft of the new thesis chapters from `thesis_notes.md` (Ch. 3 method, Ch. 5 setup, Ch. 6 results)
 
 **Remaining experiment items before the freeze (2026-10-30)**, in priority order (2026-10-18; GPU runs only with the author's go-ahead, under the guard):
-1. [ ] **Co-residence (RQ4, H4 still "partly supported")**: one Python process with the 3B 4-bit generator + GroundOne 3B (and 0.5B); RAG-style queries from T1 (question + document → answer → verification); peak memory, generation vs verification time. No demo needed; gives the demo chapter its reference numbers. ≈ 1 h GPU
+1. [ ] 🟡 running (queue_day8, started 21:05) **Co-residence (RQ4, H4 still "partly supported")**: one Python process with the 3B 4-bit generator + GroundOne 3B (and 0.5B); RAG-style queries from T1 (question + document → answer → verification); peak memory, generation vs verification time. No demo needed; gives the demo chapter its reference numbers. ≈ 1 h GPU
 2. [ ] **Offline proof** (locality pillar): a subset evaluation with `HF_HUB_OFFLINE=1` and Wi-Fi off; report that it completes with identical predictions. ≈ 30 min
 3. [ ] **8-bit vs bf16** (Ch. 2 quantisation section, measured instead of cited): 0.5B with the bf16 base (cached) and the same adapter: probability differences and T1 metrics. The 3B needs a ≈ 6 GB bf16 download (ask). ≈ 1–2 h
-4. [ ] Optional: seed 4321 re-run with gradient clipping / bias correction as a recorded ablation (one night, ≈ 5.5 h)
-5. [ ] A3–A5: cut formally (record in §1.5) or run A4 (learning curve, 2–3 extra 0.5B runs)
+4. [x] ~~Seed 4321 re-run~~: not done (author, 2026-10-18)
+5. [x] ~~A3–A5~~: cut, not mentioned in the thesis (D29, 2026-10-18)
 6. [ ] Desk items (no GPU): licence table; hosted-judge cost comparison; Ch. 6 sentence that every baseline ran on the laptop; Italian figure labels for Ch. 3–9; git tag per reported experiment and reproducibility notes at the freeze
 7. [ ] Then the demo (M0–M5 above)
 
@@ -185,3 +185,4 @@ Add one line per significant event (date, what happened, impact on the plan).
 - 2026-10-13: Ch. 2 additions: specialised engines (ds4, colibri), discrete vs unified memory and SSD streaming diagrams, reading-vs-writing claim made precise; author's review of Ch. 2 done; English summary, Ch. 1 and Ch. 2 aligned; abstract v0.4; draft PDF (summary + Ch. 1–2) prepared for the supervisor
 - 2026-10-18: demo decided (D28): native macOS app in Swift/SwiftUI with MLX Swift, GroundOne in-process with a conformance test, verify-and-revise loop and policies; spec in `demo_architecture.md`; 31 demo sources saved in `Vault/raw/demo/` and ingested (MLX Swift ecosystem, alternatives, app components, verify-and-revise and guardrails papers)
 - 2026-10-18: demo details decided by the author (GroundOne Studio provisional, 3B 4-bit generator, hybrid retrieval, own thesis chapter); remaining experiment items listed and prioritised (co-residence, offline proof, 8-bit vs bf16; optional seed re-run; A3–A5 to decide)
+- 2026-10-18: Ch. 3–9 of the Italian thesis revised (clarity, footnotes, 12 TikZ diagrams, 6 more plots, Italian figure labels; 127 pages). D29: A3–A5 cut and not cited; seed re-run and 3B bf16 dropped. queue_day8 started 21:05 (offline proof in a network-denying sandbox, 8-bit vs bf16 on the 0.5B, co-residence)
