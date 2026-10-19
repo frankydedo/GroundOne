@@ -6,19 +6,19 @@
 Questo capitolo interpreta i risultati alla luce delle cinque domande di ricerca. Indica poi ciò che gli esperimenti non
 possono dimostrare e quali scelte potrebbero averli distorti.
 
-\section{Quando conviene un System One specialista}
+\section{Quando conviene un Decision Model specialista}
 \label{sec:disc-synthesis}
 
 \paragraph{Specializzazione (RQ1).} A rendere GroundOne accurato è l'addestramento sulla decisione. I modelli non
 addestrati restano vicini al caso, mentre gli stessi modelli, una volta addestrati, raggiungono sul test set di RAGTruth
 una balanced accuracy a tre classi di 0.769 (0.5B) e 0.832 (3B). Superano così gli encoder specializzati in AUROC, e
-Rizzo-Flow, un System One generalista otto volte più grande, in balanced accuracy a tre classi. Il vantaggio, però, si
+Rizzo-Flow, un decision model generalista otto volte più grande, in balanced accuracy a tre classi. Il vantaggio, però, si
 concentra dove si trovano i dati di addestramento. Su LLM-AggreFact il 3B si porta alla pari con il miglior encoder di
-piccole dimensioni, senza superarlo, e resta sotto il System One chiuso Jev e un modello aperto da 27B, misurati in modo
+piccole dimensioni, senza superarlo, e resta sotto il decision model chiuso Jev e un modello open da 27B, misurati in modo
 indipendente; il 0.5B rimane al di sotto dell'encoder. Su VitaminC, infine, il 3B addestrato non fa meglio di quello non
 addestrato.
 
-Il confronto con d1-3B, un System One generalista della stessa dimensione, rende esplicito il compromesso. d1-3B è già
+Il confronto con d1-3B, un decision model generalista della stessa dimensione, rende esplicito il compromesso. d1-3B è già
 addestrato a decidere, ma su un'ampia miscela di task. Su RAGTruth è molto lontano da GroundOne, soprattutto sulle
 risposte lunghe; su LLM-AggreFact è alla pari con il 3B; su VitaminC è nettamente superiore. Uno specialista è dunque una
 scelta solida per il dominio su cui è stato addestrato, ma uno strumento debole per la verifica dei fatti in generale.
@@ -26,13 +26,13 @@ All'interno del dominio la specializzazione garantisce accuratezza e robustezza 
 trasferimento; fuori dal dominio, invece, sono la dimensione del modello oppure un'ampia miscela di addestramento a
 migliorare il trasferimento.
 
-\paragraph{Readout e generazione a confronto (RQ2).} Il meccanismo System One contribuisce in due modi distinti. Il primo
+\paragraph{Readout e generazione a confronto (RQ2).} Il meccanismo del decision model contribuisce in due modi distinti. Il primo
 riguarda il costo: un solo forward pass sulla risposta sostituisce la generazione di $K$ verdetti, per cui il tempo
 risparmiato cresce con la lunghezza della risposta. Quando la risposta contiene quattordici o più frasi, il risparmio
 arriva a un fattore di circa due rispetto a un giudice sintetico e di circa sei rispetto a uno verboso. Il secondo
 contributo, che questa tesi non aveva previsto, riguarda l'accuratezza. Con gli stessi pesi e lo stesso costo, scegliere
 tra le tre lettere ammissibili è più accurato che prendere il token che il modello genererebbe, con un guadagno di
-balanced accuracy a tre classi di 0.25 per il 0.5B e di 0.07 per il 3B. Un System One sottoposto a fine-tuning si
+balanced accuracy a tre classi di 0.25 per il 0.5B e di 0.07 per il 3B. Un decision model sottoposto a fine-tuning si
 comprende quindi meglio come un classificatore a tre classi innestato su un modello linguistico che come un generatore
 che si ferma dopo un token. La distinzione pesa soprattutto per i modelli piccoli, cioè proprio per quelli che un
 portatile può permettersi. Il confronto con i giudici generativi, infine, misura anche l'effetto dell'addestramento:
@@ -116,7 +116,7 @@ verificatore binario consente. La Figura~\ref{fig:disc-when} riassume queste ind
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/diagrams/disc_when_specialist_tikz.pdf}
-\caption{Quando conviene un System One specialista, secondo i risultati di questa tesi. È una sintesi qualitativa: i tempi si riferiscono al portatile M4 e alle risposte con 14 o più frasi, e il trasferimento fuori dominio è quello osservato su LLM-AggreFact e VitaminC.}
+\caption{Quando conviene un decision model specialista, secondo i risultati di questa tesi. È una sintesi qualitativa: i tempi si riferiscono al portatile M4 e alle risposte con 14 o più frasi, e il trasferimento fuori dominio è quello osservato su LLM-AggreFact e VitaminC.}
 \label{fig:disc-when}
 \end{figure}
 
@@ -126,7 +126,7 @@ verificatore binario consente. La Figura~\ref{fig:disc-when} riassume queste ind
 \paragraph{Una sola piattaforma e una sola famiglia di modelli.} Tutti i risultati provengono da un unico portatile, un
 unico runtime e un'unica famiglia di modelli. Latenza ed energia dipendono dall'hardware e dall'implementazione: ciò che
 dovrebbe valere anche altrove sono i rapporti tra i metodi, non i valori assoluti. La latenza di GroundOne non viene
-confrontata con quella degli encoder né con quella dei System One generalisti, perché questi sono stati eseguiti in
+confrontata con quella degli encoder né con quella dei decision model generalisti, perché questi sono stati eseguiti in
 runtime diversi e in condizioni che renderebbero il confronto iniquo.
 
 \paragraph{Stabilità dell'addestramento.} Due run completi del 0.5B concordano su tutte le metriche aggregate, ma un
@@ -178,7 +178,7 @@ piccolo. Non sono stati valutati né un giudice sottoposto a fine-tuning sugli s
 confronto misura dunque ciò che offre, senza addestramento, un giudice della stessa dimensione. Rizzo-Flow è stato
 eseguito con pesi a 4 bit, perché il modello a 8 bit non trovava posto in memoria accanto al sistema operativo, e questo
 potrebbe sottostimarne l'accuratezza. d1-3B, infine, è stato eseguito zero-shot e, su LLM-AggreFact, soltanto su un
-sottocampione. Ha ricevuto le domande usate per tutte le baseline System One, che potrebbero non essere la formulazione
+sottocampione. Ha ricevuto le domande usate per tutte le baseline di tipo decision model, che potrebbero non essere la formulazione
 a esso più congeniale.
 
 \paragraph{Contaminazione.} I modelli base sono stati preaddestrati su ampi corpora web che potrebbero includere parti
@@ -191,7 +191,7 @@ esclusa del tutto.
 
 \paragraph{Una sola macchina.} Tutte le misure di tempo e di energia provengono da un unico portatile, un Apple M4 con
 16\,GB, e da un unico runtime, MLX. Il modello di costo del Capitolo~\ref{sec:local} prevede che il vantaggio di un
-System One valga su ogni classe di hardware locale, perché poggia sulla differenza tra prefill e decoding, che produttori
+decision model valga su ogni classe di hardware locale, perché poggia sulla differenza tra prefill e decoding, che produttori
 e studi indipendenti osservano ovunque. Anche i limiti inferiori al costo del decoding calcolati in quel capitolo per
 altre macchine discendono dalle specifiche pubblicate. Gli speed-up effettivi su una scheda grafica dedicata, su un DGX
 Spark o su uno smartphone, invece, non sono stati misurati. La loro entità dipende dall'equilibrio tra calcolo e banda di

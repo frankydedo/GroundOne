@@ -20,14 +20,14 @@ La verifica segue oggi due paradigmi. I \textbf{verificatori basati su encoder},
 veloci, ma restituiscono un unico punteggio fisso per ogni coppia di documento e frase. I \textbf{giudici generativi}, invece, sono
 flessibili, ma scrivono i verdetti token per token, per cui il loro costo cresce con la quantità di testo prodotto; i
 giudici piccoli violano spesso il formato di output, e la confidenza che esprimono è raramente utilizzabile come
-probabilità. Di recente è emersa una terza famiglia: i \textbf{modelli System One}, come il proprietario Jev e i modelli
-aperti SemIf e Rizzo-Flow, che rispondono a domande chiuse in un unico forward pass leggendo dai logit la probabilità di
+probabilità. Di recente è emersa una terza famiglia: i \textbf{decision model}, come il proprietario Jev e i modelli
+open SemIf e Rizzo-Flow, che rispondono a domande chiuse in un unico forward pass leggendo dai logit la probabilità di
 ciascuna opzione di risposta. Le evidenze a loro favore provengono per lo più dagli stessi autori, e le implementazioni
-aperte sono generaliste. Non era ancora stato studiato in modo controllato se un System One compatto, specializzato in un
+open sono generaliste. Non era ancora stato studiato in modo controllato se un decision model compatto, specializzato in un
 unico task, possa eguagliare i giudici generativi e gli encoder dedicati, da dove derivi il suo vantaggio e se le sue
 probabilità siano utilizzabili, il tutto su hardware consumer.
 
-Questa tesi progetta, addestra e valuta \textbf{GroundOne}, un System One specializzato in un'unica decisione: stabilire,
+Questa tesi progetta, addestra e valuta \textbf{GroundOne}, un decision model specializzato in un'unica decisione: stabilire,
 per ogni frase di una risposta RAG, se il documento recuperato la supporta, la contraddice o non la menziona. Ogni frase
 della risposta è seguita da un marker, e i verdetti di tutte le $K$ frasi si leggono dai logit di tre lettere di risposta
 in un unico forward pass, senza generare testo. Modelli Qwen2.5 da 0.5B e 3B parametri sono sottoposti a fine-tuning con
@@ -38,15 +38,15 @@ all'addestramento, dalla valutazione alla messa in servizio, gira su un unico po
 con MLX e senza servizi esterni, e ogni baseline è eseguita sulla stessa macchina. La valutazione usa tre test set costruiti e
 congelati prima dell'addestramento (la partizione di test di RAGTruth, LLM-AggreFact e VitaminC) e confronta GroundOne con
 indizi che non leggono mai il documento, con i modelli non addestrati, con giudici generativi della stessa dimensione, con
-e senza probabilità, con due System One generalisti e con encoder specializzati, riportando intervalli calcolati con un
+e senza probabilità, con due decision model generalisti e con encoder specializzati, riportando intervalli calcolati con un
 bootstrap a cluster.
 
 Sul test set di RAGTruth GroundOne raggiunge una balanced accuracy a tre classi di 0.769 con 0.5B parametri e di 0.832
 con 3B, contro 0.37 e 0.44 dei modelli non addestrati; la sua AUROC (0.905 e 0.940) supera quella degli encoder (circa
-0.82), e il modello supera nettamente entrambi i System One generalisti: Rizzo-Flow, otto volte più grande del 0.5B, e
+0.82), e il modello supera nettamente entrambi i decision model generalisti: Rizzo-Flow, otto volte più grande del 0.5B, e
 d1-3B di Liquid AI, della stessa dimensione del 3B (0.657), che a sua volta è molto più forte sul test fuori dominio VitaminC. Su
 LLM-AggreFact il 3B è alla pari con MiniCheck-RoBERTa (74.8 contro 74.0), sopra il modello
-7B zero-shot pubblicato e sotto il System One chiuso Jev, misurato in modo indipendente (78.6). Quando la risposta
+7B zero-shot pubblicato e sotto il decision model chiuso Jev, misurato in modo indipendente (78.6). Quando la risposta
 contiene quattordici o più frasi ($K \geq 14$), GroundOne risulta circa due volte più veloce di un giudice sintetico e sei
 volte più veloce di uno verboso della stessa dimensione e, a differenza dei giudici, produce sempre un output valido.
 Consuma anche meno energia (5.5 joule per risposta con il 0.5B, 33 con il 3B), ma il risparmio è minore di quello sul

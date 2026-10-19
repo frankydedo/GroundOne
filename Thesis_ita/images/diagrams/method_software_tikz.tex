@@ -16,7 +16,7 @@
   % ---------- serving ----------
   \node[io, text width=2.5cm, below=28mm of build, font=\footnotesize] (cli) {riga di comando\\\texttt{groundone verify}};
   \node[io, text width=2.5cm, below=4mm of cli, font=\footnotesize] (cl1) {client nativo};
-  \node[io, text width=2.5cm, below=4mm of cl1, font=\footnotesize] (cl2) {client System One\\esistenti};
+  \node[io, text width=2.5cm, below=4mm of cl1, font=\footnotesize] (cl2) {client dell'interfaccia\\System One (Jev)};
   \node[model=3.2cm, right=10mm of cl1, minimum height=3.3cm, font=\footnotesize] (api) {server HTTP locale\\[3pt]\texttt{/v1/verify}\\(nativo)\\[3pt]\texttt{/v1/systemone}\\(compatibile)};
   \node[model=3.6cm, right=10mm of api, minimum height=3.3cm, font=\footnotesize] (eng) {Engine\\[3pt]richieste serializzate da un lock;\\\textbf{un unico worker thread}\\per tutte le chiamate MLX\\(il contesto Metal non\\cambia thread)};
   \node[model=4.9cm, right=10mm of eng, minimum height=3.3cm, font=\footnotesize, align=left] (bk) {Backend MLX\\[3pt]$\bullet$ Qwen2.5 a 8 bit + adapter LoRA\\$\bullet$ segmentazione (PySBD + regola)\\$\bullet$ prompt a marker\\$\bullet$ readout ai marker (un pass)\\$\bullet$ calibrazione e soglia $\tau$};

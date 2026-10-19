@@ -5,19 +5,19 @@
 \label{sec:concl-summary}
 
 Questa tesi si è chiesta se un modello linguistico compatto, specializzato in un'unica decisione e impiegato come
-System One, possa verificare frase per frase, su un portatile, le risposte di un sistema RAG, e da dove provenga
+decision model, possa verificare frase per frase, su un portatile, le risposte di un sistema RAG, e da dove provenga
 l'eventuale vantaggio. GroundOne, un modello Qwen2.5 sottoposto a fine-tuning che legge i verdetti di un'intera risposta
 in un solo forward pass, fornisce una risposta positiva, sebbene con alcune riserve.
 
 La specializzazione funziona là dove era mirata. Sul test set di RAGTruth GroundOne raggiunge una balanced accuracy a tre
 classi di 0.769 con 0.5B parametri e di 0.832 con 3B. Supera di molto gli stessi modelli non addestrati, ordina le frasi
-supportate meglio degli encoder specializzati ed è nettamente superiore a Rizzo-Flow, un System One generalista otto
+supportate meglio degli encoder specializzati ed è nettamente superiore a Rizzo-Flow, un decision model generalista otto
 volte più grande. Su LLM-AggreFact il 3B è alla pari con il miglior encoder di piccole dimensioni. Su VitaminC, invece,
-il guadagno scompare: uno specialista non è uno strumento generale di verifica dei fatti. d1-3B, un System One
+il guadagno scompare: uno specialista non è uno strumento generale di verifica dei fatti. d1-3B, un decision model
 generalista della stessa dimensione addestrato a decidere su un'ampia miscela di task, conferma il compromesso: GroundOne
 lo supera nettamente su RAGTruth, lo eguaglia su LLM-AggreFact e resta molto indietro su VitaminC.
 
-Il meccanismo System One ripaga su due fronti. Il primo è la velocità. Leggere tutti i verdetti in un solo passaggio
+Il meccanismo del decision model ripaga su due fronti. Il primo è la velocità. Leggere tutti i verdetti in un solo passaggio
 rende la verifica delle risposte lunghe circa due volte più rapida di quella di un giudice generativo sintetico e sei
 volte più rapida di quella di un giudice verboso della stessa dimensione, con un output sempre valido. Il secondo è
 l'accuratezza: restringere la decisione alle risposte ammissibili è di per sé più accurato che lasciare allo stesso
@@ -51,9 +51,9 @@ spontaneamente dopo il marker potrebbe allineare readout e generazione, con effe
 Sul versante dei sistemi, il modello di costo del Capitolo~\ref{sec:local} andrebbe verificato su altro hardware. Un
 porting del readout su llama.cpp permetterebbe di misurare GroundOne su una scheda grafica dedicata, su un DGX Spark o
 su una macchina AMD Strix Halo, e su uno smartphone, le cui unità di elaborazione neurale accelerano proprio il prefill
-su cui si regge un System One. Per il pilastro della località resta inoltre da misurare la memoria del retriever accanto a
+su cui si regge un decision model. Per il pilastro della località resta inoltre da misurare la memoria del retriever accanto a
 generatore e verificatore, già misurati insieme in questa tesi. Anche i confronti di latenza con le altre famiglie di verificatori richiedono condizioni eque: gli encoder
-vanno eseguiti in batch, mentre GroundOne e i System One generalisti vanno interrogati attraverso la stessa interfaccia
+vanno eseguiti in batch, mentre GroundOne e i decision model generalisti vanno interrogati attraverso la stessa interfaccia
 HTTP.
 
 La verifica potrebbe inoltre procedere durante la generazione della risposta, segnalando ogni frase non appena è

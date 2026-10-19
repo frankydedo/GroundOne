@@ -8,7 +8,7 @@ Questo capitolo presenta i modelli addestrati, i sistemi con cui vengono confron
 statistico e il modo in cui sono misurati tempo ed energia. Tutti gli esperimenti si svolgono su un'unica macchina: un
 MacBook Pro con chip Apple M4 e 16\,GB di memoria unificata, con CPU e GPU a 10 core ciascuna e una banda di memoria di
 120\,GB/s~\cite{apple2024m4specs}. Ogni risultato riflette così ciò che un verificatore può fare sullo stesso
-dispositivo su cui gira un assistente locale. Anche tutte le baseline, compresi gli encoder e i due System One
+dispositivo su cui gira un assistente locale. Anche tutte le baseline, compresi gli encoder e i due decision model
 generalisti, sono eseguite su questo portatile, e nessun risultato dipende da un servizio remoto.
 
 \section{Modelli}
@@ -46,7 +46,7 @@ precisa. La Figura~\ref{fig:setup-baselines} riassume che cosa ciascuna baseline
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/diagrams/setup_baseline_map_tikz.pdf}
-\caption{Mappa delle baseline. Ciascuna differisce da GroundOne per un aspetto preciso e risponde quindi a una domanda diversa: quanto conta l'addestramento (B1), quanto il readout ristretto rispetto al token generato (B2), quanto il modo di produrre il verdetto (giudici B0a, B0b, B0d), quanto la specializzazione rispetto a un System One generalista (B3, B3b), quanto l'architettura (encoder B4) e quanto basta senza leggere il documento (segnali elementari).}
+\caption{Mappa delle baseline. Ciascuna differisce da GroundOne per un aspetto preciso e risponde quindi a una domanda diversa: quanto conta l'addestramento (B1), quanto il readout ristretto rispetto al token generato (B2), quanto il modo di produrre il verdetto (giudici B0a, B0b, B0d), quanto la specializzazione rispetto a un decision model generalista (B3, B3b), quanto l'architettura (encoder B4) e quanto basta senza leggere il documento (segnali elementari).}
 \label{fig:setup-baselines}
 \end{figure}
 
@@ -60,7 +60,7 @@ descritti nella Sezione~\ref{sec:data-eda}.
 \paragraph{Readout senza addestramento (B1).} Agli stessi modelli Qwen2.5, senza fine-tuning, si pone per ogni frase la
 domanda a tre classi, e si leggono i logit delle lettere di risposta. Un modello non addestrato non ha alcun motivo di
 interpretare il marker \texttt{Verdict:} come una domanda. Per questo la baseline adotta il formato con una domanda
-esplicita per ogni frase (Sezione~\ref{sec:method-readout}). In questo modo misura ciò che il meccanismo System One offre
+esplicita per ogni frase (Sezione~\ref{sec:method-readout}). In questo modo misura ciò che il meccanismo del decision model offre
 prima di qualunque specializzazione.
 
 \paragraph{Giudici generativi (B0a, B0b).} I modelli non addestrati sono impiegati anche nel modo più diffuso nella
@@ -93,18 +93,18 @@ generazione greedy di un solo token. Le tre lettere, con o senza spazio iniziale
 qualunque altro token è un errore di formato. Questo controllo lascia invariati pesi, prompt e costo, e cambia soltanto
 un aspetto: se la decisione sia ristretta o meno alle opzioni ammissibili.
 
-\paragraph{Un System One generalista: Rizzo-Flow (B3).} Il progetto open Rizzo-Flow~\cite{rizzoflow} realizza l'idea di
-System One con un modello da 4B parametri, sottoposto a fine-tuning su decisioni tipizzate generiche. Gira in un proprio
+\paragraph{Un Decision Model generalista: Rizzo-Flow (B3).} Il progetto open Rizzo-Flow~\cite{rizzoflow} realizza l'idea del
+decision model con un modello da 4B parametri, sottoposto a fine-tuning su decisioni tipizzate generiche. Gira in un proprio
 server, basato su llama.cpp~\cite{llamacpp}, e viene interrogato via HTTP. Il documento e la risposta numerata gli
 vengono passati come stato condiviso, cioè come contesto comune a tutte le domande, insieme a una domanda a scelta fra
 tre opzioni per ogni frase. Si usa il modello quantizzato a 4 bit, perché quello a 8 bit non entra in memoria insieme al
 sistema operativo.
 
-\paragraph{Un System One generalista della stessa dimensione: d1-3B (B3b).} d1-3B di Liquid AI~\cite{liquid2026d1} è
+\paragraph{Un Decision Model generalista della stessa dimensione: d1-3B (B3b).} d1-3B di Liquid AI~\cite{liquid2026d1} è
 un decision model open da 3.1B parametri, post-addestrato per decisioni tipizzate su un'ampia varietà di task. Legge la
 decisione da lettere di risposta ristrette e condivide lo stato tra le domande. Appartiene quindi alla stessa famiglia di
 readout di GroundOne e ha la dimensione del suo modello più grande, ma, a differenza di GroundOne, è generalista. Il
-confronto con d1-3B isola così il valore della specializzazione rispetto a un System One già addestrato a decidere,
+confronto con d1-3B isola così il valore della specializzazione rispetto a un decision model già addestrato a decidere,
 anziché rispetto a un modello non addestrato. Il modello viene eseguito zero-shot con il proprio codice di inferenza, in
 PyTorch sulla GPU del portatile e senza accesso alla rete. Riceve lo stesso stato e le stesse domande di Rizzo-Flow, con
 al più sei domande per chiamata sullo stesso stato. Su LLM-AggreFact i documenti sono suddivisi esattamente come per
@@ -181,7 +181,7 @@ La latenza è misurata su 200 risposte di T1, 50 per ciascuna fascia di $K$, cos
 rappresentate quanto quelle brevi. GroundOne, il readout con una domanda per frase e tutti i giudici generativi girano
 in-process su MLX, cioè all'interno dello stesso processo che li invoca, e verificano una risposta alla volta, come
 farebbe un verificatore integrato in un assistente locale. Le prime tre risposte servono da warm-up e sono escluse dalla
-misura. Per le varianti System One ogni risposta è cronometrata tre volte e si conserva la mediana. I giudici
+misura. Per GroundOne e per il readout con una domanda per frase ogni risposta è cronometrata tre volte e si conserva la mediana. I giudici
 generativi, invece, sono cronometrati una sola volta, perché il greedy decoding è deterministico e ogni esecuzione dura
 molto di più. Il tempo riportato è il tempo wall-clock della chiamata al modello per una risposta, e da esso si ricava il
 tempo per decisione.

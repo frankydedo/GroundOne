@@ -146,8 +146,8 @@ attraverso le quattro libertà della tradizione del software libero (usare, stud
 e richiede che sia disponibile la forma preferita per modificarlo: i parametri, il codice completo usato per addestrarlo
 ed eseguirlo, e informazioni sui dati di addestramento sufficienti perché una persona esperta possa costruire un sistema
 sostanzialmente equivalente~\cite{osi2024osaid}. I dati in sé non devono necessariamente essere rilasciati, ma i soli
-pesi non bastano. La maggior parte dei modelli comunemente definiti aperti pubblica i pesi e una ricetta per l'inferenza,
-ma né il codice di addestramento né una descrizione dettagliata dei dati. L'apertura è quindi una scala, non una
+pesi non bastano. La maggior parte dei modelli comunemente definiti open pubblica i pesi e una ricetta per l'inferenza,
+ma né il codice di addestramento né una descrizione dettagliata dei dati. Essere open è quindi una questione di grado, non una
 proprietà binaria. Un indice recente valuta i modelli su cinque aspetti: la disponibilità dei pesi, la documentazione
 dei dati di pre-training e di post-training (le due fasi dell'addestramento, su testo generico e poi su istruzioni e
 preferenze), la metodologia e la licenza~\cite{aa2025openness}. Nessun modello raggiunge il punteggio massimo; i modelli
@@ -159,7 +159,7 @@ stessa famiglia ma hanno licenze diverse: Qwen2.5-0.5B è rilasciato con la lice
 Qwen2.5-3B è rilasciato con una licenza di ricerca che ne limita l'uso commerciale~\cite{qwen2024qwen25}. Nella
 terminologia appena introdotta entrambi sono modelli open-weight, ed è questo il termine che la tesi usa per indicarli.
 La distinzione conta anche sul piano normativo. L'AI Act europeo attenua alcuni obblighi di trasparenza per i modelli
-general-purpose rilasciati con licenze libere e aperte, ma non per quelli che presentano un rischio sistemico. Un modello
+general-purpose rilasciati con licenze libere e open source, ma non per quelli che presentano un rischio sistemico. Un modello
 si presume a rischio sistemico quando il suo addestramento ha richiesto più di $10^{25}$ operazioni in virgola mobile
 (FLOP\footnote{Un FLOP è una singola operazione aritmetica su numeri in virgola mobile, come una somma o una
 moltiplicazione. La velocità di calcolo si misura in FLOP al secondo: un TFLOP/s corrisponde a $10^{12}$ operazioni al
@@ -168,7 +168,7 @@ secondo.})~\cite{bommasani2024euaiact}, molte più di quelle usate per i modelli
 \subsection{Il divario con i modelli chiusi si sta chiudendo}
 \label{sec:local-gap}
 
-L'inferenza locale avrebbe un interesse limitato se i modelli aperti fossero molto indietro rispetto a quelli chiusi.
+L'inferenza locale avrebbe un interesse limitato se i modelli open-weight fossero molto indietro rispetto a quelli chiusi.
 Non lo sono. Sulla leaderboard Chatbot Arena, dove gli utenti confrontano le risposte di due modelli anonimi, il vantaggio
 del miglior modello chiuso sul miglior modello open-weight è sceso dall'8.04\,\% del gennaio 2024 all'1.70\,\% del
 febbraio 2025~\cite{stanford2025aiindex}. Sul capabilities index di Epoch AI, che aggrega molti benchmark, i migliori
@@ -184,12 +184,12 @@ pubblicata da Epoch AI~\cite{epoch2026openclosed}.}
 \label{fig:local-gap}
 \end{figure}
 
-Per un dispositivo personale non conta il miglior modello aperto, che può avere centinaia di miliardi di parametri, ma il
+Per un dispositivo personale non conta il miglior modello open-weight, che può avere centinaia di miliardi di parametri, ma il
 miglior modello che entra in un hardware consumer. Epoch AI misura direttamente questa grandezza. Considerando i modelli
 abbastanza piccoli da girare su una singola scheda grafica consumer, al massimo circa 28 miliardi di parametri per una
 scheda da 24\,GB e circa 40 miliardi per una da 32\,GB, rileva che su quattro benchmark essi raggiungono le prestazioni
 del modello di frontiera del momento dopo sei-dodici mesi~\cite{epoch2025consumergpu}. Tre forze trainano il recupero:
-gli sviluppatori di modelli aperti aumentano il calcolo di addestramento più o meno alla stessa velocità di quelli
+gli sviluppatori di modelli open-weight aumentano il calcolo di addestramento più o meno alla stessa velocità di quelli
 chiusi, la distillazione, cioè l'addestramento di un modello piccolo a imitare le risposte di uno grande, ne trasferisce gran
 parte delle capacità, e ogni nuova
 generazione di schede grafiche aumenta la dimensione dei modelli che vi trovano posto~\cite{epoch2025bestmodel}. La
@@ -461,7 +461,7 @@ Un hardware migliore abbassa il limite, ma nessun hardware lo elimina.
 dei pesi divisi per la banda dichiarata dal produttore (una richiesta alla volta; KV cache trascurata). (a) Tempo per
 token generato con i due modelli base di GroundOne a 8 bit; rombi: tempo di decoding misurato sulla macchina della tesi.
 (b) Tempo minimo che un giudice generativo da 3B impiega soltanto per scrivere i verdetti di una risposta di quattordici o
-più frasi (mediana dei token generati nel protocollo di latenza). Un System One non genera alcun token, quindi per esso
+più frasi (mediana dei token generati nel protocollo di latenza). Un decision model non genera alcun token, quindi per esso
 entrambi i costi sono nulli su ogni macchina.}
 \label{fig:local-floor}
 \end{figure}
@@ -528,7 +528,7 @@ autori riportano che, con Qwen3.6, quattro domande sullo stesso documento ricevo
 generando le stesse risposte sulla stessa CPU. Si tratta di una misura dichiarata dal progetto e non verificata in questa
 tesi, ottenuta con modello e hardware diversi, ma va nella stessa direzione dei risultati del
 Capitolo~\ref{sec:results}. Che un motore pensato per eseguire modelli enormi su hardware modesto adotti la lettura delle
-decisioni come modalità di prima classe conferma che l'idea del System One si sta diffondendo proprio dove generare costa
+decisioni come modalità di prima classe conferma che l'idea del decision model si sta diffondendo proprio dove generare costa
 di più.
 
 \subsection{Quantizzazione}
@@ -627,7 +627,7 @@ della Sezione~\ref{sec:local-floor} traduce questi conteggi in un tempo minimo c
 (Figura~\ref{fig:local-floor}b): sulla macchina della tesi, almeno 1.8 secondi per il giudice sintetico e 10.6 per quello
 verboso, oltre al prefill; persino sulla scheda grafica più veloce, 0.12 e 0.71 secondi.
 
-Un System One elimina del tutto questo termine. Legge il documento e la risposta una sola volta e prende ogni decisione
+Un decision model elimina del tutto questo termine. Legge il documento e la risposta una sola volta e prende ogni decisione
 dai logit calcolati durante quell'unica lettura, quindi il suo costo coincide con il solo prefill: la fase limitata dal
 calcolo, quella che l'hardware locale esegue bene e che il nuovo hardware accelera di più. Il suo vantaggio su un giudice
 non è quindi una proprietà di una particolare macchina, ma della struttura dei costi dell'inferenza locale, ed è massimo

@@ -19,7 +19,7 @@
   \draw[arrow] (i2) -- (m2); \draw[arrow] (m2) -- (p2); \draw[arrow] (p2) -- (o2);
   \draw[loop] (m2.east) -- ++(4mm,0) |- ([yshift=1.5mm]m2.north east) node[pos=0.25, right, note, text=loopRed] {$\times$ token};
   % column 3: system one
-  \node[clusterlabel] (h3) at (10.4,0) {System One specialista\\(GroundOne)};
+  \node[clusterlabel] (h3) at (10.4,0) {Decision Model specialista\\(GroundOne)};
   \node[io, text width=3.2cm, below=4mm of h3, font=\footnotesize] (i3) {documento + risposta\\con un marker per frase};
   \node[model=3.2cm, below=of i3, font=\footnotesize] (m3) {un solo \textbf{prefill}\\(nessun token generato)};
   \node[model=3.2cm, below=of m3, font=\footnotesize] (r3) {logit di A, B, C\\a ogni marker};

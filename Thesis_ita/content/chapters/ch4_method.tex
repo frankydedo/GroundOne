@@ -3,7 +3,7 @@
 
 % Source notes: Project/docs/thesis_notes.md (Ch. 3), Project/docs/dataset_plan.md §8, implementation_plan.md §4.
 
-GroundOne è un modello linguistico compatto usato come System One. Legge una sola volta il documento e la risposta e,
+GroundOne è un modello linguistico compatto usato come decision model. Legge una sola volta il documento e la risposta e,
 senza generare testo, emette un verdetto per ciascuna frase valutata della risposta, ricavandolo dai logit di poche
 lettere di risposta. Il capitolo descrive anzitutto la decisione che il modello prende e il prompt che raccoglie in un
 unico forward pass tutte le decisioni relative a una risposta. Presenta poi l'obiettivo di addestramento, la
@@ -53,7 +53,7 @@ grande matrice del vocabolario viene moltiplicata soltanto per i pochi stati nas
 vettori che il modello calcola nelle posizioni dei marker.
 
 La lettura a marker determina anche il costo di una verifica. Si indichino con $S$ la lunghezza complessiva di documento
-e risposta, con $K$ il numero di decisioni e con $m$ la lunghezza in token di un marker. Il System One richiede un solo
+e risposta, con $K$ il numero di decisioni e con $m$ la lunghezza in token di un marker. Il decision model richiede un solo
 prefill di $S + K m$ token. Un giudice generativo, invece, deve anche produrre i propri verdetti in fase di decoding. Se
 ogni verdetto richiede $n$ token e ogni token in decoding richiede un tempo $t_\mathrm{dec}$, il costo del giudice è
 all'incirca $\mathrm{prefill}(S) + K\, n\, t_\mathrm{dec}$. La lunghezza $m$ di un marker è di soli tre token, mentre sull'hardware di
@@ -68,7 +68,7 @@ misure di energia del Capitolo~\ref{sec:results}. La Figura~\ref{fig:method-cost
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/method/cost_model.png}
-\caption{Costo stimato della verifica di una risposta di $S = 800$ token in funzione di $K$, calcolato con le sole costanti misurate sull'M4: il tempo per token del prefill e del decoding e il numero medio di token che ciascun giudice genera per verdetto sul sottoinsieme di latenza ($K$ medio 8.7). È un modello analitico, non una misura: le latenze misurate sono nella Sezione~\ref{sec:results-latency}. Il costo del System One cresce di soli tre token di prefill per decisione, quello dei giudici di alcuni token di decoding per decisione.}
+\caption{Costo stimato della verifica di una risposta di $S = 800$ token in funzione di $K$, calcolato con le sole costanti misurate sull'M4: il tempo per token del prefill e del decoding e il numero medio di token che ciascun giudice genera per verdetto sul sottoinsieme di latenza ($K$ medio 8.7). È un modello analitico, non una misura: le latenze misurate sono nella Sezione~\ref{sec:results-latency}. Il costo del decision model cresce di soli tre token di prefill per decisione, quello dei giudici di alcuni token di decoding per decisione.}
 \label{fig:method-cost}
 \end{figure}
 
@@ -92,7 +92,7 @@ letta. Il suo token successivo più probabile è infatti la stessa lettera prece
 un token diverso. In corrispondenza dei marker, le tre lettere del readout raccolgono insieme appena il 4--5\,\% circa
 della massa di probabilità. Una loss ristretta a queste lettere addestra i loro logit relativi, non la loro probabilità
 assoluta, e il readout si comporta quindi come un classificatore a tre classi innestato sul modello linguistico. È
-questo a definire un System One: la risposta non passa mai per il decoding, ma viene scelta fra le opzioni ammissibili.
+questo a definire un decision model: la risposta non passa mai per il decoding, ma viene scelta fra le opzioni ammissibili.
 Il fenomeno richiama anche due risultati della letteratura: la probabilità del primo token di risposta e la risposta
 effettivamente scritta dal modello possono non coincidere~\cite{wang2024myanswerc}, e la scelta fra lettere è soggetta a
 bias di selezione~\cite{zheng2024mcq}. Un readout specializzato e calibrato deve assorbire entrambi gli effetti. Un
@@ -210,7 +210,7 @@ la calibrazione, la valutazione sui test set congelati, le baseline e un meccani
 Quest'ultimo esegue i processi lunghi uno alla volta e interrompe un processo prima che il sistema esaurisca la memoria.
 
 Il verificatore è esposto tramite un'interfaccia a riga di comando e un server HTTP. Il server offre un endpoint nativo e
-un endpoint compatibile con l'interfaccia usata da altri modelli System One, così che i client esistenti possano adottare
+un endpoint compatibile con l'interfaccia System One di Jev, già usata da altri decision model, così che i client esistenti possano adottare
 GroundOne cambiando soltanto l'indirizzo. L'endpoint nativo riceve un documento e una risposta. Segmenta la risposta con
 la stessa regola usata per costruire i dati ed esegue il singolo forward pass della Sezione~\ref{sec:method-readout}. Per
 ogni frase riporta se è stata valutata, le tre probabilità calibrate, l'etichetta restituita e i flag delle policy

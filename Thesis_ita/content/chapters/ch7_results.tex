@@ -7,7 +7,7 @@
 
 Questo capitolo riporta i risultati sperimentali. Si parte da come GroundOne apprende il task e da quanto il suo
 addestramento sia stabile. Seguono i risultati sui tre test set congelati, il confronto con le baseline e il contributo
-che il readout del System One dà di per sé. Il capitolo esamina poi la qualità delle probabilità, il tempo e l'energia
+che il readout del decision model dà di per sé. Il capitolo esamina poi la qualità delle probabilità, il tempo e l'energia
 necessari per verificare una risposta e, infine, gli errori che restano. Gli intervalli, riportati tra parentesi nella
 forma ``da $a$ a $b$'', sono intervalli di confidenza al 95\,\% ottenuti con un bootstrap a cluster, calcolati come
 descritto nella Sezione~\ref{sec:setup-statistics}. La Figura~\ref{fig:results-bootstrap} raccoglie in un unico grafico le differenze appaiate discusse nel capitolo.
@@ -129,7 +129,7 @@ $K \geq 14$ & 1{,}637 & 0.723 & 0.50 & 0.908 & 0.839 & 0.68 & 0.957 \\
 Dalla tabella emergono tre aspetti. Il primo è che l'accuratezza non peggiora con la lunghezza della risposta. Le
 risposte con quattordici o più decisioni sono tra quelle gestite meglio, con una balanced accuracy di 0.723 per il 0.5B e
 di 0.839 per il 3B. La fascia più difficile è invece quella delle risposte più brevi, che comprende soprattutto risposte
-di question answering e di summarization. Il dato è importante perché è proprio sulle risposte lunghe che un System One
+di question answering e di summarization. Il dato è importante perché è proprio sulle risposte lunghe che un decision model
 fa risparmiare più tempo; su queste risposte il 3B guadagna sul 0.5B $+0.116$ (da $+0.050$ a $+0.180$).
 
 Il secondo aspetto è che le contraddizioni vengono riconosciute soprattutto nel data-to-text, il task in cui RAGTruth le
@@ -185,7 +185,7 @@ gli altri sistemi, compreso d1-3B, sono valutati sull'intero test set.}
 \label{fig:results-comparison}
 \end{figure}
 
-Il confronto più istruttivo è quello con Rizzo-Flow, il System One generalista più grande: un modello da 4B sottoposto a
+Il confronto più istruttivo è quello con Rizzo-Flow, il decision model generalista più grande: un modello da 4B sottoposto a
 fine-tuning per decisioni generiche. Sulle stesse 300 risposte di T1, Rizzo-Flow raggiunge una balanced accuracy a tre
 classi di 0.603, contro 0.798 del GroundOne 0.5B e 0.840 del 3B. Le differenze sono ampie: $+0.195$ (da $+0.136$ a
 $+0.249$) per il 0.5B e $+0.237$ (da $+0.184$ a $+0.285$) per il 3B. In AUROC, invece, Rizzo-Flow (0.894) è vicino al
@@ -194,7 +194,7 @@ frasi, ma predice ``supportata'' per il 90\,\% di esse. Il 3B le ordina meglio d
 $+0.079$). Uno specialista otto volte più piccolo, quindi, supera il generalista nella decisione per cui è stato
 progettato e lo eguaglia nella capacità di ordinare le frasi.
 
-d1-3B, un System One generalista della stessa dimensione del 3B, offre la verifica più severa del valore della
+d1-3B, un decision model generalista della stessa dimensione del 3B, offre la verifica più severa del valore della
 specializzazione. È infatti già addestrato a prendere decisioni tipizzate, e si differenzia da GroundOne soprattutto per
 i dati su cui è stato addestrato. Sull'intero T1 raggiunge una balanced accuracy a tre classi di 0.657 e un AUROC di
 0.863. Entrambi i modelli GroundOne fanno nettamente meglio. Il 0.5B, sei volte più piccolo, lo supera di $+0.112$ (da
@@ -222,7 +222,7 @@ addestramento. Il 3B resta nettamente sotto l'encoder soltanto nella summarizati
 contro 67.1). Rizzo-Flow raggiunge 61.5 sui 1{,}093 elementi del suo sottocampione, e su questi elementi il GroundOne 3B
 fa meglio di 12.0 punti (da $+7.4$ a $+16.5$).
 
-Su questo benchmark, tuttavia, i sistemi più forti restano sopra GroundOne. Una valutazione indipendente del System One
+Su questo benchmark, tuttavia, i sistemi più forti restano sopra GroundOne. Una valutazione indipendente del decision model
 closed Jev, sullo stesso test set e con la stessa metrica, riporta 78.6, e 76.9 per un modello open da 27B letto
 attraverso le lettere di risposta. I prompt sono diversi da quelli usati qui, e non è possibile calcolare alcun
 intervallo~\cite{deusser2026jev}. Su un benchmark ampio di groundedness, quindi, uno specialista da 3B addestrato
@@ -252,7 +252,7 @@ Due fatti aiutano a interpretare questi numeri. Il primo è che MiniCheck-RoBERT
 dati di addestramento comprendono VitaminC~\cite{zha2023alignscore}. Per l'encoder, quindi, T3 appartiene alla
 distribuzione di addestramento, mentre per GroundOne misura il trasferimento da RAGTruth. Il secondo è che il guadagno
 del 3B sul 0.5B in T3 si deve alla dimensione del modello più che all'addestramento su dati RAG: il 3B non addestrato
-raggiunge già 0.531 e un AUROC di 0.821. d1-3B, il System One generalista della stessa dimensione, rende esplicito il
+raggiunge già 0.531 e un AUROC di 0.821. d1-3B, il decision model generalista della stessa dimensione, rende esplicito il
 contrasto. Sull'intero T3 raggiunge 0.724 e un AUROC di 0.913, e supera il GroundOne 3B di 0.197 e di 0.096: l'esatto
 opposto di quanto accade su T1. La specializzazione su risposte RAG migliora quindi in modo sostanziale il task RAG, ma
 da sola non basta a produrre un fact checker generale. La Sezione~\ref{sec:results-errors} mostra quali casi sfuggono.
@@ -398,7 +398,7 @@ verifica una risposta circa sei volte più in fretta del 3B, con un tempo median
 \centering
 \includegraphics[width=\textwidth]{images/results/latency_vs_K.png}
 \caption{Tempo mediano per risposta in funzione di $K$ sulle stesse 200 risposte di T1 (MLX in-process, una risposta
-alla volta, M4 con 16\,GB). Sono confrontati GroundOne, il System One con una domanda per frase e i giudici generativi
+alla volta, M4 con 16\,GB). Sono confrontati GroundOne, il decision model con una domanda per frase e i giudici generativi
 sintetico e verboso. Scala logaritmica.}
 \label{fig:results-latency}
 \end{figure}
