@@ -93,7 +93,10 @@ termine decision model, adottato in seguito dall'ecosistema. Invece di generare 
 contesto e restituisce una probabilità per ciascuna risposta ammissibile, per esempio leggendo i logit delle lettere
 delle opzioni alla fine del prompt (e.g., A: 90\%, B: 5\%, C: 5\%)~\cite{semif,rizzoflow}. Ne seguono direttamente tre proprietà. Non viene generato
 alcun testo, quindi la decisione costa solo la lettura dell'input. L'output è sempre una delle risposte ammissibili,
-quindi è sempre valido. Molte domande sullo stesso contesto possono condividere un unico passaggio su di esso, quindi ogni
+quindi è sempre valido. Molte domande sullo stesso contesto possono condividere un unico forward pass\footnote{Il \emph{forward pass} è un passaggio completo dell'input attraverso
+tutti gli strati della rete: per un modello linguistico, il calcolo che a partire dai token in ingresso produce i logit
+del token successivo. Un modello generativo ne esegue uno per ogni token che scrive; un decision model ne esegue uno solo
+per leggere l'intero input.} su di esso, quindi ogni
 domanda aggiuntiva costa poco.
 
 L'idea si presta bene alla verifica. Una risposta di $K$ frasi pone $K$ domande chiuse sullo stesso documento, ciascuna

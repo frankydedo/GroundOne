@@ -67,7 +67,7 @@ categoria, e compare nel seguito soltanto come nome dell'interfaccia compatibile
 
 Poche settimane dopo il rilascio di Jev, anche organizzazioni affermate hanno pubblicato i propri decision model open.
 Clef di Cloudflare aggiunge a un decoder una head decisionale dedicata e risponde a tutte le domande con un solo
-passaggio sullo stato: è l'architettura che per Jev era stata soltanto ipotizzata~\cite{cloudflare2026clef}. d1-3B di
+forward pass sullo stato: è l'architettura che per Jev era stata soltanto ipotizzata~\cite{cloudflare2026clef}. d1-3B di
 Liquid AI legge la decisione da un insieme ristretto di lettere di risposta, con un modello da 3B il cui stato è
 condiviso da tutte le domande~\cite{liquid2026d1}. Perplexity, infine, applica il fine-tuning a un modello da 27B con una
 head sulle lettere~\cite{perplexity2026decider}. Una leaderboard della comunità, il Decision Index, valuta questi modelli
@@ -153,7 +153,7 @@ comune~\cite{tang2024minicheck,llmaggrefact}. La Figura~\ref{fig:bg-verifiers} m
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/diagrams/bg_verifier_families_tikz.pdf}
-\caption{Tre modi di verificare le $K$ frasi di una risposta. Un encoder specializzato valuta ogni coppia (documento, frase) in un passaggio separato e restituisce solo una probabilità di supporto. Un giudice generativo legge tutto, ma scrive il proprio verdetto token per token (ciclo rosso), quindi il costo cresce con il testo prodotto e l'output va interpretato da un parser. Un decision model specialista legge documento e risposta in un solo prefill e ricava da ogni marker tre probabilità, senza generare alcun token.}
+\caption{Tre modi di verificare le $K$ frasi di una risposta. Un encoder specializzato valuta ogni coppia (documento, frase) in un forward pass separato e restituisce solo una probabilità di supporto. Un giudice generativo legge tutto, ma scrive il proprio verdetto token per token (ciclo rosso), quindi il costo cresce con il testo prodotto e l'output va interpretato da un parser. Un decision model specialista legge documento e risposta in un solo prefill e ricava da ogni marker tre probabilità, senza generare alcun token.}
 \label{fig:bg-verifiers}
 \end{figure}
 

@@ -74,7 +74,7 @@ misure di energia del Capitolo~\ref{sec:results}. La Figura~\ref{fig:method-cost
 
 Esiste anche una seconda soluzione, che legge una sola volta il prefisso condiviso e vi accoda poi una breve domanda per
 ogni frase, valutando le domande in batch. A differenza della soluzione a marker, che si accontenta di un solo
-passaggio, questa richiede però una KV cache replicata $K$ volte. È mantenuta come alternativa di riserva ed è il formato
+forward pass, questa richiede però una KV cache replicata $K$ volte. È mantenuta come alternativa di riserva ed è il formato
 naturale per un modello non addestrato, che comprende una domanda esplicita ma non ha motivo di interpretare un marker
 come una richiesta di verdetto. Per questo è il formato usato dalla baseline non addestrata
 (Sezione~\ref{sec:setup-baselines}). La Figura~\ref{fig:method-designs} confronta le due soluzioni.
@@ -97,7 +97,7 @@ Il fenomeno richiama anche due risultati della letteratura: la probabilità del 
 effettivamente scritta dal modello possono non coincidere~\cite{wang2024myanswerc}, e la scelta fra lettere è soggetta a
 bias di selezione~\cite{zheng2024mcq}. Un readout specializzato e calibrato deve assorbire entrambi gli effetti. Un
 esperimento di controllo ne quantifica la differenza rispetto alla generazione: mantiene gli stessi pesi e lo stesso
-passaggio, ma al posto del readout ristretto prende il token che la generazione emetterebbe
+forward pass, ma al posto del readout ristretto prende il token che la generazione emetterebbe
 (Sezione~\ref{sec:results-readout}).
 
 % Marker " Verdict:" = 3 tokens with the Qwen2.5 tokenizer (" Ver", "dict", ":"), verified 2026-10-07.

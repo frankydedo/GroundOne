@@ -8,7 +8,8 @@ le risposte generate contengono ancora frasi che il contesto recuperato non supp
 posto sulla stessa macchina, dalle risorse limitate, che ospita il generatore.
 
 La località è l'asse portante di questo lavoro e ha una conseguenza tecnica precisa. Su un singolo dispositivo leggere
-testo costa poco, scriverlo costa molto: il modello legge l'input in un unico passaggio limitato dal calcolo, ma genera
+testo costa poco, scriverlo costa molto: il modello legge l'input in un unico forward pass, cioè in un solo passaggio attraverso tutti i suoi strati, limitato
+dalla capacità di calcolo, ma genera
 l'output un token alla volta, e ogni token è limitato dalla banda di memoria necessaria a leggere tutti i pesi. Sul
 portatile usato in questa tesi scrivere un token costa da quattordici a sedici volte più che leggerne uno, e una
 rassegna dell'hardware locale attuale, dagli smartphone ai portatili fino a macchine dedicate come il Mac Studio di Apple

@@ -5,7 +5,7 @@
   % column 1: encoder
   \node[clusterlabel] (h1) at (0,0) {Encoder specializzato\\(MiniCheck, HHEM)};
   \node[io, text width=3.2cm, below=4mm of h1, font=\footnotesize] (i1) {(documento, frase $i$)\\per $i = 1, \dots, K$};
-  \node[model=3.2cm, below=of i1, font=\footnotesize] (m1) {encoder bidirezionale\\$K$ passaggi indipendenti};
+  \node[model=3.2cm, below=of i1, font=\footnotesize] (m1) {encoder bidirezionale\\$K$ forward pass indipendenti};
   \node[io, text width=3.2cm, below=of m1, font=\footnotesize] (o1) {una probabilità\\di supporto per frase};
   \node[note, below=2mm of o1, text width=3.6cm] {veloce, ma solo binario;\\ogni frase senza il resto\\della risposta};
   \draw[arrow] (i1) -- (m1); \draw[arrow] (m1) -- (o1);
