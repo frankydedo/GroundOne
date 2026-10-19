@@ -134,3 +134,7 @@ Thesis_ita/thesis.out
 Thesis_ita/thesis.run.xml
 Thesis_ita/thesis.synctex.gz
 Thesis_ita/thesis.toc
+
+
+# Thesis draft pdf 
+Thesis_draft/*

@@ -1,0 +1,34 @@
+(design a)
+(design b)
+GroundOne
+GroundOne (design b)
+GroundOne 0.5B
+GroundOne 3B
+HHEM
+MiniCheck-RoBERTa
+Qwen2.5 0.5B
+Qwen2.5 3B
+Rizzo-Flow 4B
+System One
+System One (design a)
+T1 RAGTruth
+T1 RAGTruth (AURC 0.010)
+T1 RAGTruth (AURC 0.015)
+T1 RAGTruth (n = 2,647)
+T1 · bacc · GroundOne 0.5B − HHEM
+T1 · bacc · GroundOne 0.5B − MiniCheck-RoBERTa
+T1 · bacc · GroundOne 3B − HHEM
+T1 · bacc · GroundOne 3B − MiniCheck-RoBERTa
+T3 VitaminC
+T3 VitaminC (AURC 0.192)
+T3 VitaminC (AURC 0.284)
+d1-3B (Liquid AI)
+dev (AURC 0.016)
+dev (AURC 0.022)
+gpt-3.5-turbo-0613
+gpt-4-0613
+llama-2-13b-chat
+llama-2-70b-chat
+llama-2-7b-chat
+mistral-7B-instruct
+train (n = 13,203)
