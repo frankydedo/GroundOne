@@ -134,10 +134,10 @@ Chapters renumbered on 2026-10-11 after the new Ch. 2. Italian version (`Thesis_
    - [x] energy per verification with `powermetrics` (2026-10-10): GroundOne 5.5 J / 33 J per answer vs terse 8.9 / 43 and verbose 22.5 / 112
    - [x] co-residence (2026-10-18): generator 3B 4-bit + GroundOne in one process, MLX peak 6.1 GB (3B verifier) / 3.3 GB (0.5B); retriever to measure in the demo
    - [ ] licences as part of independence: one table (models, datasets, baselines) with licence and allowed use
-   - [ ] cost comparison with a hosted LLM judge for N answers (provider prices on a stated date, cited)
+   - [ ] 🟡 cost comparison with a hosted LLM judge for N answers, in brief (D30): official prices on a stated date, cited; order of magnitude only
    - [x] state in Ch. 6 (setup) that every baseline also ran on the same laptop (already in the chapter intro)
 - [x] ~~Second night of 3B training~~: not needed, the dev score plateaued (0.705 at step 320, 0.700 at the end)
-- [ ] Optional extension (week 4): grounded ingestion loop for an LLM wiki, evaluated with injected errors (`thesis_notes.md`, Ch. 8)
+- [x] ~~Optional extension: grounded ingestion loop for an LLM wiki~~: cut (D30, 2026-10-19); its injected-error evaluation moves to the demo case study
 - [x] Ch. 1, 2 (local inference), 3, 8, 9 written (2026-10-10/11)
 - [ ] Author's review of Ch. 3–9 (Italian first), then alignment of the English version
 
@@ -188,3 +188,4 @@ Add one line per significant event (date, what happened, impact on the plan).
 - 2026-10-18: Ch. 3–9 of the Italian thesis revised (clarity, footnotes, 12 TikZ diagrams, 6 more plots, Italian figure labels; 127 pages). D29: A3–A5 cut and not cited; seed re-run and 3B bf16 dropped. queue_day8 started 21:05 (offline proof in a network-denying sandbox, 8-bit vs bf16 on the 0.5B, co-residence)
 - 2026-10-18 21:44: queue_day8 done (39 min, no guard intervention). Offline proof: T1 predictions bit-identical inside a network-denying sandbox. 8-bit vs bf16 (0.5B): mean |Δp| 0.011, argmax agreement 98.3 %, no accuracy change. Co-residence: generator + GroundOne 3B peak 6.1 GB, + 0.5B 3.3 GB; verification 30 % / 6.7 % of the time per answer. H4 co-residence supported
 - 2026-10-18: queue_day8 results written into Thesis_ita (Ch. 2 quantisation, Ch. 6 protocol, new Ch. 7 section "Località" with the co-residence table, Ch. 8 RQ4, Ch. 9 future work); 128 pages
+- 2026-10-19: D30 — hosted-judge cost comparison in brief; wiki-ingestion extension cut; injected errors in the demo case study (independent ground truth for the revise loop)
