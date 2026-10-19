@@ -68,6 +68,43 @@ il 3B e di 3.3\,GB con il 0.5B. L'intera valutazione gira senza alcun accesso al
 bit, e i pesi a 8 bit non costano accuratezza rispetto a quelli in bf16 (Sezione~\ref{sec:results-locality}). Resta da
 misurare il retriever, che verrà valutato nell'applicazione dimostrativa.
 
+Anche il costo economico va letto con misura (Tabella~\ref{tab:disc-cost}). Verificare 10{,}000 risposte con
+GroundOne richiede un'energia che, al prezzo medio europeo dell'elettricità per le famiglie~\cite{eurostat2026electricity},
+vale meno di un centesimo di euro con il 0.5B e circa tre centesimi con il 3B. Affidare la stessa verifica a un giudice
+in cloud, ai prezzi di listino dei fornitori~\cite{anthropic2026pricing,openai2026pricing,google2026geminipricing},
+costa invece da circa un dollaro con i modelli più economici a oltre duecento con quelli di fascia più alta. Il rapporto
+è quindi di due-quattro ordini di grandezza, ma in valore assoluto i giudici economici restano poco costosi, e il
+confronto non considera né l'acquisto dell'hardware né la qualità dei giudici in cloud, che questa tesi non ha
+misurato. L'argomento decisivo a favore della verifica locale resta quindi l'indipendenza: i documenti non lasciano la
+macchina e il servizio non dipende da un fornitore esterno.
+
+\begin{table}[htbp]
+\centering
+\caption{Costo indicativo della verifica di 10{,}000 risposte RAG. Giudici in cloud: prezzi di listino del livello
+standard, consultati il 19 ottobre 2026, con circa 900 token in ingresso per risposta (documento e risposta mediani di T1
+più le istruzioni) e i token in uscita misurati per i giudici 3B di questa tesi (36 per il giudice sintetico, 248 per
+quello verboso). GroundOne: energia netta misurata del chip moltiplicata per il prezzo medio dell'elettricità per le
+famiglie nell'UE (0.29~€/kWh, secondo semestre 2025). Sono esclusi il costo dell'hardware e gli sconti per caching o
+elaborazione in batch.}
+\label{tab:disc-cost}
+\small
+\begin{tabular}{lccc}
+\toprule
+Sistema & \makecell{Prezzo ingresso / uscita\\(USD per Mtoken)} & \makecell{Giudice\\sintetico} & \makecell{Giudice\\verboso} \\
+\midrule
+\makecell[l]{Claude Haiku 5.5,\\gpt-6-luna} & 0.10 / 0.50 & 1.1 USD & 2.2 USD \\
+Gemini 3.5 Flash-Lite & 0.30 / 2.50 & 3.6 USD & 8.9 USD \\
+Gemini 3.8 Flash & 0.75 / 3.75 & 8.2 USD & 16 USD \\
+\makecell[l]{Claude Sonnet 5.5, gpt-6.1-sol,\\Gemini 4 Argon} & 2.00 / 10.00 & 22 USD & 43 USD \\
+Claude Opus 5.5 & 4.00 / 20.00 & 43 USD & 86 USD \\
+gpt-6-astra & 10.00 / 50.00 & 109 USD & 215 USD \\
+\midrule
+GroundOne 0.5B (locale) & \multicolumn{3}{c}{0.015 kWh, circa 0.004 €} \\
+GroundOne 3B (locale) & \multicolumn{3}{c}{0.092 kWh, circa 0.03 €} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \paragraph{Oltre un punteggio binario (RQ5).} L'output a tre classi distingue bene le frasi contraddette da quelle non
 menzionate nel data-to-text, il task in cui RAGTruth concentra le proprie contraddizioni. Le distingue molto meno nel
 question answering e nella summarization, dove nei dati di addestramento le contraddizioni sono rare. Il 3B migliora

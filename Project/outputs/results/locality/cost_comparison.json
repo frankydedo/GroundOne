@@ -1,0 +1,62 @@
+{
+  "answers": 10000,
+  "input_tokens_per_answer": 906,
+  "median_doc_answer_tokens": 756,
+  "judge_output_tokens_per_answer": {
+    "terse": 36.225,
+    "verbose": 248.13
+  },
+  "hosted_usd": {
+    "Claude Haiku 5.5": {
+      "terse": 1.09,
+      "verbose": 2.15
+    },
+    "Claude Sonnet 5.5": {
+      "terse": 21.74,
+      "verbose": 42.93
+    },
+    "Claude Opus 5.5": {
+      "terse": 43.48,
+      "verbose": 85.87
+    },
+    "gpt-6-luna": {
+      "terse": 1.09,
+      "verbose": 2.15
+    },
+    "gpt-6.1-sol": {
+      "terse": 21.74,
+      "verbose": 42.93
+    },
+    "gpt-6-astra": {
+      "terse": 108.71,
+      "verbose": 214.66
+    },
+    "Gemini 3.5 Flash-Lite": {
+      "terse": 3.62,
+      "verbose": 8.92
+    },
+    "Gemini 3.8 Flash": {
+      "terse": 8.15,
+      "verbose": 16.1
+    },
+    "Gemini 4 Argon": {
+      "terse": 21.74,
+      "verbose": 42.93
+    }
+  },
+  "local_energy": {
+    "GroundOne 0.5B": {
+      "joules_per_answer": 5.51,
+      "kwh": 0.0153,
+      "eur": 0.0044
+    },
+    "GroundOne 3B": {
+      "joules_per_answer": 33.11,
+      "kwh": 0.092,
+      "eur": 0.0266
+    }
+  },
+  "eur_per_kwh": 0.2896,
+  "prices_accessed": "2026-10-19",
+  "notes": "list prices, standard tier, short context, no caching or batch discounts; local = chip energy only, no hardware amortisation; quality of hosted judges not measured"
+}

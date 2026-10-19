@@ -127,3 +127,9 @@
 - **Updated (appended):** [[Apple Silicon and MLX]], [[LoRA]], [[GroundOne]], [[Groundedness Verification]], [[Retrieval-Augmented Generation]], [[Small Language Models]], [[Privacy and Data Sovereignty]], [[Letter-Token Readout]].
 - **Findings raised during ingest:** (1) mlx-swift-lm implements Qwen2, loads mlx-lm adapters unchanged (`LoRAContainer`, also fuse/unload) and exposes the final hidden states, so the GroundOne port needs no architecture code; the head is internal. (2) MLX, and MLX Swift via CMake, also build on Linux (CPU, CUDA); no Windows; SwiftUI is Apple-only, so "MLX Swift is Apple-only" was imprecise. (3) candle's README does not document Metal and does not list Qwen2.5. (4) The repair-loop literature agrees that feedback must be external (Huang 2024) and edits gated and minimal (RARR); GroundOne fits as a cheap external critic, but is not an oracle. (5) NeMo Guardrails has telemetry on by default.
 - Raw files renamed `_ingested` (31 files); `index.md` updated (new "Demo application" section and a Sources subsection). All wiki links and `raw/` references checked: none broken.
+
+## [2026-10-19] ingest | Hosted-judge cost comparison (4 sources)
+- **Sources:** official API pricing pages of Anthropic, OpenAI and Google (accessed 2026-10-19) and Eurostat electricity price statistics (EU household average, 2nd half 2025).
+- **New concept:** [[Cost of Hosted vs Local Verification]] (D30): 10,000 verified answers cost $1–215 with hosted judges at list prices vs €0.004–0.03 of electricity with GroundOne; cheap hosted judges are inexpensive in absolute terms, so independence, not cost, is the decisive locality argument.
+- **Finding:** Gemini's free tier states that prompts are used to improve Google's products (paid tier: not), a concrete data-handling example for [[Privacy and Data Sovereignty]].
+- Raw files renamed `_ingested`; `index.md` updated.

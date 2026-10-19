@@ -134,7 +134,7 @@ Chapters renumbered on 2026-10-11 after the new Ch. 2. Italian version (`Thesis_
    - [x] energy per verification with `powermetrics` (2026-10-10): GroundOne 5.5 J / 33 J per answer vs terse 8.9 / 43 and verbose 22.5 / 112
    - [x] co-residence (2026-10-18): generator 3B 4-bit + GroundOne in one process, MLX peak 6.1 GB (3B verifier) / 3.3 GB (0.5B); retriever to measure in the demo
    - [ ] licences as part of independence: one table (models, datasets, baselines) with licence and allowed use
-   - [ ] 🟡 cost comparison with a hosted LLM judge for N answers, in brief (D30): official prices on a stated date, cited; order of magnitude only
+   - [x] cost comparison with a hosted LLM judge, in brief (D30, 2026-10-19): $1–215 per 10,000 answers vs €0.004–0.03 of electricity; Ch. 8 table
    - [x] state in Ch. 6 (setup) that every baseline also ran on the same laptop (already in the chapter intro)
 - [x] ~~Second night of 3B training~~: not needed, the dev score plateaued (0.705 at step 320, 0.700 at the end)
 - [x] ~~Optional extension: grounded ingestion loop for an LLM wiki~~: cut (D30, 2026-10-19); its injected-error evaluation moves to the demo case study
@@ -189,3 +189,4 @@ Add one line per significant event (date, what happened, impact on the plan).
 - 2026-10-18 21:44: queue_day8 done (39 min, no guard intervention). Offline proof: T1 predictions bit-identical inside a network-denying sandbox. 8-bit vs bf16 (0.5B): mean |Δp| 0.011, argmax agreement 98.3 %, no accuracy change. Co-residence: generator + GroundOne 3B peak 6.1 GB, + 0.5B 3.3 GB; verification 30 % / 6.7 % of the time per answer. H4 co-residence supported
 - 2026-10-18: queue_day8 results written into Thesis_ita (Ch. 2 quantisation, Ch. 6 protocol, new Ch. 7 section "Località" with the co-residence table, Ch. 8 RQ4, Ch. 9 future work); 128 pages
 - 2026-10-19: D30 — hosted-judge cost comparison in brief; wiki-ingestion extension cut; injected errors in the demo case study (independent ground truth for the revise loop)
+- 2026-10-19: hosted-judge cost comparison done (official prices saved in Vault/raw and ingested; script + results/locality/cost_comparison.json; Ch. 8 paragraph and table, 4 bib entries); Thesis_ita 129 pages

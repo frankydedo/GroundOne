@@ -32,3 +32,6 @@ Why it matters where a model runs. With **hosted inference**, every document and
 
 ## Telemetry in local toolkits (ingest 2026-10-18)
 - NeMo Guardrails sends anonymous telemetry to NVIDIA by default ([[NVIDIA 2026 - NeMo Guardrails (GitHub README)]]): running locally does not by itself mean nothing leaves the machine; each dependency must be checked. The demo uses only system frameworks and MLX ([[Demo Application]]).
+
+## Free vs paid tiers (ingest 2026-10-19)
+- Gemini API pricing page: on the free tier, content is "used to improve our products"; on the paid tier it is not ([[Google 2026 - Gemini API pricing]]). Data handling depends on the commercial tier, not only on the provider. Cost side: [[Cost of Hosted vs Local Verification]].
