@@ -133,3 +133,7 @@
 - **New concept:** [[Cost of Hosted vs Local Verification]] (D30): 10,000 verified answers cost $1–215 with hosted judges at list prices vs €0.004–0.03 of electricity with GroundOne; cheap hosted judges are inexpensive in absolute terms, so independence, not cost, is the decisive locality argument.
 - **Finding:** Gemini's free tier states that prompts are used to improve Google's products (paid tier: not), a concrete data-handling example for [[Privacy and Data Sovereignty]].
 - Raw files renamed `_ingested`; `index.md` updated.
+
+## [2026-10-20] ingest | Artificial Analysis Intelligence Index snapshot
+- **Source:** chart downloaded by the author (Intelligence Index v4.3.2, 2026-10-20) plus open-weights flags, parameter class and creator from the leaderboard page data; saved as a table in raw with the image.
+- **Updated:** [[Open-Weight Models]]. **Thesis:** Ch. 2 §2.2.2, redrawn figure `aa_intelligence_snapshot` (closed vs open-weight, small class hatched) and one paragraph; bib entry aa2026intelligence.

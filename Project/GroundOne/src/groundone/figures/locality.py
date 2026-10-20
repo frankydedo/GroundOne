@@ -72,6 +72,8 @@ IT = {
     "ridge": "ridge point",
     "arithmetic intensity (FLOPs per byte read from memory, log scale)": "intensità aritmetica (FLOP per byte letto dalla memoria, scala log.)",
     "attainable throughput (TFLOP/s, log scale)": "throughput raggiungibile (TFLOP/s, scala log.)",
+    "gap between the best closed and the best open-weight model:": "divario tra il miglior modello chiuso e il miglior open-weight:",
+    "closed": "chiuso", "open-weight": "open-weight", "open-weight, small class": "open-weight, classe small",
 }
 LANG = "en"
 
@@ -309,12 +311,58 @@ def roofline_m4(g):
            "ignored.", "Williams et al. 2009 (model) + Phase 0 timings + Qwen2.5 layer shapes")
 
 
+def aa_snapshot(g):
+    """Snapshot of the Artificial Analysis Intelligence Index (2026-10-20): open-weight vs closed models."""
+    path = RAW / "Artificial Analysis 2026 - Intelligence Index snapshot (2026-10-20)_ingested.md"
+    if not path.exists():
+        path = RAW / "Artificial Analysis 2026 - Intelligence Index snapshot (2026-10-20).md"
+    if not path.exists():
+        return
+    rows = []
+    for line in path.read_text().splitlines():
+        c = [x.strip() for x in line.strip().strip("|").split("|")]
+        if len(c) == 6 and re.match(r"[\d.]+$", c[2]):
+            rows.append((c[0], float(c[1]), c[3] == "yes", c[4]))  # chart value, as published
+    rows.sort(key=lambda r: r[1])
+    fig, ax = plt.subplots(figsize=(7.2, 6.6))
+    y = np.arange(len(rows))
+    cols = [SERIES[0] if r[2] else SERIES[1] for r in rows]
+    bars = ax.barh(y, [r[1] for r in rows], color=cols, height=0.72)
+    for b, r in zip(bars, rows):
+        ax.text(b.get_width() + 0.4, b.get_y() + b.get_height() / 2, f"{r[1]:.0f}", va="center", fontsize=7, color=INK2)
+        if r[3] == "small":
+            b.set_hatch("////")
+            b.set_edgecolor("white")
+    ax.set_yticks(y, [r[0] for r in rows], fontsize=7)
+    best_c = max(r[1] for r in rows if not r[2])
+    best_o = max(r[1] for r in rows if r[2])
+    top = len(rows) - 0.3
+    for v in (best_c, best_o):
+        ax.plot([v, v], [top, top + 0.9], color=INK2, lw=0.8)
+    ax.annotate("", xy=(best_c, top + 0.6), xytext=(best_o, top + 0.6),
+                arrowprops=dict(arrowstyle="<->", color=INK2, lw=0.8), annotation_clip=False)
+    ax.text(best_o - 0.8, top + 0.6, tr("gap between the best closed and the best open-weight model:")
+            + f" {best_c - best_o:.0f}", ha="right", va="center", fontsize=7, color=INK2)
+    from matplotlib.patches import Patch
+    ax.legend(handles=[Patch(color=SERIES[1], label=tr("closed")), Patch(color=SERIES[0], label=tr("open-weight")),
+                       Patch(facecolor=SERIES[0], hatch="////", edgecolor="white", label=tr("open-weight, small class"))],
+              loc="lower right", fontsize=7)
+    ax.set_xlim(0, 66)
+    ax.set_ylim(-0.7, len(rows) + 0.9)
+    ax.set_xlabel(tr("Artificial Analysis Intelligence Index v4.3.2"))
+    ax.grid(axis="y", visible=False)
+    g.save(fig, "aa_intelligence_snapshot", f"Artificial Analysis Intelligence Index on 2026-10-20 (v4.3.2, 10 evaluations), "
+           f"redrawn from the published chart; open-weight status from the leaderboard data. Best closed model "
+           f"{best_c:.0f}, best open-weight model {best_o:.0f}.", "Artificial Analysis leaderboard, accessed 2026-10-20")
+
+
 def main():
     global LANG
     for lang, group, title in (("en", "locality", "Local inference (Ch. 2)"), ("it", "locality_it", "Inferenza locale (Cap. 2)")):
         LANG = lang
         g = Group(group)
-        for f in (prefill_vs_decode, roofline_m4, hardware_landscape, decode_cost_by_hardware, memory_fit, open_closed_gap):
+        for f in (prefill_vs_decode, roofline_m4, hardware_landscape, decode_cost_by_hardware, memory_fit, open_closed_gap,
+                  aa_snapshot):
             f(g)
         g.write_index(title)
     LANG = "en"

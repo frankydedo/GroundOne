@@ -49,3 +49,11 @@ Memory needed for the weights of a model as a function of its size and precision
 Capability of the best closed and the best open-weight model over time, on Epoch AI's aggregate Epoch Capabilities Index (dots: individual models; lines: best so far). Open-weight models trail the closed frontier by a few months (about four on average in January–May 2026, according to Epoch AI).
 
 *Source: Epoch AI, open vs closed capability gap (data table, accessed 2026-10-11)*
+
+## aa_intelligence_snapshot.png
+
+![](aa_intelligence_snapshot.png)
+
+Artificial Analysis Intelligence Index on 2026-10-20 (v4.3.2, 10 evaluations), redrawn from the published chart; open-weight status from the leaderboard data. Best closed model 58, best open-weight model 46.
+
+*Source: Artificial Analysis leaderboard, accessed 2026-10-20*
