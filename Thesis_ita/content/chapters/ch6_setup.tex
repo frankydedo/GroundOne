@@ -142,7 +142,7 @@ e la frazione di predizioni assegnate a ciascuna classe, che rivela un modello c
 decisione binaria si riportano due metriche: la balanced accuracy con soglia 0.5, come nella leaderboard di
 LLM-AggreFact, e l'AUROC di $P(\text{supported})$, che non dipende da alcuna soglia. La calibrazione è misurata con l'ECE
 definito nella Sezione~\ref{sec:method-calibration}, con il Brier score e con la negative log-likelihood. La selective
-prediction è misurata con le curve risk--coverage e con l'area sottesa a esse (AURC)~\cite{geifman2017selective}. Tutte
+prediction è misurata con le curve risk--coverage e con l'AURC (Sezione~\ref{sec:method-calibration})~\cite{geifman2017selective}. Tutte
 le metriche su T1 sono riportate anche per task e per fascia di $K$.
 
 \section{Protocollo statistico}

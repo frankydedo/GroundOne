@@ -325,8 +325,7 @@ sono alte perché il 91\,\% delle frasi di RAGTruth è supportato: una frase vie
 quando il modello è molto sicuro.
 
 Usate come confidenze, le probabilità calibrate rendono efficace la selective prediction. Rinviare le frasi su cui il
-modello è meno sicuro riduce rapidamente il tasso di errore della decisione binaria: su T1 l'area sotto la curva
-risk--coverage (AURC) è 0.015 per il 0.5B e 0.010 per il 3B (Figura~\ref{fig:results-risk}).
+modello è meno sicuro riduce rapidamente il tasso di errore della decisione binaria: su T1 l'AURC è 0.015 per il 0.5B e 0.010 per il 3B (Figura~\ref{fig:results-risk}).
 
 \begin{figure}[htbp]
 \centering
@@ -350,7 +349,7 @@ stesso contenuto di GroundOne, possa eguagliare la qualità delle sue probabilit
 (Figura~\ref{fig:results-equal}). Il confronto usa le 200 risposte del sottoinsieme di latenza, con tutti i sistemi
 calibrati allo stesso modo sul dev set. Per il 0.5B e per il 3B rispettivamente, l'AUROC di $P(\text{supported})$ è 0.94
 e 0.97 per GroundOne, 0.48 e 0.68 per il giudice le cui probabilità sono lette dai logit, e 0.47 e 0.58 per il giudice
-che le scrive. L'area sotto la curva risk--coverage è 0.009 e 0.005 per GroundOne, contro valori da 0.048 a 0.063 per i
+che le scrive. L'AURC è 0.009 e 0.005 per GroundOne, contro valori da 0.048 a 0.063 per i
 giudici, cioè da cinque a dodici volte maggiori. L'accuratezza delle decisioni segue lo stesso andamento: 0.835 e 0.900
 per GroundOne, al massimo 0.41 per qualsiasi giudice.
 
@@ -372,7 +371,7 @@ concorda con l'osservazione che la confidenza verbalizzata dei modelli piccoli �
 informativa~\cite{xiong2024uncertainty,tian2023justask}. La seconda osservazione è che l'ECE, da solo, nasconderebbe
 tutto ciò. Dopo la calibrazione ogni sistema, giudici compresi, ottiene un ECE binario compreso tra 0.03 e 0.05, perché
 una mappa di calibrazione può allineare la confidenza media al tasso di base anche quando le probabilità non separano le
-classi. La capacità discriminativa va quindi misurata a parte, con l'AUROC e con la curva risk--coverage.
+classi. La capacità discriminativa va quindi misurata a parte, con l'AUROC e con l'AURC.
 
 Chiedere le probabilità, infine, ha un costo. Il giudice che le legge dai logit è veloce quanto il giudice sintetico,
 perché genera le stesse lettere. Il giudice che scrive l'oggetto JSON, invece, impiega con il 3B 17.0 secondi per una

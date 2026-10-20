@@ -56,7 +56,8 @@ lunghezza misurata degli output dei giudici, un giudice da 3B deve spendere alme
 verdetti di una risposta lunga sul portatile della tesi, e 0.12 secondi persino sulla scheda grafica consumer più veloce:
 un costo che GroundOne non paga su nessun hardware.
 Quando si chiede loro lo stesso output, i giudici generativi forniscono probabilità che distinguono a stento le decisioni
-corrette da quelle errate, mentre la calibrazione porta l'Expected Calibration Error di GroundOne sul test set a 0.019. Anche
+corrette da quelle errate, mentre la calibrazione porta a 0.019 l'Expected Calibration Error di GroundOne sul test set, cioè lo scarto medio tra
+la confidenza dichiarata e la frequenza osservata delle risposte corrette. Anche
 il modo di leggere la decisione conta: a parità di modello addestrato, confrontare soltanto le tre lettere ammesse è più
 accurato che lasciare al modello generare liberamente il proprio verdetto, con un guadagno di balanced accuracy di 0.25
 per il 0.5B e di 0.07 per il 3B. Restano alcuni aspetti da migliorare, che indicano direzioni naturali per il lavoro

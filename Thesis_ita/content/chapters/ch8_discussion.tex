@@ -50,7 +50,7 @@ congiunto della specializzazione e del readout. La Figura~\ref{fig:disc-gains} s
 osservate sul test set dello stesso dominio, e le probabilità calibrate rendono efficace la selective prediction. Due
 indicazioni valgono al di là di GroundOne. La prima è che l'Expected Calibration Error, da solo, non basta a ordinare i
 sistemi. Dopo la stessa calibrazione, giudici le cui probabilità separano a malapena le classi raggiungono lo stesso ECE
-di GroundOne, e soltanto l'AUROC e la risk--coverage curve ne rivelano la differenza. La seconda è che decisioni e
+di GroundOne, e soltanto l'AUROC e l'AURC ne rivelano la differenza. La seconda è che decisioni e
 probabilità vanno ricavate in modo coerente. Se si sceglie la classe calibrata più probabile, la decisione collassa verso
 la classe maggioritaria; una soglia stimata sul dev set, invece, recupera la decisione bilanciata e mantiene l'etichetta
 coerente con la probabilità mostrata all'utente. Come mostrano i risultati su VitaminC, infine, la calibrazione vale
@@ -147,6 +147,15 @@ frase vera nel mondo ma assente dal documento conta quindi come non menzionata: 
 groundedness, ma non per la verifica dei fatti. Le frasi prive di contenuto verificabile vengono escluse da una regola, e
 la segmentazione stessa può dividere o accorpare le affermazioni in modo diverso da un lettore umano. Infine, il verdetto
 su una frase dipende soltanto dal documento e dalle frasi che la precedono.
+
+\paragraph{Contesti composti da più documenti.} Quando la risposta è scritta a partire da più passaggi recuperati,
+GroundOne li legge concatenati come un unico documento, come nel question answering di RAGTruth. Restano però tre
+limiti. Il primo riguarda la lunghezza: in addestramento documento e risposta non superano 2{,}048 token, per cui un
+contesto più lungo esce dalla distribuzione su cui il modello è stato misurato e va diviso in frammenti, conservando
+per ogni frase la probabilità di supporto più alta, come avviene su LLM-AggreFact; un fatto che richiede di combinare
+due frammenti diversi può allora sfuggire. Il secondo riguarda le fonti in conflitto: quando un passaggio sostiene una
+frase e un altro la contraddice, il verdetto atteso non è definito in modo univoco, e RAGTruth non contiene casi di
+questo tipo. Il terzo riguarda l'attribuzione: GroundOne indica se una frase è supportata, ma non da quale passaggio.
 
 \paragraph{Portata statistica.} Gli intervalli bootstrap descrivono la variabilità del test set, non quella
 dell'addestramento. Inoltre, circa cinquanta confronti sono stati sottoposti a test senza correzione per confronti

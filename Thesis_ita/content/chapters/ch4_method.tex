@@ -14,14 +14,21 @@ con il software che implementa il tutto.
 \label{sec:method-task}
 
 Per ogni frase di una risposta, GroundOne sceglie fra tre classi, definite nella Sezione~\ref{sec:data-task}: rispetto
-al documento, la frase è \emph{supportata}, \emph{contraddetta} o \emph{non menzionata}. Alle tre classi corrispondono
-le lettere A, B e C, e il modello restituisce una probabilità per ciascuna. Il punteggio binario di groundedness e le due
-policy di segnalazione, strict (che segnala ogni frase non supportata) e lenient (che segnala soltanto le contraddette),
-non sono domande distinte poste al modello. Vengono calcolati a partire da queste tre probabilità, e quindi un unico
-forward pass basta per ogni utilizzo. Interrogare il modello direttamente sulle policy non porterebbe nulla, perché
-ciascuna è una funzione deterministica della classe a tre vie. Domande separate moltiplicherebbero le decisioni senza
-aggiungere informazione, e potrebbero inoltre fornire al modello obiettivi di addestramento incoerenti per la stessa
-frase.
+al documento, la frase è \emph{supportata}, \emph{contraddetta} o \emph{non menzionata}. Per \emph{documento} si
+intende l'intero contesto che il generatore ha ricevuto. Può comprendere più passaggi recuperati, anche provenienti da
+fonti diverse, concatenati nel prompt: è il caso del question answering di RAGTruth (Sezione~\ref{sec:data-sources}).
+Una frase è quindi supportata quando almeno un passaggio la sostiene, anche combinando informazioni sparse su passaggi
+diversi.
+
+A ogni classe
+corrisponde una lettera (A, B e C), e il modello restituisce una probabilità per ciascuna. È l'unica domanda che il
+modello riceve: tutto il resto si ricava da queste tre probabilità. Il punteggio binario di groundedness è la
+probabilità che la frase sia supportata. La policy strict segnala ogni frase non supportata, mentre la policy lenient
+segnala soltanto le frasi contraddette. Un solo forward pass basta quindi per tutti questi usi.
+
+Porre al modello una domanda separata per ciascuna policy non aggiungerebbe nulla: una volta nota la classe di una
+frase, si sa già come la giudica ogni policy. Domande separate moltiplicherebbero soltanto il numero di decisioni e, in
+addestramento, rischierebbero di insegnare al modello risposte incoerenti tra loro sulla stessa frase.
 
 \section{Tutti i verdetti in un solo forward pass}
 \label{sec:method-readout}
@@ -107,13 +114,26 @@ forward pass, ma al posto del readout ristretto prende il token che la generazio
 \label{sec:method-training}
 
 GroundOne si ottiene da Qwen2.5-0.5B-Instruct e Qwen2.5-3B-Instruct~\cite{qwen2024qwen25} tramite low-rank adaptation
-(LoRA)~\cite{hu2022lora}. Gli adapter hanno rango 16, fattore di scala 2 e dropout 0.05\footnote{Il \emph{fattore di
+(LoRA)~\cite{hu2022lora}, descritta nella Sezione~\ref{sec:bg-peft} (Figura~\ref{fig:bg-lora}). Gli adapter hanno rango 16, fattore di scala 2 e dropout 0.05\footnote{Il \emph{fattore di
 scala} moltiplica l'aggiornamento calcolato dall'adapter prima di sommarlo all'output dello strato congelato. Il
 \emph{dropout} azzera a caso, durante l'addestramento, una frazione degli input dell'adapter (qui il 5\,\%), così da
 ridurre il rischio che il modello memorizzi il training set.}. Sono applicati a tutti i layer lineari di tutti i blocchi
-transformer, perché coprire ogni layer conta più che usare un rango elevato~\cite{dettmers2023qlora}. I pesi del modello
+transformer, cioè alle sette proiezioni di ciascun blocco (Figura~\ref{fig:method-lora}), perché coprire ogni layer
+conta più che usare un rango elevato~\cite{dettmers2023qlora}. In totale si addestrano 8.8 milioni di parametri nel
+0.5B e 29.9 milioni nel 3B, circa l'1.8\,\% e l'1.0\,\% dei rispettivi modelli. I pesi del modello
 base restano congelati in precisione a 8 bit. Ogni esempio di addestramento è una risposta con tutte le sue frasi
 valutate, e la loss viene calcolata su ciascuno dei suoi marker.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{images/diagrams/method_lora_placement_tikz.pdf}
+\caption{Dove GroundOne applica LoRA. Ogni blocco transformer di Qwen2.5 contiene sette proiezioni lineari: quattro
+nell'attenzione ($W_q$, $W_k$, $W_v$, $W_o$) e tre nel blocco MLP ($W_\mathrm{gate}$, $W_\mathrm{up}$, $W_\mathrm{down}$).
+I loro pesi restano congelati a 8 bit, e a ciascuna si affianca un adapter di rango 16 (in blu) che ne corregge
+l'output secondo lo schema della Figura~\ref{fig:bg-lora}. Il blocco è ripetuto 24 volte nel 0.5B e 36 nel 3B;
+embedding e testa di output non hanno adapter.}
+\label{fig:method-lora}
+\end{figure}
 
 La loss è una cross-entropy\footnote{La \emph{cross-entropy} di una predizione è il logaritmo negativo della
 probabilità che il modello assegna alla classe corretta: vale zero quando questa probabilità è uno e cresce senza limite
@@ -149,28 +169,80 @@ I pesi delle classi addestrano il modello come se le tre classi fossero ugualmen
 probabilità grezze non rispecchiano le frequenze reali delle classi. Sul dev set si stima quindi una trasformazione
 post-hoc, applicata ai logit dopo l'addestramento e senza modificare i pesi. I tre logit vengono divisi per una
 temperatura $T$ e traslati di un bias per classe, $\mathrm{softmax}(z / T + b)$, con il bias della classe supportata
-fissato a zero. I parametri $T$ e $b$ sono scelti minimizzando la negative log-likelihood delle etichette del dev set,
-cioè la cross-entropy media~\cite{guo2017calibration}. Il bias svolge il ruolo della correzione contestuale proposta per
+fissato a zero. I parametri $T$ e $b$ sono scelti minimizzando la negative log-likelihood (NLL) delle etichette del dev
+set\footnote{La \emph{negative log-likelihood} di un insieme di $n$ predizioni è la media, cambiata di segno, del logaritmo della probabilità assegnata alla classe corretta: $\mathrm{NLL} = -\frac{1}{n}\sum_{i=1}^{n} \log p_i(y_i)$, dove $y_i$ è la classe corretta della predizione $i$. Coincide con la cross-entropy media. Vale zero quando il modello assegna sempre probabilità uno alla classe giusta e cresce rapidamente quando assegna una probabilità bassa alla classe giusta, cioè quando sbaglia con sicurezza: per questo penalizza sia gli errori sia l'eccesso di confidenza.}, cioè la cross-entropy media~\cite{guo2017calibration}. Il bias svolge il ruolo della correzione contestuale proposta per
 i modelli linguistici interrogati tramite prompt~\cite{zhao2021calibrate}; a differenza di quella, però, qui è stimato
 su dati etichettati. La sola temperatura cambia le probabilità ma non la classe più probabile né l'ordinamento delle
 frasi. Il bias, invece, può cambiare la classe più probabile e, con tre classi, può anche riordinare leggermente
 $P(\text{supported})$ fra una frase e l'altra. Per questo le metriche di classificazione e
-l'AUROC\footnote{L'\emph{AUROC} è l'area sotto la curva ROC e misura quanto bene un punteggio ordina gli esempi:
-equivale alla probabilità che un esempio positivo scelto a caso riceva un punteggio più alto di un esempio negativo
-scelto a caso. Vale 0.5 per un punteggio casuale e 1 per un ordinamento perfetto, e non dipende da alcuna soglia.} sono
+l'AUROC\footnote{L'\emph{AUROC} (area under the ROC curve) misura quanto bene un punteggio separa due classi, qui
+le frasi supportate da quelle non supportate. Fissata una soglia, si accettano come supportate le frasi con punteggio
+superiore: la quota di frasi supportate accettate è il tasso di veri positivi, la quota di frasi non supportate
+accettate per errore è il tasso di falsi positivi. La curva ROC riporta queste due quantità per tutte le soglie
+possibili, e l'AUROC è l'area sotto di essa. Equivale alla probabilità che una frase supportata scelta a caso riceva un
+punteggio più alto di una frase non supportata scelta a caso: vale 0.5 per un punteggio casuale e 1 per una
+separazione perfetta.} sono
 calcolate sull'output grezzo. Le probabilità calibrate si usano invece dove una probabilità deve corrispondere a una
 frequenza: nelle metriche di calibrazione, nelle soglie e nella selective prediction
 (Sezione~\ref{sec:results-calibration}).
 
+\paragraph{Calibrazione in addestramento o dopo l'addestramento.} GroundOne calibra le probabilità dopo
+l'addestramento. Jev, il decision model che ha introdotto la categoria, segue la strada opposta: secondo il fornitore,
+le sue probabilità diventano affidabili già in addestramento, grazie a una fase di reinforcement learning con
+ricompense pensate per premiare la calibrazione (\emph{Reinforcement Learning with Calibrated Decisions},
+RLCD)~\cite{typesafe2026jev}. La ricetta non è pubblica, e un confronto diretto non è stato possibile: Jev è un
+servizio remoto e chiuso, e valutarlo sui test set di questa tesi avrebbe richiesto di inviare i dati a un servizio
+esterno. Il confronto riguarda quindi gli approcci, sulla base delle valutazioni indipendenti
+(Tabella~\ref{tab:method-calibration-jev}).
+
+Queste valutazioni mostrano che la calibrazione ottenuta in addestramento vale in aggregato, ma non sul singolo
+carico di lavoro. Su 31 benchmark l'ECE di Jev è 0.047 se calcolato su tutti i dati insieme, ma 0.168 come mediana dei
+singoli benchmark~\cite{guo2026justaskjev}. Le sue probabilità binarie ordinano bene gli esempi, ma sono leggermente
+sotto-confidenti, per cui la soglia fissa di 0.5 risulta mal posizionata: la probabilità media di risposta
+affermativa è 0.465, contro una frequenza osservata di 0.518~\cite{deusser2026jev}. Per questo gli studi raccomandano
+di stimare soglie e temperature sul carico di lavoro di destinazione~\cite{li2026jevjudge}. Anche la ricetta RLCD
+rilasciata apertamente non offre vantaggi misurabili: in un confronto controllato resta da 2.5 a 3 punti sotto la
+semplice cross-entropy, con una variabilità tra seed fino a quattro volte maggiore, e dopo un temperature scaling
+nessun obiettivo di addestramento risulta meglio calibrato degli altri~\cite{deka2026typed}.
+
+GroundOne parte da qui. Uno specialista lavora su un solo dominio, quindi può stimare la propria calibrazione proprio
+sulla distribuzione in cui verrà usato, con un dev set e pochi parametri. Su T1 l'ECE binario scende da 0.30 a 0.019
+per il 0.5B e da 0.18 a 0.019 per il 3B. Il prezzo è lo stesso che gli studi rilevano per Jev, visto dall'altro lato:
+la calibrazione stimata su RAGTruth non si trasferisce a VitaminC (Sezione~\ref{sec:results-calibration}). Il
+vantaggio è che il procedimento è aperto, riproducibile e legato al modello che lo ha prodotto, e che la soglia di
+decisione fa parte della calibrazione invece di essere lasciata all'utente.
+
+\begin{table}[htbp]
+\centering
+\caption{Due approcci alla calibrazione di un decision model. I valori di Jev provengono da valutazioni indipendenti
+su benchmark diversi da quelli di questa tesi; quelli di GroundOne sono misurati sul test set T1.}
+\label{tab:method-calibration-jev}
+\small
+\begin{tabular}{p{0.19\textwidth}p{0.35\textwidth}p{0.35\textwidth}}
+\toprule
+ & Jev & GroundOne \\
+\midrule
+Quando & in addestramento: SFT seguito da RL con ricompense di calibrazione (RLCD) & dopo l'addestramento: temperatura e bias per classe stimati sul dev set \\ \addlinespace
+Ambito & un modello per tutti i task & un solo dominio, quello d'uso \\ \addlinespace
+Ricetta & non pubblica (dichiarazione del fornitore) & aperta, legata al fingerprint del modello \\ \addlinespace
+Soglia & lasciata all'utente; da stimare per ogni carico di lavoro & stimata sul dev set e parte della regola di output \\ \addlinespace
+Evidenze & ECE 0.047 in aggregato, 0.168 per singolo benchmark; probabilità binarie sotto-confidenti & ECE binario su T1 da 0.30 a 0.019 (0.5B), da 0.18 a 0.019 (3B); non si trasferisce a VitaminC \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 La calibrazione è misurata principalmente con l'Expected Calibration Error
-(ECE)~\cite{naeini2015ece,guo2017calibration}. Le predizioni vengono ripartite in base alla confidenza in $M$
-intervalli di uguale ampiezza, con $M = 15$ in questa tesi. Per ogni intervallo $B_m$ si confronta la confidenza media
-$\mathrm{conf}(B_m)$ con la frequenza osservata $\mathrm{acc}(B_m)$, e gli scarti vengono mediati con pesi
-proporzionali alla numerosità degli intervalli:
+(ECE)~\cite{naeini2015ece,guo2017calibration}, che misura di quanto la confidenza dichiarata da un modello si discosta,
+in media, dalla frequenza con cui le sue predizioni risultano corrette. Le $n$ predizioni vengono ripartite, in base
+alla confidenza, in $M$ intervalli di uguale ampiezza, con $M = 15$ in questa tesi. Per ogni intervallo $B_m$ si
+confrontano la confidenza media delle sue predizioni, $\mathrm{conf}(B_m)$, e la frazione di quelle risultate
+corrette, $\mathrm{acc}(B_m)$. L'ECE è la media degli scarti, pesata con la numerosità degli intervalli:
 \begin{equation}
   \mathrm{ECE} = \sum_{m=1}^{M} \frac{|B_m|}{n} \, \bigl| \mathrm{acc}(B_m) - \mathrm{conf}(B_m) \bigr| .
+  \label{eq:ece}
 \end{equation}
-Qui $n$ è il numero complessivo di predizioni. Nella variante binaria la confidenza è $P(\text{supported})$ e la
+Un modello perfettamente calibrato ha un ECE pari a zero; un ECE di 0.05, per esempio, indica che la confidenza
+dichiarata si discosta in media di cinque punti percentuali dalla frequenza osservata. Nella variante binaria la confidenza è $P(\text{supported})$ e la
 frequenza osservata è la quota di frasi supportate nell'intervallo. Nella variante top-label a tre classi, invece, la
 confidenza è la probabilità massima e la frequenza osservata è la quota di predizioni corrette. L'ECE non confronta la
 distribuzione delle classi predette con quella del test set. Verifica piuttosto se, fra le frasi a cui il modello
@@ -180,8 +252,33 @@ zero pur non discriminando nulla. Per questi motivi l'ECE è sempre riportato in
 \emph{Brier score} è l'errore quadratico medio fra la probabilità predetta e l'esito osservato, codificato come 1 se
 l'evento si verifica e 0 altrimenti: più è basso, migliori sono le probabilità.}, alla negative log-likelihood e ai
 reliability diagram, i grafici che riportano per ogni intervallo la frequenza osservata in funzione della confidenza
-media. La capacità delle probabilità di separare le decisioni corrette da quelle errate si misura invece a parte, con
-l'AUROC e con l'area sotto la risk--coverage curve.
+media. La capacità delle probabilità di separare le decisioni corrette da quelle errate si misura invece a parte, con due
+misure. La prima è l'AUROC, descritto qui sotto. La seconda è l'AURC (area under the risk--coverage curve), cioè l'area
+sotto la curva risk--coverage della Sezione~\ref{sec:bg-calibration} (Figura~\ref{fig:bg-risk-coverage}): misura il
+tasso di errore medio che si ottiene accettando le decisioni dalla più sicura alla meno sicura, ed è tanto più piccola
+quanto più gli errori si concentrano tra le decisioni meno sicure, che sono quelle che un sistema rinvierebbe.
+
+Calibrazione e AUROC rispondono a due domande diverse, ed è per questo che la tesi le riporta sempre entrambe. L'ECE
+chiede se una probabilità di 0.8 corrisponde davvero a una frase supportata otto volte su dieci. L'AUROC chiede invece
+se le frasi supportate ricevono punteggi più alti di quelle non supportate, qualunque sia la scala dei punteggi
+(Figura~\ref{fig:method-roc}). Le due proprietà sono indipendenti. Un predittore costante è perfettamente calibrato
+rispetto alla frequenza di base, ma ha un AUROC di 0.5; viceversa, un modello può ordinare le frasi in modo quasi
+perfetto, con un AUROC vicino a 1, e assegnare comunque probabilità troppo estreme. L'AUROC, inoltre, non dipende da
+alcuna soglia né dalla frequenza delle classi, e non cambia se i punteggi vengono trasformati in modo monotono, come fa
+la temperatura. Per questo è la misura principale con cui GroundOne è confrontato con verificatori che restituiscono un
+punteggio binario, come gli encoder specializzati, mentre la scelta della soglia e la sua coerenza con le probabilità
+mostrate all'utente sono trattate a parte.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/method/roc_explainer.png}
+\caption{Come nasce l'AUROC (schema con punteggi sintetici, non un risultato). (a) Distribuzione di $P(\text{supported})$
+per le frasi supportate e non supportate: le due distribuzioni si sovrappongono, e ogni soglia accetta una parte delle
+une e delle altre. (b) Spostando la soglia da 1 a 0 si ottiene la curva ROC; il punto nero corrisponde alla soglia del
+pannello (a). L'area sotto la curva è l'AUROC: più le due distribuzioni sono separate, più la curva si avvicina
+all'angolo in alto a sinistra e l'area a 1. La diagonale corrisponde a punteggi casuali.}
+\label{fig:method-roc}
+\end{figure}
 
 \paragraph{Dalle probabilità alle etichette restituite.} Chi usa il verificatore vede per ogni frase un'etichetta e una
 probabilità, che devono essere coerenti tra loro. Questa tesi valuta la decisione grezza, cioè la classe più probabile

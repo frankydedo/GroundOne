@@ -184,8 +184,36 @@ pubblicata da Epoch AI~\cite{epoch2026openclosed}.}
 \label{fig:local-gap}
 \end{figure}
 
-Per un dispositivo personale non conta il miglior modello open-weight, che può avere centinaia di miliardi di parametri, ma il
-miglior modello che entra in un hardware consumer. Epoch AI misura direttamente questa grandezza. Considerando i modelli
+Una fotografia più recente conferma il quadro e ne mostra anche il limite. Sull'Intelligence Index di Artificial
+Analysis, che aggrega dieci valutazioni, al 20 ottobre 2026 il miglior modello chiuso, Claude Opus 5.5, ottiene 58
+punti, mentre il miglior modello open-weight, MiMo-V2.6-Pro, ne ottiene 46 (Figura~\ref{fig:local-aa})~\cite{aa2026intelligence}.
+Diversi modelli open-weight, come DeepSeek V4.1 Flash, GLM-5.3 e Kimi K3, eguagliano o superano modelli chiusi di fascia
+media come Claude Haiku 5.5 e Gemini 3.8 Flash. Tutti questi modelli open-weight, però, appartengono alla classe dei
+modelli grandi, mentre l'unico modello del grafico che Artificial Analysis classifica come piccolo, Qwen3.8 27B, si
+ferma a 34 punti.
+
+Questo non significa che i modelli grandi siano esclusi dall'hardware locale. I motori di inferenza specializzati
+descritti nella Sezione~\ref{sec:local-engines}, come ds4 e Colibri, eseguono grandi modelli open-weight, per esempio
+DeepSeek V4 Flash e GLM-5.2, anche quando i loro pesi non entrano in memoria: tengono residente la parte sempre attiva
+e leggono il resto dall'SSD. Il limite si sposta allora dalla capacità alla velocità. Secondo gli autori di Colibri,
+GLM-5.2 genera 1.83 token al secondo su una macchina Strix Halo da 128\,GB e meno di un token al secondo su un
+laptop~\cite{justvugg2026colibri}. Per un dispositivo personale, quindi, la domanda non è soltanto quale modello si
+riesca a eseguire, ma a quale velocità possa generare testo; ed è proprio la generazione la fase che un decision model
+evita.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{images/locality/aa_intelligence_snapshot.png}
+\caption{Artificial Analysis Intelligence Index (versione 4.3.2, dieci valutazioni) al 20 ottobre 2026, ridisegnato dal
+grafico pubblicato~\cite{aa2026intelligence}. In arancione i modelli chiusi, in blu quelli open-weight; tratteggiato
+l'unico modello che Artificial Analysis classifica come piccolo. Tra parentesi l'impostazione di ragionamento con cui è
+stato valutato ciascun modello. Lo stato open-weight è ricavato dai dati della stessa leaderboard. È un'istantanea:
+punteggi e classifica cambiano a ogni nuovo rilascio.}
+\label{fig:local-aa}
+\end{figure}
+
+Per un uso interattivo conta soprattutto il miglior modello che entra per intero nella memoria di un hardware
+consumer, e che può quindi generare senza dipendere dalla banda dell'SSD. Epoch AI misura direttamente questa grandezza. Considerando i modelli
 abbastanza piccoli da girare su una singola scheda grafica consumer, al massimo circa 28 miliardi di parametri per una
 scheda da 24\,GB e circa 40 miliardi per una da 32\,GB, rileva che su quattro benchmark essi raggiungono le prestazioni
 del modello di frontiera del momento dopo sei-dodici mesi~\cite{epoch2025consumergpu}. Tre forze trainano il recupero:
