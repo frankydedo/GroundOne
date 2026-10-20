@@ -6,7 +6,7 @@
   \node[model, below=8mm of in] (t) {Transformer: reads everything\\in \textbf{a single pass}};
   \node[model, below=3mm of t] (r) {Logits of A, B, C\\at every marker};
   \begin{scope}[on background layer]
-    \node[cluster, fit=(t)(r), label={[clusterlabel,anchor=south east]north east:System One}] (c) {};
+    \node[cluster, fit=(t)(r), label={[clusterlabel,anchor=south east]north east:Decision Model}] (c) {};
   \end{scope}
   \node[decision, below=5mm of r] (d) {for every sentence:\\A, B or C?};
   \node[io, below=6mm of d, font=\footnotesize, text width=1.75cm] (o2) {contradicted\\$+\,p$};

@@ -1,0 +1,35 @@
+\documentclass[border=3pt]{standalone}
+\input{g1_common.tex}
+\begin{document}
+\begin{tikzpicture}[node distance=5mm]
+  % ---------- offline pipeline ----------
+  \node[data=2.3cm, font=\footnotesize] (raw) {public datasets\\(RAGTruth, LLM-AggreFact, VitaminC)};
+  \node[post=2.6cm, right=7mm of raw, font=\footnotesize] (build) {dataset construction\\segmentation, labels,\\leakage check};
+  \node[data=2.0cm, right=7mm of build, font=\footnotesize] (frozen) {training/dev\\+ frozen\\test sets};
+  \node[post=2.3cm, right=7mm of frozen, font=\footnotesize] (train) {LoRA training\\(MLX)};
+  \node[post=2.3cm, right=7mm of train, font=\footnotesize] (calib) {calibration\\on the dev set\\($T$, $b$, $\tau$)};
+  \node[post=2.6cm, right=7mm of calib, font=\footnotesize] (eval) {frozen tests, baselines,\\bootstrap, figures};
+  \foreach \a/\b in {raw/build,build/frozen,frozen/train,train/calib,calib/eval} \draw[arrow] (\a) -- (\b);
+  \begin{scope}[on background layer]
+    \node[cluster, fit=(raw)(build)(frozen)(train)(calib)(eval), inner sep=5mm, label={[clusterlabel, anchor=north west]north west:Experimental pipeline (long jobs run one at a time under the memory guard)}] (off) {};
+  \end{scope}
+  % ---------- serving ----------
+  \node[io, text width=2.5cm, below=28mm of build, font=\footnotesize] (cli) {command line\\\texttt{groundone verify}};
+  \node[io, text width=2.5cm, below=4mm of cli, font=\footnotesize] (cl1) {native client};
+  \node[io, text width=2.5cm, below=4mm of cl1, font=\footnotesize] (cl2) {clients of the\\System One interface (Jev)};
+  \node[model=3.2cm, right=10mm of cl1, minimum height=3.3cm, font=\footnotesize] (api) {local HTTP server\\[3pt]\texttt{/v1/verify}\\(native)\\[3pt]\texttt{/v1/systemone}\\(compatible)};
+  \node[model=3.6cm, right=10mm of api, minimum height=3.3cm, font=\footnotesize] (eng) {Engine\\[3pt]requests serialised\\by a lock;\\\textbf{a single worker thread}\\for all MLX calls\\(the Metal context never\\changes thread)};
+  \node[model=4.9cm, right=10mm of eng, minimum height=3.3cm, font=\footnotesize, align=left] (bk) {Backend MLX\\[3pt]$\bullet$ 8-bit Qwen2.5 + LoRA adapter\\$\bullet$ segmentation (PySBD + rule)\\$\bullet$ marker prompt\\$\bullet$ readout at the markers (one pass)\\$\bullet$ calibration and threshold $\tau$};
+  \draw[arrow] (cli.east) -- ++(3mm,0) |- ([yshift=4mm]api.north) -| node[pos=0.25, above, note] {without server} (eng.north);
+  \draw[arrow] (cl1) -- (api.west |- cl1);
+  \draw[arrow] (cl2.east) -- (api.west |- cl2.east);
+  \draw[arrow] (api) -- (eng);
+  \draw[arrow] (eng) -- (bk);
+  \begin{scope}[on background layer]
+    \coordinate (topc) at ([yshift=9mm]api.north);
+    \node[cluster, fit=(cli)(cl2)(api)(eng)(bk)(topc), inner sep=5mm, label={[clusterlabel, anchor=north west]north west:Verification service}] (srv) {};
+  \end{scope}
+  \draw[dashedarrow] (calib.south) -- ++(0,-6mm) -| node[pos=0.25, above, note] {adapter + \texttt{calibration.json}} (bk.north);
+  \node[note, below=2mm of srv.south] {everything runs on the laptop: models, data and requests never leave the machine};
+\end{tikzpicture}
+\end{document}

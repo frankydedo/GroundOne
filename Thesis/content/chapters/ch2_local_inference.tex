@@ -133,7 +133,7 @@ preferred for modifying it be available: the parameters, the complete code used 
 information about the training data for a skilled person to build a substantially equivalent system~\cite{osi2024osaid}.
 The data themselves need not be released, but weights alone do not qualify. Most models that are commonly called open
 publish their weights and an inference recipe, but neither the training code nor a detailed description of the data.
-Openness is therefore a scale rather than a binary property. A recent index scores models on five aspects: the
+Being open is therefore a matter of degree rather than a binary property. A recent index scores models on five aspects: the
 availability of the weights, the disclosure of the pre-training and of the post-training data (the two phases of
 training, first on generic text and then on instructions and preferences), the methodology and the
 licence~\cite{aa2025openness}. No model reaches the maximum score; fully documented research models such as OLMo score
@@ -143,7 +143,7 @@ Licences add a further distinction. The two models fine-tuned in this thesis com
 different licences: Qwen2.5-0.5B is released under the permissive Apache 2.0 licence, whereas Qwen2.5-3B is released
 under a research licence that restricts commercial use~\cite{qwen2024qwen25}. In the terminology above both are
 open-weight models, and the thesis uses this term for them. The distinction also matters for regulation. The European
-AI Act relaxes some transparency obligations for general-purpose models released under free and open licences, but not
+AI Act relaxes some transparency obligations for general-purpose models released under free and open-source licences, but not
 for models that pose systemic risk. A model is presumed to pose systemic risk when its training required more than
 $10^{25}$ floating-point operations (FLOP\footnote{A FLOP is a single arithmetic operation on floating-point numbers,
 such as an addition or a multiplication. Computing speed is measured in FLOP per second: one TFLOP/s corresponds to
@@ -152,7 +152,7 @@ $10^{12}$ operations per second.})~\cite{bommasani2024euaiact}, far more than th
 \subsection{The gap with closed models is closing}
 \label{sec:local-gap}
 
-Local inference would be of limited interest if open models were far behind closed ones. They are not. On the Chatbot
+Local inference would be of limited interest if open-weight models were far behind closed ones. They are not. On the Chatbot
 Arena leaderboard, where users compare the answers of two anonymous models, the lead of the best closed model over the
 best open-weight model fell from 8.04\,\% in January 2024 to 1.70\,\% in February 2025~\cite{stanford2025aiindex}. On
 Epoch AI's capabilities index, which aggregates many benchmarks, the best open-weight models trailed the closed frontier
@@ -166,11 +166,37 @@ index (dots: individual models; lines: best so far). Plotted from Epoch AI's pub
 \label{fig:local-gap}
 \end{figure}
 
-What matters for a personal device is not the best open model, which may have hundreds of billions of parameters, but
-the best model that fits on consumer hardware. Epoch AI tracks this quantity directly. Considering models small enough to
+A more recent snapshot confirms the picture and also shows its limit. On the Artificial Analysis Intelligence Index,
+which aggregates ten evaluations, on 20 October 2026 the best closed model, Claude Opus 5.5, scores 58 points, while the
+best open-weight model, MiMo-V2.6-Pro, scores 46 (Figure~\ref{fig:local-aa})~\cite{aa2026intelligence}. Several
+open-weight models, such as DeepSeek V4.1 Flash, GLM-5.3 and Kimi K3, match or exceed mid-range closed models such as
+Claude Haiku 5.5 and Gemini 3.8 Flash. All these open-weight models, however, belong to the class of large models,
+whereas the only model in the chart that Artificial Analysis classifies as small, Qwen3.8 27B, stops at 34 points.
+
+This does not mean that large models are excluded from local hardware. The specialised inference engines described in
+Section~\ref{sec:local-engines}, such as ds4 and Colibri, run large open-weight models, for example DeepSeek V4 Flash
+and GLM-5.2, even when their weights do not fit in memory: they keep the always-active part resident and read the rest
+from the SSD. The limit then shifts from capacity to speed. According to the authors of Colibri, GLM-5.2 generates 1.83
+tokens per second on a Strix Halo machine with 128\,GB and less than one token per second on a
+laptop~\cite{justvugg2026colibri}. For a personal device, therefore, the question is not only which model can be run,
+but how fast it can generate text; and generation is precisely the phase that a decision model avoids.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{images/locality/aa_intelligence_snapshot.png}
+\caption{Artificial Analysis Intelligence Index (version 4.3.2, ten evaluations) on 20 October 2026, redrawn from the
+published chart~\cite{aa2026intelligence}. Closed models in orange, open-weight models in blue; hatched, the only model
+that Artificial Analysis classifies as small. In brackets, the reasoning setting at which each model was evaluated. The
+open-weight status is taken from the data of the same leaderboard. It is a snapshot: scores and ranking change with
+every new release.}
+\label{fig:local-aa}
+\end{figure}
+
+For interactive use, what matters most is the best model that fits entirely in the memory of consumer hardware, and can
+therefore generate without depending on the bandwidth of the SSD. Epoch AI tracks this quantity directly. Considering models small enough to
 run on a single consumer graphics card, at most about 28 billion parameters for a card with 24\,GB and about 40 billion
 for one with 32\,GB, it finds that across four benchmarks they reach the performance of the frontier model of the time
-after six to twelve months~\cite{epoch2025consumergpu}. Three forces drive the catch-up: open developers scale their
+after six to twelve months~\cite{epoch2025consumergpu}. Three forces drive the catch-up: open-weight developers scale their
 training compute about as fast as closed ones, distillation, that is, training a small model to imitate the answers of a
 large one, transfers much of its capability, and each new generation of graphics cards raises the size of the models that
 fit~\cite{epoch2025bestmodel}. The same trend appears from the other side: the smallest model scoring above 60\,\% on the
@@ -431,7 +457,7 @@ floor, but no hardware removes it.
 by the vendor's bandwidth (one request at a time; key-value cache ignored). (a) Time per generated token with the two
 GroundOne base models in 8 bits; diamonds: decode time measured on the thesis machine. (b) Minimum time that a 3B
 generative judge spends only on writing the verdicts for an answer of fourteen or more sentences (median generated tokens
-of the latency protocol). A System One generates no token, so both costs are zero for it on every machine.}
+of the latency protocol). A decision model generates no token, so both costs are zero for it on every machine.}
 \label{fig:local-floor}
 \end{figure}
 
@@ -496,7 +522,7 @@ that, with Qwen3.6, four questions about the same document are answered 5.7 time
 answers on the same CPU. This is a figure reported by the project and not verified in this thesis, obtained with a
 different model and hardware, but it points in the same direction as the results of Chapter~\ref{sec:results}. That an
 engine designed to run huge models on modest hardware adopts the reading of decisions as a first-class mode confirms that
-the System One idea is spreading precisely where generation costs the most.
+the decision-model idea is spreading precisely where generation costs the most.
 
 \subsection{Quantisation}
 \label{sec:local-quantisation}
@@ -542,7 +568,11 @@ are more fragile. GPTQ loses much more accuracy at 4 bits on a 1.3-billion-param
 models of three billion parameters or fewer become unusable at 3 bits on phones~\cite{frantar2023gptq,laskaridis2024melting}.
 LLM.int8() shows that a handful of outlier features control a large share of the attention probability
 mass~\cite{dettmers2022llmint8}. For a model whose output is a probability that must be calibrated, rather than a text
-that must merely be fluent, these observations argue for a conservative precision: GroundOne uses 8-bit weights.
+that must merely be fluent, these observations argue for a conservative precision: GroundOne uses 8-bit weights. A measurement made in this thesis
+confirms that, at this precision, quantisation costs no accuracy: applying the same adapter of the 0.5B model to the
+original 16-bit weights leaves the three-way balanced accuracy on T1 practically unchanged (0.768 against 0.769), the
+probabilities change by 0.011 on average and the predicted class agrees on 98\,\% of the sentences
+(Section~\ref{sec:results-locality}).
 
 \subsection{Faster generation without fewer tokens}
 \label{sec:local-speculative}
@@ -587,7 +617,7 @@ Section~\ref{sec:local-floor} turns these counts into a minimum time that no imp
 (Figure~\ref{fig:local-floor}b): on the thesis machine, at least 1.8 seconds for the terse judge and 10.6 for the verbose
 one, on top of the prefill; even on the fastest graphics card, 0.12 and 0.71 seconds.
 
-A System One removes this term altogether. It reads the document and the answer once and takes every decision from the
+A decision model removes this term altogether. It reads the document and the answer once and takes every decision from the
 logits computed during that single reading, so its cost is the prefill alone: the compute-bound phase, the one that
 local hardware performs well and that new hardware accelerates most. Its advantage over a judge is therefore not a
 property of one machine but of the cost structure of local inference, and it is largest exactly where inference is local.

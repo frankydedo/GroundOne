@@ -6,7 +6,7 @@
 % Figures: Project/outputs/figures/{benchmarks,bootstrap,training-*,calibration-*}/ (copied to Thesis/images/results/).
 
 This chapter reports how GroundOne learns and how stable its training is, what it achieves on the three frozen test sets,
-how it compares with the baselines, and what the System One readout contributes by itself. It then examines the quality
+how it compares with the baselines, and what the decision-model readout contributes by itself. It then examines the quality
 of the probabilities, the time and energy needed to verify an answer, and the errors that remain. Intervals are 95\,\%
 cluster-bootstrap intervals computed as described in Section~\ref{sec:setup-statistics}.
 
@@ -106,7 +106,7 @@ $K \geq 14$ & 1{,}637 & 0.723 & 0.50 & 0.908 & 0.839 & 0.68 & 0.957 \\
 Three observations stand out. First, accuracy does not degrade with the length of the answer: answers with fourteen or
 more decisions are among the best handled, with 0.723 for the 0.5B and 0.839 for the 3B, and the hardest band is the
 shortest, which mostly contains question-answering and summarisation answers. This matters because long answers are
-where a System One saves the most time; on these answers the gain of the 3B over the 0.5B is $+0.116$ ($+0.050$ to
+where a decision model saves the most time; on these answers the gain of the 3B over the 0.5B is $+0.116$ ($+0.050$ to
 $+0.180$). Second, contradictions are recognised mainly in data-to-text, where RAGTruth concentrates them. In question
 answering and summarisation the 0.5B separates supported from not-mentioned sentences well but finds almost no
 contradictions, with a recall of 0.03 and 0.13. The 3B raises both to 0.30, so model size compensates in part for the
@@ -146,7 +146,7 @@ including d1-3B, on the full test set.}
 \label{fig:results-comparison}
 \end{figure}
 
-Rizzo-Flow, the larger general-purpose System One, gives the most instructive comparison. On the same 300 answers of
+Rizzo-Flow, the larger general-purpose decision model, gives the most instructive comparison. On the same 300 answers of
 T1, Rizzo-Flow, a 4B
 model fine-tuned for generic decisions, reaches a three-way balanced accuracy of 0.603, against 0.798 for the 0.5B
 GroundOne and 0.840 for the 3B; the differences, $+0.195$ ($+0.136$ to $+0.249$) and $+0.237$ ($+0.184$ to $+0.285$), are
@@ -155,7 +155,7 @@ it ranks sentences well but predicts ``supported'' for 90\,\% of them; the 3B ra
 $+0.079$). A specialist eight times smaller therefore outperforms the generalist on the decision it was built for, while
 matching it in the ability to rank sentences.
 
-d1-3B, a general-purpose System One of the same size as the 3B, gives the sharpest test of specialisation, because it
+d1-3B, a general-purpose decision model of the same size as the 3B, gives the sharpest test of specialisation, because it
 was already
 trained to make typed decisions and differs from GroundOne mainly in what it was trained on. On the full T1 it reaches a
 three-way balanced accuracy of 0.657 and an AUROC of 0.863. Both GroundOne models are clearly better: the 0.5B, six times
@@ -180,7 +180,7 @@ points above the encoder (interval $+1.4$ to $+3.3$). Its gain over the 0.5B, $+
 with the largest improvements on REVEAL, WiCE, FactCheck-GPT and XSum, so model size improves transfer beyond the
 training domain. The 3B remains clearly below the encoder only on news summarisation (AggreFact-CNN, 59.3 against 67.1).
 Rizzo-Flow, on the 1{,}093 items of its subsample, reaches 61.5; there the 3B GroundOne is 12.0 points better ($+7.4$ to
-$+16.5$). An independent evaluation of the closed System One Jev on the same test set and with the same metric reports
+$+16.5$). An independent evaluation of the closed decision model Jev on the same test set and with the same metric reports
 78.6, and 76.9 for a 27B open model read through its answer letters, with prompts different from those used here, so that
 no interval can be computed~\cite{deusser2026jev}. On a broad grounding benchmark, then, a 3B specialist trained only on
 RAG answers matches the best small encoder but remains below the closed state of the art and much larger open models.
@@ -199,7 +199,7 @@ and 0.845 for the 3B. Two facts put these numbers in context. MiniCheck-RoBERTa 
 training data include VitaminC~\cite{zha2023alignscore}, so T3 belongs to its training distribution, whereas for
 GroundOne it measures transfer from RAGTruth. Moreover, the gain of the 3B over the 0.5B on T3 comes from model size
 rather than from the RAG training: the untrained 3B already reaches 0.531 and an AUROC of 0.821. d1-3B, the general-purpose
-System One of the same size, makes the contrast explicit: it reaches 0.724 and an AUROC of 0.913 on the full T3,
+decision model of the same size, makes the contrast explicit: it reaches 0.724 and an AUROC of 0.913 on the full T3,
 ahead of the 3B GroundOne by 0.197 and 0.096, the reverse of what happens on T1. Specialisation on RAG answers therefore
 improves the RAG task substantially but does not, by itself, produce a general fact checker.
 Section~\ref{sec:results-errors} shows which cases are missed.
@@ -325,7 +325,7 @@ times faster than the 3B (0.33 against 1.99 seconds at the median).
 \centering
 \includegraphics[width=\textwidth]{images/results/latency_vs_K.png}
 \caption{Median time per answer as a function of $K$ on the same 200 T1 answers (in-process MLX, one answer at a time,
-M4 with 16\,GB), for GroundOne, the System One with one question per sentence, and the terse and verbose generative
+M4 with 16\,GB), for GroundOne, the decision model with one question per sentence, and the terse and verbose generative
 judges. Logarithmic scale.}
 \label{fig:results-latency}
 \end{figure}
@@ -367,6 +367,49 @@ with the mean net power during the run.}
 
 In absolute terms the numbers are small: 5.5 joules is about 0.0015 watt-hours, so the 0.5B GroundOne could verify
 roughly six hundred answers with the energy of one watt-hour, entirely on the laptop.
+
+\section{Locality: offline run, quantisation and co-residence}
+\label{sec:results-locality}
+
+Three measurements complete the picture of on-device cost (Section~\ref{sec:setup-protocol}). The first concerns
+independence from the network. The complete evaluation of T1 with the 0.5B model, repeated inside a sandbox that denies
+the process any network access, produces predictions identical bit for bit to those of the original run on all 17{,}284
+sentences. Loading the model, inference and evaluation therefore need no connection at all. The test is stronger than a
+disconnected machine, because the process cannot reach the network even when the machine is online.
+
+The second concerns quantisation. When the same adapter of the 0.5B is applied to the original bf16 weights instead of
+the 8-bit ones, the probabilities change by 0.011 on average on T1 and by 0.007 on T3, and the predicted class agrees on
+98.3\,\% and 98.9\,\% of the sentences. The metrics do not change: the three-way balanced accuracy is 0.769 with the
+8-bit base and 0.768 with the bf16 one on T1, 0.442 in both cases on T3, and the AUROC on T1 is 0.905 against 0.904. The
+8-bit base, which halves the memory of the weights, therefore costs no measurable accuracy. The measurement concerns,
+however, the sensitivity to the precision of the base of an adapter trained on the 8-bit base, not a model trained
+entirely in bf16.
+
+The third concerns co-residence with the generator. In the same process, the 4-bit Qwen2.5-3B-Instruct generator and
+GroundOne verify 30 answers generated from T1 documents, with a median of 169 generated tokens and seven scored sentences
+per answer (Table~\ref{tab:results-coresidence}). With the 3B verifier the peak memory allocated by MLX is 6.1\,GB, with
+the 0.5B 3.3\,GB: both well below the 16\,GB of the machine. Verification takes 30\,\% of the total time per answer
+with the 3B and 6.7\,\% with the 0.5B. The small model therefore adds a modest fraction to the generation time, whereas
+the 3B lengthens it by about a third in exchange for higher accuracy. During the run with the 3B, with the usual desktop
+applications open, the free memory of the whole system dropped for a few moments to about 1.6\,GB: the pair fits
+comfortably in the process, but on a 16\,GB laptop it leaves little headroom for heavy desktop use. The retriever is not
+included in this measurement.
+
+\begin{table}[htbp]
+\centering
+\caption{Co-residence of generator and verifier in one process: 4-bit Qwen2.5-3B-Instruct as the generator, 30 T1
+documents, greedy generation up to 300 tokens. Memory allocated by MLX; median times per answer.}
+\label{tab:results-coresidence}
+\small
+\begin{tabular}{lccccc}
+\toprule
+Verifier & \makecell{Memory after\\loading} & \makecell{Peak\\memory} & Generation & Verification & \makecell{Share of\\verification} \\
+\midrule
+GroundOne 3B & 5.0\,GB & 6.1\,GB & 4.75\,s & 1.68\,s & 30\,\% \\
+GroundOne 0.5B & 2.3\,GB & 3.3\,GB & 4.65\,s & 0.28\,s & 6.7\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Error analysis}
 \label{sec:results-errors}

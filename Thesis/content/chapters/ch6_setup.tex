@@ -8,7 +8,7 @@ This chapter describes the models that were trained, the systems they are compar
 protocol and the way time and energy are measured. All experiments run on one machine, a MacBook Pro with an Apple M4
 chip (10-core CPU, 10-core GPU, 120\,GB/s of memory bandwidth) and 16\,GB of unified memory~\cite{apple2024m4specs}, so
 that every result reflects what a verifier can do on the device where a local assistant runs. Every baseline, including
-the encoders and the two general-purpose System One models, also runs on this laptop; no result depends on a remote service.
+the encoders and the two general-purpose decision models, also runs on this laptop; no result depends on a remote service.
 
 \section{Models}
 \label{sec:setup-models}
@@ -44,7 +44,7 @@ Section~\ref{sec:data-eda}.
 \paragraph{Untrained readout (B1).} The same Qwen2.5 models, without fine-tuning, are asked the three-way question for
 each sentence and their answer-letter logits are read. Because an untrained model has no reason to treat the
 \texttt{Verdict:} marker as a question, this baseline uses the format with one explicit question per sentence
-(Section~\ref{sec:method-readout}). It measures what the System One mechanism gives before any specialisation.
+(Section~\ref{sec:method-readout}). It measures what the decision-model mechanism gives before any specialisation.
 
 \paragraph{Generative judges (B0a, B0b).} The untrained models are also used in the way that is common in practice:
 they receive the document, the numbered answer and the list of sentences to check, and they write a verdict for each
@@ -71,16 +71,16 @@ what greedy generation of one token would produce. The three letters, with or wi
 classes, and any other token is a format failure. This control keeps weights, prompt and cost identical and changes only
 whether the decision is restricted to the admissible options.
 
-\paragraph{A general-purpose System One: Rizzo-Flow (B3).} This open project~\cite{rizzoflow} implements the System One
+\paragraph{A general-purpose decision model: Rizzo-Flow (B3).} This open project~\cite{rizzoflow} implements the decision-model
 idea with a 4B model fine-tuned on generic typed decisions. It runs in its own server, based on
 llama.cpp~\cite{llamacpp}, and is queried over HTTP with the document and the numbered answer as shared state and one
 three-way choice question per sentence. A 4-bit quantised model is used because the 8-bit one does not fit in memory
 beside the operating system.
 
-\paragraph{A general-purpose System One of the same size: d1-3B (B3b).} Liquid AI's d1-3B~\cite{liquid2026d1} is an open
+\paragraph{A general-purpose decision model of the same size: d1-3B (B3b).} Liquid AI's d1-3B~\cite{liquid2026d1} is an open
 decision model of 3.1B parameters, post-trained for typed decisions on a broad mixture of tasks, which reads restricted
 answer letters with the state shared across questions: the same readout family as GroundOne, at the size of its larger
-model, but general-purpose. It isolates the value of specialisation against a System One that was already trained to
+model, but general-purpose. It isolates the value of specialisation against a decision model that was already trained to
 decide, rather than against an untrained one. It is run zero-shot with its own inference code, in PyTorch on the GPU of
 the laptop and without network access, with the same state and questions as Rizzo-Flow and at most six questions per call
 on the same state; on LLM-AggreFact its documents are split exactly as GroundOne's and the maximum over chunks is kept.
@@ -139,7 +139,7 @@ the two runs of the 0.5B provide that information separately (Section~\ref{sec:r
 Latency is measured on 200 answers of T1, 50 from each band of $K$, so that long answers are as well represented as
 short ones. GroundOne, the question-per-sentence readout and all generative judges run in process on MLX, one answer at a
 time, as a verifier would in a local assistant. The first three answers serve as warm-up and are excluded. For the
-System One variants each answer is timed three times and the median is kept; the generative judges are timed once,
+decision-model variants each answer is timed three times and the median is kept; the generative judges are timed once,
 since greedy decoding is deterministic and each run is much longer. The reported time is the wall-clock time of the
 model call for one answer, from which the time per decision follows.
 
@@ -155,6 +155,16 @@ verified once, after 60 seconds of idle measurement with the model already loade
 mean power during the run, minus the idle power, multiplied by the run time and divided by the number of answers. The
 measurement covers the computing units of the chip but not the memory, the display or the storage, and it was taken
 overnight with the machine otherwise idle.
+
+Three measurements concern locality directly. The first checks independence from the network: a complete evaluation of
+T1 is repeated with the libraries in offline mode and inside a macOS sandbox that denies the process any network access,
+and its predictions are compared with those of the original run. The second measures the effect of quantisation: the
+same adapter of the 0.5B model is applied to the original 16-bit (bf16) weights and evaluated on T1 and T3. The third
+measures co-residence: a single process loads the generator planned for the demonstration application,
+Qwen2.5-3B-Instruct quantised to 4 bits, and a GroundOne verifier; for 30 T1 documents, ten per task, the generator writes
+an answer of at most 300 tokens and GroundOne verifies it. The peak memory allocated by MLX and the generation and
+verification times are recorded. The document is given directly, as in RAGTruth, so the retriever is not included. These
+measurements also run entirely inside the network-denying sandbox.
 
 Only one model runs at a time, and a memory guard runs every long job and records the free memory and the swap
 throughout. Results are written once and never overwritten, and each run stores its configuration, so every number in

@@ -4,19 +4,19 @@
 \section{Summary of findings}
 \label{sec:concl-summary}
 
-This thesis asked whether a compact language model, specialised in a single decision and used as a System One, can
+This thesis asked whether a compact language model, specialised in a single decision and used as a decision model, can
 verify retrieval-augmented answers sentence by sentence on a laptop, and where any advantage comes from. GroundOne, a
 fine-tuned Qwen2.5 model that reads the verdicts of a whole answer in one forward pass, gives a positive but qualified
 answer.
 
 Specialisation works where it was aimed. On the RAGTruth test set GroundOne reaches a three-way balanced accuracy of
 0.769 with 0.5B parameters and 0.832 with 3B, far above the same models untrained, above the specialised encoders in
-ranking supported sentences and well above Rizzo-Flow, a general-purpose System One eight times larger. On LLM-AggreFact the 3B is on
+ranking supported sentences and well above Rizzo-Flow, a general-purpose decision model eight times larger. On LLM-AggreFact the 3B is on
 par with the best small encoder, and on VitaminC the gain disappears: a specialist is not a general fact checker. d1-3B,
-a general-purpose System One of the same size trained to decide on a broad mixture of tasks, confirms the trade-off:
+a general-purpose decision model of the same size trained to decide on a broad mixture of tasks, confirms the trade-off:
 GroundOne is far ahead of it on RAGTruth, on par on LLM-AggreFact and far behind on VitaminC.
 
-The System One mechanism pays off in two ways. Reading all verdicts in one pass makes verification about two times
+The decision-model mechanism pays off in two ways. Reading all verdicts in one pass makes verification about two times
 faster than a terse and six times faster than a verbose generative judge of the same size on long answers, with output
 that is always valid; and restricting the decision to the admissible answers is, by itself, more accurate than letting
 the same model generate its verdict. At equal output, generative judges cannot provide probabilities of comparable
@@ -47,11 +47,13 @@ effects on accuracy that remain to be measured.
 
 On the systems side, the cost model of Chapter~\ref{sec:local} should be checked on other hardware: a port of the
 readout to llama.cpp would allow measuring GroundOne on a discrete graphics card, on a DGX Spark or an AMD Strix Halo
-machine, and on a phone, whose neural processing units accelerate exactly the prefill on which a System One relies. The
-remaining measurements of the locality pillar are the memory used when the verifier runs next
-to a generator and a retriever, and a complete evaluation with the network disabled. A fair latency comparison with the
-encoders requires running them in batches, and one with the general-purpose System One models requires comparing both systems
-through the same HTTP interface. Verification could also run while the answer is being generated, flagging each sentence
+machine, and on a phone, whose neural processing units accelerate exactly the prefill on which a decision model relies. The
+remaining measurement of the locality pillar is the memory of the retriever next to the generator and the verifier,
+which were already measured together in this thesis. A fair latency comparison with the
+encoders requires running them in batches, and one with the general-purpose decision models requires comparing both systems
+through the same HTTP interface. For contexts made of several documents, a natural extension is attribution: reading, besides the verdict, which
+passage supports or contradicts each sentence, for example with a readout per passage, so as to show users the source of
+every claim and to handle conflicting sources explicitly. Verification could also run while the answer is being generated, flagging each sentence
 as soon as it is complete, which the marker design makes natural. Finally, a local assistant built on the served
 interface would let users choose the policy and the threshold that suit their documents, which is where calibrated
 probabilities show their value.

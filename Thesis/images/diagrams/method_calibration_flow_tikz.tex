@@ -1,0 +1,33 @@
+\documentclass[border=3pt]{standalone}
+\input{g1_common.tex}
+\begin{document}
+\begin{tikzpicture}
+  \node[io, text width=3.0cm] (z) at (0,0) {raw logits $z_A, z_B, z_C$\\at a marker};
+  % raw branch (left, down)
+  \node[post=3.1cm, font=\footnotesize] (raw) at (0,-3.2) {raw decision:\\$\arg\max(z_A,z_B,z_C)$};
+  \node[note, below=1mm of raw] {classification metrics\\(balanced accuracy, AUROC)};
+  \draw[arrow] (z) -- (raw);
+  % calibrated branch
+  \node[model=3.5cm] (cal) at (5.2,0) {$\mathrm{softmax}(z/T + b)$\\$T$ and $b$ fitted on the dev set};
+  \node[note, right=5mm of cal, align=left, anchor=west] {$T$ alone does not change the ranking of sentences;\\the bias $b$ restores the base rates of the classes};
+  \draw[arrow] (z) -- (cal);
+  \node[decision, font=\footnotesize, text width=2.3cm] (d) at (5.2,-2.4) {$P(\text{supported})$\\$\geq \tau$ ?};
+  \draw[arrow] (cal) -- (d);
+  \node[outcome=okLine, fill=okFill] (sup) at (9.4,-2.4) {supported};
+  \draw[arrow] (d) -- node[above, font=\footnotesize] {yes} (sup);
+  \node[decision, font=\footnotesize, text width=2.6cm, aspect=2.3] (d2) at (5.2,-5.0) {$P(\text{contr.}) >$\\$P(\text{not ment.})$ ?};
+  \draw[arrow] (d) -- node[right, font=\footnotesize] {no} (d2);
+  \node[outcome=badLine, fill=badFill] (con) at (9.4,-4.4) {contradicted};
+  \node[outcome=nmLine, fill=nmFill] (nm) at (9.4,-5.6) {not mentioned};
+  \draw[arrow] (d2.east) -- ++(4mm,0) |- node[pos=0.7, above, font=\footnotesize] {yes} (con.west);
+  \draw[arrow] (d2.east) -- ++(4mm,0) |- node[pos=0.7, below, font=\footnotesize] {no} (nm.west);
+  \node[post=3.3cm, font=\footnotesize, align=left] (fl) at (13.3,-4.0) {\textbf{strict} flag: every\\unsupported sentence\\[2pt]\textbf{lenient} flag: only\\contradicted ones};
+  \draw[dashedarrow] (sup.east) -| (fl.north);
+  \draw[dashedarrow] (con.east) -- (fl.west |- con.east);
+  \draw[dashedarrow] (nm.east) -| (fl.south);
+  \begin{scope}[on background layer]
+    \node[cluster, fit=(cal)(d)(d2)(sup)(con)(nm)(fl), inner sep=4mm] (cbox) {};
+  \end{scope}
+  \node[note, below=1.5mm of cbox.south, anchor=north] {dashed box: calibrated probabilities, used for ECE, thresholds,\\selective prediction and the labels and flags returned by the API};
+\end{tikzpicture}
+\end{document}

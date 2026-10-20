@@ -24,7 +24,7 @@ def cost_model(g):
     fig, axes = plt.subplots(1, 2, figsize=(10, 3.6), sharey=False)
     for ax, size in zip(axes, ("0.5B", "3B")):
         s1 = (S + MARKER * K) * T_PRE[size]
-        ax.plot(K, s1, color=SERIES[0], label="System One: prefill of S + 3K tokens")
+        ax.plot(K, s1, color=SERIES[0], label="Decision model: prefill of S + 3K tokens")
         for kind, col in (("terse", SERIES[7]), ("verbose", SERIES[5])):
             n = GEN_TOKENS[(size, kind)] / mean_k
             ax.plot(K, S * T_PRE[size] + K * n * T_DEC[size], color=col,

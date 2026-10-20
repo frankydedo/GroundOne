@@ -66,8 +66,8 @@ IT = {
     "tokens of document + answer (Qwen2.5 tokenizer; dashed: 2,048 cap)":
         "token di documento + risposta (tokenizer Qwen2.5; tratteggio: limite 2048)",
     "training loss (25-step mean)": "loss di addestramento (media su 25 passi)",
-    "System One: prefill of S + 3K tokens": "Decision Model: prefill di S + 3K token",
-    "System One (design a)": "Decision Model (design a)",
+    "Decision model: prefill of S + 3K tokens": "Decision Model: prefill di S + 3K token",
+    "Decision model (design a)": "Decision Model (design a)",
     "K = decisions per answer": "K = decisioni per risposta",
     "seconds per answer (model)": "secondi per risposta (modello)",
     "untrained (readout)": "non addestrato (readout)",

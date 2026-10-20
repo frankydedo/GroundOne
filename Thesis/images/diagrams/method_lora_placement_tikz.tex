@@ -1,0 +1,65 @@
+\documentclass[border=3pt]{standalone}
+\input{g1_common.tex}
+\begin{document}
+\begin{tikzpicture}[
+  lin/.style={rectangle, draw=ioLine, fill=ioFill, thick, minimum width=1.25cm, minimum height=0.75cm, font=\footnotesize},
+  lora/.style={rectangle, rounded corners=1.5pt, draw=modLine, fill=modFill, thick, font=\scriptsize, inner sep=1.5pt},
+  op/.style={rectangle, rounded corners=2pt, draw=clusterLine, fill=white, font=\footnotesize, minimum height=0.6cm},
+  sum/.style={circle, draw=ioLine, thick, inner sep=0.5pt, font=\footnotesize}]
+  % input
+  \node[io, text width=2.4cm, font=\footnotesize] (in) at (0,0) {input\\hidden states};
+  % attention
+  \node[op] (n1) at (0,-1.2) {RMSNorm};
+  \node[lin] (q) at (-2.9,-2.4) {$W_q$};
+  \node[lin] (k) at (-0.9,-2.4) {$W_k$};
+  \node[lin] (v) at (1.1,-2.4) {$W_v$};
+  \node[op, text width=2.8cm, align=center] (att) at (-0.9,-3.6) {causal attention\\(GQA, RoPE)};
+  \node[lin] (o) at (-0.9,-4.8) {$W_o$};
+  \node[sum] (s1) at (0,-5.8) {$+$};
+  % mlp
+  \node[op] (n2) at (0,-6.8) {RMSNorm};
+  \node[lin] (g) at (-1.9,-8.0) {$W_\mathrm{gate}$};
+  \node[lin] (u) at (0.7,-8.0) {$W_\mathrm{up}$};
+  \node[op] (act) at (-0.6,-9.1) {SiLU($\cdot$) $\odot$ ($\cdot$)};
+  \node[lin] (d) at (-0.6,-10.2) {$W_\mathrm{down}$};
+  \node[sum] (s2) at (0,-11.2) {$+$};
+  \node[io, text width=2.4cm, font=\footnotesize] (out) at (0,-12.3) {output\\hidden states};
+  % LoRA badges
+  \foreach \n in {q,k,v,o,g,u,d} \node[lora, anchor=west] at ([xshift=1pt]\n.east) {$+BA$};
+  % arrows
+  \draw[arrow] (in) -- (n1);
+  \draw[arrow] (n1.south) -- ++(0,-0.3) -| (q.north);
+  \draw[arrow] (n1.south) -- ++(0,-0.3) -| (k.north);
+  \draw[arrow] (n1.south) -- ++(0,-0.3) -| (v.north);
+  \draw[arrow] (q.south) -- (q.south |- att.north);
+  \draw[arrow] (k.south) -- (att.north);
+  \draw[arrow] (v.south) -- (v.south |- att.north);
+  \draw[arrow] (att) -- (o);
+  \draw[arrow] (o.south) |- (s1.west);
+  \draw[arrow] (in.east) -- ++(2.3,0) |- (s1.east);
+  \draw[arrow] (s1) -- (n2);
+  \draw[arrow] (n2.south) -- ++(0,-0.3) -| (g.north);
+  \draw[arrow] (n2.south) -- ++(0,-0.3) -| (u.north);
+  \draw[arrow] (g.south) -- (g.south |- act.north);
+  \draw[arrow] (u.south) -- (u.south |- act.north);
+  \draw[arrow] (act) -- (d);
+  \draw[arrow] (d.south) |- (s2.west);
+  \draw[arrow] (s1.east) -- ++(2.6,0) |- (s2.east) node[pos=0.25, right, note] {residual};
+  \draw[arrow] (s2) -- (out);
+  % block frame
+  \begin{scope}[on background layer]
+    \node[cluster, fit=(n1)(q)(v)(o)(s1)(n2)(g)(u)(d)(s2), inner sep=5mm] (blk) {};
+  \end{scope}
+  % legend / numbers
+  \node[clusterlabel, anchor=west, align=left] at (4.3,-0.4) {one Qwen2.5 transformer block,\\repeated 24 times (0.5B) or 36 (3B)};
+  \node[lin, anchor=west, minimum width=0.9cm] (lw) at (4.3,-1.8) {$W$};
+  \node[note, right=2mm of lw, align=left] {base model weights,\\frozen at 8 bits};
+  \node[lora, anchor=west] (lb) at (4.45,-3.0) {$+BA$};
+  \node[note, right=3.5mm of lb, align=left] {trainable LoRA adapter\\(rank 16, scale 2)};
+  \node[post=5.4cm, font=\footnotesize, align=left, anchor=north west] at (4.3,-4.2) {trainable parameters per block:\\[2pt]
+    $\bullet$ 0.5B: 366{,}592\\$\bullet$ 3B: 831{,}488\\[3pt]
+    in total:\\[2pt]
+    $\bullet$ 0.5B: 8.8 million (1.8\,\% of the model)\\$\bullet$ 3B: 29.9 million (1.0\,\% of the model)};
+  \node[note, align=left, anchor=north west, text width=5.6cm] at (4.3,-8.0) {Embeddings and output head (shared)\\stay frozen, without adapters.\\The arrows on the right are the\\residual connections.};
+\end{tikzpicture}
+\end{document}

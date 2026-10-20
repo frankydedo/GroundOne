@@ -315,7 +315,7 @@ strict e lenient, insieme alla regola di decisione e alla soglia che li hanno pr
 in ingresso, il numero di token generati, sempre pari a zero, e il tempo impiegato. L'endpoint compatibile, invece,
 risponde a domande chiuse generiche su un contesto condiviso, con il formato a una domanda per frase. Tutto il calcolo del
 modello avviene su un unico worker thread di lunga durata, perché il contesto Metal della GPU, cioè lo stato con cui il
-programma la usa attraverso l'interfaccia grafica di Apple, non deve spostarsi da un thread all'altro. Infine, nulla esce
+programma la usa attraverso Metal, l'API grafica di Apple, non deve spostarsi da un thread all'altro. Infine, nulla esce
 dalla macchina: modelli, dati e richieste restano in locale. La Figura~\ref{fig:method-software} riassume l'architettura del pacchetto.
 
 \begin{figure}[htbp]

@@ -24,12 +24,12 @@ SYSTEMS = [  # (label, results name, kind)
 ]
 COLORS = {**SYSTEM_COLORS, "Word overlap": "#c4c2bb", "Sentence only": "#8a877f", "d1-3B (Liquid AI)": "#e87ba4"}
 LATENCY = {  # size -> [(label, results name)]
-    "0.5B": [("GroundOne (design b)", "g1-05b-b1"), ("System One (design a)", "untrained-05b"),
+    "0.5B": [("GroundOne (design b)", "g1-05b-b1"), ("Decision model (design a)", "untrained-05b"),
              ("Terse judge", "judge-terse-05b"), ("Verbose judge", "judge-verbose-05b")],
-    "3B": [("GroundOne (design b)", "g1-3b-b1"), ("System One (design a)", "untrained-3b"),
+    "3B": [("GroundOne (design b)", "g1-3b-b1"), ("Decision model (design a)", "untrained-3b"),
            ("Terse judge", "judge-terse-3b"), ("Verbose judge", "judge-verbose-3b")],
 }
-LAT_COLORS = {"GroundOne (design b)": SERIES[0], "System One (design a)": SERIES[4], "Terse judge": SERIES[7],
+LAT_COLORS = {"GroundOne (design b)": SERIES[0], "Decision model (design a)": SERIES[4], "Terse judge": SERIES[7],
               "Verbose judge": SERIES[5]}
 BANDS = ["1-4", "5-8", "9-13", ">=14"]
 

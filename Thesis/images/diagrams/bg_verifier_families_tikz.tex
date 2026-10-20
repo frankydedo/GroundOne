@@ -1,0 +1,30 @@
+\documentclass[border=3pt]{standalone}
+\input{g1_common.tex}
+\begin{document}
+\begin{tikzpicture}[node distance=4mm]
+  % column 1: encoder
+  \node[clusterlabel] (h1) at (0,0) {Specialised encoder\\(MiniCheck, HHEM)};
+  \node[io, text width=3.2cm, below=4mm of h1, font=\footnotesize] (i1) {(document, sentence $i$)\\per $i = 1, \dots, K$};
+  \node[model=3.2cm, below=of i1, font=\footnotesize] (m1) {bidirectional encoder\\$K$ independent forward passes};
+  \node[io, text width=3.2cm, below=of m1, font=\footnotesize] (o1) {one support probability\\per sentence};
+  \node[note, below=2mm of o1, text width=3.6cm] {fast, but binary only;\\each sentence without the rest\\of the answer};
+  \draw[arrow] (i1) -- (m1); \draw[arrow] (m1) -- (o1);
+  % column 2: judge
+  \node[clusterlabel] (h2) at (5.2,0) {Generative judge\\(LLM-as-a-judge)};
+  \node[io, text width=3.2cm, below=4mm of h2, font=\footnotesize] (i2) {prompt: criteria,\\document, answer};
+  \node[model=3.2cm, below=of i2, font=\footnotesize] (m2) {LLM: prefill, then\\\textbf{decoding},\\token by token};
+  \node[post=3.2cm, below=of m2, font=\footnotesize] (p2) {generated text\\$\rightarrow$ parser};
+  \node[io, text width=3.2cm, below=of p2, font=\footnotesize] (o2) {one textual verdict\\per sentence};
+  \node[note, below=2mm of o2, text width=3.6cm] {flexible, but cost grows\\with the text written; format\\errors in small models};
+  \draw[arrow] (i2) -- (m2); \draw[arrow] (m2) -- (p2); \draw[arrow] (p2) -- (o2);
+  \draw[loop] (m2.east) -- ++(4mm,0) |- ([yshift=1.5mm]m2.north east) node[pos=0.25, right, note, text=loopRed] {$\times$ token};
+  % column 3: system one
+  \node[clusterlabel] (h3) at (10.4,0) {Specialist Decision Model\\(GroundOne)};
+  \node[io, text width=3.2cm, below=4mm of h3, font=\footnotesize] (i3) {document + answer\\with a marker per sentence};
+  \node[model=3.2cm, below=of i3, font=\footnotesize] (m3) {a single \textbf{prefill}\\(no token generated)};
+  \node[model=3.2cm, below=of m3, font=\footnotesize] (r3) {logits of A, B, C\\at every marker};
+  \node[io, text width=3.2cm, below=of r3, font=\footnotesize] (o3) {three probabilities\\per sentence};
+  \node[note, below=2mm of o3, text width=3.6cm] {cost almost independent of $K$;\\three classes and\\calibratable probabilities};
+  \draw[arrow] (i3) -- (m3); \draw[arrow] (m3) -- (r3); \draw[arrow] (r3) -- (o3);
+\end{tikzpicture}
+\end{document}
