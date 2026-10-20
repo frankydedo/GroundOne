@@ -73,6 +73,13 @@ IT = {
     "untrained (readout)": "non addestrato (readout)",
     "fine-tuned, generated token (B2)": "addestrato, token generato (B2)",
     "fine-tuned, restricted readout (GroundOne)": "addestrato, readout ristretto (GroundOne)",
+    "not supported": "non supportata",
+    "score P(supported)": "punteggio P(supportata)",
+    "(a) scores of the two classes": "(a) punteggi delle due classi",
+    "random scores\n(AUROC 0.5)": "punteggi casuali\n(AUROC 0.5)",
+    "false positive rate (not supported accepted)": "tasso di falsi positivi (non supportate accettate)",
+    "true positive rate (supported accepted)": "tasso di veri positivi (supportate accettate)",
+    "(b) ROC curve: every threshold at once": "(b) curva ROC: tutte le soglie insieme",
     # categories
     "all": "tutte", "all T1": "tutto T1", "test": "test", "train": "train", "dev": "dev", "three": "tre classi",
     "supported": "supportata", "contradicted": "contraddetta", "not_mentioned": "non menzionata",
@@ -86,6 +93,7 @@ IT = {
     "seed 1234 (run 1)": "seed 1234 (run 1)", "seed 777 (run 2)": "seed 777 (run 2)", "seed 4321 (stopped)": "seed 4321 (interrotto)",
 }
 SUB = [
+    ("threshold ", "soglia "), ("area = AUROC = ", "area = AUROC = "),
     ("terse judge: prefill of S + K × ", "giudice sintetico: prefill di S + K × "),
     ("verbose judge: prefill of S + K × ", "giudice verboso: prefill di S + K × "),
     (" generated tokens", " token generati"),
