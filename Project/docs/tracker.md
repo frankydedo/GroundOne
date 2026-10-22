@@ -110,7 +110,7 @@ Chapters renumbered on 2026-10-11 after the new Ch. 2. Italian version (`Thesis_
 3. [x] (2026-10-18: mean |Δp| 0.011, argmax agreement 98.3 %, balanced accuracy 0.7687 vs 0.7684) **8-bit vs bf16** (Ch. 2 quantisation section, measured instead of cited): 0.5B with the bf16 base (cached) and the same adapter: probability differences and T1 metrics. The 3B needs a ≈ 6 GB bf16 download (ask). ≈ 1–2 h
 4. [x] ~~Seed 4321 re-run~~: not done (author, 2026-10-18)
 5. [x] ~~A3–A5~~: cut, not mentioned in the thesis (D29, 2026-10-18)
-6. [ ] Desk items (no GPU): licence table; hosted-judge cost comparison; Ch. 6 sentence that every baseline ran on the laptop; Italian figure labels for Ch. 3–9; git tag per reported experiment and reproducibility notes at the freeze
+6. [ ] Desk items (no GPU): ~~hosted-judge cost comparison~~ (done 2026-10-19), ~~Ch. 6 sentence on the laptop~~ (already there), ~~Italian figure labels~~ (done 2026-10-18); **still open: licence table; git tag per reported experiment and reproducibility notes at the freeze**
 7. [ ] Then the demo (M0–M5 above)
 
 **Standing rules:** every phase leaves figures (`groundone figures all` → `Project/outputs/figures/`); every result or insight goes into `docs/thesis_notes.md`.
@@ -119,7 +119,7 @@ Chapters renumbered on 2026-10-11 after the new Ch. 2. Italian version (`Thesis_
 - [x] HTTP API on design (b) with one coherent output rule (D27, 2026-10-10)
 - [x] Served threshold τ fitted on dev (2026-10-10): 0.935 / 0.895 / 0.925 (0.5B run 1, run 2, 3B); served rule = raw decision within 0.01 on T1
 - [ ] **Demo (D28, `demo_architecture.md`)**, milestones:
-   - [x] open questions answered (2026-10-18; segmentation approach to confirm)
+   - [x] open questions answered (2026-10-18); segmentation approach confirmed (NLTokenizer + agreement with pysbd measured on T1)
    - [ ] M0 Xcode project; MLX Swift streams an answer from Qwen2.5-3B
    - [ ] M1 GroundOne in Swift + fixture export in Python + conformance test (gate, by 2026-10-24)
    - [ ] M2 library + SQLite FTS5 retrieval + coloured chat
