@@ -137,3 +137,8 @@
 ## [2026-10-20] ingest | Artificial Analysis Intelligence Index snapshot
 - **Source:** chart downloaded by the author (Intelligence Index v4.3.2, 2026-10-20) plus open-weights flags, parameter class and creator from the leaderboard page data; saved as a table in raw with the image.
 - **Updated:** [[Open-Weight Models]]. **Thesis:** Ch. 2 §2.2.2, redrawn figure `aa_intelligence_snapshot` (closed vs open-weight, small class hatched) and one paragraph; bib entry aa2026intelligence.
+
+## [2026-10-22] ingest | Licences of the GroundOne components
+- **Sources:** HF/GitHub licence metadata for all models, datasets and software; full texts of the Qwen Research License and the LFM Open License v1.0; MS MARCO and Yelp Open Dataset terms.
+- **Updated:** [[Open-Weight Models]]. **Thesis:** Ch. 6 new section "Licenze e condizioni d'uso" with Table 6.1 (Italian); bib entries qwen2024researchlicense, liquid2025lfmlicense, msmarco2026terms.
+- **Finding:** GroundOne 3B and the demo generator inherit the Qwen Research License (research and evaluation only); the 0.5B is Apache 2.0.

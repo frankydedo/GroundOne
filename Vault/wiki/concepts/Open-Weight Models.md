@@ -36,3 +36,6 @@ Drivers named by Epoch: open labs scale compute as fast as closed ones, distilla
 
 ## Snapshot of 2026-10-20 (Artificial Analysis Intelligence Index v4.3.2)
 - Best closed 58 (Claude Opus 5.5) vs best open-weight 46 (MiMo-V2.6-Pro); several open-weight models (DeepSeek V4.1 Flash, GLM-5.3, Kimi K3) match mid-tier closed models; all of them are "large", while the only "small" model in the chart (Qwen3.8 27B) scores 34 ([[Artificial Analysis 2026 - Intelligence Index snapshot (2026-10-20)]]). Used in thesis Ch. 2 §2.2.2 next to the Epoch AI trend.
+
+## Licences of the GroundOne components (2026-10-22)
+- Qwen2.5-0.5B Apache 2.0 vs Qwen2.5-3B Qwen Research License (research and evaluation only): GroundOne 3B and the 3B demo generator are research-only; d1-3B's LFM Open License 1.0 caps commercial use at USD 10 M revenue ([[Licences 2026 - GroundOne components (collected 2026-10-22)]]).

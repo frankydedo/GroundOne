@@ -110,7 +110,7 @@ Chapters renumbered on 2026-10-11 after the new Ch. 2. Italian version (`Thesis_
 3. [x] (2026-10-18: mean |Δp| 0.011, argmax agreement 98.3 %, balanced accuracy 0.7687 vs 0.7684) **8-bit vs bf16** (Ch. 2 quantisation section, measured instead of cited): 0.5B with the bf16 base (cached) and the same adapter: probability differences and T1 metrics. The 3B needs a ≈ 6 GB bf16 download (ask). ≈ 1–2 h
 4. [x] ~~Seed 4321 re-run~~: not done (author, 2026-10-18)
 5. [x] ~~A3–A5~~: cut, not mentioned in the thesis (D29, 2026-10-18)
-6. [ ] Desk items (no GPU): ~~hosted-judge cost comparison~~ (done 2026-10-19), ~~Ch. 6 sentence on the laptop~~ (already there), ~~Italian figure labels~~ (done 2026-10-18); **still open: licence table; git tag per reported experiment and reproducibility notes at the freeze**
+6. [ ] Desk items (no GPU): ~~hosted-judge cost comparison~~ (done 2026-10-19), ~~Ch. 6 sentence on the laptop~~ (already there), ~~Italian figure labels~~ (done 2026-10-18); ~~licence table~~ (done 2026-10-22, Ch. 6 Table 6.1); **still open: git tag per reported experiment and reproducibility notes on 2026-10-30**
 7. [ ] Then the demo (M0–M5 above)
 
 **Standing rules:** every phase leaves figures (`groundone figures all` → `Project/outputs/figures/`); every result or insight goes into `docs/thesis_notes.md`.
@@ -133,7 +133,7 @@ Chapters renumbered on 2026-10-11 after the new Ch. 2. Italian version (`Thesis_
    - [x] proof of independence (2026-10-18): full T1 inside a sandbox that denies all network access, predictions bit-identical
    - [x] energy per verification with `powermetrics` (2026-10-10): GroundOne 5.5 J / 33 J per answer vs terse 8.9 / 43 and verbose 22.5 / 112
    - [x] co-residence (2026-10-18): generator 3B 4-bit + GroundOne in one process, MLX peak 6.1 GB (3B verifier) / 3.3 GB (0.5B); retriever to measure in the demo
-   - [ ] licences as part of independence: one table (models, datasets, baselines) with licence and allowed use
+   - [x] licences as part of independence (2026-10-22): Ch. 6 Table 6.1; GroundOne 3B research-only (Qwen Research License), 0.5B Apache 2.0
    - [x] cost comparison with a hosted LLM judge, in brief (D30, 2026-10-19): $1–215 per 10,000 answers vs €0.004–0.03 of electricity; Ch. 8 table
    - [x] state in Ch. 6 (setup) that every baseline also ran on the same laptop (already in the chapter intro)
 - [x] ~~Second night of 3B training~~: not needed, the dev score plateaued (0.705 at step 320, 0.700 at the end)
@@ -190,3 +190,4 @@ Add one line per significant event (date, what happened, impact on the plan).
 - 2026-10-18: queue_day8 results written into Thesis_ita (Ch. 2 quantisation, Ch. 6 protocol, new Ch. 7 section "Località" with the co-residence table, Ch. 8 RQ4, Ch. 9 future work); 128 pages
 - 2026-10-19: D30 — hosted-judge cost comparison in brief; wiki-ingestion extension cut; injected errors in the demo case study (independent ground truth for the revise loop)
 - 2026-10-19: hosted-judge cost comparison done (official prices saved in Vault/raw and ingested; script + results/locality/cost_comparison.json; Ch. 8 paragraph and table, 4 bib entries); Thesis_ita 129 pages
+- 2026-10-22: licence table (Ch. 6, Italian) with sources saved and ingested; GroundOne 3B and the demo generator are research-only under the Qwen Research License
