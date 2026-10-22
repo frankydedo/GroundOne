@@ -404,17 +404,17 @@ intervallo delle configurazioni offerte; banda: relativa a quelle configurazioni
 \toprule
 Sistema & Memoria (GB) & Banda (GB/s) & Tipo di memoria & Fonte \\
 \midrule
-MacBook Pro, M4 (macchina della tesi: 16\,GB) & 16--32 & 120 & unificata & \cite{apple2024m4specs} \\
-MacBook Pro / Mac mini, M5 & 16--32 & 153 & unificata & \cite{apple2026mbp,apple2026macmini} \\
-Mac mini, M5 Pro & 24--64 & 307 & unificata & \cite{apple2026macmini} \\
-MacBook Pro, M5 Max & 36--128 & 460--614 & unificata & \cite{apple2026mbp} \\
-Mac Studio, M4 Max & 36--128 & 410--546 & unificata & \cite{apple2025macstudio} \\
-Mac Studio, M3 Ultra & 96--256 & 819 & unificata & \cite{apple2025macstudio} \\
-NVIDIA DGX Spark (GB10) & 128 & 273 & unificata & \cite{nvidia2026dgxspark} \\
-Framework Desktop, AMD Strix Halo & 32--128 (96 alla GPU) & n.d. & unificata & \cite{hachman2025framework} \\
-NVIDIA RTX 5090 & 32 & 1792 & discreta & \cite{nvidia2026geforce} \\
-NVIDIA RTX 5080 & 16 & 960 & discreta & \cite{nvidia2026geforce} \\
-NVIDIA RTX 5060 Ti & 16 & 448 & discreta & \cite{nvidia2026geforce} \\
+MacBook Pro, M4 (macchina della tesi: 16\,GB) & 16--32 & 120 & Unificata & \cite{apple2024m4specs} \\
+MacBook Pro / Mac mini, M5 & 16--32 & 153 & Unificata & \cite{apple2026mbp,apple2026macmini} \\
+Mac mini, M5 Pro & 24--64 & 307 & Unificata & \cite{apple2026macmini} \\
+MacBook Pro, M5 Max & 36--128 & 460--614 & Unificata & \cite{apple2026mbp} \\
+Mac Studio, M4 Max & 36--128 & 410--546 & Unificata & \cite{apple2025macstudio} \\
+Mac Studio, M3 Ultra & 96--256 & 819 & Unificata & \cite{apple2025macstudio} \\
+NVIDIA DGX Spark (GB10) & 128 & 273 & Unificata & \cite{nvidia2026dgxspark} \\
+Framework Desktop, AMD Strix Halo & 32--128 (96 alla GPU) & n.d. & Unificata & \cite{hachman2025framework} \\
+NVIDIA RTX 5090 & 32 & 1792 & Discreta & \cite{nvidia2026geforce} \\
+NVIDIA RTX 5080 & 16 & 960 & Discreta & \cite{nvidia2026geforce} \\
+NVIDIA RTX 5060 Ti & 16 & 448 & Discreta & \cite{nvidia2026geforce} \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -576,15 +576,15 @@ lettura dei pesi. La Tabella~\ref{tab:local-quant} riassume i metodi che hanno s
 Metodo & Idea e risultato principale & Fonte \\
 \midrule
 LLM.int8() & Pesi e attivazioni a 8 bit; le poche dimensioni con valori anomali molto grandi (outlier) restano a 16 bit. Nessuna
-perdita fino a 175B parametri; fa risparmiare memoria ma non accelera i modelli piccoli & \cite{dettmers2022llmint8} \\
+perdita fino a 175B parametri; fa risparmiare memoria ma non accelera i modelli piccoli. & \cite{dettmers2022llmint8} \\
 GPTQ & Pesi a 3--4 bit, quantizzati strato per strato stimando quanto ogni peso influisca sull'errore. OPT-175B a 4 bit
-perde 0.03 di perplexity$^{a}$; i modelli piccoli perdono di più; decoding 3.2--4.5$\times$ più veloce grazie alla banda & \cite{frantar2023gptq} \\
+perde 0.03 di perplexity$^{a}$; i modelli piccoli perdono di più; decoding 3.2--4.5$\times$ più veloce grazie alla banda. & \cite{frantar2023gptq} \\
 AWQ & Pesi a 4 bit; l'1\,\% di canali più importanti, individuato dall'ampiezza delle attivazioni, è protetto tramite
-scalatura. Robusto rispetto ai dati di calibrazione; pensato per l'uso sul dispositivo & \cite{lin2024awq} \\
-GGUF k-quant & Formati a blocchi da 2 a 8 bit di llama.cpp, standard di fatto per la distribuzione consumer & \cite{llamacpp} \\
+scalatura. Robusto rispetto ai dati di calibrazione; pensato per l'uso sul dispositivo. & \cite{lin2024awq} \\
+GGUF k-quant & Formati a blocchi da 2 a 8 bit di llama.cpp, standard di fatto per la distribuzione consumer. & \cite{llamacpp} \\
 MLX affine & Pesi a 4 o 8 bit con una scala e un bias per gruppo di 64; supporta l'addestramento LoRA sul modello
-quantizzato (usato in questa tesi) & \cite{mlxlm} \\
-QLoRA & Modello base a 4 bit in formato normal float con adapter a 16 bit, per il fine-tuning con memoria limitata &
+quantizzato (usato in questa tesi). & \cite{mlxlm} \\
+QLoRA & Modello base a 4 bit in formato normal float con adapter a 16 bit, per il fine-tuning con memoria limitata. &
 \cite{dettmers2023qlora} \\
 \bottomrule
 \end{tabularx}

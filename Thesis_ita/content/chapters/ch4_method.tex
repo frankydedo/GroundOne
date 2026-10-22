@@ -222,11 +222,11 @@ su benchmark diversi da quelli di questa tesi; quelli di GroundOne sono misurati
 \toprule
  & Jev & GroundOne \\
 \midrule
-Quando & in addestramento: SFT seguito da RL con ricompense di calibrazione (RLCD) & dopo l'addestramento: temperatura e bias per classe stimati sul dev set \\ \addlinespace
-Ambito & un modello per tutti i task & un solo dominio, quello d'uso \\ \addlinespace
-Ricetta & non pubblica (dichiarazione del fornitore) & aperta, legata al fingerprint del modello \\ \addlinespace
-Soglia & lasciata all'utente; da stimare per ogni carico di lavoro & stimata sul dev set e parte della regola di output \\ \addlinespace
-Evidenze & ECE 0.047 in aggregato, 0.168 per singolo benchmark; probabilità binarie sotto-confidenti & ECE binario su T1 da 0.30 a 0.019 (0.5B), da 0.18 a 0.019 (3B); non si trasferisce a VitaminC \\
+Quando & In addestramento: SFT seguito da RL con ricompense di calibrazione (RLCD). & Dopo l'addestramento: temperatura e bias per classe stimati sul dev set. \\ \addlinespace
+Ambito & Un solo modello per tutti i task. & Un solo dominio, quello in cui il modello viene usato. \\ \addlinespace
+Ricetta & Non pubblica (dichiarazione del fornitore). & Aperta e legata al fingerprint del modello. \\ \addlinespace
+Soglia & Lasciata all'utente; va stimata per ogni carico di lavoro. & Stimata sul dev set e parte della regola di output. \\ \addlinespace
+Evidenze & ECE di 0.047 in aggregato e di 0.168 per singolo benchmark; probabilità binarie sotto-confidenti. & ECE binario su T1 da 0.30 a 0.019 (0.5B) e da 0.18 a 0.019 (3B); non si trasferisce a VitaminC. \\
 \bottomrule
 \end{tabular}
 \end{table}

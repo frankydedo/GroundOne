@@ -50,13 +50,13 @@ unici, e si riducono i punti in cui la costruzione può introdurre errori.
 \caption{I dataset di partenza: licenza, ruolo in GroundOne e tipo delle etichette originali.}
 \label{tab:data-sources}
 \small
-\begin{tabularx}{\textwidth}{@{}lllX@{}}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.25\textwidth}>{\raggedright\arraybackslash}p{0.18\textwidth}>{\raggedright\arraybackslash}p{0.15\textwidth}>{\raggedright\arraybackslash}X@{}}
 \toprule
 Dataset & Licenza & Ruolo & Etichette \\
 \midrule
-RAGTruth~\cite{niu2024ragtruth} & MIT & \makecell[l]{training set,\\ dev set, test T1} & span di caratteri relativi a quattro tipi di allucinazione nelle risposte di LLM \\
-LLM-AggreFact~\cite{tang2024minicheck,llmaggrefact} & CC BY-ND 4.0 & solo test T2 & binarie (supportata / non supportata) per affermazione \\
-VitaminC~\cite{schuster2021vitaminc} & CC BY-SA 3.0 & solo test T3 & supports / refutes / not enough information \\
+RAGTruth~\cite{niu2024ragtruth} & MIT & Training set, dev set e test T1 & Span di caratteri delle risposte di LLM, annotati con quattro tipi di allucinazione (conflitto o informazione infondata, evidente o sottile). \\ \addlinespace
+\mbox{LLM-AggreFact}~\cite{tang2024minicheck,llmaggrefact} & \mbox{CC BY-ND 4.0} & Solo test T2 & Un'etichetta binaria per ogni affermazione: supportata o non supportata. \\ \addlinespace
+VitaminC~\cite{schuster2021vitaminc} & \mbox{CC BY-SA 3.0} & Solo test T3 & Tre classi per ogni affermazione: \emph{supports}, \emph{refutes} e \emph{not enough information}. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -236,11 +236,11 @@ l'esito di ciascuno.}
 \toprule
 Controllo & Criterio & Esito \\
 \midrule
-Provenienza delle etichette & ogni etichetta di test proviene da annotatori umani & superato \\
-Segmentazione & $\geq$ 90\,\% delle affermazioni di LLM-AggreFact recuperate, $\leq$ 10\,\% delle frasi assenti da esso & 96.3\,\% / 8.5\,\% \\
-Derivazione delle etichette & accordo $\geq$ 97\,\% con le etichette binarie di LLM-AggreFact & 98.75\,\% \\
-Baseline di riferimento & MiniCheck-RoBERTa su T2 entro 1.5 punti dal punteggio pubblicato & 74.0 contro 73.5 \\
-Leakage & nessuna fonte, documento o coppia (documento, frase) in comune tra addestramento e test & superato \\
+Provenienza delle etichette & Ogni etichetta di test proviene da annotatori umani. & Superato \\
+Segmentazione & Almeno il 90\,\% delle affermazioni di LLM-AggreFact ritrovate tra le frasi segmentate, e al più il 10\,\% delle frasi segmentate assenti da LLM-AggreFact. & 96.3\,\% e 8.5\,\% \\
+Derivazione delle etichette & Accordo di almeno il 97\,\% con le etichette binarie di LLM-AggreFact. & 98.75\,\% \\
+Baseline di riferimento & MiniCheck-RoBERTa su T2 entro 1.5 punti dal punteggio pubblicato. & 74.0 contro 73.5 \\
+Leakage & Nessuna fonte, documento o coppia (documento, frase) in comune tra addestramento e test. & Superato \\
 \bottomrule
 \end{tabularx}
 \end{table}
