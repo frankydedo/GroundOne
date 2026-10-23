@@ -193,7 +193,11 @@ che comprende anche un'interfaccia compatibile con l'interfaccia System One di J
 novo: le annotazioni umane di RAGTruth, che marcano porzioni di testo, sono state convertite in un'etichetta a tre
 classi per ogni frase, con regole fissate in anticipo. I tre test set provengono da benchmark pubblici, sono stati
 verificati con controlli automatici, per esempio sulla segmentazione in frasi, e congelati prima di addestrare
-qualunque modello, con il leakage controllato a livello di documento.
+qualunque modello, con il leakage controllato a livello di documento\footnote{Si parla di \emph{leakage} (letteralmente
+``fuga'' di informazione) quando dati del test set finiscono, direttamente o indirettamente, tra quelli usati per
+addestrare o configurare il modello: per esempio lo stesso documento, o risposte allo stesso documento, presenti in
+entrambi gli insiemi. Il modello può allora riconoscere esempi già visti invece di generalizzare, e le metriche di test
+risultano ottimistiche.}.
 \item \textbf{Una scomposizione controllata dei guadagni.} Il confronto isola il contributo della specializzazione, del
 readout ristretto e della dimensione del modello. GroundOne è confrontato con indizi che non verificano mai una frase,
 modelli non addestrati, giudici generativi con e senza probabilità, due decision model generalisti (Rizzo-Flow, da 4B parametri, e d1-3B di Liquid

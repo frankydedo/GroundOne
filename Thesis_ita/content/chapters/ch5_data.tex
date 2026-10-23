@@ -257,8 +257,11 @@ quelli su T3.
 Completati questi controlli, e prima di addestrare qualsiasi modello, i tre file di test sono stati congelati con hash
 crittografici\footnote{Un \emph{hash} crittografico è un'impronta di lunghezza fissa calcolata dal contenuto di un file.
 Anche una modifica minima del file produce un'impronta completamente diversa, quindi confrontare le impronte basta a
-rilevare qualunque cambiamento.}. Da quel momento il costruttore del dataset si rifiuta di sovrascriverli con contenuti
-diversi, e ricostruendo il dataset dalle fonti grezze si riottengono esattamente i file congelati.
+rilevare qualunque cambiamento.}. Da quel momento il programma che genera il dataset a partire dalle fonti grezze (il
+comando di costruzione del pacchetto GroundOne, Sezione~\ref{sec:method-software}) confronta ogni nuovo file di test con
+la sua impronta e si rifiuta di sovrascriverlo se il contenuto è cambiato. Rieseguendo la costruzione da zero, inoltre,
+si riottengono esattamente i file congelati: i test set non possono quindi essere modificati, nemmeno per errore, dopo
+aver visto i risultati.
 
 \section{Analisi esplorativa}
 \label{sec:data-eda}
@@ -330,12 +333,17 @@ verso la fine, e l'accuratezza per valori elevati di $K$ resta rilevante.
 \section{Controllo del leakage}
 \label{sec:data-leakage}
 
-Gli split sono definiti per fonte e mai per frase, così che tutte le risposte relative a una stessa fonte cadano nello
-stesso split. A ogni costruzione del dataset viene inoltre eseguito un controllo automatico, che fallisce in due casi:
+Il leakage, cioè la presenza tra i dati di addestramento di informazioni del test set, renderebbe ottimistiche tutte
+le metriche dei capitoli successivi. In questo dataset il rischio è concreto: RAGTruth contiene, per ogni documento,
+più risposte scritte da modelli diversi. Se queste risposte finissero in split diversi, il modello vedrebbe in
+addestramento proprio il documento su cui viene poi valutato. Per questo gli split sono definiti per fonte e mai per
+frase, così che tutte le risposte relative a una stessa fonte cadano nello stesso split. A ogni costruzione del dataset viene inoltre eseguito un controllo automatico, che fallisce in due casi:
 quando una fonte, un documento o una coppia (documento, frase) del training set o del dev set compare in uno qualsiasi
-dei test set, e quando dev set e training set condividono una fonte. Il controllo risulta superato. Segnala inoltre le
-frasi che compaiono identiche sia nei dati di addestramento sia in quelli di test, associate a documenti diversi. Si
-tratta di 788 frasi template, come ``The business has a rating of 4.0 stars.'', attese nel data-to-text e che non
-rivelano alcuna etichetta di test. Resta un aspetto che non è possibile verificare: se i dataset pubblici usati qui
+dei test set, e quando dev set e training set condividono una fonte. Sul dataset finale il controllo non ha rilevato
+alcuna sovrapposizione di questo tipo. Il controllo elenca anche, senza bloccare la costruzione, le frasi che compaiono
+con le stesse parole sia nei dati di addestramento sia in quelli di test, ma riferite a documenti diversi. Sono 788, e
+sono tutte frasi standard del data-to-text, come ``The business has a rating of 4.0 stars.'': il modello generatore le
+ripete per attività commerciali diverse, quindi la loro presenza nei dati di addestramento non anticipa alcuna
+etichetta di test, che dipende sempre dal documento a cui la frase si riferisce. Resta un aspetto che non è possibile verificare: se i dataset pubblici usati qui
 facessero parte dei dati di pre-training di Qwen2.5. È un limite comune alla maggior parte dei lavori su benchmark
 pubblici.
