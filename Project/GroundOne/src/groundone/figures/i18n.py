@@ -80,6 +80,7 @@ IT = {
     "false positive rate (not supported accepted)": "tasso di falsi positivi (non supportate accettate)",
     "true positive rate (supported accepted)": "tasso di veri positivi (supportate accettate)",
     "(b) ROC curve: every threshold at once": "(b) curva ROC: tutte le soglie insieme",
+    "unsupported (T2, binary label)": "non supportata (T2, etichetta binaria)",
     # categories
     "all": "tutte", "all T1": "tutto T1", "test": "test", "train": "train", "dev": "dev", "three": "tre classi",
     "supported": "supportata", "contradicted": "contraddetta", "not_mentioned": "non menzionata",

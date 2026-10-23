@@ -198,7 +198,9 @@ viene riportato ma segnalato come indicativo.
 \centering
 \includegraphics[width=0.9\textwidth]{images/dataset/class_balance_by_split.png}
 \caption{Distribuzione delle classi fra le frasi etichettate di ciascuno split. Negli split di RAGTruth (train, dev e T1)
-circa l'88--91\,\% delle frasi è supportato, mentre T3 è campionato con 1{,}000 coppie per classe.}
+circa l'88--91\,\% delle frasi è supportato. T2 (LLM-AggreFact) ha etichette binarie, quindi le affermazioni
+contraddette e non menzionate vi formano un'unica classe non supportata (tratteggio). T3 è campionato con 1{,}000
+coppie per classe.}
 \label{fig:data-balance}
 \end{figure}
 

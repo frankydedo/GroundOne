@@ -15,6 +15,9 @@ D = PROJECT / "data" / "processed" / "groundone"
 CLASSES = ("supported", "contradicted", "not_mentioned")
 CLASS_COLORS = {"supported": SERIES[0], "contradicted": SERIES[1], "not_mentioned": SERIES[6]}
 SPLITS = {"train": "train", "dev": "dev", "test_ragtruth": "T1 RAGTruth", "test_vitaminc": "T3 VitaminC"}
+# class-balance figure only: T2 has binary labels (supported / unsupported), shown with its own class
+BALANCE_SPLITS = {"train": "train", "dev": "dev", "test_ragtruth": "T1 RAGTruth", "test_aggrefact": "T2 LLM-AggreFact",
+                  "test_vitaminc": "T3 VitaminC"}
 
 
 def load(name):
@@ -25,27 +28,34 @@ def main():
     g = Group("dataset")
     data = {n: load(n) for n in SPLITS}
 
-    # 1. class shares per split
-    fig, ax = plt.subplots(figsize=(7, 3.2))
-    names = list(SPLITS.values())
-    counts = {n: Counter(l for r in data[k] for l in r["labels"] if l is not None) for k, n in SPLITS.items()}
+    # 1. class shares per split (T2 is binary: its non-supported claims form one class)
+    fig, ax = plt.subplots(figsize=(7, 3.6))
+    bal = {k: (data[k] if k in data else load(k)) for k in BALANCE_SPLITS}
+    names = list(BALANCE_SPLITS.values())
+    counts = {n: Counter(l for r in bal[k] for l in r["labels"] if l is not None) for k, n in BALANCE_SPLITS.items()}
     left = np.zeros(len(names))
-    for c in CLASSES:
-        tot = np.array([sum(counts[n].values()) for n in names], float)
+    tot = np.array([sum(counts[n].values()) for n in names], float)
+    for c in CLASSES + ("unsupported",):
         v = np.array([counts[n][c] for n in names]) / tot
-        ax.barh(names, v, left=left, color=CLASS_COLORS[c], label=c, edgecolor="white", linewidth=1)
+        if c == "unsupported":
+            ax.barh(names, v, left=left, color=NEUTRAL, hatch="////", label="unsupported (T2, binary label)",
+                    edgecolor="white", linewidth=1)
+        else:
+            ax.barh(names, v, left=left, color=CLASS_COLORS[c], label=c, edgecolor="white", linewidth=1)
         for i, (x, w) in enumerate(zip(left, v)):
             if w > 0.04:
-                ax.text(x + w / 2, i, f"{w:.0%}", ha="center", va="center", fontsize=7, color="white")
+                box = dict(boxstyle="round,pad=0.15", facecolor=NEUTRAL, edgecolor="none") if c == "unsupported" else None
+                ax.text(x + w / 2, i, f"{w:.0%}", ha="center", va="center", fontsize=7, color="white", bbox=box)
         left += v
     for i, n in enumerate(names):
         ax.text(1.01, i, f"{sum(counts[n].values()):,}", va="center", fontsize=7, color=INK2)
     ax.set_xlim(0, 1.12)
     ax.invert_yaxis()
     ax.set_xlabel("share of labelled sentences (number of decisions on the right)")
-    ax.legend(ncol=3, fontsize=7, loc="upper center", bbox_to_anchor=(0.5, -0.25))
+    ax.legend(ncol=2, fontsize=7, loc="upper center", bbox_to_anchor=(0.5, -0.22))
     g.save(fig, "class_balance_by_split", "Class balance of the labelled sentences in each split. RAGTruth (train, dev, "
-           "T1) is about 89 % supported; T3 is sampled to 1,000 pairs per class.", "data/processed/groundone/*.jsonl")
+           "T1) is about 89 % supported; T2 (LLM-AggreFact) has binary labels, so its contradicted and not-mentioned "
+           "claims form a single unsupported class; T3 is sampled to 1,000 pairs per class.", "data/processed/groundone/*.jsonl")
 
     # 2. minority classes per task in T1 and train
     fig, axes = plt.subplots(1, 2, figsize=(9, 3.2))
