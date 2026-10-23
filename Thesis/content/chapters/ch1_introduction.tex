@@ -185,7 +185,10 @@ interface compatible with the System One interface of Jev, already used by other
 \item \textbf{A sentence-level dataset derived from public annotations.} No label was annotated anew: the human
 annotations of RAGTruth, which mark spans of text, were converted into a three-way label for every sentence, with rules
 fixed in advance. The three test sets come from public benchmarks, were checked automatically, for instance on sentence
-segmentation, and were frozen before any model was trained, with leakage controlled at the level of documents.
+segmentation, and were frozen before any model was trained, with leakage controlled at the level of documents\footnote{\emph{Leakage} occurs when test-set data end up, directly
+or indirectly, among the data used to train or configure the model: for example, the same document, or answers to the
+same document, present in both sets. The model can then recognise examples it has already seen instead of generalising,
+and the test metrics become optimistic.}.
 \item \textbf{A controlled decomposition of the gains.} The comparison isolates the contribution of specialisation, of the
 restricted readout and of model size. GroundOne is compared with cues that never verify a sentence, untrained models,
 generative judges with and without probabilities, two general-purpose decision models (Rizzo-Flow, with 4B

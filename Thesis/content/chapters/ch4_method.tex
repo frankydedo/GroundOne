@@ -218,11 +218,11 @@ on benchmarks different from those of this thesis; those for GroundOne are measu
 \toprule
  & Jev & GroundOne \\
 \midrule
-When & during training: SFT followed by RL with calibration rewards (RLCD) & after training: temperature and per-class bias fitted on the dev set \\ \addlinespace
-Scope & one model for all tasks & a single domain, the deployment domain \\ \addlinespace
-Recipe & not public (vendor's statement) & open, bound to the model fingerprint \\ \addlinespace
-Threshold & left to the user; to be fitted for each workload & fitted on the dev set and part of the output rule \\ \addlinespace
-Evidence & ECE 0.047 in aggregate, 0.168 per individual benchmark; underconfident binary probabilities & binary ECE on T1 from 0.30 to 0.019 (0.5B), from 0.18 to 0.019 (3B); does not transfer to VitaminC \\
+When & During training: SFT followed by RL with calibration rewards (RLCD). & After training: temperature and per-class bias fitted on the dev set. \\ \addlinespace
+Scope & A single model for all tasks. & A single domain, the one in which the model is used. \\ \addlinespace
+Recipe & Not public (vendor's statement). & Open and bound to the model fingerprint. \\ \addlinespace
+Threshold & Left to the user; it must be fitted for each workload. & Fitted on the dev set and part of the output rule. \\ \addlinespace
+Evidence & ECE of 0.047 in aggregate and 0.168 per individual benchmark; underconfident binary probabilities. & Binary ECE on T1 from 0.30 to 0.019 (0.5B) and from 0.18 to 0.019 (3B); does not transfer to VitaminC. \\
 \bottomrule
 \end{tabular}
 \end{table}

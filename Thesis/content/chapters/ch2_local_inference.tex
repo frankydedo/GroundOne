@@ -373,17 +373,17 @@ configurations offered; bandwidth: for those configurations; n/s: not stated by 
 \toprule
 System & Memory (GB) & Bandwidth (GB/s) & Memory type & Source \\
 \midrule
-MacBook Pro, M4 (thesis machine: 16\,GB) & 16--32 & 120 & unified & \cite{apple2024m4specs} \\
-MacBook Pro / Mac mini, M5 & 16--32 & 153 & unified & \cite{apple2026mbp,apple2026macmini} \\
-Mac mini, M5 Pro & 24--64 & 307 & unified & \cite{apple2026macmini} \\
-MacBook Pro, M5 Max & 36--128 & 460--614 & unified & \cite{apple2026mbp} \\
-Mac Studio, M4 Max & 36--128 & 410--546 & unified & \cite{apple2025macstudio} \\
-Mac Studio, M3 Ultra & 96--256 & 819 & unified & \cite{apple2025macstudio} \\
-NVIDIA DGX Spark (GB10) & 128 & 273 & unified & \cite{nvidia2026dgxspark} \\
-Framework Desktop, AMD Strix Halo & 32--128 (96 to GPU) & n/s & unified & \cite{hachman2025framework} \\
-NVIDIA RTX 5090 & 32 & 1,792 & discrete & \cite{nvidia2026geforce} \\
-NVIDIA RTX 5080 & 16 & 960 & discrete & \cite{nvidia2026geforce} \\
-NVIDIA RTX 5060 Ti & 16 & 448 & discrete & \cite{nvidia2026geforce} \\
+MacBook Pro, M4 (thesis machine: 16\,GB) & 16--32 & 120 & Unified & \cite{apple2024m4specs} \\
+MacBook Pro / Mac mini, M5 & 16--32 & 153 & Unified & \cite{apple2026mbp,apple2026macmini} \\
+Mac mini, M5 Pro & 24--64 & 307 & Unified & \cite{apple2026macmini} \\
+MacBook Pro, M5 Max & 36--128 & 460--614 & Unified & \cite{apple2026mbp} \\
+Mac Studio, M4 Max & 36--128 & 410--546 & Unified & \cite{apple2025macstudio} \\
+Mac Studio, M3 Ultra & 96--256 & 819 & Unified & \cite{apple2025macstudio} \\
+NVIDIA DGX Spark (GB10) & 128 & 273 & Unified & \cite{nvidia2026dgxspark} \\
+Framework Desktop, AMD Strix Halo & 32--128 (96 to GPU) & n/s & Unified & \cite{hachman2025framework} \\
+NVIDIA RTX 5090 & 32 & 1,792 & Discrete & \cite{nvidia2026geforce} \\
+NVIDIA RTX 5080 & 16 & 960 & Discrete & \cite{nvidia2026geforce} \\
+NVIDIA RTX 5060 Ti & 16 & 448 & Discrete & \cite{nvidia2026geforce} \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -541,16 +541,16 @@ weights. Table~\ref{tab:local-quant} summarises the methods that shaped the fiel
 Method & Idea and main result & Source \\
 \midrule
 LLM.int8() & 8-bit weights and activations; the few dimensions with very large anomalous values (outliers) are kept in
-16 bits. No loss up to 175B parameters; saves memory but does not speed up small models & \cite{dettmers2022llmint8} \\
+16 bits. No loss up to 175B parameters; saves memory but does not speed up small models. & \cite{dettmers2022llmint8} \\
 GPTQ & 3--4-bit weights, quantised layer by layer by estimating how much each weight affects the error. 4-bit OPT-175B
 loses 0.03 perplexity$^{a}$; small models lose more; 3.2--4.5$\times$ faster decoding from
-bandwidth & \cite{frantar2023gptq} \\
+bandwidth. & \cite{frantar2023gptq} \\
 AWQ & 4-bit weights; the 1\,\% of channels that matter most, found from activation magnitudes, are protected by scaling.
-Robust to the calibration data; designed for on-device use & \cite{lin2024awq} \\
-GGUF k-quants & 2--8-bit block formats of llama.cpp, the de facto standard for consumer distribution & \cite{llamacpp} \\
+Robust to the calibration data; designed for on-device use. & \cite{lin2024awq} \\
+GGUF k-quants & 2--8-bit block formats of llama.cpp, the de facto standard for consumer distribution. & \cite{llamacpp} \\
 MLX affine & 4- or 8-bit weights with a scale and a bias per group of 64; supports LoRA training on the quantised model
-(used in this thesis) & \cite{mlxlm} \\
-QLoRA & 4-bit normal-float base model with 16-bit adapters, for fine-tuning on limited memory & \cite{dettmers2023qlora} \\
+(used in this thesis). & \cite{mlxlm} \\
+QLoRA & 4-bit normal-float base model with 16-bit adapters, for fine-tuning on limited memory. & \cite{dettmers2023qlora} \\
 \bottomrule
 \end{tabularx}
 

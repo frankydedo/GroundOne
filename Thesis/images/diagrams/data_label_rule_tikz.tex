@@ -1,0 +1,23 @@
+\documentclass[border=3pt]{standalone}
+\input{g1_common.tex}
+\begin{document}
+\begin{tikzpicture}[node distance=7mm]
+  \node[io, text width=3.6cm] (s) {answer sentence\\(after segmentation)};
+  \node[decision, below=of s, font=\footnotesize, text width=2.6cm] (d0) {checkable\\content?};
+  \node[outcome=clusterLine, fill=white, right=12mm of d0, font=\footnotesize] (ctx) {no label: kept as context, without a marker};
+  \node[decision, below=of d0, font=\footnotesize, text width=2.6cm] (d1) {touches a\\conflict span?};
+  \node[outcome=badLine, fill=badFill, right=12mm of d1] (con) {contradicted};
+  \node[decision, below=of d1, font=\footnotesize, text width=2.6cm] (d2) {touches a baseless-\\information span?};
+  \node[outcome=nmLine, fill=nmFill, right=12mm of d2] (nm) {not mentioned};
+  \node[outcome=okLine, fill=okFill, below=of d2] (sup) {supported};
+  \draw[arrow] (s) -- (d0);
+  \draw[arrow] (d0) -- node[above, font=\footnotesize] {no} (ctx);
+  \draw[arrow] (d0) -- node[right, font=\footnotesize] {yes} (d1);
+  \draw[arrow] (d1) -- node[above, font=\footnotesize] {yes} (con);
+  \draw[arrow] (d1) -- node[right, font=\footnotesize] {no} (d2);
+  \draw[arrow] (d2) -- node[above, font=\footnotesize] {yes} (nm);
+  \draw[arrow] (d2) -- node[right, font=\footnotesize] {no} (sup);
+  \node[note, right=6mm of con, text width=4.4cm, align=left] {conflict prevails: a sentence with a conflicting part and an unverifiable part is contradicted};
+  \node[note, right=6mm of sup, text width=4.4cm, align=left] {27 of the 14{,}226 annotated spans (0.19\,\%) touch no scored sentence};
+\end{tikzpicture}
+\end{document}
