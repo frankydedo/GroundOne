@@ -1,0 +1,1 @@
+Mandatory comparison: the same base model without the adapter, as the B0a terse judge, on the same answer (time, generated tokens, per-sentence agreement).

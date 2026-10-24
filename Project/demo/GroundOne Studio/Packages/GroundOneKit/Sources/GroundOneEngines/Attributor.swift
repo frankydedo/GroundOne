@@ -43,25 +43,31 @@ public actor PassageAttributor {
         return out
     }
 
-    /// The passage sentence with the largest word overlap with the answer sentence.
+    /// The passage sentence that best matches the answer sentence: shared word stems weighted by their rarity among the
+    /// passage's sentences (IDF), so that a distinctive term ("temperature") outweighs words repeated everywhere.
     static func bestSpan(for sentence: String, in passage: String) -> (start: Int, end: Int, text: String) {
-        let target = words(sentence)
         let tok = NLTokenizer(unit: .sentence)
         tok.string = passage
-        var best = (0, (passage as NSString).length, passage)
-        var bestScore = -1.0
+        var spans: [(NSRange, String)] = []
         tok.enumerateTokens(in: passage.startIndex..<passage.endIndex) { range, _ in
-            let s = String(passage[range])
-            let w = words(s)
-            let score = w.isEmpty ? 0 : Double(w.intersection(target).count) / Double(w.union(target).count).squareRoot()
-            if score > bestScore {
-                bestScore = score
-                let r = NSRange(range, in: passage)
-                best = (r.location, r.upperBound, s.trimmingCharacters(in: .whitespacesAndNewlines))
-            }
+            spans.append((NSRange(range, in: passage), String(passage[range])))
             return true
         }
-        return best
+        guard !spans.isEmpty else { return (0, (passage as NSString).length, passage) }
+        let stems = spans.map { stemSet($0.1) }
+        var df: [String: Int] = [:]
+        for s in stems { for w in s { df[w, default: 0] += 1 } }
+        let n = Double(spans.count)
+        let target = stemSet(sentence)
+        let scores = stems.map { s in s.intersection(target).map { log(1 + n / Double(df[$0]!)) }.reduce(0, +) }
+        let best = scores.indices.max { scores[$0] < scores[$1] }!
+        let r = spans[best].0
+        return (r.location, r.upperBound, spans[best].1.trimmingCharacters(in: .whitespacesAndNewlines))
+    }
+
+    /// Lower-cased words longer than two letters, cut to six characters (a crude stem: calibrates ~ calibrating).
+    static func stemSet(_ s: String) -> Set<String> {
+        Set(words(s).map { String($0.prefix(6)) })
     }
 
     static func words(_ s: String) -> Set<String> {

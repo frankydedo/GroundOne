@@ -1,0 +1,13 @@
+# Demo (2026-10-24), after the 3B case study: Swift timings on the latency subset (Release), 0.5B case study,
+# equal-compute best-of-3 baseline (60 T1 documents), three library questions end to end, the end-to-end UI test with the real models.
+'demo/GroundOne Studio/build/dd2/Build/Products/Release/g1studio' verify-fixture g1-3b-b1
+'demo/GroundOne Studio/build/dd2/Build/Products/Release/g1studio' verify-fixture g1-05b-b1
+'demo/GroundOne Studio/build/dd2/Build/Products/Release/g1studio' casestudy --verifier g1-05b-b1 --n 100
+GroundOne/.venv/bin/python experiments/demo/scripts/casestudy_report.py casestudy-g1-3b-b1 casestudy-g1-05b-b1
+'demo/GroundOne Studio/build/dd2/Build/Products/Release/g1studio' bestofn --verifier g1-3b-b1 --n 60 --samples 3
+GroundOne/.venv/bin/python experiments/demo/scripts/casestudy_report.py casestudy-g1-3b-b1 casestudy-g1-05b-b1
+'demo/GroundOne Studio/build/dd2/Build/Products/Release/g1studio' ask "Which post-processing method fixes the miscalibration of modern neural networks, and how does it work?" --policy strict
+'demo/GroundOne Studio/build/dd2/Build/Products/Release/g1studio' ask "How does LoRA reduce the number of trainable parameters?" --policy strict
+'demo/GroundOne Studio/build/dd2/Build/Products/Release/g1studio' ask "What does FActScore measure and how is it computed?" --policy lenient
+'demo/GroundOne Studio/build/dd2/Build/Products/Release/g1studio' install
+UITEST_TIMEOUT=1500 'demo/GroundOne Studio/scripts/uitest.sh' testEndToEndRealModels

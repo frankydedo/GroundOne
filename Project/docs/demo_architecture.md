@@ -355,3 +355,21 @@ here, 2.5× smaller and 3× faster.
 - *Judge parse.* Same lenient parser as `judges.py` (last A/B/C on the line `<n>: …`).
 - *Measurements.* The case study runs from the command line (`g1studio casestudy`, same engines and loop as the app,
   Release build, under the guard); the app's Measurements view shows the session and the case-study summary.
+
+**Speed parity.** Release build, same 200 T1 answers as the thesis latency subset: GroundOne 3B 2.13 s per answer in
+Swift vs 2.04 s in Python; 0.5B 0.343 s vs 0.333 s.
+
+**Case study (D30, decision 13), 3B** (`outputs/demo/casestudy/summary_full.json`; figures `outputs/figures/demo/`):
+injected sentence flagged 100/100 (by construction of the set), local judge 88.5 %; false alarms 2.1 %; error present
+100 % → 14 % → 14 % over two rewrite rounds; 87 % of answers end accepted by GroundOne; of the 14 surviving errors 13
+remain flagged and 1 is accepted (a miss); of the 86 removed errors **75 are removed by deleting the sentence**, 10 by
+restoring the document's value, 1 by rewriting; GroundOne pass 1.77 s vs judge 2.33 s (median); MLX memory 5.1 GB after
+loading, 6.2 GB peak. 0.5B: false alarms 16.8 %, judge 34.6 %, peak 3.3 GB. Equal-compute baseline (60 fresh T1
+answers): loop 98.3 % accepted (7.1 s, 112 tokens) vs best-of-3 61.7 % (10.0 s, 218 tokens). Reading: the loop's
+gains in "accepted by GroundOne" come mostly from deletion; the rewrite prompt (v1) was not tuned after the results.
+
+**UI tests.** Two fake-engine tests (full flow and all sections) and one end-to-end test with the real models pass
+(`scripts/uitest.sh`); screenshots are exported from the result bundle. Test-infrastructure findings: floating windows
+of other apps can swallow synthesized clicks (the runner hides Activity Monitor); generic `descendants(matching: .any)`
+queries stall XCTest; XCTest hangs symbolicating failures when the app is built with the debug dylib
+(`ENABLE_DEBUG_DYLIB = NO`).

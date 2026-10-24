@@ -108,9 +108,11 @@ struct VerifiedText: View {
         for s in draft.verdicts.sentences {
             guard let r = Range(NSRange(location: s.start, length: s.end - s.start), in: a) else { continue }
             if s.scored {
-                a[r].backgroundColor = Palette.color(s.label).opacity(0.16)
-                a[r].underlineStyle = .single
-                a[r].underlineColor = NSColor(Palette.color(s.label))
+                a[r].backgroundColor = Palette.color(s.label).opacity(s.label == .supported ? 0.10 : 0.20)
+                if s.label != .supported {
+                    a[r].underlineStyle = .single
+                    a[r].underlineColor = NSColor(Palette.color(s.label))
+                }
             } else {
                 a[r].foregroundColor = .secondary
             }

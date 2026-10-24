@@ -1,0 +1,107 @@
+{
+  "casestudy-g1-3b-b1 \u00b7 detection": {
+    "groundone_flags_injected_sentence": 1.0,
+    "judge_flags_injected_sentence": 0.8854,
+    "judge_output_fully_parsed": 0.99,
+    "groundone_false_alarm_share_other_sentences": 0.0207,
+    "groundone_flags_number": 1.0,
+    "groundone_flags_name": 1.0,
+    "groundone_flags_date": 1.0,
+    "groundone_flags_fabricated": 1.0
+  },
+  "casestudy-g1-3b-b1 \u00b7 error_survival": {
+    "without_loop": 1.0,
+    "after_round_1": 0.14,
+    "after_round_2_final": 0.14,
+    "survival_when_flagged": 0.1134,
+    "survival_when_missed": null,
+    "final_number": 0.2,
+    "final_name": 0.12,
+    "final_date": 0.08,
+    "final_fabricated": 0.16
+  },
+  "casestudy-g1-3b-b1 \u00b7 repairs": {
+    "swaps_flagged": 72,
+    "swaps_original_value_restored": 0.1806,
+    "other_sentences_kept_verbatim": 0.9775,
+    "final_status_accepted_by_groundone": 0.87,
+    "mean_rewrite_rounds": 1.17,
+    "survivors_still_flagged": 13,
+    "survivors_accepted_by_groundone": 1,
+    "removed_errors_restored": 10,
+    "removed_errors_rewritten": 1,
+    "removed_errors_deleted": 75
+  },
+  "casestudy-g1-3b-b1 \u00b7 timing_seconds": {
+    "groundone_pass_median": 1.772,
+    "judge_median": 2.334,
+    "judge_over_groundone_median_ratio": 1.389,
+    "rewrite_generation_median": 2.45,
+    "verification_share_of_loop_time": 0.5763,
+    "judge_generated_tokens_median": 23.0,
+    "verifier_input_tokens_median": 757.5
+  },
+  "casestudy-g1-3b-b1 \u00b7 memory_gb": {
+    "mlx_peak_during_loop": 6.19659306,
+    "mlx_active_gb": 5.13499948,
+    "resident_gb": 2.124251136
+  },
+  "casestudy-g1-05b-b1 \u00b7 detection": {
+    "groundone_flags_injected_sentence": 1.0,
+    "judge_flags_injected_sentence": 0.3462,
+    "judge_output_fully_parsed": 0.81,
+    "groundone_false_alarm_share_other_sentences": 0.1675,
+    "groundone_flags_number": 1.0,
+    "groundone_flags_name": 1.0,
+    "groundone_flags_date": 1.0,
+    "groundone_flags_fabricated": 1.0
+  },
+  "casestudy-g1-05b-b1 \u00b7 error_survival": {
+    "without_loop": 1.0,
+    "after_round_1": 0.09,
+    "after_round_2_final": 0.09,
+    "survival_when_flagged": 0.0619,
+    "survival_when_missed": null,
+    "final_number": 0.2,
+    "final_name": 0.04,
+    "final_date": 0.08,
+    "final_fabricated": 0.04
+  },
+  "casestudy-g1-05b-b1 \u00b7 repairs": {
+    "swaps_flagged": 72,
+    "swaps_original_value_restored": 0.1528,
+    "other_sentences_kept_verbatim": 0.81,
+    "final_status_accepted_by_groundone": 0.89,
+    "mean_rewrite_rounds": 1.23,
+    "survivors_still_flagged": 7,
+    "survivors_accepted_by_groundone": 2,
+    "removed_errors_restored": 10,
+    "removed_errors_rewritten": 0,
+    "removed_errors_deleted": 81
+  },
+  "casestudy-g1-05b-b1 \u00b7 timing_seconds": {
+    "groundone_pass_median": 0.285,
+    "judge_median": 0.501,
+    "judge_over_groundone_median_ratio": 1.394,
+    "rewrite_generation_median": 2.153,
+    "verification_share_of_loop_time": 0.1869,
+    "judge_generated_tokens_median": 31.0,
+    "verifier_input_tokens_median": 757.5
+  },
+  "casestudy-g1-05b-b1 \u00b7 memory_gb": {
+    "mlx_peak_during_loop": 3.348889504,
+    "mlx_active_gb": 2.300520824,
+    "resident_gb": 2.450898944
+  },
+  "bestofn-g1-3b-b1 \u00b7 equal_compute": {
+    "documents": 60,
+    "loop_accepted_by_groundone": 0.9833,
+    "loop_first_draft_accepted": 0.5167,
+    "loop_seconds_median": 7.05,
+    "loop_generated_tokens_median": 112.0,
+    "best_of_n_accepted_by_groundone": 0.6167,
+    "best_of_n_samples_used_mean": 2.117,
+    "best_of_n_seconds_median": 9.99,
+    "best_of_n_generated_tokens_median": 218.0
+  }
+}

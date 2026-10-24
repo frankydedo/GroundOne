@@ -1,0 +1,1 @@
+An answer from the research library, coloured by GroundOne verdict, with calibrated P(supported) per sentence, the judge verdicts and the timing panel (generation vs GroundOne vs judge, MLX peak memory).

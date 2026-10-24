@@ -33,7 +33,29 @@ def med(xs):
     return round(st.median(xs), 3) if xs else None
 
 
-def summarise(rows, meta):
+def words(s):
+    import re
+    return {w for w in re.findall(r"[a-z0-9]+", s.lower()) if len(w) > 2}
+
+
+def jaccard(a, b):
+    x, y = words(a), words(b)
+    return len(x & y) / len(x | y) if x and y else 0.0
+
+
+def repair_mode(r, inj):
+    """For a removed error: 'restored' (original value back), 'rewritten' (a sentence close to the injected one remains),
+    'deleted' (no such sentence: information lost, as CoVe gains precision partly by deletion)."""
+    import re
+    sents = re.split(r"(?<=[.!?])\s+", r["final_text"])
+    if inj["kind"] != "fabricated" and inj["right"] and inj["right"] in r["final_text"]:
+        return "restored"
+    if inj["kind"] == "fabricated":
+        return "deleted"
+    return "rewritten" if any(jaccard(x, inj["injected"]) >= 0.4 for x in sents) else "deleted"
+
+
+def summarise(rows, meta, injected=None):
     out = {"answers": len(rows), "verifier": meta.get("verifier"), "generator": meta.get("generator")}
     present = [r["error_present_by_round"] for r in rows]
     final = [p[-1] for p in present]
@@ -66,6 +88,14 @@ def summarise(rows, meta):
         "final_status_accepted_by_groundone": rate(r["status"] == "accepted" for r in rows),
         "mean_rewrite_rounds": round(st.mean(r["rounds"] for r in rows), 3),
     }
+    survivors = [r for r in rows if r["error_present_by_round"][-1]]
+    out["repairs"]["survivors_still_flagged"] = sum(r["status"] != "accepted" for r in survivors)
+    out["repairs"]["survivors_accepted_by_groundone"] = sum(r["status"] == "accepted" for r in survivors)
+    if injected:
+        removed = [r for r in rows if not r["error_present_by_round"][-1]]
+        modes = [repair_mode(r, injected[r["id"]]) for r in removed]
+        for m in ("restored", "rewritten", "deleted"):
+            out["repairs"][f"removed_errors_{m}"] = modes.count(m)
     ver0 = [r["verification_s"][0] for r in rows]
     judge = [r["judge_s"] for r in rows]
     gen_rewrites = [g for r in rows for g in r["generation_s"][1:]]
@@ -85,8 +115,39 @@ def summarise(rows, meta):
     return out
 
 
-def figures(rows, run, tag):
+def figures(rows, run, tag, injected=None):
     FIG.mkdir(parents=True, exist_ok=True)
+    if injected:
+        # 3. what happened to each injected error, by kind
+        cats = [("restored", "original value restored", "#2e8b57"), ("rewritten", "sentence rewritten", "#7fbf8f"),
+                ("deleted", "sentence deleted", "#c9c9d3"), ("flagged", "still present, still flagged", "#d98b0d"),
+                ("missed", "still present, accepted by GroundOne", "#c0392b")]
+        fig, ax = plt.subplots(figsize=(7.2, 3.0))
+        for y, k in enumerate(KINDS):
+            sub = [r for r in rows if r["kind"] == k]
+            counts = {c: 0 for c, _, _ in cats}
+            for r in sub:
+                if r["error_present_by_round"][-1]:
+                    counts["missed" if r["status"] == "accepted" else "flagged"] += 1
+                else:
+                    counts[repair_mode(r, injected[r["id"]])] += 1
+            left = 0
+            for c, label, color in cats:
+                ax.barh(y, counts[c], left=left, color=color, edgecolor="white", label=label if y == 0 else None)
+                left += counts[c]
+        ax.set_yticks(range(len(KINDS)), KINDS)
+        ax.invert_yaxis()
+        ax.set_xlabel("injected errors (25 per type)")
+        ax.legend(frameon=False, fontsize=7, ncol=3, loc="upper center", bbox_to_anchor=(0.5, 1.28))
+        ax.spines[["top", "right"]].set_visible(False)
+        fig.tight_layout()
+        fig.savefig(FIG / f"casestudy_outcomes_{tag}.png", dpi=200)
+        (FIG / f"casestudy_outcomes_{tag}.txt").write_text(
+            f"Outcome of each injected error after the loop ({run}). For swapped numbers, names and dates, removal mostly "
+            "happens by deleting the sentence (the correct information is lost too) rather than by restoring the value from "
+            "the document; for fabricated sentences deletion is the right repair. Errors still present are either still "
+            "flagged (shown highlighted under the policy) or accepted by GroundOne (a miss).")
+        plt.close(fig)
     # 1. survival of the injected error by round and kind
     fig, ax = plt.subplots(figsize=(6.4, 3.6))
     for k, c in zip(KINDS, [BLUE, "#2e8b57", "#d98b0d", "#c0392b"]):
@@ -113,11 +174,10 @@ def figures(rows, run, tag):
     fig, ax = plt.subplots(figsize=(6.4, 3.4))
     v = sorted(r["verification_s"][0] for r in rows)
     j = sorted(r["judge_s"] for r in rows if r["judge_s"])
-    ax.boxplot([v, j], vert=False, widths=0.5, patch_artist=True,
+    ax.boxplot([v, j], orientation="horizontal", widths=0.5, patch_artist=True,
                boxprops=dict(facecolor="#e8f1ff"), medianprops=dict(color=BLUE, lw=2))
     ax.set_yticks([1, 2], ["GroundOne\n(one forward pass)", "generative judge\n(same base, no adapter)"])
     ax.set_xlabel("seconds per answer")
-    ax.set_xscale("log")
     ax.grid(axis="x", alpha=0.3)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()
@@ -136,8 +196,23 @@ def main():
         d = CS / run
         rows = [json.loads(l) for l in open(d / "rows.jsonl")]
         meta = json.loads((d / "meta.json").read_text()) if (d / "meta.json").exists() else {}
-        summary[run] = summarise(rows, meta)
-        figures(rows, run, run.replace("casestudy-", ""))
+        injected = {json.loads(l)["id"]: json.loads(l) for l in open(CS / "injected.jsonl")}
+        summary[run] = summarise(rows, meta, injected)
+        figures(rows, run, run.replace("casestudy-", ""), injected)
+    for f in sorted(CS.glob("bestofn-*.jsonl")):
+        rows = [json.loads(l) for l in open(f)]
+        if rows:
+            summary[f.stem] = {"equal_compute": {
+                "documents": len(rows),
+                "loop_accepted_by_groundone": rate(r["loop_accepted"] for r in rows),
+                "loop_first_draft_accepted": rate(r["loop_first_draft_accepted"] for r in rows),
+                "loop_seconds_median": med([r["loop_seconds"] for r in rows]),
+                "loop_generated_tokens_median": med([r["loop_generated_tokens"] for r in rows]),
+                "best_of_n_accepted_by_groundone": rate(r["bon_accepted"] for r in rows),
+                "best_of_n_samples_used_mean": round(st.mean(r["bon_samples_used"] for r in rows), 3),
+                "best_of_n_seconds_median": med([r["bon_seconds"] for r in rows]),
+                "best_of_n_generated_tokens_median": med([r["bon_generated_tokens"] for r in rows]),
+            }}
     flat = {f"{run} · {k}": v for run, s in summary.items() for k, v in s.items() if isinstance(v, dict)}
     (CS / "summary.json").write_text(json.dumps(flat, indent=2))
     (CS / "summary_full.json").write_text(json.dumps(summary, indent=2))

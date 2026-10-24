@@ -1,0 +1,1 @@
+UITEST_TIMEOUT=1500 'demo/GroundOne Studio/scripts/uitest.sh' testEndToEndRealModels

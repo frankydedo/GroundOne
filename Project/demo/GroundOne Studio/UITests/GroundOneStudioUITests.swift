@@ -133,8 +133,7 @@ final class GroundOneStudioUITests: XCTestCase {
         XCTAssertTrue(find.waitForExistence(timeout: 10), "evidence button")
         find.click()
         let linkLabel = NSPredicate(format: "label CONTAINS 'Supported by' OR label CONTAINS 'Contradicted by'")
-        let link = app.links.matching(linkLabel).firstMatch.waitForExistence(timeout: 2)
-            ? app.links.matching(linkLabel).firstMatch : app.buttons.matching(linkLabel).firstMatch
+        let link = app.links.matching(linkLabel).firstMatch  // computing evidence takes k GroundOne passes
         if link.waitForExistence(timeout: 300) {
             link.click()
             XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout: 10))

@@ -89,3 +89,60 @@ under `groundone guard`), started 16:03. First answer: GroundOne flags the injec
 (contradicted), the error is gone after one rewrite, answer accepted; GroundOne pass 1.4 s warm (2.7 s cold).
 
 **Next**: end-to-end UI test with the real models (after the case study, to keep its timings clean), documentation.
+
+## Report 4 — 2026-10-24 16:22
+
+**Case study done (3B)**: 100 injected errors, Swift engines in one process, Release build, under the guard, 17.4 min.
+Summary in `outputs/demo/casestudy/summary_full.json`; figures `outputs/figures/demo/casestudy_{survival,outcomes,judge_time}_g1-3b-b1.png`.
+
+| Measure | Value |
+| --- | --- |
+| GroundOne flags the injected sentence (first draft) | 100 / 100 (all four error types) |
+| Generative judge (same base, no adapter, B0a) flags it | 88.5 % (output fully parsed 99 %) |
+| GroundOne false alarms on the other (correct) sentences | 2.1 % |
+| Answers still containing the error: no loop / after 1 rewrite / after 2 | 100 % / 14 % / 14 % |
+| Final status accepted by GroundOne | 87 % (13 % highlighted under the policy) |
+| Of the 14 surviving errors | 13 still flagged, **1 accepted by GroundOne** (a miss) |
+| How the 86 removed errors were removed | **75 sentence deleted**, 10 original value restored, 1 rewritten |
+| Other (correct) sentences kept verbatim | 97.8 % |
+| GroundOne pass, median | 1.77 s (input median 758 tokens) |
+| Judge, median | 2.33 s (23 generated tokens) → 1.4× GroundOne |
+| Verification share of loop time | 58 % (the first draft is given, so the loop only generates rewrites) |
+| MLX memory: after loading generator + GroundOne 3B / peak in the loop | 5.1 GB / 6.2 GB |
+
+Reading, to be stated in the thesis as such:
+- Detection is 100 % *by construction of the set*: the 100 answers were chosen because GroundOne accepted the originals,
+  and the injected errors are blunt (values absent from the document). It shows the loop mechanics, not GroundOne's recall.
+- The loop removes 86 % of the errors, but mostly by **deleting** the flagged sentence: for swapped values the correct
+  information goes with it (CoVe-like precision by deletion, §4). The 3B generator, told "write DELETE if the document
+  gives no basis", deletes far more often than it corrects. A second round adds nothing (14 % → 14 %).
+- Prompt not changed after seeing these results (that would tune on the same 100 answers). **Decision for the author**:
+  keep v1 as the reported result, or also report a pre-declared "repair-first" rewrite prompt as a labelled second run.
+- Speed: Swift reproduces the Python latency picture (Python, same 3B, 200 T1 answers: GroundOne median 1.99 s, terse
+  judge 3.16 s). On short terse outputs the judge is only ~1.4–1.6× slower; the thesis gains are accuracy, calibration and
+  one-pass multi-sentence scoring, not latency against the terse judge (consistent with CLAUDE.md).
+
+**Running now (chained queue under the guard)**: Release conformance timings on the latency subset (3B, 0.5B), 0.5B case
+study, equal-compute best-of-3 baseline (60 T1 documents), three library questions end to end, `install`, end-to-end UI
+test with the real models.
+
+## Report 5 — 2026-10-24 17:13
+
+**Done and tested**
+- **Speed parity Swift vs Python** (Release; same 200 T1 answers as the thesis latency subset, forward pass on the same
+  token ids): 3B mean 2.13 s vs 2.04 s in Python; 0.5B 0.343 s vs 0.333 s.
+- **0.5B case study** (selector in the app): detection 100 %, but false alarms on correct sentences 16.8 % (3B: 2.1 %),
+  correct sentences kept verbatim 81 % (3B: 97.8 %); its own judge (0.5B base) flags only 34.6 % and parses 81 %;
+  error survival 9 %; GroundOne pass 0.29 s; MLX peak 3.3 GB. Caveat: the set was selected with the 3B.
+- **Equal-compute baseline** (60 fresh T1 answers, 3B): loop accepted by GroundOne 98.3 % (first draft alone 51.7 %),
+  median 7.1 s and 112 generated tokens; best-of-3 sampling (T = 0.7) 61.7 %, 10.0 s, 218 tokens. Acceptance is
+  GroundOne's, and the loop reaches it partly by deleting sentences (report 4).
+- **Library questions end to end** (`outputs/demo/audit/cli.jsonl`): e.g. the calibration question: the generator adds
+  "temperature typically between 0 and 1" (wrong) and two unsupported claims; GroundOne flags all three as not
+  mentioned, the generative judge marks every sentence supported; the loop removes them and the answer shrinks to the
+  one correct sentence. Total 16 s, MLX peak 6.1 GB.
+- **End-to-end UI test with the real models PASSES** (332 s): models load, question answered from the library, accepted by
+  GroundOne, judge tab, timing tab (6.19 GB MLX peak), "Find evidence" produces the link "Supported by Guo 2017 … p.1".
+  The test's own link check waited too little (evidence needs k GroundOne passes); fixed and re-running to capture the
+  PDF viewer.
+- Figures: `outputs/figures/demo/casestudy_{survival,outcomes,judge_time}_g1-{3b,05b}-b1.png` with captions.

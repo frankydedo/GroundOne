@@ -6,8 +6,8 @@ import MLXLMCommon
 
 /// Greedy generation from chat messages (temperature 0, as `mlx_lm.generate` in the thesis measurements).
 enum Greedy {
-    static func run(_ container: ModelContainer, messages: [[String: any Sendable]], maxTokens: Int,
-                    onChunk: @Sendable (String) -> Void) async throws -> (String, GenerationStats) {
+    static func run(_ container: ModelContainer, messages: [[String: any Sendable]], maxTokens: Int, temperature: Float = 0,
+                    seed: UInt64? = nil, onChunk: @Sendable (String) -> Void) async throws -> (String, GenerationStats) {
         let tokenizer = await container.tokenizer
         let prompt = try tokenizer.applyChatTemplate(messages: messages)
         let input = LMInput(tokens: MLXArray(prompt.map { Int32($0) }))
@@ -16,7 +16,7 @@ enum Greedy {
         var text = ""
         var stats = GenerationStats(promptTokens: prompt.count)
         let stream = try await container.generate(input: input,
-                                                  parameters: GenerateParameters(maxTokens: maxTokens, temperature: 0))
+                                                  parameters: GenerateParameters(maxTokens: maxTokens, temperature: temperature, seed: seed))
         for await ev in stream {
             switch ev {
             case .chunk(let c):
@@ -44,6 +44,14 @@ public final class MLXGenerator: Generator, @unchecked Sendable {
     }
 
     init(container: ModelContainer, name: String) { self.container = container; self.name = name }
+
+    /// Sampled generation (best-of-N baseline): temperature > 0 with a seed, otherwise as `generate`.
+    public func sample(system: String, user: String, maxTokens: Int, temperature: Float, seed: UInt64) async throws
+        -> (String, GenerationStats)
+    {
+        try await Greedy.run(container, messages: [["role": "system", "content": system], ["role": "user", "content": user]],
+                             maxTokens: maxTokens, temperature: temperature, seed: seed) { _ in }
+    }
 
     public func generate(system: String, user: String, maxTokens: Int) -> AsyncThrowingStream<GenerationEvent, Error> {
         let container = self.container

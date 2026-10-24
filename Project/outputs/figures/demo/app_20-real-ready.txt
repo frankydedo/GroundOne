@@ -1,0 +1,1 @@
+GroundOne Studio after loading the three local models (GroundOne 3B, generator 4-bit, bge-small embeddings): MLX memory in the sidebar.

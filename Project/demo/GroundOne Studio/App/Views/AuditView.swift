@@ -99,11 +99,25 @@ struct PDFKitView: NSViewRepresentable {
         guard let doc = PDFDocument(url: url) else { return v }
         v.document = doc
         let target = doc.page(at: min(page, doc.pageCount - 1))
-        // The passage text is whitespace-normalised; search the first words, which survive line breaks in the PDF.
-        let words = span.split(separator: " ").prefix(6).joined(separator: " ")
-        let hits = doc.findString(words, withOptions: [.caseInsensitive]).filter { $0.pages.contains { $0 == target } }
-        if let sel = hits.first {
-            sel.extendForLineBoundaries()
+        // The passage text is whitespace-normalised; match its words in the page text allowing any whitespace or
+        // end-of-line hyphenation between them.
+        let words = span.split(whereSeparator: { $0.isWhitespace }).map { NSRegularExpression.escapedPattern(for: String($0)) }
+        var selection: PDFSelection?
+        if let target, let text = target.string, words.count >= 2 {
+            let ns = text as NSString
+            func find(_ w: ArraySlice<String>, from: Int) -> NSRange? {
+                let pattern = w.joined(separator: #"[\s\-]*\s*"#)
+                guard let re = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return nil }
+                return re.firstMatch(in: text, range: NSRange(location: from, length: ns.length - from))?.range
+            }
+            // Start and end of the sentence matched separately: line-end hyphenation can break the middle.
+            let k = min(5, words.count)
+            if let a = find(words.prefix(k), from: 0) {
+                let b = find(words.suffix(k), from: a.location) ?? a
+                selection = target.selection(for: NSRange(location: a.location, length: max(a.upperBound, b.upperBound) - a.location))
+            }
+        }
+        if let sel = selection {
             sel.color = color.withAlphaComponent(0.35)
             v.highlightedSelections = [sel]
             v.go(to: sel)

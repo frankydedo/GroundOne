@@ -14,6 +14,7 @@ do {
     case "ask": try await Commands.ask(rest)
     case "casestudy": try await CaseStudy.run(rest)
     case "install": try Install.run(rest)
+    case "bestofn": try await BestOfN.run(rest)
     default:
         print("usage: g1studio verify-fixture <run> [n] | ingest <corpus> <embedder> <paths...> | retrieval-check [embedders...] | ask <question> [--policy p] [--verifier run] [--no-judge]")
     }
