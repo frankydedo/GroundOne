@@ -75,7 +75,7 @@ flowchart TB
   end
   subgraph Engines["Engines"]
     BM25["SQLite FTS5 (BM25)"]
-    Emb["Embeddings (NLEmbedding or MLXEmbedders)"]
+    Emb["Embeddings: small retrieval model on MLX (MLXEmbedders)"]
     Gen["Generator: Qwen2.5-3B-Instruct 4-bit on MLX Swift"]
     G1["GroundOne 3B on MLX Swift: Qwen2.5-3B 8-bit + LoRA adapter g1-3b-b1, marked prompt, segmentation, readout at the Verdict markers, calibration.json (T, bias, τ)"]
   end
@@ -117,7 +117,7 @@ struct SentenceVerdict { let range: Range<String.Index>; let scored: Bool
 
 ## 4. One query, step by step
 
-1. **Retrieve.** Top-k passages for the question, hybrid: BM25 (SQLite FTS5) and dense embeddings, scores fused (e.g. reciprocal rank fusion). The embedding model (NLEmbedding, built in, or a small MLX embedding model through `MLXEmbedders`) is chosen in M2 on a small retrieval check. The concatenated passages are the *document* that GroundOne reads, exactly as in training.
+1. **Retrieve.** Top-k passages for the question, hybrid: BM25 (SQLite FTS5) and dense embeddings, scores fused (e.g. reciprocal rank fusion). The embeddings come from a small retrieval-trained model on MLX (`MLXEmbedders`), chosen in M2 on a small retrieval check (NLEmbedding as a no-download fallback). The concatenated passages are the *document* that GroundOne reads, exactly as in training.
 2. **Generate.** The 3B generator streams an answer grounded in the passages.
 3. **Segment.** The answer is split with the training rule (pysbd-equivalent + checkable-content rule, §5.2).
 4. **Verify.** One GroundOne pass over document + numbered sentences; calibrated probabilities and labels by the served rule (supported iff P(supported) ≥ τ, else the argmax of the other two; D27).
@@ -252,7 +252,7 @@ What the app logs per query (exported as JSONL, plotted by a script in `groundon
 
 **Injected errors (D30, 2026-10-19).** The case study takes answers that GroundOne accepts as fully supported, injects controlled errors (a number, name or date swapped for one absent from the document or contradicting it; one fabricated sentence), and measures how many errors survive without the loop, after one round and after two, plus how many correct sentences the loop changes. The injected positions are the ground truth, independent of GroundOne. The literature also asks for: preservation of correct content (RARR), transitions in both directions (wrong → right and right → wrong; Huang et al. 2024), repair success per round, and an equal-compute best-of-N baseline (sample N answers, keep the one GroundOne accepts).
 
-**Honesty rule.** The demo shows that verification fits in the loop and what it costs. Faithfulness gains of the loop are measured only through the injected errors (D30); results are worded as "accepted by GroundOne", not "correct". An extra independent check with MiniCheck-RoBERTa is optional (§12, item 6).
+**Honesty rule.** The demo shows that verification fits in the loop and what it costs. Faithfulness gains of the loop are measured only through the injected errors (D30); results are worded as "accepted by GroundOne", not "correct". No second verifier is used (author, 2026-10-24: the demo is a demonstration, not a product). **Limitation to state in the demo chapter:** sentences rewritten by the generator have no reference label, so their correctness is judged only by GroundOne, the same model that stops the loop; a rewrite that falls in one of GroundOne's blind spots would count as a successful repair. **Future work:** an independent check of the rewrites (a second verifier such as MiniCheck-RoBERTa, or a human reading of a sample).
 
 ## 9. Milestones (proposal; experiment freeze 2026-10-30)
 
@@ -298,10 +298,10 @@ Models are not copied into the app bundle: the app reads them from the Hugging F
 | --- | --- | --- |
 | 1 | Name | **GroundOne Studio** (final, 2026-10-24) |
 | 2 | Generator | **separate Qwen2.5-3B-Instruct 4-bit** (cached, 1.6 GB); shared base only as a measured option |
-| 3 | Retriever | **hybrid**: BM25 (FTS5) + embeddings; embedding model chosen in M2 |
+| 3 | Retriever | **hybrid**: BM25 (FTS5) + embeddings. Embeddings (2026-10-24): **a small retrieval-trained open-weight embedding model on MLX** (`MLXEmbedders`), downloaded once; NLEmbedding only as a no-download fallback; the exact model chosen in M2 among those `MLXEmbedders` supports, after a check on about ten questions |
 | 4 | Location | `Project/GroundOneStudio/` |
 | 5 | Thesis placement | **own chapter** (application and case study) |
-| 6 | Loop evaluation | **Injected errors as ground truth (D30)**, see §8. Author's view: GroundOne does not repair; it flags, the generator rewrites, GroundOne re-checks, so the design has no circularity. Agreed for the app. The only caution is in the wording of results: "accepted by GroundOne" is what the loop guarantees by construction (it stops when GroundOne accepts), not "correct"; GroundOne's misses survive the loop and its false alarms cause needless rewrites. Optional, low cost: score the case-study answers before and after the loop with MiniCheck-RoBERTa (already in the pipeline) as an independent check |
+| 6 | Loop evaluation | **Injected errors as ground truth (D30)**, see §8; **no second verifier** (2026-10-24), limitation and future work stated instead. Author's view: GroundOne does not repair; it flags, the generator rewrites, GroundOne re-checks, so the design has no circularity. Agreed for the app. The only caution is in the wording of results: "accepted by GroundOne" is what the loop guarantees by construction (it stops when GroundOne accepts), not "correct"; GroundOne's misses survive the loop and its false alarms cause needless rewrites. Independent check of the rewrites dropped (2026-10-24): stated as a limitation, listed as future work |
 | 7 | Segmentation | **NLTokenizer + same list-marker and checkable-content rules; agreement with pysbd measured on T1** (confirmed 2026-10-22) |
 | 8 | Time budget | about six working days, accepted; the app comes after the remaining experiment items |
 | 12 | Verifier in the app (2026-10-24) | **GroundOne 3B by default**, with a selector for the 0.5B (faster, Apache 2.0) |
