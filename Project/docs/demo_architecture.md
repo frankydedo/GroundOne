@@ -1,6 +1,6 @@
 # Demo application: runtime choice and architecture
 
-> **Status:** v0.3 (2026-10-24; corpora decided, §4b). Runtime decided by the author (option A, D28); answers to the open questions in §12. Nothing below is implemented yet; the app is the last part of the thesis work, after the remaining experiment items (`tracker.md`).
+> **Status:** v0.4 (2026-10-24; corpora decided, §4b; source links, §4c; judge comparison mandatory). Runtime decided by the author (option A, D28); answers to the open questions in §12. Nothing below is implemented yet; the app is the last part of the thesis work, after the remaining experiment items (`tracker.md`).
 > Working name: **GroundOne Studio** (provisional, to confirm).
 > Supersedes the demo specification in `implementation_plan.md` §11 (web page, flag only, two days). Sources are summarised in the wiki (`Vault/wiki/concepts/Demo Runtime Choice.md` and the pages linked there).
 
@@ -10,14 +10,15 @@
 
 The demo is the end-to-end proof of the locality pillar: a RAG assistant in which **retrieval, generation and verification all run in one process on the 16 GB laptop**, and in which GroundOne is not just a colouring layer but the component that decides what the user is shown.
 
-It must make four things visible, each tied to a thesis claim:
+It must make five things visible, each tied to a thesis claim:
 
 | What the user sees | Claim it supports |
 | --- | --- |
 | Every answer sentence coloured by its verdict, with calibrated probabilities on hover | RQ3 (usable probabilities), D27 (one served rule) |
 | Flagged sentences rewritten from the document, then re-verified, up to a limit set by policy | Verification is cheap enough to sit inside the generation loop (cost model, Ch. 2) |
 | A timing panel: generation vs verification time, iterations, peak memory | Co-residence within 16 GB; verifier overhead relative to generation |
-| Optional comparison with a generative judge on the same answer | RQ2 (latency vs K), shown live instead of in a table |
+| **Comparison with a generative judge on the same answer (mandatory)**: the same 3B base model without the adapter, with the terse-judge prompt of B0a, judges the answer; the panel shows both verdicts and both times side by side | RQ2 (latency vs K) and the value of the readout, shown live instead of in a table |
+| Links from each verified sentence to the exact passage of the source file that supports it (green) or contradicts it (red) | Usefulness of per-sentence verdicts; first prototype of attribution, listed as future work in Ch. 9 (§4c) |
 
 Nothing in the demo is a new benchmark: measurements taken in it are reported as a case study in a dedicated thesis chapter (Q5), never mixed into the results matrix.
 
@@ -97,7 +98,8 @@ flowchart TB
 Blue nodes are where GroundOne is used: as the engine behind the `Verifier` protocol (one forward pass per draft), and through its verdicts in the loop, the policy engine, the audit log, the chat colouring and the timing panel.
 
 - **Core** knows only the three protocols and the policy. It can be unit-tested with fake engines, as the Python package is tested with the fake backend.
-- **Engines** are replaceable: a llama.cpp generator, a remote judge for the comparison mode, or a GroundOne port on another runtime implement the same protocols.
+- **Engines** are replaceable: a llama.cpp generator or a GroundOne port on another runtime implement the same protocols.
+- **The judge of the comparison mode is local**: the same Qwen2.5-3B 8-bit base that GroundOne uses, with the LoRA adapter unloaded (`LoRAContainer.unload`) and the B0a terse-judge prompt. It is exactly the judge measured in the thesis, it costs no extra memory, and it never leaves the machine. A remote judge would contradict the locality pillar.
 - **One inference actor.** All MLX calls run on one Swift actor, the counterpart of the single MLX worker thread in `engine.py`: generation and verification share the GPU and are serialised, so timings are not confounded by contention.
 
 Protocol sketch (names indicative):
@@ -106,6 +108,8 @@ Protocol sketch (names indicative):
 protocol Retriever { func search(_ query: String, k: Int) async throws -> [Passage] }
 protocol Generator { func answer(question: String, context: [Passage], instructions: String?) -> AsyncThrowingStream<String, Error> }
 protocol Verifier  { func verify(document: String, answer: String) async throws -> Verdicts }   // implemented by GroundOneVerifier: one forward pass
+protocol Judge     { func judge(document: String, sentences: [String]) async throws -> JudgeVerdicts }  // B0a prompt, adapter unloaded
+protocol Attributor { func sources(for sentence: Int, verdict: SentenceVerdict, passages: [Passage]) async throws -> [SourceLink] } // §4c, lazy
 
 struct SentenceVerdict { let range: Range<String.Index>; let scored: Bool
                          let probs: (supported: Double, contradicted: Double, notMentioned: Double); let label: Label }
@@ -143,6 +147,32 @@ Two corpora with two roles:
 
 Constraint for every corpus: **documents and questions in English**, the only language GroundOne was trained and calibrated on (D7; stated as a limitation in Ch. 8, multilingual adapters as future work in Ch. 9).
 
+## 4c. Links to the source passages (author, 2026-10-24; optional milestone M3b)
+
+Each verified sentence can link to the exact place in the source file that supports it (green link) or contradicts it
+(red link). GroundOne alone does not say *which* passage supports or contradicts a sentence (the attribution limit stated
+in Ch. 8), so the link is built in two steps:
+
+1. **Which passage: GroundOne per passage.** The answer is verified against each retrieved passage separately; the
+   passage with the highest P(supported) is the supporting source, the one with the highest P(contradicted) the
+   contradicting source. It reuses the model and its calibration, and it is the first prototype of the "readout per
+   passage" listed as future work in Ch. 9.
+2. **Where in the passage: similarity.** Inside the chosen passage, the sentence most similar to the answer sentence
+   (BM25 or embeddings) is the span to highlight.
+
+Each passage keeps its origin from ingestion: file URL, page index (PDF) and character range. Clicking a link opens the
+PDF at that page and highlights the span (`PDFView` + `PDFSelection`), or scrolls a text/Markdown view to the range.
+
+**Cost and timing.** Step 1 costs k forward passes instead of one (with k = 5 retrieved passages: about 1.5 s with the
+0.5B, 8 s with the 3B), so it runs **lazily**, on click or in the background after the main verification, and is cached.
+The main verification stays a single pass and the case-study timings are unaffected.
+
+**Honesty.** Attribution was not evaluated (RAGTruth does not say which passage supports a sentence). In the thesis it is
+a demonstrative feature, not a measured result; the link reads "evidence suggested by GroundOne".
+
+**Alternative considered:** citations written by the generator ([1], [2]); a 3B generator cites unreliably, so they would
+still need step 1 to be checked. Not used.
+
 ## 5. Porting GroundOne to Swift
 
 ### 5.1 What is ported, and what is reused
@@ -164,7 +194,7 @@ pysbd has no Swift port. Options:
 2. **Use `NLTokenizer(unit: .sentence)`** plus the same list-marker and checkable-content rules; measure agreement with pysbd on T1.
 3. **Ship the segmentation as data at first**: the conformance test runs on pre-segmented answers, and the app uses option 2 until agreement is measured.
 
-Proposal: start with 3 + 2, measure agreement on T1, port pysbd rules only if disagreement is material (say > 2 % of answers). Explained to the author on 2026-10-18; confirmation pending (Q7).
+Decision (2026-10-22): start with 3 + 2, measure agreement on T1, port pysbd rules only if disagreement is material (say > 2 % of answers).
 
 ### 5.3 Conformance test (the gate)
 
@@ -218,11 +248,11 @@ What the app logs per query (exported as JSONL, plotted by a script in `groundon
 - time to retrieve, time to first token and total generation time, verification time per pass, number of revision rounds, final status (accepted, hidden, abstained);
 - K, document length in tokens, generated tokens;
 - peak resident memory of the app (and of the system), to answer the co-residence item of the locality pillar;
-- in comparison mode, the same answer judged by a terse generative judge (same 3B, the B0a prompt), with its time.
+- the same answer judged by the terse generative judge (same 3B base without the adapter, B0a prompt), with its time and generated tokens (mandatory comparison, §1).
 
 **Injected errors (D30, 2026-10-19).** The case study takes answers that GroundOne accepts as fully supported, injects controlled errors (a number, name or date swapped for one absent from the document or contradicting it; one fabricated sentence), and measures how many errors survive without the loop, after one round and after two, plus how many correct sentences the loop changes. The injected positions are the ground truth, independent of GroundOne. The literature also asks for: preservation of correct content (RARR), transitions in both directions (wrong → right and right → wrong; Huang et al. 2024), repair success per round, and an equal-compute best-of-N baseline (sample N answers, keep the one GroundOne accepts).
 
-**Honesty rule.** The demo shows that verification fits in the loop and what it costs. It does **not** measure whether revised answers are more faithful: GroundOne judging its own repairs is circular. If that claim is wanted, it needs an independent check (e.g. MiniCheck-RoBERTa or human reading of a small set) and must be decided before October 30. **[DECIDE]** Q6.
+**Honesty rule.** The demo shows that verification fits in the loop and what it costs. Faithfulness gains of the loop are measured only through the injected errors (D30); results are worded as "accepted by GroundOne", not "correct". An extra independent check with MiniCheck-RoBERTa is optional (§12, item 6).
 
 ## 9. Milestones (proposal; experiment freeze 2026-10-30)
 
@@ -232,7 +262,8 @@ What the app logs per query (exported as JSONL, plotted by a script in `groundon
 | M1 | GroundOne verifier in Swift + fixture export in Python + conformance test | §5.3 passes on the 3B (and the 0.5B) | 1.5–2 |
 | M2 | Library (PDF/text), SQLite FTS5 retrieval, chat with coloured sentences | end-to-end answer with verdicts | 1 |
 | M3 | Policy engine, verify-and-revise loop, audit log | loop stops by policy; log complete | 1 |
-| M4 | Measurement mode, comparison mode, export, figures | figures for the thesis | 1 |
+| M3b *(optional)* | Links to the source passages (§4c) | a click opens the PDF at the highlighted span | 0.5–1 |
+| M4 | Measurement mode, **judge comparison (mandatory)**, export, figures | figures for the thesis | 1 |
 | M5 | Polish, screenshots, README | — | 0.5 |
 
 About 5.5–6 working days. **Fallback if M1 fails by 2026-10-24:** the SwiftUI app keeps the same Core and calls the existing `groundone serve` on 127.0.0.1 for verification (still fully local, but two processes), and the Swift port goes to future work.
@@ -243,7 +274,7 @@ About 5.5–6 working days. **Fallback if M1 fails by 2026-10-24:** the SwiftUI 
 Project/GroundOneStudio/      # Xcode project, own README (name provisional, Q1; location confirmed, Q4)
   App/                        # SwiftUI views
   Core/                       # orchestrator, loop, policy, audit (no ML imports)
-  Engines/                    # MLXGenerator, GroundOneVerifier, FTSRetriever, Embeddings
+  Engines/                    # MLXGenerator, GroundOneVerifier, LocalJudge, Attributor, FTSRetriever, Embeddings
   Tests/Conformance/          # fixtures exported by Python + tests
   Policies/                   # example policy JSON files
 Project/GroundOne/src/groundone/tools/export_fixtures.py   # Python side of the conformance test
@@ -273,4 +304,6 @@ Models are not copied into the app bundle: the app reads them from the Hugging F
 | 6 | Loop evaluation | **Injected errors as ground truth (D30)**, see §8. Author's view: GroundOne does not repair; it flags, the generator rewrites, GroundOne re-checks, so the design has no circularity. Agreed for the app. The only caution is in the wording of results: "accepted by GroundOne" is what the loop guarantees by construction (it stops when GroundOne accepts), not "correct"; GroundOne's misses survive the loop and its false alarms cause needless rewrites. Optional, low cost: score the case-study answers before and after the loop with MiniCheck-RoBERTa (already in the pipeline) as an independent check |
 | 7 | Segmentation | **NLTokenizer + same list-marker and checkable-content rules; agreement with pysbd measured on T1** (confirmed 2026-10-22) |
 | 8 | Time budget | about six working days, accepted; the app comes after the remaining experiment items |
+| 10 | Judge comparison (2026-10-24) | **Mandatory**, not optional; local judge = GroundOne's base without the adapter, B0a prompt |
+| 11 | Source links (2026-10-24) | **Accepted** as optional milestone M3b: GroundOne per passage + similarity, lazy and cached; demonstrative, not measured (§4c) |
 | 9 | Document corpora (2026-10-24) | **T1 documents for the measurements, the author's arXiv library in `Vault/raw/` for the demonstration**; GDPR/AI Act optional; English only (§4b) |
