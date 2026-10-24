@@ -146,3 +146,27 @@ test with the real models.
   The test's own link check waited too little (evidence needs k GroundOne passes); fixed and re-running to capture the
   PDF viewer.
 - Figures: `outputs/figures/demo/casestudy_{survival,outcomes,judge_time}_g1-{3b,05b}-b1.png` with captions.
+
+## Report 6 — 2026-10-24 18:28 (end of the session's work)
+
+**Done and tested since report 5**
+- End-to-end UI test with the real models passes, now including the source viewer: the link opens Guo et al. (2017)
+  at page 1 with the whole supporting sentence highlighted. Two fixes: span chosen by IDF-weighted stem overlap within the
+  passage (distinctive words outweigh repeated ones); highlight found by matching the start and end of the sentence in
+  the page text (line-end hyphenation broke whole-sentence matching).
+- Fake-engine UI tests and the 10 core unit tests re-run after the changes: all pass.
+- Release build of the app launches, loads the three models (MLX 5.3 GB) and shows the 109-document library; works in
+  dark mode.
+- App screenshots with captions for the thesis: `outputs/figures/demo/app_*.png`.
+- Commits `fb9fcca`, `04d1631` (not pushed).
+
+**Milestones (§9)**: M0 ✓, M1 ✓ (3B PASS; 0.5B labels agree, 3 sentences above the strict |Δp|), M2 ✓, M3 ✓, M3b ✓,
+M4 ✓ (measurement mode, mandatory judge comparison, export, figures, plus the best-of-3 baseline), M5 ✓ (README,
+screenshots). Not done (optional in the spec): re-querying the retriever for "not mentioned" sentences (stretch, §4),
+GDPR/AI Act corpus (§4b), app icon and signing for distribution.
+
+**Decisions left to the author**
+1. Rewrite prompt: report v1 only, or add a pre-declared "repair-first" run labelled post hoc (deletion dominates repairs).
+2. Whether the 0.5B case study goes into the chapter (set selected with the 3B: caveat).
+3. Whether to disable the "automation mode without authentication" now (`sudo automationmodetool disable-automationmode-without-authentication`);
+   the UI tests need it on.
