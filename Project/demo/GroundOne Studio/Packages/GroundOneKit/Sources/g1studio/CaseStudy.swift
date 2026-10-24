@@ -52,7 +52,9 @@ enum CaseStudy {
         let run = opts["--verifier"] ?? "g1-3b-b1"
         let n = Int(opts["--n"] ?? "100") ?? 100
         let name = opts["--name"] ?? "casestudy-\(run)"
-        let input = Workspace.demo.appendingPathComponent("casestudy/injected.jsonl")
+        let inputName = opts["--input"] ?? "injected.jsonl"
+        let input = Workspace.demo.appendingPathComponent("casestudy/\(inputName)")
+        let revision = Revision.Style(rawValue: opts["--revision"] ?? "targeted") ?? .targeted
         let items = try String(contentsOf: input, encoding: .utf8).split(separator: "\n").prefix(n)
             .map { try JSONDecoder().decode(Item.self, from: Data($0.utf8)) }
         let outDir = Workspace.demo.appendingPathComponent("casestudy/\(name)")
@@ -65,9 +67,10 @@ enum CaseStudy {
         let load = Date().timeIntervalSince(t0)
         let afterLoad = Memory.stats()
         Memory.resetPeak()
-        let orch = Orchestrator(retriever: nil, generator: gen, verifier: GroundOneVerifier(model: g1),
+        var orch = Orchestrator(retriever: nil, generator: gen, verifier: GroundOneVerifier(model: g1),
                                 judge: LocalJudge(model: g1), calibratedThreshold: g1.info.calibration.threshold,
                                 memory: { Memory.stats() })
+        orch.revision = revision
         let policy = Policy(name: "casestudy-strict", verifier: run, blocking: [.contradicted, .notMentioned],
                             maxAttempts: 2, onFailure: .highlight)
         let audit = AuditLog(url: outDir.appendingPathComponent("audit.jsonl"))
@@ -112,7 +115,8 @@ enum CaseStudy {
                                    "memory_peak_during_loop": ["mlx_peak_gb": Memory.stats().mlxPeakGB, "resident_peak_gb": Memory.stats().residentGB],
                                    "policy": ["blocking": ["contradicted", "not_mentioned"], "max_attempts": 2, "on_failure": "highlight"],
                                    "judge": "Qwen2.5-3B 8-bit base without the adapter, B0a terse prompt, greedy",
-                                   "build": "Release", "seconds": Date().timeIntervalSince(t0)]
+                                   "build": "Release", "seconds": Date().timeIntervalSince(t0),
+                                   "input": inputName, "revision": revision.rawValue]
         try JSONSerialization.data(withJSONObject: meta, options: [.prettyPrinted, .sortedKeys])
             .write(to: outDir.appendingPathComponent("meta.json"))
         print("done: \(outDir.path)")

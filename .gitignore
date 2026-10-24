@@ -152,6 +152,6 @@ Project/outputs/demo/fixtures/
 Project/outputs/demo/index/
 Project/outputs/demo/audit/
 Project/outputs/demo/logs/
-Project/outputs/demo/casestudy/injected.jsonl
+Project/outputs/demo/casestudy/injected*.jsonl
 Project/outputs/demo/casestudy/*/rows.jsonl
 Project/outputs/demo/casestudy/*/audit.jsonl

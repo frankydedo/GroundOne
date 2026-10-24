@@ -56,7 +56,8 @@ def repair_mode(r, inj):
 
 
 def summarise(rows, meta, injected=None):
-    out = {"answers": len(rows), "verifier": meta.get("verifier"), "generator": meta.get("generator")}
+    out = {"answers": len(rows), "verifier": meta.get("verifier"), "generator": meta.get("generator"),
+           "input": meta.get("input", "injected.jsonl"), "revision": meta.get("revision", "uniform")}
     present = [r["error_present_by_round"] for r in rows]
     final = [p[-1] for p in present]
     out["detection"] = {
@@ -196,7 +197,7 @@ def main():
         d = CS / run
         rows = [json.loads(l) for l in open(d / "rows.jsonl")]
         meta = json.loads((d / "meta.json").read_text()) if (d / "meta.json").exists() else {}
-        injected = {json.loads(l)["id"]: json.loads(l) for l in open(CS / "injected.jsonl")}
+        injected = {json.loads(l)["id"]: json.loads(l) for l in open(CS / meta.get("input", "injected.jsonl"))}
         summary[run] = summarise(rows, meta, injected)
         figures(rows, run, run.replace("casestudy-", ""), injected)
     for f in sorted(CS.glob("bestofn-*.jsonl")):

@@ -1,4 +1,5 @@
 import Foundation
+import NaturalLanguage
 
 /// One answer draft and GroundOne's verdicts on it.
 public struct Draft: Codable, Sendable {
@@ -73,6 +74,7 @@ public struct Orchestrator: Sendable {
     public var calibratedThreshold: Double
     public var topK = 5
     public var maxTokens = 400
+    public var revision: Revision.Style = .targeted
     public var memory: (@Sendable () -> MemoryStats)?
 
     public static let answerSystem = "You are a helpful assistant. Answer using only the DOCUMENT. Be concise."
@@ -177,11 +179,33 @@ public struct Orchestrator: Sendable {
             if flagged.isEmpty { break }
             round += 1
             emit(.stage("Revising (round \(round))"))
-            let user = Revision.prompt(document: document, question: req.task ?? req.question,
-                                       sentences: verdicts.sentences, flagged: flagged)
-            let (raw, s) = try await generator.complete(system: Self.reviseSystem, user: user,
+            var raw: String
+            var s = GenerationStats()
+            if revision == .targeted {
+                // One short request per flagged sentence, with only the relevant excerpt of the document.
+                var repl: [Int: String] = [:]
+                var logs: [String] = []
+                for f in flagged {
+                    let (out, st) = try await generator.complete(system: Revision.sentenceSystem,
+                                                                 user: Revision.sentencePrompt(f, document: document),
+                                                                 maxTokens: 90)
+                    s.generatedTokens += st.generatedTokens
+                    s.seconds += st.seconds
+                    s.promptTokens += st.promptTokens
+                    let fixed = Revision.cleanSentence(out)
+                    logs.append("[\(f.index + 1)] \(fixed ?? "DELETE")")
+                    // A contradicted sentence is corrected, never deleted: an unusable reply keeps it for the next round.
+                    if let fixed { repl[f.index] = fixed } else if f.label != .contradicted { repl[f.index] = "" }
+                }
+                raw = logs.joined(separator: "\n")
+                text = Revision.replace(repl, in: text, sentences: verdicts.sentences)
+            } else {
+                let user = Revision.prompt(document: document, question: req.task ?? req.question,
+                                           sentences: verdicts.sentences, flagged: flagged)
+                (raw, s) = try await generator.complete(system: Self.reviseSystem, user: user,
                                                         maxTokens: 60 * flagged.count + 40)
-            text = Revision.apply(raw, to: text, sentences: verdicts.sentences, flagged: flagged.map(\.index))
+                text = Revision.apply(raw, to: text, sentences: verdicts.sentences, flagged: flagged.map(\.index))
+            }
             emit(.partial(round: round, text: text))
             timings.generation.append(s.seconds)
             emit(.stage("Verifying with GroundOne (round \(round))"))
@@ -238,6 +262,57 @@ public enum Documents {
 
 /// Targeted rewriting (edit only what is flagged, as RARR does).
 public enum Revision {
+    /// targeted: one instruction per error type with the relevant excerpt of the document (default);
+    /// uniform: the same instruction for every flagged sentence (kept as a control for the case study).
+    public enum Style: String, Sendable { case targeted, uniform }
+
+    public static let sentenceSystem = "You correct one sentence so that it agrees with a source text. You reply with the sentence only."
+
+    /// Contradicted: correct the wrong facts from the source (no deletion). Not stated: rewrite from what the source says
+    /// on that point, or DELETE if it says nothing on it.
+    public static func sentencePrompt(_ f: SentenceVerdict, document: String) -> String {
+        let excerpt = Evidence.excerpt(for: f.text, in: document, maxSentences: 3)
+        if f.label == .contradicted {
+            return """
+                SOURCE: "\(excerpt)"
+
+                SENTENCE: "\(f.text)"
+
+                The SENTENCE contradicts the SOURCE. Write the corrected SENTENCE: keep its meaning and wording, but replace the wrong facts (numbers, names, dates, places) with the ones in the SOURCE. Write only the corrected sentence.
+                """
+        }
+        return """
+            SOURCE: "\(excerpt)"
+
+            SENTENCE: "\(f.text)"
+
+            The SOURCE does not state the SENTENCE. If the SOURCE says something on the same point, rewrite the SENTENCE so that it says only what the SOURCE says. If the SOURCE says nothing on that point, write DELETE. Write only the sentence, or DELETE.
+            """
+    }
+
+    /// First line of the reply, without quotes or a leading label; nil for DELETE or an empty reply.
+    public static func cleanSentence(_ reply: String) -> String? {
+        var t = reply.trimmingCharacters(in: .whitespacesAndNewlines)
+        t = t.components(separatedBy: .newlines).first { !$0.trimmingCharacters(in: .whitespaces).isEmpty } ?? ""
+        t = t.replacingOccurrences(of: #"^\[\d+\]\s*"#, with: "", options: .regularExpression)
+        t = t.replacingOccurrences(of: #"^\(?passage \d+\)?\s*:?\s*"#, with: "", options: [.regularExpression, .caseInsensitive])
+        t = t.replacingOccurrences(of: #"^(corrected sentence|sentence|rewritten sentence)\s*:\s*"#, with: "",
+                                   options: [.regularExpression, .caseInsensitive])
+        t = t.trimmingCharacters(in: CharacterSet(charactersIn: "\"“”' ").union(.whitespaces))
+        if t.isEmpty || t.uppercased().hasPrefix("DELETE") { return nil }
+        return t
+    }
+
+    /// Replaces sentences in place by index ("" deletes), layout kept.
+    public static func replace(_ repl: [Int: String], in answer: String, sentences: [SentenceVerdict]) -> String {
+        var out = answer as NSString
+        for s in sentences.sorted(by: { $0.start > $1.start }) {
+            guard let r = repl[s.index] else { continue }
+            out = out.replacingCharacters(in: NSRange(location: s.start, length: s.end - s.start), with: r) as NSString
+        }
+        return tidy(out as String)
+    }
+
     public static func prompt(document: String, question: String, sentences: [SentenceVerdict],
                               flagged: [SentenceVerdict]) -> String {
         let numbered = sentences.map { "[\($0.index + 1)] \($0.text)" }.joined(separator: "\n")
@@ -295,5 +370,46 @@ public enum Revision {
                 .trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty && !["-", "*", "•"].contains($0) }
             .joined(separator: "\n")
+    }
+}
+
+/// The part of a document closest to a sentence: its best-matching sentences by shared word stems weighted by rarity
+/// (IDF), with the next sentence for context. Used to point the generator at the evidence when rewriting.
+public enum Evidence {
+    public static func excerpt(for sentence: String, in document: String, maxSentences: Int = 2) -> String {
+        let spans = sentences(of: document)
+        guard !spans.isEmpty else { return "" }
+        let scores = scoresIDF(sentence, spans.map(\.1))
+        let best = scores.indices.max { scores[$0] < scores[$1] }!
+        let lo = maxSentences > 2 ? max(0, best - 1) : best
+        let picked = spans[lo..<min(lo + maxSentences, spans.count)].map(\.1)
+        return picked.joined(separator: " ").replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespaces)
+    }
+
+    public static func sentences(of text: String) -> [(NSRange, String)] {
+        let tok = NLTokenizer(unit: .sentence)
+        tok.string = text
+        var out: [(NSRange, String)] = []
+        tok.enumerateTokens(in: text.startIndex..<text.endIndex) { r, _ in
+            out.append((NSRange(r, in: text), String(text[r])))
+            return true
+        }
+        return out
+    }
+
+    public static func scoresIDF(_ query: String, _ candidates: [String]) -> [Double] {
+        let stems = candidates.map(stemSet)
+        var df: [String: Int] = [:]
+        for s in stems { for w in s { df[w, default: 0] += 1 } }
+        let n = Double(candidates.count)
+        let target = stemSet(query)
+        return stems.map { s in s.intersection(target).map { Foundation.log(1 + n / Double(df[$0]!)) }.reduce(0, +) }
+    }
+
+    /// Lower-cased words longer than two characters, cut to six (a crude stem: calibrates ~ calibrating).
+    public static func stemSet(_ s: String) -> Set<String> {
+        Set(s.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).filter { $0.count > 2 }
+            .map { String($0.prefix(6)) })
     }
 }

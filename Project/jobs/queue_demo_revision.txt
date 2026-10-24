@@ -1,0 +1,5 @@
+# Demo (2026-10-24): rewrite prompt by error type with the relevant excerpt (contradicted: correct, no deletion; not
+# stated: rewrite from the document or delete), on a second, disjoint injected set; the uniform prompt as control.
+'demo/GroundOne Studio/build/dd2/Build/Products/Release/g1studio' casestudy --verifier g1-3b-b1 --n 100 --input injected-set2.jsonl --revision targeted --name casestudy-g1-3b-b1-set2
+'demo/GroundOne Studio/build/dd2/Build/Products/Release/g1studio' casestudy --verifier g1-3b-b1 --n 100 --input injected-set2.jsonl --revision uniform --name casestudy-g1-3b-b1-set2-uniform
+GroundOne/.venv/bin/python experiments/demo/scripts/casestudy_report.py casestudy-g1-3b-b1 casestudy-g1-05b-b1 casestudy-g1-3b-b1-set2 casestudy-g1-3b-b1-set2-uniform

@@ -121,3 +121,45 @@ final class LoopTests: XCTestCase {
         XCTAssertEqual(back[0].drafts[0].verdicts.sentences[0].label, .supported)
     }
 }
+
+final class RevisionPromptTests: XCTestCase {
+    let doc = "The settlement includes $196,365 for the complainant. Legal firms received over $49,000. The case closed in May."
+
+    func testSentencePromptByErrorType() {
+        let c = SentenceVerdict(index: 0, text: "Legal firms received over $73,500.", start: 0, end: 10, scored: true, label: .contradicted)
+        let n = SentenceVerdict(index: 1, text: "The judge was Aiko Tanabe.", start: 11, end: 20, scored: true, label: .notMentioned)
+        let pc = Revision.sentencePrompt(c, document: doc)
+        XCTAssertTrue(pc.contains("Legal firms received over $49,000."))
+        XCTAssertTrue(pc.contains("The SENTENCE contradicts the SOURCE."))
+        XCTAssertFalse(pc.contains("DELETE"))
+        XCTAssertTrue(Revision.sentencePrompt(n, document: doc).contains("write DELETE"))
+    }
+
+    func testCleanSentence() {
+        XCTAssertEqual(Revision.cleanSentence("Corrected sentence: \"Legal firms received over $49,000.\"\nextra"), "Legal firms received over $49,000.")
+        XCTAssertNil(Revision.cleanSentence("DELETE"))
+        XCTAssertEqual(Revision.cleanSentence("[2] The grass is green."), "The grass is green.")
+    }
+
+    func testContradictedIsNeverDeleted() async throws {
+        struct DeleteAll: Generator {
+            let name = "delete"
+            func generate(system: String, user: String, maxTokens: Int) -> AsyncThrowingStream<GenerationEvent, Error> {
+                let r = user.contains("SENTENCE:") ? "DELETE" : "The sky is blue today. The grass is wrong colour."
+                return AsyncThrowingStream { c in c.yield(.text(r)); c.yield(.done(GenerationStats())); c.finish() }
+            }
+        }
+        struct Contra: Verifier {
+            let name = "contra"
+            func verify(document: String, sentences: [Segment]) async throws -> Verdicts {
+                Verdicts(sentences: sentences.enumerated().map { i, s in
+                    SentenceVerdict(index: i, text: s.text, start: s.start, end: s.end, scored: true,
+                                    probs: s.text.contains("wrong") ? [0.1, 0.8, 0.1] : [0.97, 0.02, 0.01])
+                }, inputTokens: 1, seconds: 0, threshold: 0.925, model: name)
+            }
+        }
+        let r = try await Orchestrator(retriever: nil, generator: DeleteAll(), verifier: Contra(), judge: nil, calibratedThreshold: 0.925)
+            .execute(.init(question: "q", document: "doc", compareWithJudge: false), policy: .lenient)
+        XCTAssertTrue(r.final!.text.contains("wrong colour"), "a contradicted sentence must not be deleted")
+    }
+}

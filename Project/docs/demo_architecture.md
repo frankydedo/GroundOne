@@ -373,3 +373,27 @@ gains in "accepted by GroundOne" come mostly from deletion; the rewrite prompt (
 of other apps can swallow synthesized clicks (the runner hides Activity Monitor); generic `descendants(matching: .any)`
 queries stall XCTest; XCTest hangs symbolicating failures when the app is built with the debug dylib
 (`ENABLE_DEBUG_DYLIB = NO`).
+
+**Rewriting design (final, 2026-10-24).** The first design sent the whole document and all flagged sentences in one
+prompt with the same instruction for every error ("rewrite from the document; DELETE if it gives no basis"); the 3B
+generator deleted 75 of 86 removed errors and ignored instructions not to delete. Final design (`Revision.Style.targeted`,
+author's specification): **one short request per flagged sentence**, containing the sentence and only the relevant
+excerpt of the document (IDF-weighted best-matching sentences), with an instruction **by error type**: *contradicted* →
+correct the wrong facts from the source, no deletion (a deleted or unusable reply keeps the sentence for the next round);
+*not stated* → rewrite from what the source says on that point, or delete if it says nothing. Evaluated on a second,
+disjoint set of 100 injected answers (`injected-set2.jsonl`), with the first design as an internal control on the same
+set:
+
+| Set 2 (100 answers, 3B) | Final design | First design (control) |
+| --- | --- | --- |
+| errors still present after the loop | 9 % | 13 % |
+| removed errors: value restored / rewritten / deleted | **41 / 1 / 49** | 7 / 0 / 80 |
+| swapped numbers restored | 18 / 25 | 2 / 25 |
+| swapped dates restored | 16 / 25 | 0 / 25 |
+| fabricated sentences removed (deletion is the right fix) | 25 / 25 | 22 / 25 |
+| accepted by GroundOne at the end | 90 % | 90 % |
+| survivors accepted by GroundOne (misses) | 3 | 3 |
+| rewrite generation per round, median | 0.9 s | 2.1 s |
+
+Names swapped for an invented person are labelled *not mentioned* by GroundOne (correct), so they are mostly deleted (18)
+rather than restored (7). The demo chapter reports the final design only (author: no versions in the chapter).

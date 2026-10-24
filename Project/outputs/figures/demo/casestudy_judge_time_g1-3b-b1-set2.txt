@@ -1,0 +1,1 @@
+Inside the demo app (casestudy-g1-3b-b1-set2, Swift + MLX, M4 16 GB): time to verify each injected answer with GroundOne (one forward pass, verdicts at the markers) and with the generative judge of the comparison mode (Qwen2.5-3B 8-bit base without the adapter, B0a terse prompt, greedy). Same answers, same process, calls serialised on the GPU.

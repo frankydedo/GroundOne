@@ -1,0 +1,1 @@
+'demo/GroundOne Studio/build/dd2/Build/Products/Release/g1studio' casestudy --verifier g1-3b-b1 --n 8 --input injected-set2.jsonl --revision targeted --name probe-set2

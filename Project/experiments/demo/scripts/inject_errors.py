@@ -6,8 +6,9 @@ a swapped number, a swapped name, a swapped date (each replaced by one absent fr
 sentence inserted after a random sentence. The injected position and the wrong string are the ground truth, independent
 of GroundOne. 100 answers, 25 per error type, stratified by task where possible; seed 0.
 
-Usage (from Project/): GroundOne/.venv/bin/python experiments/demo/scripts/inject_errors.py
-Output: outputs/demo/casestudy/injected.jsonl (+ a summary on stdout)
+Usage (from Project/): GroundOne/.venv/bin/python experiments/demo/scripts/inject_errors.py [--out NAME] [--exclude NAME] [--seed S]
+Output: outputs/demo/casestudy/injected.jsonl (+ a summary on stdout). A second, disjoint set (answers not in --exclude)
+was drawn to evaluate the revision prompt chosen after inspecting the first set.
 """
 import json
 import math
@@ -21,7 +22,7 @@ P = Path(__file__).resolve().parents[3]
 T1 = P / "data/processed/groundone/test_ragtruth.jsonl"
 PRED = P / "outputs/results/g1-3b-b1/t1/predictions.parquet"
 CAL = P / "outputs/models/g1-3b-b1/best/calibration.json"
-OUT = P / "outputs/demo/casestudy/injected.jsonl"
+CSDIR = P / "outputs/demo/casestudy"
 
 NAMES = ["Margaret Okafor", "Henrik Dalberg", "Lucia Ferrante", "Tomasz Wielgosz", "Aiko Tanabe", "Rafael Quintero",
          "Ingrid Solheim", "Dmitri Volkov", "Priya Raman", "Olusegun Adeyemi", "Clara Whitfield", "Mateo Arrieta"]
@@ -95,6 +96,16 @@ def swap_name(s, doc, rng):
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--out", default="injected.jsonl")
+    ap.add_argument("--exclude", default=None)
+    ap.add_argument("--seed", type=int, default=0)
+    a = ap.parse_args()
+    OUT = CSDIR / a.out
+    if OUT.exists():
+        raise SystemExit(f"{OUT} exists")
+    excluded = {json.loads(l)["id"] for l in open(CSDIR / a.exclude)} if a.exclude else set()
     cal = json.loads(CAL.read_text())
     t, b, tau = cal["temperatures"]["three"], cal["biases"]["three"], cal["thresholds"]["three"]
     pred = pd.read_parquet(PRED)
@@ -105,8 +116,8 @@ def main():
         accepted_by_rid[rid] = accepted_by_rid.get(rid, True) and ok
     recs = [json.loads(l) for l in open(T1)]
     pool = [r for r in recs if accepted_by_rid.get(r["id"]) and all(y in ("supported", None) for y in r["labels"])
-            and sum(y is not None for y in r["labels"]) >= 2]
-    rng = random.Random(0)
+            and sum(y is not None for y in r["labels"]) >= 2 and r["id"] not in excluded]
+    rng = random.Random(a.seed)
     rng.shuffle(pool)
     kinds = {"number": swap_number, "name": swap_name, "date": swap_date}
     out, used = [], set()

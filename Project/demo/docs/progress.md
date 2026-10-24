@@ -170,3 +170,11 @@ GDPR/AI Act corpus (§4b), app icon and signing for distribution.
 2. Whether the 0.5B case study goes into the chapter (set selected with the 3B: caveat).
 3. Whether to disable the "automation mode without authentication" now (`sudo automationmodetool disable-automationmode-without-authentication`);
    the UI tests need it on.
+
+## Report 7 — 2026-10-24 20:10 — rewriting redesigned (author's specification)
+
+One request per flagged sentence with the relevant excerpt and an instruction by error type (contradicted: correct,
+never delete; not stated: rewrite from the source or delete). Fresh set of 100 injected answers (3B), first design as
+control on the same set: errors left 9 % vs 13 %; removed errors restored / rewritten / deleted 41 / 1 / 49 vs 7 / 0 / 80;
+numbers restored 18/25 vs 2/25, dates 16/25 vs 0/25; fabricated removed 25/25 vs 22/25; accepted by GroundOne 90 % both;
+misses 3 both; rewrite 0.9 s vs 2.1 s per round. Unit tests (13) and fake UI tests pass; the app uses the new design.

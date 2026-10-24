@@ -13,8 +13,8 @@ public enum Fakes {
         public let name = "fake generator"
         public init() {}
         public func generate(system: String, user: String, maxTokens: Int) -> AsyncThrowingStream<GenerationEvent, Error> {
-            let reply = user.contains("Rewrite only these sentences")
-                ? "[3] The method was evaluated on three benchmarks."
+            let reply = user.contains("SENTENCE:")
+                ? "The method was evaluated on three benchmarks."
                 : "LoRA freezes the pretrained weights. It injects trainable low-rank matrices into each layer. The method was evaluated on twelve benchmarks in 2031."
             return AsyncThrowingStream { c in
                 Task {
