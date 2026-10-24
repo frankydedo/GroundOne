@@ -1,0 +1,4 @@
+# Demo M2 (2026-10-24): research library index with both candidate embedders, then the retrieval check (decision 3).
+'demo/GroundOne Studio/build/dd/Build/Products/Release/g1studio' ingest library mlx-community/Qwen3-Embedding-0.6B-4bit-DWQ /Users/francescodedominicis/Desktop/THESIS/Vault/raw
+'demo/GroundOne Studio/build/dd/Build/Products/Release/g1studio' ingest library BAAI/bge-small-en-v1.5 /Users/francescodedominicis/Desktop/THESIS/Vault/raw
+'demo/GroundOne Studio/build/dd/Build/Products/Release/g1studio' retrieval-check mlx-community/Qwen3-Embedding-0.6B-4bit-DWQ BAAI/bge-small-en-v1.5

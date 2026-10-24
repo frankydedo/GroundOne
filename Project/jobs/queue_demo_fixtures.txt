@@ -1,0 +1,3 @@
+# Demo M1 (2026-10-24): conformance fixtures for the Swift port (demo_architecture.md §5.3); 200 T1 answers stratified by K.
+HF_HUB_OFFLINE=1 GroundOne/.venv/bin/python -m groundone.tools.export_fixtures --adapter g1-3b-b1/best --n 200
+HF_HUB_OFFLINE=1 GroundOne/.venv/bin/python -m groundone.tools.export_fixtures --adapter g1-05b-b1/best --n 200

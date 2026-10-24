@@ -1,0 +1,3 @@
+# Demo M4 (2026-10-24): injected-error case study (D30, decision 13) in the Swift app engines, GroundOne 3B; then the report.
+'demo/GroundOne Studio/build/dd/Build/Products/Release/g1studio' casestudy --verifier g1-3b-b1 --n 100
+GroundOne/.venv/bin/python experiments/demo/scripts/casestudy_report.py casestudy-g1-3b-b1

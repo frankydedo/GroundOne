@@ -1,0 +1,10 @@
+{
+  "name": "strict-legal",
+  "verifier": "g1-3b-b1",
+  "threshold": "calibrated",
+  "blocking": ["contradicted", "not_mentioned"],
+  "max_attempts": 2,
+  "on_failure": "abstain",
+  "show_probabilities": true,
+  "audit_log": true
+}

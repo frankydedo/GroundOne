@@ -1,0 +1,78 @@
+{
+  "bm25" : {
+    "hit@5" : 1,
+    "mean_seconds" : 0.0031893452008565268,
+    "mrr" : 0.91666666666666663
+  },
+  "dense BAAI\/bge-small-en-v1.5" : {
+    "hit@5" : 1,
+    "mean_seconds" : 0.011024345954259237,
+    "mrr" : 0.89583333333333337
+  },
+  "dense mlx-community\/Qwen3-Embedding-0.6B-4bit-DWQ" : {
+    "hit@5" : 0.91666666666666663,
+    "mean_seconds" : 0.032239576180775963,
+    "mrr" : 0.81944444444444431
+  },
+  "hybrid BAAI\/bge-small-en-v1.5" : {
+    "hit@5" : 1,
+    "mean_seconds" : 0.013428479433059692,
+    "mrr" : 1
+  },
+  "hybrid mlx-community\/Qwen3-Embedding-0.6B-4bit-DWQ" : {
+    "hit@5" : 1,
+    "mean_seconds" : 0.040701329708099365,
+    "mrr" : 1
+  },
+  "protocol" : "research library (Vault\/raw PDFs); hit@5 = the source paper is among the top-5 passages; MRR over the first passage from it",
+  "questions" : [
+    {
+      "q" : "How many fewer trainable parameters does low-rank adaptation need than full fine-tuning of GPT-3 175B?",
+      "source" : "Hu 2022 - LoRA"
+    },
+    {
+      "q" : "Which simple post-processing method fixes the miscalibration of modern neural networks?",
+      "source" : "Guo 2017"
+    },
+    {
+      "q" : "How does vLLM manage key-value cache memory to reduce fragmentation?",
+      "source" : "Kwon 2023"
+    },
+    {
+      "q" : "How is the factual precision of long-form text scored from atomic facts?",
+      "source" : "Min 2023"
+    },
+    {
+      "q" : "What are reflection tokens and how does the model decide when to retrieve?",
+      "source" : "Asai 2024"
+    },
+    {
+      "q" : "Which metrics evaluate a retrieval augmented generation pipeline without reference answers?",
+      "source" : "Es 2024"
+    },
+    {
+      "q" : "How often does a significant improvement on one test set also hold on another test set?",
+      "source" : "Berg-Kirkpatrick 2012"
+    },
+    {
+      "q" : "How can a language model larger than DRAM run by loading weights from flash memory?",
+      "source" : "Alizadeh 2024"
+    },
+    {
+      "q" : "How much more energy do multi-purpose generative models use than task-specific models?",
+      "source" : "Luccioni 2024"
+    },
+    {
+      "q" : "How many sentence pairs are in the Multi-Genre NLI corpus and which genres does it cover?",
+      "source" : "Williams 2018"
+    },
+    {
+      "q" : "How factually consistent are LLM summaries of topic-focused dialogues?",
+      "source" : "Tang 2024"
+    },
+    {
+      "q" : "Why are language models sensitive to the position of the options in multiple choice questions?",
+      "source" : "Zheng 2024"
+    }
+  ]
+}

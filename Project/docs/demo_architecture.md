@@ -1,6 +1,6 @@
 # Demo application: runtime choice and architecture
 
-> **Status:** v0.4 (2026-10-24; corpora decided, §4b; source links, §4c; judge comparison mandatory). Runtime decided by the author (option A, D28); answers to the open questions in §12. Nothing below is implemented yet; the app is the last part of the thesis work, after the remaining experiment items (`tracker.md`).
+> **Status:** v0.5 (2026-10-24): **implemented** in `Project/demo/GroundOne Studio/` (see its README and §13 for what was built, measured and changed during implementation; progress log in `Project/demo/docs/progress.md`). v0.4: corpora decided, §4b; source links, §4c; judge comparison mandatory. Runtime decided by the author (option A, D28); answers to the open questions in §12.
 > Name: **GroundOne Studio** (final, 2026-10-24).
 > Supersedes the demo specification in `implementation_plan.md` §11 (web page, flag only, two days). Sources are summarised in the wiki (`Vault/wiki/concepts/Demo Runtime Choice.md` and the pages linked there).
 
@@ -268,7 +268,7 @@ What the app logs per query (exported as JSONL, plotted by a script in `groundon
 
 About 5.5–6 working days; the 30 October freeze is self-imposed and the demo may run past it (decision 15). **Fallback if M1 fails:** the SwiftUI app keeps the same Core and calls the existing `groundone serve` on 127.0.0.1 for verification (still fully local, but two processes), and the Swift port goes to future work.
 
-## 10. Repository layout (proposal)
+## 10. Repository layout (proposal; as built in §13)
 
 ```
 Project/GroundOneStudio/      # Xcode project, own README (name provisional, Q1; location confirmed, Q4)
@@ -298,7 +298,7 @@ Models are not copied into the app bundle: the app reads them from the Hugging F
 | --- | --- | --- |
 | 1 | Name | **GroundOne Studio** (final, 2026-10-24) |
 | 2 | Generator | **separate Qwen2.5-3B-Instruct 4-bit** (cached, 1.6 GB); shared base only as a measured option |
-| 3 | Retriever | **hybrid**: BM25 (FTS5) + embeddings. Embeddings (2026-10-24): **a small retrieval-trained open-weight embedding model on MLX** (`MLXEmbedders`), downloaded once; NLEmbedding only as a no-download fallback; the exact model chosen in M2 among those `MLXEmbedders` supports, after a check on about ten questions |
+| 3 | Retriever | **hybrid**: BM25 (FTS5) + embeddings. Embeddings (2026-10-24): **a small retrieval-trained open-weight embedding model on MLX** (`MLXEmbedders`), downloaded once; NLEmbedding only as a no-download fallback; the exact model chosen in M2 among those `MLXEmbedders` supports, after a check on about ten questions. **Chosen: `BAAI/bge-small-en-v1.5`** (133 MB, MIT) after the retrieval check of §13 |
 | 4 | Location | `Project/GroundOneStudio/` |
 | 5 | Thesis placement | **own chapter** (application and case study) |
 | 6 | Loop evaluation | **Injected errors as ground truth (D30)**, see §8; **no second verifier** (2026-10-24), limitation and future work stated instead. Author's view: GroundOne does not repair; it flags, the generator rewrites, GroundOne re-checks, so the design has no circularity. Agreed for the app. The only caution is in the wording of results: "accepted by GroundOne" is what the loop guarantees by construction (it stops when GroundOne accepts), not "correct"; GroundOne's misses survive the loop and its false alarms cause needless rewrites. Independent check of the rewrites dropped (2026-10-24): stated as a limitation, listed as future work |
@@ -311,3 +311,47 @@ Models are not copied into the app bundle: the app reads them from the Hugging F
 | 10 | Judge comparison (2026-10-24) | **Mandatory**, not optional; local judge = GroundOne's base without the adapter, B0a prompt |
 | 11 | Source links (2026-10-24) | **Accepted** as optional milestone M3b: GroundOne per passage + similarity, lazy and cached; demonstrative, not measured (§4c) |
 | 9 | Document corpora (2026-10-24) | **T1 documents for the measurements, the author's arXiv library in `Vault/raw/` for the demonstration**; GDPR/AI Act optional; English only (§4b) |
+
+## 13. Implementation (2026-10-24)
+
+**Where.** `Project/demo/GroundOne Studio/` (folder created by the author; replaces `Project/GroundOneStudio/` of §10):
+`project.yml` (XcodeGen; the `.xcodeproj` is generated), `App/` (SwiftUI), `UITests/`, `Policies/`, `scripts/uitest.sh`,
+and the Swift package `Packages/GroundOneKit` with `GroundOneCore` (no ML imports), `GroundOneEngines` (MLX) and the
+command-line tool `g1studio`. Python side: `groundone/tools/export_fixtures.py`; case-study scripts in
+`Project/experiments/demo/scripts/`. Outputs in `Project/outputs/demo/` (only summaries tracked). Pins: mlx-swift-lm
+3.32.3, mlx-swift 0.32.3, swift-transformers 1.3.5 (tokenizer only).
+
+**Conformance gate (§5.3)**, 200 T1 answers stratified by K, 1,747 markers, Swift logits on the Python token ids:
+
+| Check | 3B (default) | 0.5B |
+| --- | --- | --- |
+| token ids / marker positions identical | 200/200, 200/200 | 200/200, 200/200 |
+| max \|Δlogit\| | 0.070 | 0.172 |
+| max \|Δp\| calibrated | 0.0048 | 0.031 |
+| sentences with \|Δp\| < 0.01 | 100 % | 99.83 % (3 above) |
+| served labels identical | 100 % | 99.71 % (all within 0.01 of τ) |
+| gate | **PASS** | fails only the strict \|Δp\| criterion on 3 sentences |
+
+The thesis numbers hold for the app with the 3B; for the 0.5B they hold for the labels (every disagreement sits at the
+threshold). No retraining or recalibration.
+
+**Segmentation (§5.2).** NLTokenizer port vs pysbd on all 2,647 T1 answers: identical segmentation on **98.4 %** of
+answers after adding three pysbd-like rules (no break after initials or common abbreviations, none before a lowercase
+word, list markers merged); 95.2 % without them. Above the 98 % bar of decision 7; pysbd rules not ported further.
+
+**Retrieval check (decision 3)**, research library (109 files, 5,886 passages), 12 questions with a known source paper:
+hybrid BM25 + dense reaches hit@5 = 1.00 and MRR = 1.00 with both bge-small-en-v1.5 and Qwen3-Embedding-0.6B-4bit;
+dense alone: bge 0.90 MRR, Qwen3 0.82; BM25 alone 0.92. The check is small and at the ceiling; bge-small chosen as equal
+here, 2.5× smaller and 3× faster.
+
+**Changes made during implementation (to state in the demo chapter).**
+- *App data location.* The app keeps its data in `~/Library/Application Support/GroundOne Studio/` (adapters with
+  calibration, the library index with copies of its files, policies, audit log), filled by `g1studio install`; models stay
+  in the Hugging Face cache. Reason: macOS privacy protection (TCC) blocks an app's access to `~/Desktop` until the user
+  approves a dialog, which froze the launch. The command-line tools read the workspace directly.
+- *MLX memory limits.* The Swift engines set MLX's buffer cache to 1 GB and the memory limit to 11 GB, as `backend.py`
+  does; without them a variable-length workload (indexing) grew to 11 GB and swapped.
+- *Source links (§4c).* Span inside the chosen passage by word overlap (a BM25-like score), not embeddings.
+- *Judge parse.* Same lenient parser as `judges.py` (last A/B/C on the line `<n>: …`).
+- *Measurements.* The case study runs from the command line (`g1studio casestudy`, same engines and loop as the app,
+  Release build, under the guard); the app's Measurements view shows the session and the case-study summary.

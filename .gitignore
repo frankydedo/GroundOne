@@ -140,3 +140,18 @@ Thesis_ita/thesis.toc
 Thesis_draft_dist/*
 Project/outputs/figures/_untranslated_it.txt
 
+
+# Demo app (GroundOne Studio): build products and the generated Xcode project (regenerate with `xcodegen generate`)
+Project/demo/GroundOne Studio/build/
+Project/demo/GroundOne Studio/Packages/GroundOneKit/.build/
+Project/demo/GroundOne Studio/Packages/GroundOneKit/.swiftpm/
+Project/demo/GroundOne Studio/GroundOneStudio.xcodeproj/
+*.profraw
+# Demo outputs: only summaries are tracked (fixtures, indexes, audit logs and per-answer rows hold dataset text)
+Project/outputs/demo/fixtures/
+Project/outputs/demo/index/
+Project/outputs/demo/audit/
+Project/outputs/demo/logs/
+Project/outputs/demo/casestudy/injected.jsonl
+Project/outputs/demo/casestudy/*/rows.jsonl
+Project/outputs/demo/casestudy/*/audit.jsonl

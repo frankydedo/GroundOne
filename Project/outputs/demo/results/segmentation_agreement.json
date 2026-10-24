@@ -1,0 +1,307 @@
+{
+  "answers" : 2647,
+  "examples_of_disagreement" : [
+    {
+      "id" : "rt-358",
+      "pysbd" : [
+        "National parks are free on Sat.",
+        "during National Park Week (Apr. 18-26).",
+        "128 parks normally charging fees will offer free admission.",
+        "Find Your Park website lists events & activities.",
+        "Share your experiences with #FindYourPark."
+      ],
+      "swift" : [
+        "National parks are free on Sat.",
+        "& Sun. during National Park Week (Apr. 18-26). 128 parks normally charging fees will offer free admission.",
+        "Find Your Park website lists events & activities.",
+        "Share your experiences with #FindYourPark."
+      ]
+    },
+    {
+      "id" : "rt-778",
+      "pysbd" : [
+        "The California Public Utilities Commission fined Pacific Gas & Electric Co.",
+        "$1.6 billion for unsafe pipeline operations, following the 2010 San Bruno blast that killed 8 and injured 50.",
+        "Most of the penalty goes towards improving pipeline safety.",
+        "PG&E CEO Tony Earley expressed regret and dedication to earning back customer trust.",
+        "The company has already replaced 800 miles of pipe and implemented safety measures.",
+        "This is the largest fine ever imposed on a utility company in California."
+      ],
+      "swift" : [
+        "The California Public Utilities Commission fined Pacific Gas & Electric Co. $1.6 billion for unsafe pipeline operations, following the 2010 San Bruno blast that killed 8 and injured 50.",
+        "Most of the penalty goes towards improving pipeline safety.",
+        "PG&E CEO Tony Earley expressed regret and dedication to earning back customer trust.",
+        "The company has already replaced 800 miles of pipe and implemented safety measures.",
+        "This is the largest fine ever imposed on a utility company in California."
+      ]
+    },
+    {
+      "id" : "rt-886",
+      "pysbd" : [
+        "Photographer Jeff Gusky has discovered over 1,800 graffiti inscriptions in an underground network of tunnels beneath a French chalk quarry, dating back to World War I.",
+        "The inscriptions include the names, ranks, and hometowns of soldiers from Australia, Britain, and the US.",
+        "The graffiti provides a human connection to men who lived a century ago, and Gusky notes that some of the soldiers may have carved their names as a last act before heading to the front lines.",
+        "The discovery sheds new light on the history of the war and offers a glimpse into the lives of the soldiers who fought in it."
+      ],
+      "swift" : [
+        "Photographer Jeff Gusky has discovered over 1,800 graffiti inscriptions in an underground network of tunnels beneath a French chalk quarry, dating back to World War I. The inscriptions include the names, ranks, and hometowns of soldiers from Australia, Britain, and the US.",
+        "The graffiti provides a human connection to men who lived a century ago, and Gusky notes that some of the soldiers may have carved their names as a last act before heading to the front lines.",
+        "The discovery sheds new light on the history of the war and offers a glimpse into the lives of the soldiers who fought in it."
+      ]
+    },
+    {
+      "id" : "rt-925",
+      "pysbd" : [
+        "Jia Jiang, a Chinese-born entrepreneur, embarked on a project called \"100 Days of Rejection\" in which he challenged himself to face his fear of rejection.",
+        "After quitting his job and starting his own tech start-up, which was declined investment, Jiang decided to confront his fear head-on.",
+        "He documented his experiences in a blog and later wrote a book called Rejection Proof, which is being released this week.",
+        "One of his most memorable challenges was asking a Krispy Kreme manager to make him five interlinked donuts to mimic the Olympic symbol, which she surprisingly agreed to.",
+        "The video of this interaction went viral on Reddit, leading to Jiang's fame and invitations to speak at events.",
+        "However, Jiang's goal was not to gain fame, but rather to overcome his own fears and help others do the same.",
+        "He believes that the fear of rejection holds people back and wants to demystify the idea of rejection.",
+        "Jiang offers eight tips for making rejection work for you, including not being afraid to ask for something and not running away after a rejection.",
+        "He also emphasizes that rejection does not determine the merit of an idea and that understanding why you were rejected can lead to finding alternative solutions.",
+        "Jiang believes that through facing rejection, one can turn it into an opportunity and expand their comfort zone.",
+        "Overall, his project aims to show that rejection is not something to fear, but rather a stepping stone towards success."
+      ],
+      "swift" : [
+        "Jia Jiang, a Chinese-born entrepreneur, embarked on a project called \"100 Days of Rejection\" in which he challenged himself to face his fear of rejection.",
+        "After quitting his job and starting his own tech start-up, which was declined investment, Jiang decided to confront his fear head-on. He documented his experiences in a blog and later wrote a book called Rejection Proof, which is being released this week.",
+        "One of his most memorable challenges was asking a Krispy Kreme manager to make him five interlinked donuts to mimic the Olympic symbol, which she surprisingly agreed to.",
+        "The video of this interaction went viral on Reddit, leading to Jiang's fame and invitations to speak at events.",
+        "However, Jiang's goal was not to gain fame, but rather to overcome his own fears and help others do the same.",
+        "He believes that the fear of rejection holds people back and wants to demystify the idea of rejection.",
+        "Jiang offers eight tips for making rejection work for you, including not being afraid to ask for something and not running away after a rejection.",
+        "He also emphasizes that rejection does not determine the merit of an idea and that understanding why you were rejected can lead to finding alternative solutions.",
+        "Jiang believes that through facing rejection, one can turn it into an opportunity and expand their comfort zone.",
+        "Overall, his project aims to show that rejection is not something to fear, but rather a stepping stone towards success."
+      ]
+    },
+    {
+      "id" : "rt-926",
+      "pysbd" : [
+        "Jia Jiang, a Chinese-American entrepreneur, launched a project called \"100 Days of Rejection\" in which he tried to get over his fear of rejection by asking strangers for money or things in exchange for nothing, and posting the results online.",
+        "His goal was to help himself and others overcoming rejection.",
+        "After his tech start-up was declined investment, Jiang began to confront his fear head-on.",
+        "As part of the project, he wrote a book called Rejection Proof.",
+        "Despite the initial criticism and rejection, the project gained popularity online and eventually led to appearances on talk shows and invitations to speak at events across the country.",
+        "Through his experiences, Jiang learned that the fear of rejection holds us back more than the rejection itself, and that rejection is more of a human interaction than a universal truth.",
+        "He also discovered that rejection can be a catalyst for growth and success.",
+        "Jiang believes that one of the best ways to handle rejection is to ask \"why?\" and then find solutions to address any issues that arise.",
+        "He also suggests setting a specific number of \"no's\" one can take and remaining confident and engaging in any situation."
+      ],
+      "swift" : [
+        "Jia Jiang, a Chinese-American entrepreneur, launched a project called \"100 Days of Rejection\" in which he tried to get over his fear of rejection by asking strangers for money or things in exchange for nothing, and posting the results online.",
+        "His goal was to help himself and others overcoming rejection.",
+        "After his tech start-up was declined investment, Jiang began to confront his fear head-on. As part of the project, he wrote a book called Rejection Proof.",
+        "Despite the initial criticism and rejection, the project gained popularity online and eventually led to appearances on talk shows and invitations to speak at events across the country.",
+        "Through his experiences, Jiang learned that the fear of rejection holds us back more than the rejection itself, and that rejection is more of a human interaction than a universal truth.",
+        "He also discovered that rejection can be a catalyst for growth and success.",
+        "Jiang believes that one of the best ways to handle rejection is to ask \"why?\" and then find solutions to address any issues that arise.",
+        "He also suggests setting a specific number of \"no's\" one can take and remaining confident and engaging in any situation."
+      ]
+    },
+    {
+      "id" : "rt-1476",
+      "pysbd" : [
+        "As several US states consider religious freedom laws, which opponents suggest may open the door to discrimination against gay and lesbian customers, Walmart has emerged as a bellwether for shifting public opinion on this contentious issue.",
+        "Walmart's staunch criticism of a religious freedom law in its home state of Arkansas, came after the company had already said it would increase pay for about 500,000 workers well above the federal minimum wage.",
+        "Observers are suggesting that the Republican Party should take notice of the stand that Walmart has taken.",
+        "Former Minnesota Gov. Tim Pawlenty, told CNN that Walmart's actions \"foreshadow where the Republican Party will need to move.\" \"The Republican Party will have to better stand for\" ideas on helping the middle class, said Pawlenty, the head of the Financial Services Roundtable, a Washington lobbying group for the finance industry.",
+        "The party's leaders must be \"willing to put forward ideas that will help modest income workers, such as a reasonable increase in the minimum wage, and prohibit discrimination in things such as jobs, housing, public accommodation against gays and lesbians.\""
+      ],
+      "swift" : [
+        "As several US states consider religious freedom laws, which opponents suggest may open the door to discrimination against gay and lesbian customers, Walmart has emerged as a bellwether for shifting public opinion on this contentious issue.",
+        "Walmart's staunch criticism of a religious freedom law in its home state of Arkansas, came after the company had already said it would increase pay for about 500,000 workers well above the federal minimum wage.",
+        "Observers are suggesting that the Republican Party should take notice of the stand that Walmart has taken.",
+        "Former Minnesota Gov. Tim Pawlenty, told CNN that Walmart's actions \"foreshadow where the Republican Party will need to move.\"",
+        "\"The Republican Party will have to better stand for\" ideas on helping the middle class, said Pawlenty, the head of the Financial Services Roundtable, a Washington lobbying group for the finance industry.",
+        "The party's leaders must be \"willing to put forward ideas that will help modest income workers, such as a reasonable increase in the minimum wage, and prohibit discrimination in things such as jobs, housing, public accommodation against gays and lesbians.\""
+      ]
+    },
+    {
+      "id" : "rt-1518",
+      "pysbd" : [
+        "Antonio Inoki, a former wrestler-turned-politician in Japan, has asked the country's Defense Minister, Gen Nakatani, whether Japan has ever encountered an unidentified flying object (UFO).",
+        "Nakatani confirmed that the country's Air Self Defense Force (ASDF) had never come across any UFOs from outer space.",
+        "He said: \"When the Air Self Defense Force detects indications of an unidentified flying object that could violate our country's airspace, it scrambles fighter jets if necessary and makes visual observation. They sometimes find birds or flying objects other than aircraft but I don't know of a case of finding an unidentified flying object believed to have come over from anywhere other than Earth.\""
+      ],
+      "swift" : [
+        "Antonio Inoki, a former wrestler-turned-politician in Japan, has asked the country's Defense Minister, Gen Nakatani, whether Japan has ever encountered an unidentified flying object (UFO).",
+        "Nakatani confirmed that the country's Air Self Defense Force (ASDF) had never come across any UFOs from outer space.",
+        "He said: \"When the Air Self Defense Force detects indications of an unidentified flying object that could violate our country's airspace, it scrambles fighter jets if necessary and makes visual observation.",
+        "They sometimes find birds or flying objects other than aircraft but I don't know of a case of finding an unidentified flying object believed to have come over from anywhere other than Earth.\""
+      ]
+    },
+    {
+      "id" : "rt-1566",
+      "pysbd" : [
+        "Lauren Hill, a 19-year-old who fought against brain cancer and whose story inspired many, has passed away.",
+        "Hill was a student at Mount St. Joseph University in Cincinnati, and her dream was to play college basketball.",
+        "The school successfully petitioned the NCAA to change the opening game of its schedule to accommodate Hill.",
+        "Despite her illness, Hill managed to raise $1.4 million for pediatric cancer research with the non-profit group The Cure Starts Now.",
+        "In a statement, Mount St. Joseph University President Tony Artez said, \"We are forever grateful to have had Lauren grace our campus with her smile and determined spirit. She has left a powerful legacy. She taught us that every day is a blessing, every moment a gift.\"",
+        "Hill was diagnosed with diffuse intrinsic pontine glioma, a rare and inoperable brain tumor, in 2013.",
+        "She continued to play basketball despite her chemotherapy treatments."
+      ],
+      "swift" : [
+        "Lauren Hill, a 19-year-old who fought against brain cancer and whose story inspired many, has passed away.",
+        "Hill was a student at Mount St. Joseph University in Cincinnati, and her dream was to play college basketball.",
+        "The school successfully petitioned the NCAA to change the opening game of its schedule to accommodate Hill.",
+        "Despite her illness, Hill managed to raise $1.4 million for pediatric cancer research with the non-profit group The Cure Starts Now.",
+        "In a statement, Mount St. Joseph University President Tony Artez said, \"We are forever grateful to have had Lauren grace our campus with her smile and determined spirit.",
+        "She has left a powerful legacy.",
+        "She taught us that every day is a blessing, every moment a gift.\"",
+        "Hill was diagnosed with diffuse intrinsic pontine glioma, a rare and inoperable brain tumor, in 2013.",
+        "She continued to play basketball despite her chemotherapy treatments."
+      ]
+    },
+    {
+      "id" : "rt-1596",
+      "pysbd" : [
+        "Former Australia cricket captain and renowned broadcaster, Richie Benaud, has died at the age of 84.",
+        "Benaud was famous for his witty one-liners from the commentary box that resonated not only in Australia but globally.",
+        "Cricket Australia stated, “After Don Bradman, there has been no Australian player more famous than Richie Benaud.”",
+        "Benaud was a record-breaking leg-spinner and captain, and is considered cricket’s most famous broadcaster.",
+        "Benaud was inducted into the Sport Australia Hall of Fame in 1985 and had a successful 64 Test matches.",
+        "Benaud was not only popular in Australia, but also in the UK where he spent over four decades with the BBC, taking the sport into millions of British living rooms.",
+        "Australian Prime Minister, Tony Abbott, said in a written statement “To most Australians Richie Benaud was cricket. He personified its traditions and its values.”",
+        "Benaud led the Australian side from 1958\/59 through to 1963\/1964, never losing a series in his 28 Tests as captain.",
+        "Benaud was the first cricketer to reach a Test double of 2,000 runs and 200 wickets."
+      ],
+      "swift" : [
+        "Former Australia cricket captain and renowned broadcaster, Richie Benaud, has died at the age of 84.",
+        "Benaud was famous for his witty one-liners from the commentary box that resonated not only in Australia but globally.",
+        "Cricket Australia stated, “After Don Bradman, there has been no Australian player more famous than Richie Benaud.”",
+        "Benaud was a record-breaking leg-spinner and captain, and is considered cricket’s most famous broadcaster.",
+        "Benaud was inducted into the Sport Australia Hall of Fame in 1985 and had a successful 64 Test matches.",
+        "Benaud was not only popular in Australia, but also in the UK where he spent over four decades with the BBC, taking the sport into millions of British living rooms.",
+        "Australian Prime Minister, Tony Abbott, said in a written statement “To most Australians Richie Benaud was cricket.",
+        "He personified its traditions and its values.”",
+        "Benaud led the Australian side from 1958\/59 through to 1963\/1964, never losing a series in his 28 Tests as captain.",
+        "Benaud was the first cricketer to reach a Test double of 2,000 runs and 200 wickets."
+      ]
+    },
+    {
+      "id" : "rt-1963",
+      "pysbd" : [
+        "A Texas veterinarian, Dr. Kristen Lindsey, is facing backlash after posting a photo on Facebook of herself holding a cat she had shot with an arrow.",
+        "In the post, Lindsey wrote, \"My first bow kill, lol. The only good feral tomcat is one with an arrow through its head! Vet of the year award ... Gladly accepted.\"",
+        "The photo and caption sparked outrage, with many people calling the Animal Clinic where Lindsey worked to express their disgust.",
+        "It was later revealed that the cat may have actually been a pet belonging to an elderly couple.",
+        "Lindsey was fired from the clinic and the sheriff's office is now investigating the incident.",
+        "Animal rights activists are pushing for charges to be filed against Lindsey for animal cruelty.",
+        "However, some people have come to her defense, praising her as a caring veterinarian."
+      ],
+      "swift" : [
+        "A Texas veterinarian, Dr. Kristen Lindsey, is facing backlash after posting a photo on Facebook of herself holding a cat she had shot with an arrow.",
+        "In the post, Lindsey wrote, \"My first bow kill, lol.",
+        "The only good feral tomcat is one with an arrow through its head!",
+        "Vet of the year award ...",
+        "Gladly accepted.\"",
+        "The photo and caption sparked outrage, with many people calling the Animal Clinic where Lindsey worked to express their disgust.",
+        "It was later revealed that the cat may have actually been a pet belonging to an elderly couple.",
+        "Lindsey was fired from the clinic and the sheriff's office is now investigating the incident.",
+        "Animal rights activists are pushing for charges to be filed against Lindsey for animal cruelty.",
+        "However, some people have come to her defense, praising her as a caring veterinarian."
+      ]
+    },
+    {
+      "id" : "rt-2537",
+      "pysbd" : [
+        "Photographer Simon Brann Thorpe created the project \"Toy Soldiers\" to highlight the desensitization of war imagery in mainstream media.",
+        "He took photos of soldiers from the Polisario Front, an independence movement in Western Sahara, posed as green plastic figurines in historic battle locations.",
+        "Thorpe aimed to create a visual metaphor that evokes an emotional response to war and encourages viewers to question how they consume images of conflict.",
+        "The project took five weeks to produce, and the soldiers were willing participants, even helping to construct the platforms they stood on.",
+        "Thorpe hopes his work will raise questions about how war imagery will be consumed in the future given decreasing attention spans.",
+        "His book, \"Toy Soldiers,\" is available for pre-order."
+      ],
+      "swift" : [
+        "Photographer Simon Brann Thorpe created the project \"Toy Soldiers\" to highlight the desensitization of war imagery in mainstream media.",
+        "He took photos of soldiers from the Polisario Front, an independence movement in Western Sahara, posed as green plastic figurines in historic battle locations.",
+        "Thorpe aimed to create a visual metaphor that evokes an emotional response to war and encourages viewers to question how they consume images of conflict.",
+        "The project took five weeks to produce, and the soldiers were willing participants, even helping to construct the platforms they stood on. Thorpe hopes his work will raise questions about how war imagery will be consumed in the future given decreasing attention spans.",
+        "His book, \"Toy Soldiers,\" is available for pre-order."
+      ]
+    },
+    {
+      "id" : "rt-2736",
+      "pysbd" : [
+        "The city of Ramadi in Iraq is under serious threat from ISIS, with the terrorist group having made significant advances in three areas to the east of the city.",
+        "&nbsp;Falih Essawi, deputy head of the Anbar Provincial Council, has pleaded for reinforcements from the Iraqi government and the US-led coalition against ISIS as he warns that he does not know how much longer government troops can hold their front lines against the ISIS offensive.",
+        "&nbsp;However, the US military has stated that the fall of Ramadi is &ldquo;not imminent&rdquo;.",
+        "&nbsp;Essawi has also warned that ISIS is threatening areas to the west of Ramadi that are currently in the hands of government forces."
+      ],
+      "swift" : [
+        "The city of Ramadi in Iraq is under serious threat from ISIS, with the terrorist group having made significant advances in three areas to the east of the city. &nbsp;Falih Essawi, deputy head of the Anbar Provincial Council, has pleaded for reinforcements from the Iraqi government and the US-led coalition against ISIS as he warns that he does not know how much longer government troops can hold their front lines against the ISIS offensive. &nbsp;However, the US military has stated that the fall of Ramadi is &ldquo;not imminent&rdquo;. &nbsp;Essawi has also warned that ISIS is threatening areas to the west of Ramadi that are currently in the hands of government forces."
+      ]
+    },
+    {
+      "id" : "rt-2893",
+      "pysbd" : [
+        "SpaceX, the private space exploration company founded by Elon Musk, had to postpone its attempt to launch a two-stage Falcon 9 rocket on Monday due to bad weather.",
+        "The new launch window is set for Tuesday at 4:10 p.m.",
+        "The rocket will carry an uncrewed cargo spacecraft called Dragon to the International Space Station (ISS).",
+        "After the launch, SpaceX will try to land the bottom stage of the rocket on a platform in the Atlantic Ocean, which would be a first in rocket history.",
+        "The company aims to reduce costs by reusing rockets, and if successful, this could lower the cost of accessing space significantly.",
+        "SpaceX will post photos and videos of the mission online.",
+        "If the landing fails, the company will continue trying and hopes to eventually land rockets on the ground."
+      ],
+      "swift" : [
+        "SpaceX, the private space exploration company founded by Elon Musk, had to postpone its attempt to launch a two-stage Falcon 9 rocket on Monday due to bad weather.",
+        "The new launch window is set for Tuesday at 4:10 p.m. ET.",
+        "The rocket will carry an uncrewed cargo spacecraft called Dragon to the International Space Station (ISS).",
+        "After the launch, SpaceX will try to land the bottom stage of the rocket on a platform in the Atlantic Ocean, which would be a first in rocket history.",
+        "The company aims to reduce costs by reusing rockets, and if successful, this could lower the cost of accessing space significantly.",
+        "SpaceX will post photos and videos of the mission online.",
+        "If the landing fails, the company will continue trying and hopes to eventually land rockets on the ground."
+      ]
+    },
+    {
+      "id" : "rt-2894",
+      "pysbd" : [
+        "SpaceX plans to launch a Falcon 9 rocket carrying an uncrewed Dragon spacecraft at 4:10 p.m.",
+        "ET on Tuesday from Cape Canaveral, Florida to the International Space Station.",
+        "The company hopes to land the rocket upright on a floating platform in the ocean for the first time.",
+        "After launch, SpaceX will attempt to land the bottom stage of the rocket on an autonomous drone ship in the Atlantic Ocean.",
+        "However, the odds of a successful landing are about 50%.",
+        "SpaceX previously failed to land a Falcon 9 on the drone ship in January when the rocket exploded.",
+        "The Dragon will carry supplies, including research equipment and ISSpresso, and return to Earth after delivering them to the International Space Station."
+      ],
+      "swift" : [
+        "SpaceX plans to launch a Falcon 9 rocket carrying an uncrewed Dragon spacecraft at 4:10 p.m. ET on Tuesday from Cape Canaveral, Florida to the International Space Station.",
+        "The company hopes to land the rocket upright on a floating platform in the ocean for the first time.",
+        "After launch, SpaceX will attempt to land the bottom stage of the rocket on an autonomous drone ship in the Atlantic Ocean.",
+        "However, the odds of a successful landing are about 50%.",
+        "SpaceX previously failed to land a Falcon 9 on the drone ship in January when the rocket exploded.",
+        "The Dragon will carry supplies, including research equipment and ISSpresso, and return to Earth after delivering them to the International Space Station."
+      ]
+    },
+    {
+      "id" : "rt-4196",
+      "pysbd" : [
+        "On October 25th, Tameka Raymond, an ex-wife of singer Usher and a successful fashion stylist and businesswoman, joined Ariel Shaw, MBA of Southern Crescent Women In Business for a fireside chat about her memoir \"Here I Stand...In A Beautiful State\".",
+        "The event took place at the Eagles Landing Country Club, with sponsorship from several businesses.",
+        "Tameka discussed her journey as a mother and entrepreneur, balancing her work and raising two children.",
+        "She also spoke about the mission of her foundation, The Kiles' World Foundation.",
+        "Attendees were able to ask questions and get a glimpse into Tameka's life and career."
+      ],
+      "swift" : [
+        "On October 25th, Tameka Raymond, an ex-wife of singer Usher and a successful fashion stylist and businesswoman, joined Ariel Shaw, MBA of Southern Crescent Women In Business for a fireside chat about her memoir \"Here I Stand...",
+        "In A Beautiful State\".",
+        "The event took place at the Eagles Landing Country Club, with sponsorship from several businesses.",
+        "Tameka discussed her journey as a mother and entrepreneur, balancing her work and raising two children.",
+        "She also spoke about the mission of her foundation, The Kiles' World Foundation.",
+        "Attendees were able to ask questions and get a glimpse into Tameka's life and career."
+      ]
+    }
+  ],
+  "identical_scored_sentences" : 0.98375519455987914,
+  "identical_segmentation" : 0.98375519455987914,
+  "protocol" : "T1 answers (RAGTruth test), raw response text; Swift Segmenter (NLTokenizer + list markers + checkable rule) vs data\/segment.py (pysbd)",
+  "same_number_of_scored_sentences" : 0.98526633925198337,
+  "scored_sentences" : {
+    "nltokenizer" : 17268,
+    "pysbd" : 17284
+  }
+}

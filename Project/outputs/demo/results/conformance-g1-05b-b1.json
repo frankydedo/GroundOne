@@ -1,0 +1,19 @@
+{
+  "answers" : 200,
+  "firstMismatches" : [
+
+  ],
+  "idsIdentical" : 200,
+  "labelDisagreementsOutsideTau" : 0,
+  "labelsIdentical" : 0.9971379507727532,
+  "loadSeconds" : 0.9832619428634644,
+  "markers" : 1747,
+  "maxAbsLogitDelta" : 0.171875,
+  "maxAbsProbDelta" : 0.03124846682465976,
+  "meanSecondsPerAnswer" : 0.7652599787712098,
+  "passed" : false,
+  "positionsIdentical" : 200,
+  "probsWithin001" : 0.998282770463652,
+  "run" : "g1-05b-b1",
+  "tokenizerProbeIdentical" : true
+}

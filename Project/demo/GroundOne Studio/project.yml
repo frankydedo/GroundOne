@@ -1,0 +1,48 @@
+name: GroundOneStudio
+options:
+  bundleIdPrefix: it.polito.groundone
+  deploymentTarget:
+    macOS: "15.0"
+packages:
+  GroundOneKit:
+    path: Packages/GroundOneKit
+targets:
+  GroundOneStudio:
+    type: application
+    platform: macOS
+    sources: [App]
+    dependencies:
+      - package: GroundOneKit
+        product: GroundOneCore
+      - package: GroundOneKit
+        product: GroundOneEngines
+    settings:
+      PRODUCT_NAME: GroundOne Studio
+      PRODUCT_BUNDLE_IDENTIFIER: it.polito.groundone.studio
+      GENERATE_INFOPLIST_FILE: YES
+      INFOPLIST_KEY_CFBundleDisplayName: GroundOne Studio
+      INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+      INFOPLIST_KEY_NSHumanReadableCopyright: "MSc thesis demo, Politecnico di Torino, 2026"
+      CODE_SIGN_IDENTITY: "-"
+      ENABLE_HARDENED_RUNTIME: NO
+      SWIFT_VERSION: "6.0"
+      MARKETING_VERSION: "1.0"
+      ENABLE_DEBUG_DYLIB: NO
+      CURRENT_PROJECT_VERSION: "1"
+  GroundOneStudioUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources: [UITests]
+    dependencies: [{target: GroundOneStudio}]
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+      CODE_SIGN_IDENTITY: "-"
+      SWIFT_VERSION: "6.0"
+      TEST_TARGET_NAME: GroundOneStudio
+      ENABLE_DEBUG_DYLIB: NO
+      DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
+schemes:
+  GroundOneStudio:
+    build: {targets: {GroundOneStudio: all, GroundOneStudioUITests: [test]}}
+    run: {config: Release}
+    test: {config: Debug, targets: [GroundOneStudioUITests]}
