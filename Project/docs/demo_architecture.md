@@ -1,6 +1,6 @@
 # Demo application: runtime choice and architecture
 
-> **Status:** v0.2 (2026-10-18). Runtime decided by the author (option A, D28); answers to the open questions in §12. Nothing below is implemented yet; the app is the last part of the thesis work, after the remaining experiment items (`tracker.md`).
+> **Status:** v0.3 (2026-10-24; corpora decided, §4b). Runtime decided by the author (option A, D28); answers to the open questions in §12. Nothing below is implemented yet; the app is the last part of the thesis work, after the remaining experiment items (`tracker.md`).
 > Working name: **GroundOne Studio** (provisional, to confirm).
 > Supersedes the demo specification in `implementation_plan.md` §11 (web page, flag only, two days). Sources are summarised in the wiki (`Vault/wiki/concepts/Demo Runtime Choice.md` and the pages linked there).
 
@@ -131,6 +131,18 @@ Design choices behind the loop, from the literature in the wiki (`Verify-and-Rev
 - **The generator may not repair.** In Self-Refine, Vicuna-13B could not refine even with oracle feedback; a 3B generator may hedge or delete instead of fixing (CoVe gains precision partly by deletion). Log what each round changes.
 - **Few rounds.** Most of the gain in the literature comes in 2–3 rounds; `max_attempts` defaults to 2.
 
+## 4b. Document corpora (author, 2026-10-24)
+
+Two corpora with two roles:
+
+| Corpus | Role | Why | Limit |
+| --- | --- | --- | --- |
+| **T1 documents (RAGTruth test)**: MS MARCO passages with their questions, CNN/DailyMail articles, Yelp records, with the original questions and instructions | **Measurements** of the case study (timings, rounds, injected errors, D30) | In domain: calibration and τ hold as fitted; injected errors have a clean ground truth; numbers comparable with Ch. 7 | Ready-made contexts: the retriever has little to do |
+| **The author's research library**: the arXiv PDFs in `Vault/raw/` | **Demonstration** of the app on real documents ("ask your research library") | Natural local use case, already on disk; many documents, so hybrid retrieval does real work; links to the wiki | Technical text far from RAGTruth: calibration not guaranteed, shown qualitatively only |
+| GDPR and AI Act, English versions (EUR-Lex, reuse allowed) | Optional second demonstration, if time allows | Ties to the privacy argument of Ch. 2; long texts with precise answers | Legal language, far out of domain |
+
+Constraint for every corpus: **documents and questions in English**, the only language GroundOne was trained and calibrated on (D7; stated as a limitation in Ch. 8, multilingual adapters as future work in Ch. 9).
+
 ## 5. Porting GroundOne to Swift
 
 ### 5.1 What is ported, and what is reused
@@ -259,5 +271,6 @@ Models are not copied into the app bundle: the app reads them from the Hugging F
 | 4 | Location | `Project/GroundOneStudio/` |
 | 5 | Thesis placement | **own chapter** (application and case study) |
 | 6 | Loop evaluation | **Injected errors as ground truth (D30)**, see §8. Author's view: GroundOne does not repair; it flags, the generator rewrites, GroundOne re-checks, so the design has no circularity. Agreed for the app. The only caution is in the wording of results: "accepted by GroundOne" is what the loop guarantees by construction (it stops when GroundOne accepts), not "correct"; GroundOne's misses survive the loop and its false alarms cause needless rewrites. Optional, low cost: score the case-study answers before and after the loop with MiniCheck-RoBERTa (already in the pipeline) as an independent check |
-| 7 | Segmentation | explained (NLTokenizer vs pysbd, agreement measured on T1); confirmation pending |
+| 7 | Segmentation | **NLTokenizer + same list-marker and checkable-content rules; agreement with pysbd measured on T1** (confirmed 2026-10-22) |
 | 8 | Time budget | about six working days, accepted; the app comes after the remaining experiment items |
+| 9 | Document corpora (2026-10-24) | **T1 documents for the measurements, the author's arXiv library in `Vault/raw/` for the demonstration**; GDPR/AI Act optional; English only (§4b) |

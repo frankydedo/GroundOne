@@ -56,6 +56,17 @@ generatore e verificatore, già misurati insieme in questa tesi. Anche i confron
 vanno eseguiti in batch, mentre GroundOne e i decision model generalisti vanno interrogati attraverso la stessa interfaccia
 HTTP.
 
+Un'altra direzione riguarda la lingua. Il primo passo è misurare quanto l'adapter addestrato in inglese funzioni già
+su documenti e risposte in un'altra lingua, per esempio traducendo una parte di T1 in italiano. Se il trasferimento non
+basta, per un modello così piccolo può convenire una soluzione diversa da un unico adapter multilingue: un adapter
+gemello per ciascuna lingua, addestrato separatamente sulla stessa base, così che le lingue non debbano condividere la
+poca capacità disponibile. Gli adapter occupano poco spazio e si possono caricare e scaricare a runtime sopra un'unica
+copia del modello base, scegliendo quello giusto con un riconoscitore della lingua. Restano da risolvere tre problemi:
+servono dati etichettati in ogni lingua, perché tradurre RAGTruth rompe l'allineamento degli span e richiede di
+verificare le etichette tradotte; temperatura, bias e soglia vanno stimati di nuovo per ogni lingua; e il caso frequente
+di un documento in una lingua e di una risposta in un'altra non rientra in nessun singolo adapter. Il confronto tra
+adapter per lingua e adapter multilingue è quindi un esperimento da fare, non una conclusione.
+
 Per i contesti composti da più documenti, un'estensione naturale è l'attribuzione: leggere, oltre al verdetto, quale
 passaggio sostiene o contraddice ciascuna frase, per esempio con un readout per passaggio, così da mostrare all'utente
 la fonte di ogni affermazione e trattare in modo esplicito le fonti in conflitto tra loro.

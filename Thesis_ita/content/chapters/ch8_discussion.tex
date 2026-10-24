@@ -148,6 +148,12 @@ groundedness, ma non per la verifica dei fatti. Le frasi prive di contenuto veri
 la segmentazione stessa può dividere o accorpare le affermazioni in modo diverso da un lettore umano. Infine, il verdetto
 su una frase dipende soltanto dal documento e dalle frasi che la precedono.
 
+\paragraph{Lingua.} Tutti i dati di addestramento e di test sono in inglese, quindi GroundOne è stato addestrato,
+calibrato e misurato soltanto su documenti e risposte in inglese. Il modello base Qwen2.5 è multilingue~\cite{qwen2024qwen25},
+ma non è stato misurato quanto la specializzazione appresa si trasferisca ad altre lingue, né se la calibrazione resti
+valida: la calibrazione stimata su RAGTruth non si trasferisce nemmeno a un altro dominio inglese come VitaminC. Un uso
+con documenti o risposte in un'altra lingua, o in lingue diverse tra loro, richiede quindi una nuova valutazione.
+
 \paragraph{Contesti composti da più documenti.} Quando la risposta è scritta a partire da più passaggi recuperati,
 GroundOne li legge concatenati come un unico documento, come nel question answering di RAGTruth. Restano però tre
 limiti. Il primo riguarda la lunghezza: in addestramento documento e risposta non superano 2{,}048 token, per cui un
