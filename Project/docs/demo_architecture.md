@@ -1,7 +1,7 @@
 # Demo application: runtime choice and architecture
 
 > **Status:** v0.4 (2026-10-24; corpora decided, §4b; source links, §4c; judge comparison mandatory). Runtime decided by the author (option A, D28); answers to the open questions in §12. Nothing below is implemented yet; the app is the last part of the thesis work, after the remaining experiment items (`tracker.md`).
-> Working name: **GroundOne Studio** (provisional, to confirm).
+> Name: **GroundOne Studio** (final, 2026-10-24).
 > Supersedes the demo specification in `implementation_plan.md` §11 (web page, flag only, two days). Sources are summarised in the wiki (`Vault/wiki/concepts/Demo Runtime Choice.md` and the pages linked there).
 
 ---
@@ -266,7 +266,7 @@ What the app logs per query (exported as JSONL, plotted by a script in `groundon
 | M4 | Measurement mode, **judge comparison (mandatory)**, export, figures | figures for the thesis | 1 |
 | M5 | Polish, screenshots, README | — | 0.5 |
 
-About 5.5–6 working days. **Fallback if M1 fails by 2026-10-24:** the SwiftUI app keeps the same Core and calls the existing `groundone serve` on 127.0.0.1 for verification (still fully local, but two processes), and the Swift port goes to future work.
+About 5.5–6 working days; the 30 October freeze is self-imposed and the demo may run past it (decision 15). **Fallback if M1 fails:** the SwiftUI app keeps the same Core and calls the existing `groundone serve` on 127.0.0.1 for verification (still fully local, but two processes), and the Swift port goes to future work.
 
 ## 10. Repository layout (proposal)
 
@@ -296,7 +296,7 @@ Models are not copied into the app bundle: the app reads them from the Hugging F
 
 | # | Question | Answer |
 | --- | --- | --- |
-| 1 | Name | **GroundOne Studio**, provisional |
+| 1 | Name | **GroundOne Studio** (final, 2026-10-24) |
 | 2 | Generator | **separate Qwen2.5-3B-Instruct 4-bit** (cached, 1.6 GB); shared base only as a measured option |
 | 3 | Retriever | **hybrid**: BM25 (FTS5) + embeddings; embedding model chosen in M2 |
 | 4 | Location | `Project/GroundOneStudio/` |
@@ -304,6 +304,10 @@ Models are not copied into the app bundle: the app reads them from the Hugging F
 | 6 | Loop evaluation | **Injected errors as ground truth (D30)**, see §8. Author's view: GroundOne does not repair; it flags, the generator rewrites, GroundOne re-checks, so the design has no circularity. Agreed for the app. The only caution is in the wording of results: "accepted by GroundOne" is what the loop guarantees by construction (it stops when GroundOne accepts), not "correct"; GroundOne's misses survive the loop and its false alarms cause needless rewrites. Optional, low cost: score the case-study answers before and after the loop with MiniCheck-RoBERTa (already in the pipeline) as an independent check |
 | 7 | Segmentation | **NLTokenizer + same list-marker and checkable-content rules; agreement with pysbd measured on T1** (confirmed 2026-10-22) |
 | 8 | Time budget | about six working days, accepted; the app comes after the remaining experiment items |
+| 12 | Verifier in the app (2026-10-24) | **GroundOne 3B by default**, with a selector for the 0.5B (faster, Apache 2.0) |
+| 13 | Injected-error protocol (2026-10-24) | **100 T1 answers accepted by GroundOne, one injected error each**, split between swapped number/name/date and one fabricated sentence |
+| 14 | UI language (2026-10-24) | **English**, consistent with the documents and the model |
+| 15 | Schedule (2026-10-24) | The 30 October freeze is self-imposed; the demo may finish after it without consequences (author) |
 | 10 | Judge comparison (2026-10-24) | **Mandatory**, not optional; local judge = GroundOne's base without the adapter, B0a prompt |
 | 11 | Source links (2026-10-24) | **Accepted** as optional milestone M3b: GroundOne per passage + similarity, lazy and cached; demonstrative, not measured (§4c) |
 | 9 | Document corpora (2026-10-24) | **T1 documents for the measurements, the author's arXiv library in `Vault/raw/` for the demonstration**; GDPR/AI Act optional; English only (§4b) |
