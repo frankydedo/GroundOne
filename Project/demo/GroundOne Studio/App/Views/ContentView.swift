@@ -3,26 +3,73 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppModel.self) private var model
+    @State private var renaming: Chat?
+    @State private var newTitle = ""
+    @State private var deleting: Chat?
 
     var body: some View {
         @Bindable var model = model
         NavigationSplitView {
-            List(SidebarSection.allCases, selection: $model.section) { s in
-                Label(s.rawValue, systemImage: s.symbol).tag(s)
-                    .accessibilityIdentifier("sidebar-\(s.rawValue)")
+            List(selection: $model.sidebar) {
+                Section {
+                    ForEach(model.chats) { chat in
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(chat.title).lineLimit(1)
+                            Text("\(chat.turns.count) question\(chat.turns.count == 1 ? "" : "s") · \(chat.updated.formatted(date: .abbreviated, time: .shortened))")
+                                .font(.caption2).foregroundStyle(.secondary)
+                        }
+                        .tag(SidebarItem.chat(chat.id))
+                        .accessibilityIdentifier("chat-row")
+                        .contextMenu {
+                            Button("Rename chat…") { newTitle = chat.title; renaming = chat }
+                            Button("Delete chat…", role: .destructive) { deleting = chat }
+                        }
+                    }
+                } header: {
+                    HStack {
+                        Text("Chats")
+                        Spacer()
+                        Button { model.newChat() } label: { Image(systemName: "square.and.pencil") }
+                            .buttonStyle(.borderless)
+                            .help("New chat")
+                            .accessibilityIdentifier("new-chat")
+                    }
+                }
+                Section("Workspace") {
+                    ForEach(SidebarSection.tools) { s in
+                        Label(s.rawValue, systemImage: s.symbol).tag(SidebarItem.section(s))
+                            .accessibilityIdentifier("sidebar-\(s.rawValue)")
+                    }
+                }
             }
-            .navigationSplitViewColumnWidth(min: 170, ideal: 190)
+            .navigationSplitViewColumnWidth(min: 200, ideal: 230)
             .safeAreaInset(edge: .bottom) { EngineStatus().padding(10) }
         } detail: {
-            switch model.section ?? .ask {
-            case .ask: AskView()
-            case .library: LibraryView()
-            case .policies: PoliciesView()
-            case .stats: StatsView()
-            case .audit: AuditView()
+            switch model.sidebar {
+            case .section(.library): LibraryView()
+            case .section(.policies): PoliciesView()
+            case .section(.stats): StatsView()
+            case .section(.audit): AuditView()
+            default: AskView()
             }
         }
         .sheet(item: $model.preview) { DocumentPreview(request: $0) }
+        .alert("Rename chat", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
+            TextField("Title", text: $newTitle)
+            Button("Rename") { if let c = renaming { model.rename(c, to: newTitle) }; renaming = nil }
+            Button("Cancel", role: .cancel) { renaming = nil }
+        }
+        .confirmationDialog("Delete “\(deleting?.title ?? "")”?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })) {
+            Button("Delete chat", role: .destructive) { if let c = deleting { model.delete(c) }; deleting = nil }
+        } message: {
+            Text("The conversation is removed. Its verifications stay in the audit log and in Stats.")
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                Button { model.newChat() } label: { Label("New chat", systemImage: "square.and.pencil") }
+                    .keyboardShortcut("n")
+            }
+        }
     }
 }
 

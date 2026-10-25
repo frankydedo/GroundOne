@@ -397,3 +397,14 @@ set:
 
 Names swapped for an invented person are labelled *not mentioned* by GroundOne (correct), so they are mostly deleted (18)
 rather than restored (7). The demo chapter reports the final design only (author: no versions in the chapter).
+
+**App flow and persistence (2026-10-25, author).** Library reduced to the T1 sources (147 CNN/DailyMail articles, 450
+MS MARCO passages; Yelp records left out); example questions on the start page; the generator's native answer is shown
+first (300–500 words requested; the 3B writes about 120–180); verification only on request, GroundOne alone or GroundOne
+plus the judge, in one pass over the whole answer; clicking a sentence shows its probabilities, the judge's verdict,
+timings, *Find evidence* (document preview with the supporting span highlighted) and rewriting of the selected
+sentences; *Fix* rewrites the flagged ones per policy; Stats dashboard (times vs sentences, cost of the same
+verifications on a hosted judge, agreement, verdicts); multiple chats (rename, delete, resume). **Persistence**, all
+local in `~/Library/Application Support/GroundOne Studio/`: one JSON file per chat; an append-only JSONL audit log (one
+line per action, the source of Stats and of the Audit view); the library in SQLite (FTS5 for BM25, embeddings as blobs);
+policies as JSON files. No server database, no network.

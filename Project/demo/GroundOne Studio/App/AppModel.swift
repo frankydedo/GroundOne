@@ -26,9 +26,42 @@ final class Turn: Identifiable {
     var isLatest: Bool { shownIndex == record.versions.count - 1 }
 }
 
+/// A conversation: its questions in order. Saved as one JSON file per chat; can be renamed, deleted and resumed.
+@MainActor @Observable
+final class Chat: Identifiable {
+    let id: UUID
+    var title: String
+    var renamed: Bool
+    let created: Date
+    var updated: Date
+    var turns: [Turn]
+
+    init(id: UUID = UUID(), title: String = "New chat", renamed: Bool = false, created: Date = Date(), updated: Date = Date(),
+         turns: [Turn] = []) {
+        self.id = id; self.title = title; self.renamed = renamed; self.created = created; self.updated = updated; self.turns = turns
+    }
+
+    struct File: Codable {
+        let id: UUID
+        let title: String
+        let renamed: Bool
+        let created: Date
+        let updated: Date
+        let records: [StudioRecord]
+    }
+
+    var file: File { File(id: id, title: title, renamed: renamed, created: created, updated: updated, records: turns.map(\.record)) }
+}
+
+enum SidebarItem: Hashable {
+    case chat(UUID)
+    case section(SidebarSection)
+}
+
 enum SidebarSection: String, CaseIterable, Identifiable {
     case ask = "Ask", library = "Library", policies = "Policies", stats = "Stats", audit = "Audit log"
     var id: String { rawValue }
+    static let tools: [SidebarSection] = [.library, .policies, .stats, .audit]
     var symbol: String {
         switch self {
         case .ask: "text.bubble"
@@ -46,11 +79,11 @@ final class AppModel {
     enum Phase: Equatable { case idle, loading(String), ready, failed(String) }
 
     var phase: Phase = .idle
-    var section: SidebarSection? = .ask
+    var sidebar: SidebarItem?
+    var chats: [Chat] = []
     var verifierRun = "g1-3b-b1"
     var policies: [Policy] = Policy.builtIn
     var policyName = Policy.strict.name
-    var turns: [Turn] = []
     var selectedTurn: Turn.ID?
     var documents: [LibraryIndex.Doc] = []
     var memory: MemoryStats?
@@ -73,12 +106,68 @@ final class AppModel {
             ProcessInfo.processInfo.arguments.contains("-fakeEngines") ? "audit/studio-uitest.jsonl" : "audit/studio.jsonl"))
         loadPolicies()
         history = fake ? [] : Self.readHistory(audit.url)
+        if fake, !ProcessInfo.processInfo.arguments.contains("-keepChats") { try? FileManager.default.removeItem(at: chatFolder) }
+        loadChats()
+        if chats.isEmpty { newChat() } else { sidebar = .chat(chats[0].id) }
+    }
+
+    // MARK: chats
+
+    var chatFolder: URL { Workspace.demo.appendingPathComponent(fake ? "chats-uitest" : "chats") }
+
+    func newChat() {
+        if let c = chats.first, c.turns.isEmpty { sidebar = .chat(c.id); return }
+        let c = Chat()
+        chats.insert(c, at: 0)
+        sidebar = .chat(c.id)
+        selectedTurn = nil
+    }
+
+    func rename(_ chat: Chat, to title: String) {
+        let t = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !t.isEmpty else { return }
+        chat.title = t
+        chat.renamed = true
+        save(chat)
+    }
+
+    /// Removes the chat and its file. The audit log keeps its lines, so Stats still counts its verifications.
+    func delete(_ chat: Chat) {
+        try? FileManager.default.removeItem(at: chatFolder.appendingPathComponent("\(chat.id.uuidString).json"))
+        chats.removeAll { $0.id == chat.id }
+        if case .chat(let id) = sidebar, id == chat.id {
+            if let first = chats.first { sidebar = .chat(first.id) } else { newChat() }
+        }
+    }
+
+    func save(_ chat: Chat) {
+        guard !chat.turns.isEmpty else { return }
+        try? FileManager.default.createDirectory(at: chatFolder, withIntermediateDirectories: true)
+        let enc = JSONEncoder()
+        enc.dateEncodingStrategy = .iso8601
+        try? enc.encode(chat.file).write(to: chatFolder.appendingPathComponent("\(chat.id.uuidString).json"), options: .atomic)
+    }
+
+    func loadChats() {
+        let d = JSONDecoder()
+        d.dateDecodingStrategy = .iso8601
+        let files = (try? FileManager.default.contentsOfDirectory(at: chatFolder, includingPropertiesForKeys: nil)) ?? []
+        chats = files.filter { $0.pathExtension == "json" }
+            .compactMap { try? d.decode(Chat.File.self, from: Data(contentsOf: $0)) }
+            .sorted { $0.updated > $1.updated }
+            .map { f in Chat(id: f.id, title: f.title, renamed: f.renamed, created: f.created, updated: f.updated,
+                             turns: f.records.map { Turn(record: $0) }) }
     }
 
     var policy: Policy { policies.first { $0.name == policyName } ?? .strict }
     var verifierName: String { g1?.name ?? (fake ? "fake verifier" : verifierRun) }
     var calibration: Calibration? { g1?.info.calibration }
     var tau: Double { policy.tau(calibrated: calibration?.threshold ?? 0.925) }
+    var currentChat: Chat? {
+        if case .chat(let id) = sidebar { return chats.first { $0.id == id } }
+        return nil
+    }
+    var turns: [Turn] { currentChat?.turns ?? [] }
     var currentTurn: Turn? { turns.first { $0.id == selectedTurn } ?? turns.last }
 
     // MARK: loading
@@ -140,9 +229,12 @@ final class AppModel {
     func ask(_ question: String) {
         let q = question.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !q.isEmpty, let session, phase == .ready else { return }
+        if currentChat == nil { newChat() }
+        guard let chat = currentChat else { return }
         let turn = Turn(record: StudioRecord(question: q, verifier: verifierName, generator: generator?.name ?? "fake generator",
                                              policy: policyName))
-        turns.append(turn)
+        chat.turns.append(turn)
+        if !chat.renamed, chat.turns.count == 1 { chat.title = q.count > 48 ? String(q.prefix(47)) + "…" : q }
         selectedTurn = turn.id
         turn.stage = "Retrieving and generating"
         Task {
@@ -259,6 +351,10 @@ final class AppModel {
         let rec = turn.record
         history.removeAll { $0.id == rec.id }
         history.append(rec)
+        if let chat = chats.first(where: { $0.turns.contains { $0 === turn } }) {
+            chat.updated = Date()
+            save(chat)
+        }
         let audit = self.audit
         Task { try? await audit.append(rec) }
     }

@@ -59,6 +59,15 @@ final class GroundOneStudioUITests: XCTestCase {
         field.typeKey(.return, modifierFlags: .command)
     }
 
+    /// A button of an alert or dialog (the Touch Bar repeats their titles, so app-wide queries are ambiguous).
+    @MainActor func dialogButton(_ app: XCUIApplication, _ title: String) -> XCUIElement {
+        for q in [app.sheets, app.dialogs, app.windows] {
+            let b = q.buttons[title].firstMatch
+            if b.exists { return b }
+        }
+        return app.windows.firstMatch.buttons[title].firstMatch
+    }
+
     /// Waits until the status line under the answer reads `label` ("not verified" / "verified").
     @MainActor func waitStatus(_ app: XCUIApplication, _ label: String, timeout: TimeInterval) -> Bool {
         let end = Date().addingTimeInterval(timeout)
@@ -122,6 +131,50 @@ final class GroundOneStudioUITests: XCTestCase {
         app.staticTexts["sidebar-Audit log"].click()
         XCTAssertNotNil(waitFor(app, "audit-list", timeout: 5), "audit-list")
         shot(app, "13-audit")
+    }
+
+    @MainActor func testChatsWithFakeEngines() throws {
+        var app = launch(fake: true)
+        XCTAssertNotNil(waitFor(app, "models-ready", timeout: 10))
+        ask(app, "What does LoRA freeze?")
+        XCTAssertTrue(waitStatus(app, "not verified", timeout: 20))
+        app.typeKey("n", modifierFlags: .command)
+        XCTAssertTrue(app.buttons.matching(identifier: "example-question").firstMatch.waitForExistence(timeout: 5), "a new chat starts empty")
+        ask(app, "How many parameters does LoRA train?")
+        XCTAssertTrue(waitStatus(app, "not verified", timeout: 20))
+        let sidebar = app.outlines.firstMatch
+        let rows = sidebar.staticTexts.matching(NSPredicate(format: "value CONTAINS 'LoRA' OR label CONTAINS 'LoRA'"))
+        XCTAssertEqual(rows.count, 2, "two chats, titled by their first question")
+        shot(app, "30-two-chats")
+        // Rename the first (most recent) chat.
+        rows.element(boundBy: 0).rightClick()
+        app.menuItems["Rename chat…"].click()
+        let field = app.textFields.matching(NSPredicate(format: "value CONTAINS 'parameters'")).firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.doubleClick()
+        field.typeKey("a", modifierFlags: .command)
+        field.typeText("Renamed chat")
+        dialogButton(app, "Rename").click()
+        XCTAssertTrue(sidebar.staticTexts["Renamed chat"].waitForExistence(timeout: 5), "renamed")
+        shot(app, "31-renamed")
+        // Resume the older chat: its question is still there.
+        sidebar.staticTexts.matching(NSPredicate(format: "value CONTAINS 'freeze' OR label CONTAINS 'freeze'")).firstMatch.click()
+        XCTAssertTrue(app.staticTexts["What does LoRA freeze?"].waitForExistence(timeout: 5), "resumed")
+        // Persistence across launches.
+        app.terminate()
+        app = XCUIApplication()
+        app.launchArguments += ["-fakeEngines", "YES", "-keepChats"]
+        app.launch()
+        app.activate()
+        XCTAssertTrue(app.outlines.firstMatch.staticTexts["Renamed chat"].waitForExistence(timeout: 10), "chats survive a relaunch")
+        // Delete it.
+        app.outlines.firstMatch.staticTexts["Renamed chat"].rightClick()
+        app.menuItems["Delete chat…"].click()
+        let del = dialogButton(app, "Delete chat")
+        XCTAssertTrue(del.waitForExistence(timeout: 5))
+        del.click()
+        XCTAssertFalse(app.outlines.firstMatch.staticTexts["Renamed chat"].waitForExistence(timeout: 2), "deleted")
+        shot(app, "32-after-delete")
     }
 
     /// Real models and the T1 library: an example question, verification with the judge, a sentence, its evidence,
