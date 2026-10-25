@@ -72,7 +72,7 @@ public struct Orchestrator: Sendable {
     public var verifier: Verifier
     public var judge: Judge?
     public var calibratedThreshold: Double
-    public var topK = 5
+    public var topK = 6
     public var maxTokens = 400
     public var revision: Revision.Style = .targeted
     public var memory: (@Sendable () -> MemoryStats)?
@@ -364,12 +364,15 @@ public enum Revision {
         return tidy(out as String)
     }
 
+    /// Removes double spaces and empty bullets left by deletions; keeps paragraph breaks (at most one blank line).
     static func tidy(_ s: String) -> String {
         s.components(separatedBy: "\n")
             .map { $0.replacingOccurrences(of: #" {2,}"#, with: " ", options: .regularExpression)
                 .trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty && !["-", "*", "•"].contains($0) }
+            .filter { !["-", "*", "•"].contains($0) }
             .joined(separator: "\n")
+            .replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 

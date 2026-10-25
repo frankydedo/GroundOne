@@ -9,6 +9,8 @@ public enum ModelCatalog {
     public static let generator = "mlx-community/Qwen2.5-3B-Instruct-4bit"
     public static let embedder = "BAAI/bge-small-en-v1.5"  // chosen by the retrieval check (decision 3)
     public static let verifiers = ["g1-3b-b1", "g1-05b-b1"]
+    /// Demo library: the T1 sources (news articles and MS MARCO passages), author's decision of 2026-10-25.
+    public static let corpus = "t1"
 
     public struct VerifierInfo: Sendable {
         public let run: String

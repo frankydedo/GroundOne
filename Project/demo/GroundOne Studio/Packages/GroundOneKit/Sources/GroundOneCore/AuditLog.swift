@@ -12,7 +12,7 @@ public actor AuditLog {
         encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
     }
 
-    public func append(_ record: QueryRecord) throws {
+    public func append<T: Encodable>(_ record: T) throws {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         var data = try encoder.encode(record)
         data.append(0x0A)

@@ -1,0 +1,21 @@
+{
+  "source": "Official API price pages, standard tier, short context, no caching or batch discount, accessed 2026-10-19 (same table as the thesis cost comparison, Ch. 8; experiments/locality/scripts/cost_comparison.py)",
+  "usd_per_million_tokens": {
+    "Claude Haiku 5.5": [0.10, 0.50],
+    "Claude Sonnet 5.5": [2.00, 10.00],
+    "Claude Opus 5.5": [4.00, 20.00],
+    "gpt-6-luna": [0.10, 0.50],
+    "gpt-6.1-sol": [2.00, 10.00],
+    "gpt-6-astra": [10.00, 50.00],
+    "Gemini 3.5 Flash-Lite": [0.30, 2.50],
+    "Gemini 3.8 Flash": [0.75, 3.75],
+    "Gemini 4 Argon": [2.00, 10.00]
+  },
+  "default_model": "Claude Sonnet 5.5",
+  "instruction_tokens": 150,
+  "judge_tokens_per_sentence": 4.15,
+  "local_watts_during_verification": 16.2,
+  "eur_per_kwh": 0.2896,
+  "usd_per_eur": 1.08,
+  "notes": "Hosted cost = (input tokens + instruction) x input price + judge output tokens x output price; output tokens are the local judge's when it ran, else 4.15 per sentence (terse judge, thesis measurement). Local cost = GroundOne seconds x 16.2 W (thesis energy measurement: 33.1 J per answer at 2.04 s) x EUR 0.2896/kWh (Eurostat), converted at 1.08 USD/EUR. Hardware not amortised; hosted judge quality not measured."
+}

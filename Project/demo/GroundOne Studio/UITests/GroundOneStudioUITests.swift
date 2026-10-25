@@ -1,7 +1,7 @@
 import XCTest
 
 /// UI tests. The first two run with fake engines (seconds, deterministic); the last one loads the real models and
-/// answers a question from the research library end to end. Every step saves a screenshot to the result bundle.
+/// answers an example question end to end. Every step saves a screenshot to the result bundle.
 final class GroundOneStudioUITests: XCTestCase {
     override func setUp() { continueAfterFailure = false }
 
@@ -59,89 +59,107 @@ final class GroundOneStudioUITests: XCTestCase {
         field.typeKey(.return, modifierFlags: .command)
     }
 
+    /// Waits until the status line under the answer reads `label` ("not verified" / "verified").
+    @MainActor func waitStatus(_ app: XCUIApplication, _ label: String, timeout: TimeInterval) -> Bool {
+        let end = Date().addingTimeInterval(timeout)
+        while Date() < end {
+            let e = element(app, "status-line")
+            if e.exists, e.label == label { return true }
+            Thread.sleep(forTimeInterval: 0.5)
+        }
+        return false
+    }
+
+    /// The sentence links of the answer text whose label contains `text` (any, if nil).
+    @MainActor func sentence(_ app: XCUIApplication, containing text: String? = nil) -> XCUIElement {
+        let q = text.map { app.links.matching(NSPredicate(format: "label CONTAINS %@", $0)) } ?? app.links
+        return q.firstMatch
+    }
+
     @MainActor func testAskFlowWithFakeEngines() throws {
         let app = launch(fake: true)
         XCTAssertNotNil(waitFor(app, "models-ready", timeout: 10), "models-ready")
-        shot(app, "01-empty")
+        shot(app, "01-start")
         ask(app, "What does LoRA freeze?")
-        let banner = try XCTUnwrap(waitFor(app, "status-banner", timeout: 20), "the loop must finish with a status")
-        XCTAssertTrue(banner.label.contains("Accepted by GroundOne after 1 rewrite"), banner.label)
-        XCTAssertTrue(app.radioButtons["First draft"].exists, "two drafts → draft picker")
-        shot(app, "02-answer-accepted-after-rewrite")
-        // First draft: the flagged sentence and the judge's verdicts.
-        app.radioButtons["First draft"].click()
-        XCTAssertTrue(showsText(app, "twelve benchmarks"), "the first draft holds the flagged sentence")
-        shot(app, "03-first-draft-flagged")
-        // Inspector tabs.
-        app.radioButtons["Judge"].click()
-        XCTAssertNotNil(waitFor(app, "judge-stats", timeout: 5), "judge-stats")
-        shot(app, "04-inspector-judge")
-        app.radioButtons["Passages"].click()
-        shot(app, "05-inspector-passages")
-        app.radioButtons["Timing"].click()
-        XCTAssertNotNil(waitFor(app, "timing-stats", timeout: 5), "timing-stats")
-        shot(app, "06-inspector-timing")
-        // Source links (M3b) and the source viewer.
-        let find = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Find evidence'")).firstMatch
-        XCTAssertTrue(find.waitForExistence(timeout: 10), "evidence button")
-        find.click()
-        let linkLabel = NSPredicate(format: "label CONTAINS 'Supported by' OR label CONTAINS 'Contradicted by'")
-        let link = app.links.matching(linkLabel).firstMatch.waitForExistence(timeout: 2)
-            ? app.links.matching(linkLabel).firstMatch : app.buttons.matching(linkLabel).firstMatch
-        XCTAssertTrue(link.waitForExistence(timeout: 10))
-        link.click()
-        sleep(1)
-        shot(app, "07-source-viewer")
-        XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout: 5) || app.sheets.firstMatch.exists, "source viewer sheet")
+        XCTAssertTrue(waitStatus(app, "not verified", timeout: 20), "the native answer appears first, unverified")
+        shot(app, "02-native-answer")
+        app.buttons["verify-judge"].click()
+        XCTAssertTrue(waitStatus(app, "verified", timeout: 20), "verified")
+        XCTAssertNotNil(waitFor(app, "judge-agreement", timeout: 5), "judge comparison")
+        shot(app, "03-verified-with-judge")
+        let flagged = sentence(app, containing: "twelve benchmarks")
+        XCTAssertTrue(flagged.waitForExistence(timeout: 5), "sentence link")
+        flagged.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.5)).click()
+        XCTAssertNotNil(waitFor(app, "sentence-verdict", timeout: 5), "sentence panel")
+        shot(app, "04-sentence-selected")
+        app.buttons["find-evidence"].click()
+        XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout: 10), "evidence preview")
+        shot(app, "05-evidence-preview")
         app.buttons["Done"].click()
+        app.buttons["rewrite-selected"].click()
+        XCTAssertTrue(app.radioButtons["Fix 1"].waitForExistence(timeout: 20), "a new version after the rewrite")
+        XCTAssertTrue(waitStatus(app, "verified", timeout: 10), "the rewrite is verified again")
+        shot(app, "06-after-rewrite")
     }
 
     @MainActor func testSectionsWithFakeEngines() throws {
         let app = launch(fake: true)
         XCTAssertNotNil(waitFor(app, "models-ready", timeout: 10), "models-ready")
         ask(app, "What does LoRA freeze?")
-        XCTAssertNotNil(waitFor(app, "status-banner", timeout: 20), "status-banner")
+        XCTAssertTrue(waitStatus(app, "not verified", timeout: 20))
+        app.buttons["verify-judge"].click()
+        XCTAssertTrue(waitStatus(app, "verified", timeout: 20))
         app.staticTexts["sidebar-Library"].click()
         XCTAssertNotNil(waitFor(app, "library-summary", timeout: 5), "library-summary")
-        shot(app, "10-library")
+        app.outlines["library-list"].cells.firstMatch.click()
+        shot(app, "10-library-preview")
         app.staticTexts["sidebar-Policies"].click()
         XCTAssertTrue(app.staticTexts["strict"].waitForExistence(timeout: 5))
-        app.staticTexts["lenient"].click()
         shot(app, "11-policies")
-        app.staticTexts["sidebar-Measurements"].click()
-        XCTAssertNotNil(waitFor(app, "export-button", timeout: 5), "export-button")
-        shot(app, "12-measurements")
+        app.staticTexts["sidebar-Stats"].click()
+        XCTAssertNotNil(waitFor(app, "stats-kpis", timeout: 5), "stats-kpis")
+        shot(app, "12-stats")
         app.staticTexts["sidebar-Audit log"].click()
         XCTAssertNotNil(waitFor(app, "audit-list", timeout: 5), "audit-list")
         shot(app, "13-audit")
     }
 
-    /// Real models, real library: loads GroundOne 3B, the 4-bit generator and the embedding model.
+    /// Real models and the T1 library: an example question, verification with the judge, a sentence, its evidence,
+    /// Fix, Stats.
     @MainActor func testEndToEndRealModels() throws {
         let app = launch(fake: false)
         XCTAssertNotNil(waitFor(app, "models-ready", timeout: 300), "models must load")
-        shot(app, "20-real-ready")
-        ask(app, "Which post-processing method calibrates modern neural networks, and how does it work?")
-        _ = try XCTUnwrap(waitFor(app, "status-banner", timeout: 600), "the loop must finish")
-        shot(app, "21-real-answer")
-        app.radioButtons["Judge"].click()
-        XCTAssertNotNil(waitFor(app, "judge-stats", timeout: 10), "judge-stats")
-        shot(app, "22-real-judge")
-        app.radioButtons["Timing"].click()
-        shot(app, "23-real-timing")
-        let find = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Find evidence'")).firstMatch
-        XCTAssertTrue(find.waitForExistence(timeout: 10), "evidence button")
-        find.click()
-        let linkLabel = NSPredicate(format: "label CONTAINS 'Supported by' OR label CONTAINS 'Contradicted by'")
-        let link = app.links.matching(linkLabel).firstMatch  // computing evidence takes k GroundOne passes
-        if link.waitForExistence(timeout: 300) {
-            link.click()
-            XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout: 10))
-            sleep(2)
-            shot(app, "24-real-source-pdf")
+        shot(app, "20-real-start")
+        let example = app.buttons.matching(NSPredicate(format: "label CONTAINS 'clove tea'")).firstMatch
+        XCTAssertTrue(example.waitForExistence(timeout: 10))
+        example.click()
+        XCTAssertTrue(waitStatus(app, "not verified", timeout: 600), "native answer")
+        shot(app, "21-real-native")
+        app.buttons["verify-judge"].click()
+        XCTAssertTrue(waitStatus(app, "verified", timeout: 600), "verified")
+        shot(app, "22-real-verified")
+        let s = sentence(app)
+        XCTAssertTrue(s.waitForExistence(timeout: 10))
+        app.links.element(boundBy: min(1, app.links.count - 1)).coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.5)).click()
+        XCTAssertNotNil(waitFor(app, "sentence-verdict", timeout: 10), "sentence panel")
+        shot(app, "23-real-sentence")
+        app.buttons["find-evidence"].click()
+        if app.buttons["Done"].waitForExistence(timeout: 300) {
+            sleep(1)
+            shot(app, "24-real-evidence")
             app.buttons["Done"].click()
-        } else {
-            shot(app, "24-real-no-source-link")
         }
+        (app.links["Deselect"].exists ? app.links["Deselect"] : app.buttons["Deselect"]).click()
+        let fix = app.buttons["fix-flagged"]
+        if fix.waitForExistence(timeout: 5), fix.isEnabled {
+            fix.click()
+            XCTAssertTrue(app.radioButtons["Fix 1"].waitForExistence(timeout: 600), "fixed version")
+            XCTAssertTrue(waitStatus(app, "verified", timeout: 600))
+            shot(app, "25-real-fixed")
+        }
+        app.staticTexts["sidebar-Stats"].click()
+        XCTAssertNotNil(waitFor(app, "stats-kpis", timeout: 10))
+        sleep(1)
+        shot(app, "26-real-stats")
     }
 }

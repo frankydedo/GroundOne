@@ -71,7 +71,7 @@ enum Commands {
     static func ask(_ args: [String]) async throws {
         guard let q = args.first else { throw CLIError.usage("ask <question>") }
         let opts = Options(args.dropFirst())
-        let stack = try await Stack.load(verifier: opts["--verifier"] ?? "g1-3b-b1", corpus: opts["--corpus"] ?? "library")
+        let stack = try await Stack.load(verifier: opts["--verifier"] ?? "g1-3b-b1", corpus: opts["--corpus"] ?? ModelCatalog.corpus)
         let policy = Policy.builtIn.first { $0.name.hasPrefix(opts["--policy"] ?? "strict") } ?? .strict
         let rec = try await stack.orchestrator.execute(.init(question: q, compareWithJudge: opts["--no-judge"] == nil), policy: policy) { ev in
             if case .stage(let s) = ev { print("· \(s)") }
@@ -97,9 +97,11 @@ struct Options {
 }
 
 enum Library {
-    /// "Hu 2022 - LoRA_ingested.pdf" → "Hu 2022 - LoRA".
+    /// First line of a text file (the corpus files start with a title line); otherwise the file name.
     static func title(_ url: URL) -> String {
-        url.deletingPathExtension().lastPathComponent.replacingOccurrences(of: "_ingested", with: "")
+        if url.pathExtension == "txt", let t = try? String(contentsOf: url, encoding: .utf8),
+           let first = t.split(separator: "\n").first, !first.isEmpty { return String(first) }
+        return url.deletingPathExtension().lastPathComponent.replacingOccurrences(of: "_ingested", with: "")
     }
 }
 
@@ -161,8 +163,10 @@ enum Report {
 /// calibration, the library index with copies of its files, example policies, the case-study summary).
 enum Install {
     static func run(_ args: [String]) throws {
+        let corpus = Options(args)["--corpus"] ?? ModelCatalog.corpus
         let fm = FileManager.default
         let dst = Workspace.appSupport
+        for old in ["library", "index"] { try? fm.removeItem(at: dst.appendingPathComponent(old)) }
         try fm.createDirectory(at: dst, withIntermediateDirectories: true)
         func copy(_ a: URL, _ b: URL) throws {
             try fm.createDirectory(at: b.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -182,12 +186,14 @@ enum Install {
         for f in (try? fm.contentsOfDirectory(at: policies, includingPropertiesForKeys: nil)) ?? [] where f.pathExtension == "json" {
             try copy(f, dst.appendingPathComponent("policies/\(f.lastPathComponent)"))
         }
-        let summary = Workspace.demo.appendingPathComponent("casestudy/summary.json")
-        if fm.fileExists(atPath: summary.path) { try copy(summary, dst.appendingPathComponent("casestudy/summary.json")) }
+        for f in ["summary.json", "summary_full.json"] {
+            let summary = Workspace.demo.appendingPathComponent("casestudy/\(f)")
+            if fm.fileExists(atPath: summary.path) { try copy(summary, dst.appendingPathComponent("casestudy/\(f)")) }
+        }
         // Index: copy the database, copy every source file into library/, point the rows at the copies.
         let tag = ModelCatalog.embedder.split(separator: "/").last!
-        let srcIndex = Workspace.demo.appendingPathComponent("index/library-\(tag).sqlite")
-        let dstIndex = dst.appendingPathComponent("index/library-\(tag).sqlite")
+        let srcIndex = Workspace.demo.appendingPathComponent("index/\(corpus)-\(tag).sqlite")
+        let dstIndex = dst.appendingPathComponent("index/\(corpus)-\(tag).sqlite")
         try copy(srcIndex, dstIndex)
         let index = try LibraryIndex(url: dstIndex)
         var n = 0

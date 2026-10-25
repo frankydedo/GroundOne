@@ -1,0 +1,153 @@
+[
+  {
+    "generation_s" : 5.5568580627441406,
+    "groundone_s" : 2.2388869524002075,
+    "judge_disagreements" : 3,
+    "judge_s" : 3.6743929386138916,
+    "K" : 11,
+    "labels" : {
+      "not_mentioned" : 1,
+      "supported" : 10
+    },
+    "question" : "What are the benefits and side effects of drinking clove tea?",
+    "words" : 142
+  },
+  {
+    "generation_s" : 5.2282800674438477,
+    "groundone_s" : 1.8454478979110718,
+    "judge_disagreements" : 3,
+    "judge_s" : 2.6870230436325073,
+    "K" : 7,
+    "labels" : {
+      "not_mentioned" : 3,
+      "supported" : 4
+    },
+    "question" : "What is the difference between the nervous system and the endocrine system?",
+    "words" : 152
+  },
+  {
+    "generation_s" : 5.8383859395980835,
+    "groundone_s" : 2.1542650461196899,
+    "judge_disagreements" : 3,
+    "judge_s" : 3.2490309476852417,
+    "K" : 9,
+    "labels" : {
+      "supported" : 9
+    },
+    "question" : "How does E-ZPass charge tolls?",
+    "words" : 150
+  },
+  {
+    "generation_s" : 4.8866039514541626,
+    "groundone_s" : 2.7473549842834473,
+    "judge_disagreements" : 3,
+    "judge_s" : 3.384329080581665,
+    "K" : 6,
+    "labels" : {
+      "not_mentioned" : 1,
+      "supported" : 5
+    },
+    "question" : "Why does Oracle have two CEOs?",
+    "words" : 109
+  },
+  {
+    "generation_s" : 6.5349849462509155,
+    "groundone_s" : 2.7779849767684937,
+    "judge_disagreements" : 0,
+    "judge_s" : 4.1889810562133789,
+    "K" : 10,
+    "labels" : {
+      "supported" : 10
+    },
+    "question" : "What is the effect of a carbon footprint?",
+    "words" : 179
+  },
+  {
+    "generation_s" : 6.4720849990844727,
+    "groundone_s" : 2.3621400594711304,
+    "judge_disagreements" : 4,
+    "judge_s" : 3.7454160451889038,
+    "K" : 10,
+    "labels" : {
+      "not_mentioned" : 4,
+      "supported" : 6
+    },
+    "question" : "How do raffles work?",
+    "words" : 161
+  },
+  {
+    "generation_s" : 6.2710210084915161,
+    "groundone_s" : 3.5321789979934692,
+    "judge_disagreements" : 4,
+    "judge_s" : 4.0828700065612793,
+    "K" : 7,
+    "labels" : {
+      "not_mentioned" : 2,
+      "supported" : 5
+    },
+    "question" : "Why did Walmart oppose the religious freedom laws?",
+    "words" : 134
+  },
+  {
+    "generation_s" : 5.8856339454650879,
+    "groundone_s" : 3.3143160343170166,
+    "judge_disagreements" : 1,
+    "judge_s" : 4.0592260360717773,
+    "K" : 7,
+    "labels" : {
+      "supported" : 7
+    },
+    "question" : "What happened to Lauren Hill?",
+    "words" : 117
+  },
+  {
+    "generation_s" : 6.6150070428848267,
+    "groundone_s" : 3.7219350337982178,
+    "judge_disagreements" : 2,
+    "judge_s" : 4.6076750755310059,
+    "K" : 9,
+    "labels" : {
+      "not_mentioned" : 1,
+      "supported" : 8
+    },
+    "question" : "Who was Richie Benaud and what was his career?",
+    "words" : 139
+  },
+  {
+    "generation_s" : 6.3114690780639648,
+    "groundone_s" : 3.5546020269393921,
+    "judge_disagreements" : 3,
+    "judge_s" : 4.0743629932403564,
+    "K" : 7,
+    "labels" : {
+      "supported" : 7
+    },
+    "question" : "What changed for Americans on the US no-fly list?",
+    "words" : 131
+  },
+  {
+    "generation_s" : 5.010140061378479,
+    "groundone_s" : 3.3189259767532349,
+    "judge_disagreements" : 0,
+    "judge_s" : 3.7655370235443115,
+    "K" : 5,
+    "labels" : {
+      "supported" : 5
+    },
+    "question" : "What did officials find about new HIV infections in rural Indiana?",
+    "words" : 87
+  },
+  {
+    "generation_s" : 3.2807570695877075,
+    "groundone_s" : 1.9512900114059448,
+    "judge_disagreements" : 6,
+    "judge_s" : 2.7933369874954224,
+    "K" : 7,
+    "labels" : {
+      "not_mentioned" : 6,
+      "supported" : 1
+    },
+    "question" : "What are the side effects of clove tea for pregnant women?",
+    "words" : 68
+  }
+]

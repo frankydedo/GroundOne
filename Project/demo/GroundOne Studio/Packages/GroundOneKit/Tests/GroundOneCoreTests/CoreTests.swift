@@ -163,3 +163,32 @@ final class RevisionPromptTests: XCTestCase {
         XCTAssertTrue(r.final!.text.contains("wrong colour"), "a contradicted sentence must not be deleted")
     }
 }
+
+final class SessionTests: XCTestCase {
+    func testNativeThenVerifyThenFix() async throws {
+        let s = StudioSession(retriever: Fakes.Retriever(), generator: Fakes.Generator(), verifier: Fakes.Verifier(),
+                              judge: Fakes.Judge(), calibratedThreshold: 0.925)
+        var rec = StudioRecord(question: "What does LoRA freeze?", verifier: "fake", generator: "fake", policy: "strict")
+        let v0 = try await s.answer(rec.question, into: &rec) { _ in }
+        XCTAssertNil(v0.verdicts, "the native answer is not verified")
+        XCTAssertEqual(rec.passages.count, 2)
+        let v1 = try await s.verify(v0, document: rec.document, withJudge: true)
+        let flagged = v1.verdicts!.sentences.filter { $0.label != .supported && $0.scored }.map(\.index)
+        XCTAssertEqual(flagged, [2])
+        XCTAssertNotNil(v1.judge)
+        let v2 = try await s.fix(v1, indices: flagged, document: rec.document)
+        XCTAssertTrue(v2.text.hasSuffix("The method was evaluated on three benchmarks."))
+        XCTAssertNil(v2.verdicts)
+        let v3 = try await s.verify(v2, document: rec.document, withJudge: false)
+        XCTAssertTrue(v3.verdicts!.scored.allSatisfy { $0.label == .supported })
+    }
+
+    func testParagraphsSurviveRewriting() {
+        let text = "First paragraph here. It has two sentences.\n\nSecond paragraph is wrong. End of it."
+        let segs = Segmenter.segment(text)
+        let v = segs.enumerated().map { SentenceVerdict(index: $0.offset, text: $0.element.text, start: $0.element.start, end: $0.element.end, scored: true) }
+        XCTAssertEqual(Revision.replace([2: "Second paragraph is right."], in: text, sentences: v),
+                       "First paragraph here. It has two sentences.\n\nSecond paragraph is right. End of it.")
+        XCTAssertEqual(LibraryPrompt.clean("## Title\n**Bold** text.\n- item one"), "Title\nBold text.\nitem one")
+    }
+}

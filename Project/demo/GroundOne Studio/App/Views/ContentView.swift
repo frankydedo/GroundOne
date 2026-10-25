@@ -18,10 +18,11 @@ struct ContentView: View {
             case .ask: AskView()
             case .library: LibraryView()
             case .policies: PoliciesView()
-            case .measurements: MeasurementsView()
+            case .stats: StatsView()
             case .audit: AuditView()
             }
         }
+        .sheet(item: $model.preview) { DocumentPreview(request: $0) }
     }
 }
 

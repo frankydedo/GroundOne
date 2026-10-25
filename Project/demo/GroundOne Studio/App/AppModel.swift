@@ -3,43 +3,44 @@ import GroundOneCore
 import GroundOneEngines
 import Observation
 
-/// One question and everything that happens to it, updated live while the loop runs.
+/// One question and its versions (native answer, fixes), updated live.
 @MainActor @Observable
 final class Turn: Identifiable {
     let id = UUID()
-    let question: String
-    var stage: String?
+    var record: StudioRecord
     var partial = ""
-    var passages: [Passage] = []
-    var drafts: [Draft] = []
-    var judge: JudgeVerdicts?
-    var record: QueryRecord?
+    var stage: String?
     var error: String?
-    var links: [Int: [SourceLink]]?
-    var linksLoading = false
-    var selectedDraft: Int?
+    var versionIndex: Int?
+    var selection: Set<Int> = []
+    /// Source links per version id, computed on request (k GroundOne passes, one per passage) and cached.
+    var evidence: [UUID: [Int: [SourceLink]]] = [:]
+    var evidenceLoading = false
 
-    init(question: String) { self.question = question }
+    init(record: StudioRecord) { self.record = record }
 
-    var running: Bool { record == nil && error == nil }
-    var shownDraft: Draft? { selectedDraft.flatMap { i in drafts.indices.contains(i) ? drafts[i] : nil } ?? drafts.last }
+    var question: String { record.question }
+    var busy: Bool { stage != nil }
+    var shownIndex: Int? { record.versions.isEmpty ? nil : min(versionIndex ?? record.versions.count - 1, record.versions.count - 1) }
+    var shown: Version? { shownIndex.map { record.versions[$0] } }
+    var isLatest: Bool { shownIndex == record.versions.count - 1 }
 }
 
 enum SidebarSection: String, CaseIterable, Identifiable {
-    case ask = "Ask", library = "Library", policies = "Policies", measurements = "Measurements", audit = "Audit log"
+    case ask = "Ask", library = "Library", policies = "Policies", stats = "Stats", audit = "Audit log"
     var id: String { rawValue }
     var symbol: String {
         switch self {
         case .ask: "text.bubble"
         case .library: "books.vertical"
         case .policies: "slider.horizontal.3"
-        case .measurements: "chart.bar.xaxis"
+        case .stats: "chart.bar.xaxis"
         case .audit: "list.bullet.rectangle"
         }
     }
 }
 
-/// App state. All engine calls go through the engines' own serial containers; the UI never touches MLX directly.
+/// App state. Engines run through their own serial containers; the UI never touches MLX directly.
 @MainActor @Observable
 final class AppModel {
     enum Phase: Equatable { case idle, loading(String), ready, failed(String) }
@@ -49,45 +50,46 @@ final class AppModel {
     var verifierRun = "g1-3b-b1"
     var policies: [Policy] = Policy.builtIn
     var policyName = Policy.strict.name
-    var compareWithJudge = true
     var turns: [Turn] = []
+    var selectedTurn: Turn.ID?
     var documents: [LibraryIndex.Doc] = []
-    var ingesting: String?
-    var loadSeconds: Double?
     var memory: MemoryStats?
+    var preview: DocumentPreviewRequest?
+    /// Every record ever written by the app (audit log), for Stats; updated live.
+    var history: [StudioRecord] = []
 
-    let fake = ProcessInfo.processInfo.arguments.contains("-fakeEngines") || UserDefaults.standard.bool(forKey: "fakeEngines")
+    let fake = ProcessInfo.processInfo.arguments.contains("-fakeEngines")
     private var g1: GroundOneModel?
     private var generator: (any Generator)?
     private var embedder: Embedder?
     private(set) var index: LibraryIndex?
     private var attributor: PassageAttributor?
-    private var orchestrator: Orchestrator?
-    private(set) var audit: AuditLog
-    let corpus = "library"
+    private var session: StudioSession?
+    let audit: AuditLog
 
     init() {
         Workspace.mode = .app
         audit = AuditLog(url: Workspace.demo.appendingPathComponent(
-            ProcessInfo.processInfo.arguments.contains("-fakeEngines") ? "audit/app-uitest.jsonl" : "audit/app.jsonl"))
+            ProcessInfo.processInfo.arguments.contains("-fakeEngines") ? "audit/studio-uitest.jsonl" : "audit/studio.jsonl"))
         loadPolicies()
+        history = fake ? [] : Self.readHistory(audit.url)
     }
 
     var policy: Policy { policies.first { $0.name == policyName } ?? .strict }
     var verifierName: String { g1?.name ?? (fake ? "fake verifier" : verifierRun) }
     var calibration: Calibration? { g1?.info.calibration }
+    var tau: Double { policy.tau(calibrated: calibration?.threshold ?? 0.925) }
+    var currentTurn: Turn? { turns.first { $0.id == selectedTurn } ?? turns.last }
 
     // MARK: loading
 
     func load() async {
         guard phase == .idle || phase.isFailed else { return }
-        let t0 = Date()
         if fake {
-            orchestrator = Orchestrator(retriever: Fakes.Retriever(), generator: Fakes.Generator(), verifier: Fakes.Verifier(),
-                                        judge: Fakes.Judge(), calibratedThreshold: 0.925)
-            documents = [LibraryIndex.Doc(id: "Hu 2022 - LoRA_ingested.pdf", title: "Hu 2022 - LoRA", path: "", passages: 2)]
+            session = StudioSession(retriever: Fakes.Retriever(), generator: Fakes.Generator(), verifier: Fakes.Verifier(),
+                                    judge: Fakes.Judge(), calibratedThreshold: 0.925)
+            documents = [LibraryIndex.Doc(id: "fake-1", title: "LoRA freezes the pretrained weights", path: "", passages: 2)]
             phase = .ready
-            loadSeconds = 0
             return
         }
         do {
@@ -98,12 +100,10 @@ final class AppModel {
             phase = .loading("Loading the embedding model…")
             let emb = try await Embedder.load()
             let index = try LibraryIndex(url: Workspace.demo.appendingPathComponent(
-                "index/\(corpus)-\(ModelCatalog.embedder.split(separator: "/").last!).sqlite"))
+                "index/\(ModelCatalog.corpus)-\(ModelCatalog.embedder.split(separator: "/").last!).sqlite"))
             self.g1 = g1; generator = gen; embedder = emb; self.index = index
-            attributor = PassageAttributor(verifier: GroundOneVerifier(model: g1))
-            rebuildOrchestrator()
+            rebuildSession()
             documents = index.documents()
-            loadSeconds = Date().timeIntervalSince(t0)
             memory = Memory.stats()
             phase = .ready
         } catch {
@@ -112,15 +112,13 @@ final class AppModel {
     }
 
     func switchVerifier(to run: String) async {
-        guard run != verifierRun || g1 == nil, !fake else { return }
+        guard run != verifierRun, !fake else { return }
         verifierRun = run
         phase = .loading("Loading GroundOne (\(run))…")
         do {
             g1 = nil
-            let g1 = try await GroundOneModel.load(run: run)
-            self.g1 = g1
-            attributor = PassageAttributor(verifier: GroundOneVerifier(model: g1))
-            rebuildOrchestrator()
+            g1 = try await GroundOneModel.load(run: run)
+            rebuildSession()
             memory = Memory.stats()
             phase = .ready
         } catch {
@@ -128,86 +126,154 @@ final class AppModel {
         }
     }
 
-    private func rebuildOrchestrator() {
+    private func rebuildSession() {
         guard let g1, let generator, let index else { return }
-        orchestrator = Orchestrator(retriever: HybridRetriever(index: index, embedder: embedder), generator: generator,
-                                    verifier: GroundOneVerifier(model: g1), judge: LocalJudge(model: g1),
-                                    calibratedThreshold: g1.info.calibration.threshold, memory: { Memory.stats() })
+        let verifier = GroundOneVerifier(model: g1)
+        session = StudioSession(retriever: HybridRetriever(index: index, embedder: embedder), generator: generator,
+                                verifier: verifier, judge: LocalJudge(model: g1), calibratedThreshold: g1.info.calibration.threshold)
+        attributor = PassageAttributor(verifier: verifier)
     }
 
-    // MARK: asking
+    // MARK: steps
 
+    /// Retrieval and the generator's native answer; nothing is verified or changed.
     func ask(_ question: String) {
         let q = question.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !q.isEmpty, let orchestrator, phase == .ready else { return }
-        let turn = Turn(question: q)
+        guard !q.isEmpty, let session, phase == .ready else { return }
+        let turn = Turn(record: StudioRecord(question: q, verifier: verifierName, generator: generator?.name ?? "fake generator",
+                                             policy: policyName))
         turns.append(turn)
-        let policy = self.policy
-        let req = Orchestrator.Request(question: q, compareWithJudge: compareWithJudge)
-        let audit = self.audit
+        selectedTurn = turn.id
+        turn.stage = "Retrieving and generating"
         Task {
             do {
-                for try await ev in orchestrator.run(req, policy: policy) {
-                    switch ev {
-                    case .stage(let s): turn.stage = s
-                    case .retrieved(let p, _): turn.passages = p
-                    case .partial(let round, let text): if round == 0 { turn.partial = text }
-                    case .draft(let d): turn.drafts.append(d); turn.selectedDraft = nil
-                    case .judge(let j): turn.judge = j
-                    case .finished(let r):
-                        turn.record = r
-                        turn.stage = nil
-                        memory = r.memory
-                        if r.policy.auditLog { try? await audit.append(r) }
-                    }
+                var rec = turn.record
+                let v = try await session.answer(q, into: &rec) { text in
+                    Task { @MainActor in turn.partial = text }
                 }
-            } catch {
-                turn.error = error.localizedDescription
-                turn.stage = nil
-            }
+                rec.versions = [v]
+                turn.record = rec
+                finish(turn, event: "generated")
+            } catch { fail(turn, error) }
         }
     }
 
-    /// Source links for the shown draft, computed on demand (k extra GroundOne passes) and cached.
-    func loadLinks(for turn: Turn) {
-        guard let draft = turn.shownDraft, !turn.passages.isEmpty, !turn.linksLoading else { return }
-        let segs = draft.verdicts.sentences.map { Segment(start: $0.start, end: $0.end, text: $0.text, checkable: $0.scored) }
+    /// One GroundOne pass over the whole shown version; with `judge`, the generative judge on the same answer.
+    func verify(_ turn: Turn, judge: Bool) {
+        guard let session, let i = turn.shownIndex, !turn.busy else { return }
+        turn.stage = judge ? "GroundOne and the generative judge are verifying" : "GroundOne is verifying"
+        let v = turn.record.versions[i]
+        let doc = turn.record.document
+        let tau = self.tau
+        Task {
+            do {
+                var nv = try await session.verify(v, document: doc, threshold: tau, withJudge: judge)
+                if !judge, let previous = v.judge { nv.judge = previous }
+                turn.record.versions[i] = nv
+                finish(turn, event: judge ? "verified+judge" : "verified")
+            } catch { fail(turn, error) }
+        }
+    }
+
+    /// Rewrites the given sentences of the latest version (by error type, one request each), then verifies the new
+    /// version the same way the previous one was verified. `rounds` > 1 repeats on what is still flagged (policy).
+    func fix(_ turn: Turn, indices: [Int], rounds: Int = 1) {
+        guard let session, !turn.busy, !indices.isEmpty, let last = turn.record.versions.last else { return }
+        let doc = turn.record.document
+        let withJudge = last.judge != nil
+        let tau = self.tau
+        let policy = self.policy
+        turn.stage = "Rewriting \(indices.count) sentence\(indices.count == 1 ? "" : "s")"
+        Task {
+            do {
+                var current = last
+                var todo = indices
+                for round in 0..<max(rounds, 1) {
+                    if round > 0 { turn.stage = "Rewriting again (round \(round + 1))" }
+                    let fixed = try await session.fix(current, indices: todo, document: doc)
+                    turn.stage = "GroundOne is verifying the rewrite"
+                    current = try await session.verify(fixed, document: doc, threshold: tau, withJudge: withJudge)
+                    turn.record.versions.append(current)
+                    turn.versionIndex = nil
+                    turn.selection = []
+                    todo = current.verdicts?.sentences.filter { policy.isBlocking($0.label) }.map(\.index) ?? []
+                    if todo.isEmpty { break }
+                }
+                finish(turn, event: "fixed")
+            } catch { fail(turn, error) }
+        }
+    }
+
+    func flagged(_ v: Version?) -> [Int] {
+        v?.verdicts?.sentences.filter { policy.isBlocking($0.label) }.map(\.index) ?? []
+    }
+
+    func fixFlagged(_ turn: Turn) {
+        fix(turn, indices: flagged(turn.record.versions.last), rounds: policy.maxAttempts)
+    }
+
+    /// Opens the document preview at the passage that best supports (or contradicts) the sentence, span highlighted.
+    func findEvidence(_ turn: Turn, sentence: Int) {
+        guard let v = turn.shown, !turn.record.passages.isEmpty, !turn.evidenceLoading else { return }
+        if let links = turn.evidence[v.id] { openEvidence(links[sentence], sentence: v.sentences[safe: sentence]); return }
         if fake {
-            turn.links = [0: [SourceLink(sentence: 0, kind: .supported, passage: turn.passages[0], probability: 0.97,
-                                         spanStart: 0, spanEnd: 60, spanText: String(turn.passages[0].text.prefix(60)))]]
+            let p = turn.record.passages[0]
+            let l = SourceLink(sentence: sentence, kind: .supported, passage: p, probability: 0.97, spanStart: 0, spanEnd: 60,
+                               spanText: String(p.text.prefix(60)))
+            turn.evidence[v.id] = [sentence: [l]]
+            openEvidence([l], sentence: v.sentences[safe: sentence])
             return
         }
         guard let attributor else { return }
-        turn.linksLoading = true
-        let key = "\(turn.id)-\(draft.round)"
-        let passages = turn.passages
+        turn.evidenceLoading = true
+        let segs = v.sentences.map { Segment(start: $0.start, end: $0.end, text: $0.text, checkable: $0.scored) }
+        let passages = turn.record.passages
+        let key = v.id.uuidString
         Task {
-            turn.links = try? await attributor.links(answer: segs, passages: passages, key: key)
-            turn.linksLoading = false
+            let links = (try? await attributor.links(answer: segs, passages: passages, key: key)) ?? [:]
+            turn.evidence[v.id] = links
+            turn.evidenceLoading = false
+            openEvidence(links[sentence], sentence: v.sentences[safe: sentence])
         }
+    }
+
+    private func openEvidence(_ links: [SourceLink]?, sentence: SentenceVerdict?) {
+        guard let l = links?.first else {
+            preview = DocumentPreviewRequest(title: "No evidence found", path: nil, highlight: nil, kind: nil,
+                                             note: "No retrieved passage supports or contradicts this sentence above the threshold τ.",
+                                             sentence: sentence?.text)
+            return
+        }
+        preview = DocumentPreviewRequest(title: l.passage.title, path: l.passage.fileURL?.path, highlight: l.spanText, kind: l.kind,
+                                         note: "GroundOne P(\(l.kind.display)) = \(String(format: "%.2f", l.probability)) in this passage · evidence suggested by GroundOne, not evaluated",
+                                         sentence: sentence?.text, fallbackText: l.passage.text)
+    }
+
+    private func finish(_ turn: Turn, event: String) {
+        turn.stage = nil
+        turn.partial = ""
+        if !fake { memory = Memory.stats() }
+        turn.record.memory = memory
+        turn.record.event = event
+        turn.record.policy = policyName
+        let rec = turn.record
+        history.removeAll { $0.id == rec.id }
+        history.append(rec)
+        let audit = self.audit
+        Task { try? await audit.append(rec) }
+    }
+
+    private func fail(_ turn: Turn, _ error: Error) {
+        turn.stage = nil
+        turn.error = error.localizedDescription
     }
 
     // MARK: library
 
-    func addFiles(_ urls: [URL]) {
-        guard let index else { return }
-        let embedder = self.embedder
-        Task {
-            for u in urls {
-                ingesting = u.lastPathComponent
-                let ok = u.startAccessingSecurityScopedResource()
-                _ = try? await index.add(file: u, title: u.deletingPathExtension().lastPathComponent
-                    .replacingOccurrences(of: "_ingested", with: ""), embedder: embedder)
-                if ok { u.stopAccessingSecurityScopedResource() }
-                documents = index.documents()
-            }
-            ingesting = nil
-        }
-    }
-
-    func remove(_ doc: LibraryIndex.Doc) {
-        try? index?.remove(docID: doc.id)
-        documents = index?.documents() ?? documents.filter { $0 != doc }
+    func previewDocument(_ doc: LibraryIndex.Doc) {
+        preview = DocumentPreviewRequest(title: doc.title, path: doc.path.isEmpty ? nil : doc.path, highlight: nil, kind: nil,
+                                         note: "\(doc.passages) passage\(doc.passages == 1 ? "" : "s") in the index", sentence: nil,
+                                         fallbackText: fake ? Fakes.passages.map(\.text).joined(separator: "\n\n") : nil)
     }
 
     // MARK: policies
@@ -215,13 +281,11 @@ final class AppModel {
     var policyFolder: URL { Workspace.demo.appendingPathComponent("policies") }
 
     func loadPolicies() {
-        var list = Policy.builtIn
-        for dir in [policyFolder] {
-            for f in (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? []
-            where f.pathExtension == "json" {
-                if let p = try? JSONDecoder().decode(Policy.self, from: Data(contentsOf: f)), !list.contains(where: { $0.name == p.name }) {
-                    list.append(p)
-                }
+        var list = Policy.builtIn.filter { $0.name != Policy.observe.name }
+        for f in (try? FileManager.default.contentsOfDirectory(at: policyFolder, includingPropertiesForKeys: nil)) ?? []
+        where f.pathExtension == "json" {
+            if let p = try? JSONDecoder().decode(Policy.self, from: Data(contentsOf: f)), !list.contains(where: { $0.name == p.name }) {
+                list.append(p)
             }
         }
         policies = list
@@ -235,9 +299,39 @@ final class AppModel {
         try? enc.encode(policy).write(to: policyFolder.appendingPathComponent("\(policy.name).json"))
     }
 
-    var sessionRecords: [QueryRecord] { turns.compactMap(\.record) }
+    // MARK: history
+
+    /// Last state of every question in the audit log (one line per action; the last line of an id wins).
+    static func readHistory(_ url: URL) -> [StudioRecord] {
+        guard let text = try? String(contentsOf: url, encoding: .utf8) else { return [] }
+        let d = JSONDecoder()
+        d.dateDecodingStrategy = .iso8601
+        var byID: [UUID: StudioRecord] = [:]
+        var order: [UUID] = []
+        for line in text.split(separator: "\n") {
+            guard let r = try? d.decode(StudioRecord.self, from: Data(line.utf8)) else { continue }
+            if byID[r.id] == nil { order.append(r.id) }
+            byID[r.id] = r
+        }
+        return order.compactMap { byID[$0] }
+    }
+}
+
+struct DocumentPreviewRequest: Identifiable {
+    let id = UUID()
+    let title: String
+    let path: String?
+    let highlight: String?
+    let kind: Label?
+    let note: String
+    let sentence: String?
+    var fallbackText: String? = nil
 }
 
 extension AppModel.Phase {
     var isFailed: Bool { if case .failed = self { true } else { false } }
+}
+
+extension Array {
+    subscript(safe i: Int) -> Element? { indices.contains(i) ? self[i] : nil }
 }

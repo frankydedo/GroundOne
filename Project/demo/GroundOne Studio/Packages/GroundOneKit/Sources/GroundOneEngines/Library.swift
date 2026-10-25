@@ -245,6 +245,8 @@ public struct HybridRetriever: Retriever {
     public let index: LibraryIndex
     public let embedder: Embedder?
     public var mode: Mode = .hybrid
+    /// At most this many passages from one document, so that a comparison question can reach several sources.
+    public var perDocument = 3
 
     public enum Mode: String, Sendable, CaseIterable { case hybrid, bm25, dense }
 
@@ -261,8 +263,17 @@ public struct HybridRetriever: Retriever {
         for list in [lexical, semantic] {
             for (rank, (id, _)) in list.enumerated() { fused[id, default: 0] += 1.0 / Double(60 + rank + 1) }
         }
-        let top = fused.sorted { $0.value > $1.value }.prefix(k)
-        let rows = index.passages(top.map(\.key))
-        return top.compactMap { id, score in rows[id].map { var p = $0; p.score = score; return p } }
+        let ranked = fused.sorted { $0.value > $1.value }
+        let rows = index.passages(Array(ranked.prefix(pool).map(\.key)))
+        var out: [Passage] = []
+        var perDoc: [String: Int] = [:]
+        for (id, score) in ranked {
+            guard var p = rows[id], perDoc[p.docID, default: 0] < perDocument else { continue }
+            perDoc[p.docID, default: 0] += 1
+            p.score = score
+            out.append(p)
+            if out.count == k { break }
+        }
+        return out
     }
 }

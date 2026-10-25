@@ -1,0 +1,1 @@
+'demo/GroundOne Studio/build/dd2/Build/Products/Release/g1studio' examples outputs/demo/corpus/candidates.json

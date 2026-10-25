@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 160" width="920" height="160" role="img" aria-label="GroundOne Studio">
+  <svg x="10" y="10" width="140" height="140" viewBox="0 0 1024 1024">
+    <rect width="1024" height="1024" rx="230" fill="#2A78D6"/>
+    <g fill="#FFFFFF">
+      <rect x="196" y="244" width="440" height="72" rx="36"/>
+      <circle cx="740" cy="280" r="40"/>
+      <rect x="196" y="384" width="360" height="72" rx="36"/>
+      <circle cx="660" cy="420" r="40"/>
+      <rect x="196" y="524" width="480" height="72" rx="36"/>
+      <circle cx="780" cy="560" r="40"/>
+      <rect x="196" y="672" width="632" height="108" rx="24"/>
+    </g>
+    <circle cx="780" cy="560" r="20" fill="#2A78D6"/>
+  </svg>
+  <text x="186" y="107" font-family="-apple-system, 'SF Pro Display', Inter, 'Helvetica Neue', sans-serif" font-size="76" letter-spacing="-1.5"><tspan font-weight="700" fill="#141A22">GroundOne</tspan><tspan dx="18" font-weight="400" fill="#5B6472">Studio</tspan></text>
+</svg>
