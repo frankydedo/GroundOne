@@ -10,7 +10,12 @@ targets:
   GroundOneStudio:
     type: application
     platform: macOS
-    sources: [App]
+    sources:
+      - path: App
+        excludes: ["Resources/AppIcon.icon"]
+      - path: Logo/IconComposer/GroundOne-cool.icon
+        type: file
+        buildPhase: resources
     dependencies:
       - package: GroundOneKit
         product: GroundOneCore
@@ -18,6 +23,7 @@ targets:
         product: GroundOneEngines
     settings:
       PRODUCT_NAME: GroundOne Studio
+      ASSETCATALOG_COMPILER_APPICON_NAME: GroundOne-cool
       PRODUCT_BUNDLE_IDENTIFIER: it.polito.groundone.studio
       GENERATE_INFOPLIST_FILE: YES
       INFOPLIST_KEY_CFBundleDisplayName: GroundOne Studio
@@ -29,7 +35,6 @@ targets:
       MARKETING_VERSION: "1.0"
       ENABLE_DEBUG_DYLIB: NO
       CURRENT_PROJECT_VERSION: "1"
-      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   GroundOneStudioUITests:
     type: bundle.ui-testing
     platform: macOS
