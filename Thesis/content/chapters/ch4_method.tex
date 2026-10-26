@@ -96,7 +96,7 @@ Figure~\ref{fig:method-designs} compares the two solutions.
 \paragraph{A classifier, not a faster generator.} The readout restricts the decision to three letters, and the
 restriction is not a detail. After the marker, the fine-tuned model would not write the letter that is read. Its most
 probable next token is in fact the same letter preceded by a space, which for the tokenizer is a different token. At the
-markers, the three readout letters together collect only about 4--5\,\% of the probability mass. A loss restricted to
+markers, the three readout letters together collect only 4--5\,\% of the probability mass. A loss restricted to
 these letters trains their relative logits, not their absolute probability, and the readout therefore behaves as a
 three-class classifier grafted onto the language model. This is what defines a decision model: the answer never goes
 through decoding, but is chosen among the admissible options.
@@ -168,7 +168,7 @@ reflect the real class frequencies. A post-hoc transformation is therefore fitte
 logits after training, without changing the weights. The three logits are divided by a temperature $T$ and shifted by
 a per-class bias, $\mathrm{softmax}(z / T + b)$, with the bias of the supported class fixed at zero. The parameters $T$
 and $b$ are chosen by minimising the negative log-likelihood (NLL) of the dev-set
-labels\footnote{The \emph{negative log-likelihood} of a set of $n$ predictions is the mean, with the sign changed, of the logarithm of the probability assigned to the correct class: $\mathrm{NLL} = -\frac{1}{n}\sum_{i=1}^{n} \log p_i(y_i)$, where $y_i$ is the correct class of prediction $i$. It coincides with the mean cross-entropy. It is zero when the model always assigns probability one to the right class and grows rapidly when it assigns a low probability to the right class, that is, when it is confidently wrong: this is why it penalises both errors and overconfidence.}, that is, the mean cross-entropy~\cite{guo2017calibration}. The bias plays the role of the contextual calibration proposed for
+labels\footnote{The \emph{negative log-likelihood} of a set of $n$ predictions is the mean, with the sign changed, of the logarithm of the probability assigned to the correct class: $\mathrm{NLL} = -\frac{1}{n}\sum_{i=1}^{n} \log p_i(y_i)$, where $y_i$ is the correct class of prediction $i$. It is zero when the model always assigns probability one to the right class and grows rapidly when it assigns a low probability to the right class, that is, when it is confidently wrong: this is why it penalises both errors and overconfidence.}, that is, the mean cross-entropy~\cite{guo2017calibration}. The bias plays the role of the contextual calibration proposed for
 language models queried through prompts~\cite{zhao2021calibrate}; unlike that correction, however, here it is fitted
 on labelled data. Temperature alone changes the probabilities but neither the most probable class nor the ranking of
 the sentences. The bias, instead, can change the most probable class and, with three classes, can also slightly
@@ -244,12 +244,11 @@ the confidence is the maximum probability and the observed frequency is the shar
 not compare the distribution of the predicted classes with that of the test set. Rather, it checks whether, among the
 sentences to which the model assigns a given confidence, that confidence matches reality. The measure has two limits,
 however: it depends on the choice of intervals, and a constant predictor that always returns the base rate obtains an
-ECE close to zero while discriminating nothing. For these reasons the ECE is always reported together with the Brier
-score\footnote{The \emph{Brier score} is the mean squared error between the predicted probability and the observed
-outcome, coded as 1 if the event occurs and 0 otherwise: the lower it is, the better the probabilities.}, the negative
-log-likelihood and reliability diagrams, the plots that show, for each interval, the observed frequency as a function
-of the mean confidence. The ability of the probabilities to separate correct from wrong decisions is measured
-separately instead, with two measures. The first is the AUROC, described below. The second is the AURC (area under the
+ECE close to zero while discriminating nothing. For these reasons the ECE is always reported together with the
+negative log-likelihood and reliability diagrams, the plots that show, for each interval, the observed frequency as a
+function of the mean confidence. The discriminative ability of the probabilities is measured separately instead, with
+two measures. The first is the AUROC, described below, which measures how well the probability of support separates
+supported from unsupported sentences. The second is the AURC (area under the
 risk--coverage curve), that is, the area under the risk--coverage curve of Section~\ref{sec:bg-calibration}
 (Figure~\ref{fig:bg-risk-coverage}): it measures the mean error rate obtained by accepting the decisions from the most
 to the least confident, and it is smaller the more the errors are concentrated among the least confident decisions,
@@ -313,8 +312,8 @@ probabilities, the returned label and the flags of the strict and lenient polici
 and the threshold that produced them. It also reports the number of input tokens, the number of generated tokens,
 always zero, and the time taken. The compatible endpoint, instead, answers generic closed questions about a shared
 context, with the one-question-per-sentence format. All the model computation takes place on a single long-lived
-worker thread, because the Metal context of the GPU, that is, the state through which the program uses it via Apple's
-graphics API, must not move from one thread to another. Finally, nothing leaves the machine: models, data and requests
+worker thread, because the Metal context of the GPU, that is, the state through which the program uses it through Metal,
+Apple's graphics API, must not move from one thread to another. Finally, nothing leaves the machine: models, data and requests
 stay local. Figure~\ref{fig:method-software} summarises the architecture of the package.
 
 \begin{figure}[htbp]

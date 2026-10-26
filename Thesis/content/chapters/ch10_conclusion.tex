@@ -1,0 +1,87 @@
+\chapter{Conclusions and Future Work}
+\label{sec:conclusion}
+
+\section{Summary of findings}
+\label{sec:concl-summary}
+
+This thesis asked whether a compact language model, specialised in a single decision and used as a decision model, can
+verify the answers of a RAG system sentence by sentence on a laptop, and where any advantage comes from. GroundOne, a
+fine-tuned Qwen2.5 model that reads the verdicts of a whole answer in a single forward pass, gives a positive answer,
+albeit with some reservations.
+
+Specialisation works where it was aimed. On the RAGTruth test set GroundOne reaches a three-way balanced accuracy of
+0.769 with 0.5B parameters and 0.832 with 3B. It is far above the same models untrained, ranks supported sentences better
+than the specialised encoders and is clearly above, in three-way balanced accuracy, Rizzo-Flow, a general-purpose
+decision model eight times larger than the 0.5B. On LLM-AggreFact the 3B is on par with the best small encoder. On
+VitaminC, instead, the gain disappears: a specialist is not a general fact-checking tool. d1-3B, a general-purpose
+decision model of the same size trained to decide on a broad mixture of tasks, confirms the trade-off: GroundOne is far
+ahead of it on RAGTruth, with the 3B it matches d1-3B on LLM-AggreFact, and it is far behind on VitaminC.
+
+The decision-model mechanism pays off on two fronts. The first is speed. Reading all the verdicts in a single forward
+pass makes the verification of long answers about two times faster than that of a terse generative judge and six times
+faster than that of a verbose judge of the same size, with output that is always valid. The second is accuracy:
+restricting the decision to the admissible answers is, by itself, more accurate than letting the same model generate the
+verdict. Moreover, even when asked for the same output, generative judges cannot provide probabilities of comparable
+quality. Their probabilities barely separate correct from incorrect decisions, and the verbalised ones are almost always
+all-or-nothing.
+
+The probabilities of GroundOne can be calibrated with a temperature and a bias fitted on the dev set. A threshold chosen
+on the same data then turns them into labels consistent both with the probabilities and with the evaluated decision.
+The Expected Calibration Error alone, however, does not distinguish useful probabilities from useless ones:
+discrimination must be measured separately.
+
+The whole system runs on a 16\,GB laptop. A long answer is verified in 0.41 seconds with the 0.5B and in 2.57 with the
+3B, with an energy of 5.5 and 33 joules on average per answer. Compared with a generative judge the energy saving is
+real, but smaller than the time saving, because a single long prefill draws more power than decoding.
+
+The GroundOne Studio application shows that a complete RAG assistant can be built around the verifier, in a single
+process and without network access: retrieval, generation, verification and comparison with a generative judge require
+at most 6.2\,GB of memory allocated by MLX. In the injected-error case study GroundOne flags the error in 97 of the 98
+answers in which the sentence receives a verdict, against 84 for the judge, and targeted rewriting reduces the answers
+that still contain the error from 100\,\% to 9\,\%, according to the automatic count: numbers and dates are mostly
+restored from the source, fabricated sentences deleted. The case study also shows that the type of error matters: a
+contradicted sentence is corrected, a not-mentioned one often merely removed. The answers that pass the loop are
+accepted by GroundOne, not independently verified.
+
+The main limitations are two. The first is the narrowness of the training data, because of which contradictions outside
+data-to-text and hallucinations hidden in copied sentences are learned only in part. The second is a training recipe that
+is not fully robust to the choice of the seed.
+
+\section{Future work}
+\label{sec:concl-future}
+
+Several lines of work follow directly from these limitations. The training recipe should be made robust by enabling bias
+correction and gradient clipping, logging the gradient norms and repeating the runs over several seeds, including for the
+3B. Training data with more varied contradictions, with paraphrased support and with minimal edits of the kind VitaminC
+contains would then be needed: they should address both the low recall outside data-to-text and the blind spot on copied
+sentences. Finally, training the readout on the letter that the model would spontaneously write after the marker could
+align readout and generation, with effects on accuracy that remain to be measured.
+
+On the systems side, the cost model of Chapter~\ref{sec:local} should be verified on other hardware. A port of the
+readout to llama.cpp would allow GroundOne to be measured on a discrete graphics card, on a DGX Spark or an AMD Strix Halo
+machine, and on a smartphone, whose neural processing units accelerate precisely the prefill on which a decision model
+relies. Latency comparisons with the other families of verifiers also require fair conditions: the encoders must be run
+in batches, while GroundOne and the general-purpose decision models must be queried through the same HTTP interface.
+
+Another direction concerns language. The first step is to measure how well the adapter trained in English already works
+on documents and answers in another language, for example by translating part of T1 into Italian. If the transfer is not
+sufficient, a model this small may be better served by a solution other than a single multilingual adapter: a twin
+adapter for each language, trained separately on the same base, so that the languages do not have to share the little
+capacity available. Adapters take up little space and can be loaded and unloaded at runtime on top of a single copy of
+the base model, with a language identifier choosing the right one. Three problems remain to be solved: labelled data are
+needed in every language, because translating RAGTruth breaks the alignment of the spans and requires the translated
+labels to be checked; temperature, bias and threshold must be fitted again for each language; and the frequent case of a
+document in one language and an answer in another falls within no single adapter. The comparison between per-language
+adapters and a multilingual adapter is therefore an experiment to be run, not a conclusion.
+
+For contexts made of several documents, a natural extension is attribution: reading, besides the verdict, which passage
+supports or contradicts each sentence, for example with a readout per passage, so as to show the user the source of every
+claim and to handle conflicting sources explicitly.
+
+The application of Chapter~\ref{ch:studio} contains a first prototype of this attribution, which remains to be evaluated
+with data indicating which passage supports each sentence. Three further directions follow from the application. A larger
+generator, for example a 7B at 4 bits, would still fit in the memory of the laptop and should write more complete answers
+and correct the flagged sentences better. The rewritten sentences should be checked independently, with a second verifier
+or with a human reading of a sample, because their correctness is currently judged by GroundOne alone. Verification,
+finally, could proceed while the answer is being generated, flagging each sentence as soon as it is complete: the
+marker-based design makes this use natural.

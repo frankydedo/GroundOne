@@ -30,16 +30,14 @@ model kept frozen, that is, without modifying its weights, and reports that 21 c
 in about one second; the best generative baseline able to produce valid JSON, by contrast, takes more than five
 seconds~\cite{semif}. Rizzo-Flow, unlike SemIf, fine-tunes a 4B model with LoRA on typed decisions and exposes the same
 interface as Jev. Its authors report that fine-tuning improves both its accuracy and its calibration~\cite{rizzoflow}.
-This is the general-purpose decision model used as a baseline in this thesis.
+It is one of the two general-purpose decision models used as baselines in this thesis.
 
 The second family encodes the state and each candidate answer separately, and compares their embeddings, that is, the
 numerical vectors that represent each text. Contrastive Language Models, which belong to this family, are very fast
 when the candidates are numerous and reusable. In the comparison reported by the authors themselves, however, they agree
 with Jev's decisions much less than a model in which state and candidate interact~\cite{kwok2026clm}. The third family
-uses small encoders\footnote{An \emph{encoder} is a transformer in which every token attends to all the others, both
-those that precede it and those that follow it. It produces a representation of the text instead of generating text, as
-BERT and the models derived from it do. The \emph{mask token} is a special token that, during pre-training, takes the
-place of the words the model has to reconstruct.} with a dedicated decision head. Laya, for example, is built on a
+uses small encoders\footnote{The \emph{mask token} is a special token that, during pre-training, takes the place of
+the words the model has to reconstruct.} with a dedicated decision head. Laya, for example, is built on a
 ModernBERT encoder of about 400M parameters and assigns a score to each option at the corresponding mask token. The
 questions of a request are evaluated in a single call, grouped into a batch, but each of them is encoded together with
 its own copy of the context~\cite{convai2026laya,azizi2026labels}.
@@ -48,11 +46,7 @@ The evidence supporting these systems is uneven. Most of it comes from the autho
 and on a single benchmark. Independent evaluations are recent and less favourable to small open models. An evaluation of
 Jev on 37 datasets finds well calibrated the probabilities that the model assigns to choices among options. Binary
 probabilities, instead, rank examples well but are poorly positioned with respect to a fixed threshold of 0.5. The same
-study reports for Jev a mean balanced accuracy\footnote{\emph{Balanced accuracy} is the mean, computed over the classes,
-of the recall, that is, of the fraction of examples of each class that are classified correctly. Unlike plain accuracy,
-it does not reward a model that always predicts the most frequent class: a constant predictor obtains 0.5 in the binary
-case (50 when expressed as a percentage, as here) and about 0.33 with three classes.} of 78.6 on
-LLM-AggreFact~\cite{deusser2026jev}. An independent reproduction of Laya observes a calibration different from the
+study reports for Jev a mean balanced accuracy of 78.6, expressed as a percentage, on LLM-AggreFact~\cite{deusser2026jev}. An independent reproduction of Laya observes a calibration different from the
 declared one and a strong dependence on a calibration temperature estimated on the target
 data~\cite{nandakishore2026laya}. A benchmark built on contrastive pairs, that is, on nearly identical decisions that
 differ in a single decisive detail, places small open models far below Jev~\cite{yong2026decidebench}. Finally, it has

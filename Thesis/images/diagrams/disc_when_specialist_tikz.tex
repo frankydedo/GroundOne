@@ -1,0 +1,24 @@
+\documentclass[border=3pt]{standalone}
+\input{g1_common.tex}
+\begin{document}
+\begin{tikzpicture}
+  \node[io, text width=4.4cm] (s) at (0,0) {verify RAG answers\\on local hardware};
+  \node[decision, font=\footnotesize, text width=2.5cm, aspect=2.0] (d1) at (0,-2.0) {same domain\\as the\\training data?};
+  \node[post=5.0cm, font=\footnotesize, align=left] (gen) at (6.6,-2.0) {prefer a generalist decision model or a larger model, which transfer better (e.g.\ d1-3B on VitaminC); recalibrate on a dev set of the new domain};
+  \node[decision, font=\footnotesize, text width=2.5cm, aspect=2.0] (d2) at (0,-4.6) {long answers\\(high $K$)?};
+  \node[model=5.0cm, font=\footnotesize, align=left] (long) at (6.6,-4.6) {Specialist decision model: a single prefill; at $K \geq 14$, $1.7$ to $2\times$ faster than a terse judge and about $6\times$ faster than a verbose one};
+  \node[model=4.6cm, font=\footnotesize, align=left] (short) at (0,-7.0) {Specialist decision model still preferable for accuracy, an always valid format and calibrated probabilities; smaller time advantage};
+  \node[decision, font=\footnotesize, text width=2.5cm, aspect=2.0] (d3) at (6.6,-7.0) {tight interactive\\budget?};
+  \node[outcome=modLine, fill=modFill, font=\footnotesize, anchor=west] (s05) at (9.3,-6.4) {0.5B: 0.41\,s per long answer};
+  \node[outcome=decLine, fill=decFill, font=\footnotesize, anchor=west] (s3) at (9.3,-7.6) {3B: 2.57\,s, more accurate};
+  \draw[arrow] (s) -- (d1);
+  \draw[arrow] (d1) -- node[above, font=\footnotesize] {no} (gen);
+  \draw[arrow] (d1) -- node[right, font=\footnotesize] {yes} (d2);
+  \draw[arrow] (d2) -- node[above, font=\footnotesize] {yes} (long);
+  \draw[arrow] (d2) -- node[right, font=\footnotesize] {no} (short);
+  \draw[arrow] (long) -- (d3);
+  \draw[arrow] (short) -- (d3);
+  \draw[arrow] (d3.east) -- ++(3mm,0) |- node[pos=0.75, above, font=\footnotesize] {yes} (s05.west);
+  \draw[arrow] (d3.east) -- ++(3mm,0) |- node[pos=0.75, below, font=\footnotesize] {no} (s3.west);
+\end{tikzpicture}
+\end{document}

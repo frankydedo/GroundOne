@@ -296,7 +296,8 @@ layer of Qwen2.5 with 8-bit weights and 16-bit activations; attention is ignored
 \label{sec:local-floor}
 
 Because decoding reads every weight once per generated token, its time per token cannot be lower than the size of the
-weights divided by the memory bandwidth, whatever the hardware. For the 3B model in 8-bit precision, whose weights occupy
+weights divided by the memory bandwidth, whatever the hardware, unless techniques such as speculative decoding
+(Section~\ref{sec:local-speculative}) or a more aggressive quantisation are used. For the 3B model in 8-bit precision, whose weights occupy
 about 3.3\,GB, this floor is 27 milliseconds per token on a machine with 120\,GB/s; the measured 31.8 milliseconds are
 only about one sixth above it. The bound depends only on two numbers, the size of the model and the bandwidth of the machine, and
 it applies to every model that generates text. It is the key to comparing hardware in Section~\ref{sec:local-hardware}
@@ -366,7 +367,7 @@ purpose of scientific documentation.}
 \begin{table}[htbp]
 \centering
 \caption{Hardware for local inference: vendors' published specifications (accessed 2026-10-11). Memory: range of the
-configurations offered; bandwidth: for those configurations; n/s: not stated by the source.}
+configurations offered; bandwidth: for those configurations; N/s: not stated by the source.}
 \label{tab:local-hardware}
 \small
 \begin{tabularx}{\textwidth}{@{}Xrrll@{}}
@@ -380,7 +381,7 @@ MacBook Pro, M5 Max & 36--128 & 460--614 & Unified & \cite{apple2026mbp} \\
 Mac Studio, M4 Max & 36--128 & 410--546 & Unified & \cite{apple2025macstudio} \\
 Mac Studio, M3 Ultra & 96--256 & 819 & Unified & \cite{apple2025macstudio} \\
 NVIDIA DGX Spark (GB10) & 128 & 273 & Unified & \cite{nvidia2026dgxspark} \\
-Framework Desktop, AMD Strix Halo & 32--128 (96 to GPU) & n/s & Unified & \cite{hachman2025framework} \\
+Framework Desktop, AMD Strix Halo & 32--128 (96 to GPU) & N/s & Unified & \cite{hachman2025framework} \\
 NVIDIA RTX 5090 & 32 & 1,792 & Discrete & \cite{nvidia2026geforce} \\
 NVIDIA RTX 5080 & 16 & 960 & Discrete & \cite{nvidia2026geforce} \\
 NVIDIA RTX 5060 Ti & 16 & 448 & Discrete & \cite{nvidia2026geforce} \\
@@ -581,7 +582,7 @@ A different family of methods accelerates generation without changing the model.
 model proposes several tokens, and the large model checks all of them in a single forward pass, accepting the longest
 prefix that it would have produced itself; the output is identical to that of the large model, and the speed-up reaches
 two to three times~\cite{leviathan2023speculative}. The method is useful for any system that must generate, but it
-does not change the nature of the cost: every accepted token still requires a forward pass of the large model, and the
+does not change the nature of the cost: every block of proposed tokens still requires a forward pass of the large model, and the
 total amount of computation grows~\cite{leviathan2023speculative}. It makes writing cheaper; it does not make it free.
 
 \section{Energy}
@@ -598,7 +599,7 @@ reduces its energy by 1.9 to 4.3 times with respect to the graphics unit~\cite{x
 The distinction between the two phases also applies to power. Prefill keeps the arithmetic units busy and draws more
 power; decoding waits for memory and draws less, but for much longer~\cite{patel2024splitwise}. A method that
 saves time therefore saves energy too, but by a smaller factor, and Chapter~\ref{sec:results} measures exactly this
-effect: GroundOne spends 5.5 joules per long answer with the 0.5B model and 33 with the 3B, less than any generative
+effect: GroundOne spends on average 5.5 joules per answer with the 0.5B model and 33 with the 3B, less than any generative
 judge of the same size, but with an advantage smaller than in time (Section~\ref{sec:results-energy}).
 
 \section{Consequences for verification on the device}
@@ -613,7 +614,8 @@ A generative judge verifies an answer by reading the document and the answer and
 prefill, like any method that reads the document, and then one decoding step for every token it writes. In the latency
 protocol of this thesis (Section~\ref{sec:results-latency}), a terse 3B judge writes a median of 65 tokens for an answer of
 fourteen or more sentences, and a verbose one, which explains each verdict, writes 388. The lower bound of
-Section~\ref{sec:local-floor} turns these counts into a minimum time that no implementation can beat
+Section~\ref{sec:local-floor} turns these counts into a minimum time that no implementation of standard decoding with
+8-bit weights can beat
 (Figure~\ref{fig:local-floor}b): on the thesis machine, at least 1.8 seconds for the terse judge and 10.6 for the verbose
 one, on top of the prefill; even on the fastest graphics card, 0.12 and 0.71 seconds.
 

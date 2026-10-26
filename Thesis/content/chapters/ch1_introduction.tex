@@ -73,7 +73,9 @@ times more, and the asymmetry holds on every class of local hardware, from phone
 explanation, and the cost grows again with the number of sentences in the answer. Small judges also break the required
 output format, and the confidence they express is rarely usable as a probability.
 
-Encoder-based verifiers avoid generation altogether. Models such as AlignScore, MiniCheck and HHEM read a pair of document
+Encoder-based verifiers\footnote{An \emph{encoder} is a transformer in which every token attends to all the others,
+both those that precede it and those that follow it. It produces a representation of the text instead of generating
+text, like BERT and the models derived from it.} avoid generation altogether. Models such as AlignScore, MiniCheck and HHEM read a pair of document
 and sentence and return a score of support~\cite{zha2023alignscore,tang2024minicheck,vectara2024hhem}. They are small and
 fast, but they give one fixed binary score per pair: they do not distinguish a contradiction from an omission, they read
 each sentence without the rest of the answer, and adapting them to a new decision requires a new model.
@@ -168,15 +170,16 @@ compared with the plain score of a binary verifier?
 
 The thesis studies the verification step in isolation. The retrieved document is given, so the quality of retrieval is
 not evaluated, and an answer is judged only against the document it was generated from, not against world knowledge.
-GroundOne flags sentences but does not correct them, and it returns verdicts and probabilities rather than written
-explanations. The data are in English. Documents longer than the context used in training are split into parts, as
+GroundOne itself flags sentences but does not correct them, and it returns verdicts and probabilities rather than
+written explanations; the application of Chapter~\ref{ch:studio} adds retrieval and rewriting, which are not evaluated
+as an experimental contribution. The data are in English. Documents longer than the context used in training are split into parts, as
 described in Chapter~\ref{sec:setup}. Finally, the experiments target one class of hardware, a consumer laptop with
 unified memory, and every system, including every baseline, runs on the same machine.
 
 \section{Contributions}
 \label{sec:intro-contributions}
 
-The thesis makes four contributions.
+The thesis makes five contributions.
 \begin{enumerate}
 \item \textbf{GroundOne}, an open specialist decision model for sentence-level groundedness verification that runs entirely
 on a laptop. Thanks to a marker placed after every sentence, it reads all the verdicts of an answer in one forward pass.
@@ -198,18 +201,26 @@ labels, how much they help in deferring uncertain decisions, and how the time an
 length of the answer. The study is set in an analysis of local inference that combines vendor specifications with own
 measurements to bound, for each class of consumer hardware, what a verifier that generates text must pay and a decision model
 does not.
+\item \textbf{GroundOne Studio}, a macOS application in which retrieval, generation and verification take place in the
+same process, on the same laptop and without external services. The generator's answer appears first; the user can then
+verify it with GroundOne, alone or together with a generative judge running locally, see the evidence supporting each
+sentence and have the flagged sentences rewritten. A case study with injected errors measures the loop of verification
+and rewriting.
 \end{enumerate}
 
 \section{Main results}
 \label{sec:intro-results}
 
 The results show that specialisation works in the domain it was aimed at. On the RAGTruth test set GroundOne reaches a
-three-way balanced accuracy of 0.769 with 0.5B parameters and 0.832 with 3B, against 0.37 and 0.44 for the same models
-before training. It ranks supported sentences better than the specialised encoders, and it clearly outperforms both
-general-purpose decision models: Rizzo-Flow, eight times larger than the 0.5B, and d1-3B, of the same size as the 3B. On LLM-AggreFact, a benchmark drawn from different sources, the 3B is on par with the best small encoder.
+three-way balanced accuracy\footnote{\emph{Balanced accuracy} is the mean over the classes of the recall, that is, of the
+fraction of examples of each class that are classified correctly. Unlike plain accuracy, it does not reward a model that
+always predicts the most frequent class: a constant predictor scores 0.5 in the binary case (50 when expressed as a
+percentage) and about 0.33 with three classes.} of 0.769 with 0.5B parameters and 0.832 with 3B, against 0.37 and 0.44
+for the same models before training (for the 3B on a 600-answer subsample). It ranks supported sentences better than the
+specialised encoders and, in three-way balanced accuracy, it clearly outperforms both general-purpose decision models: Rizzo-Flow, eight times larger than the 0.5B, and d1-3B, of the same size as the 3B. On LLM-AggreFact, a benchmark drawn from different sources, the 3B is on par with the best small encoder.
 
 The decision-model mechanism pays off in speed and in accuracy. When an answer contains fourteen or more sentences, GroundOne
-verifies it about two times faster than a terse judge and six times faster than a verbose judge of the same size, with an
+verifies it 1.7 to 2 times faster than a terse judge and about six times faster than a verbose judge of the same size, with an
 output that is always valid and with less energy. How the decision is read also matters: with the same trained model,
 choosing the most probable of the three admissible letters is more accurate than letting the model generate its verdict
 freely, with a gain in balanced accuracy of 0.25 for the 0.5B and 0.07 for the 3B. After calibration, the probabilities of GroundOne are
@@ -224,6 +235,11 @@ training, for instance to initialise the added weights and to shuffle the order 
 different seeds produces slightly different models: if the results change a lot from one seed to another, the procedure
 is not robust.}.
 
+Finally, the GroundOne Studio application shows that a complete RAG assistant can be built around the verifier, in a
+single process and without network access, with a peak of 6.2\,GB of memory allocated by MLX. In a case study with
+injected errors, GroundOne flags the error in 97 of the 98 answers in which the sentence receives a verdict, against 84
+for the judge, and targeted rewriting reduces the answers that still contain it from 100\,\% to 9\,\%.
+
 \section{Thesis structure}
 \label{sec:intro-structure}
 
@@ -234,6 +250,7 @@ ecosystem, hallucination in retrieval-augmented generation, verification methods
 GroundOne: the decision, the single-pass readout, the training objective, the calibration and the served output.
 Chapter~\ref{ch:data} defines the labels and describes how the training and test sets were built, checked and frozen.
 Chapter~\ref{sec:setup} presents the trained models, the baselines, the metrics and the measurement protocol.
-Chapter~\ref{sec:results} reports the results, Chapter~\ref{sec:discussion} discusses what they mean and where they stop,
+Chapter~\ref{sec:results} reports the results, Chapter~\ref{ch:studio} presents the GroundOne Studio application and
+the case study, Chapter~\ref{sec:discussion} discusses what the results mean and where they stop,
 and Chapter~\ref{sec:conclusion} concludes. Appendix~\ref{app:examples} shows the output of every system on the example
 answer described in Section~\ref{sec:intro-hallucination}.

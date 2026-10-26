@@ -24,7 +24,7 @@ mentioned.
 
 The number of decisions required by an answer equals the number of its scored sentences, denoted $K$. This quantity is
 central to the thesis. A decision model reads the document and the answer only once, so each additional decision costs
-it almost nothing; a generative judge, by contrast, has to produce text for every sentence. For this reason the
+it little, only the sentence's tokens; a generative judge, by contrast, has to produce text for every sentence. For this reason the
 comparison with generative judges is carried out as a function of $K$, and the data must include long answers as well
 as short ones.
 
@@ -215,7 +215,7 @@ The test sets were verified without new annotations, using evidence independent 
 choices that could introduce errors are segmentation and the conversion from spans to sentence labels. Both were
 compared with LLM-AggreFact, whose authors independently converted the same RAGTruth test answers into sentence-level
 claims. The segmenter of this thesis recovers exactly 96.3\,\% of their claims, and only 8.5\,\% of the scored
-sentences are missing from their set. These are mostly sentences removed by their filter of ``non check-worthy''
+sentences are absent from their set. These are mostly sentences removed by their filter of ``non check-worthy''
 claims, which is undocumented. On the 15{,}492 sentences present in both sets, the binary labels agree in 98.75\,\% of
 cases. Moreover, all 193 disagreements go in the same direction: the span-based rule marks as unsupported a sentence
 that LLM-AggreFact considers supported. Finally, an encoder-based baseline, evaluated on T2 without changes, reproduces
@@ -279,11 +279,11 @@ in T1.}
 of contradicted and not-mentioned sentences is lower in T1 than in the training set. In question answering, for
 example, 0.6\,\% of the T1 sentences are contradicted, against 1.6\,\% of those in the training set. As a consequence,
 the metrics that depend on the base rate of the classes, such as precision or F1 on the minority
-classes\footnote{The \emph{recall} of a class is the share of its examples that the model recognises. The
-\emph{precision} is the share of the predictions of that class that turn out to be correct, and for this reason it
-changes with the frequency of the class even when the model stays the same. F1 is the harmonic mean of the two.}, are
+classes\footnote{The \emph{precision} of a class is the share of the predictions of that class that turn out to be
+correct, and for this reason it changes with the frequency of the class even when the model stays the same. F1 is the
+harmonic mean of precision and recall.}, are
 not comparable between dev set and test set, because the dev set, drawn from the training set, preserves its
-distribution. The primary metrics are therefore balanced accuracy, macro recall and AUROC, which do not depend on the
+distribution. The primary metrics are therefore balanced accuracy, per-class recall and AUROC, which do not depend on the
 base rate.
 
 \paragraph{Contradictions are mostly evident.} About 85\,\% of the contradicted sentences of the training set come from

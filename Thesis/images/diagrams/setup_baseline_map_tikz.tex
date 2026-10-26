@@ -1,0 +1,21 @@
+\documentclass[border=3pt]{standalone}
+\input{g1_common.tex}
+\begin{document}
+\begin{tikzpicture}
+  \node[model=4.0cm, minimum height=1.4cm] (g1) at (0,0) {\textbf{GroundOne}\\Qwen2.5 + LoRA, restricted\\readout, three classes};
+  \foreach \pos/\name/\lab/\what in {
+      {(0,3.3)}/b1/{B1 untrained readout}/{same readout, no fine-tuning},
+      {(5.3,2.2)}/b2/{B2 generated token}/{same weights; decision = token\\the model would generate},
+      {(6.1,-0.2)}/b0/{B0a, B0b generative judges}/{untrained; they write the\\verdict (terse, verbose)},
+      {(4.6,-2.8)}/b0d/{B0d equal-output judges}/{untrained; they return a\\label + three probabilities},
+      {(-4.6,-2.8)}/b3/{B3 Rizzo-Flow (4B)}/{generalist decision model,\\larger},
+      {(-6.1,-0.2)}/b3b/{B3b d1-3B}/{generalist decision model,\\same size},
+      {(-5.3,2.2)}/b4/{B4 MiniCheck, HHEM}/{specialised encoders,\\binary decision only}} {
+    \node[rectangle, rounded corners=2pt, draw=ioLine, fill=ioFill, thick, text width=3.6cm, inner sep=3pt] (\name) at \pos {\textbf{\footnotesize\lab}\\[1pt]{\scriptsize \what}};
+    \draw[arrow, thin] (g1) -- (\name);
+  }
+  \node[rectangle, rounded corners=2pt, draw=clusterLine, dashed, text width=4.4cm, inner sep=3pt] (sig) at (0,-3.2) {\textbf{\footnotesize elementary signals}\\[1pt]{\scriptsize word overlap; sentence-only classifier:\\they do not read the whole document}};
+  \draw[dashedarrow, thin] (g1) -- (sig);
+  \node[note, below=3mm of sig] {each baseline isolates one factor: training (B1), the readout (B2), verdict generation (B0a, B0b, B0d),\\specialisation (B3, B3b), architecture (B4) and the role of the document (elementary signals)};
+\end{tikzpicture}
+\end{document}
