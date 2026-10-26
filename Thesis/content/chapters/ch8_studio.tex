@@ -31,7 +31,7 @@ connection.
 What the user sees & Claim supported \\
 \midrule
 Every sentence of the answer coloured according to the GroundOne verdict, with the calibrated probabilities. & The probabilities are usable and consistent with the label shown (RQ3). \\ \addlinespace[2pt]
-The comparison, on the same answer, with a generative judge run locally: verdicts and times side by side. & Reading all the verdicts in a single forward pass, without generating text, is more accurate than a judge that writes the verdicts, and no slower (RQ2). \\ \addlinespace[2pt]
+The comparison, on the same answer, with a generative judge run locally: verdicts and times side by side. & Reading all the verdicts in a single forward pass, without generating text, is more accurate than a judge that writes the verdicts, and faster, increasingly so as the answer grows longer (RQ2). \\ \addlinespace[2pt]
 A panel with the generation and verification times and the memory in use. & Generator and verifier coexist in 16\,GB, and verification costs little compared with generation (RQ4). \\ \addlinespace[2pt]
 The rewriting of the flagged sentences from the documents, verified again. & Verification is cheap enough to sit inside the generation loop. \\ \addlinespace[2pt]
 For every sentence, the passage of the document that supports or contradicts it, highlighted. & Attribution to the passage can be obtained with the same model; it is an unevaluated prototype (Section~\ref{sec:concl-future}). \\

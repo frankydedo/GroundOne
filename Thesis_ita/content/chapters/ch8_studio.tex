@@ -31,7 +31,7 @@ senza connessione.
 Che cosa vede l'utente & Affermazione sostenuta \\
 \midrule
 Ogni frase della risposta colorata secondo il verdetto di GroundOne, con le probabilità calibrate. & Le probabilità sono utilizzabili e coerenti con l'etichetta mostrata (RQ3). \\ \addlinespace[2pt]
-Il confronto, sulla stessa risposta, con un giudice generativo eseguito localmente: verdetti e tempi affiancati. & Leggere tutti i verdetti in un solo forward pass, senza generare testo, è più accurato di un giudice che scrive i verdetti, e non più lento (RQ2). \\ \addlinespace[2pt]
+Il confronto, sulla stessa risposta, con un giudice generativo eseguito localmente: verdetti e tempi affiancati. & Leggere tutti i verdetti in un solo forward pass, senza generare testo, è più accurato di un giudice che scrive i verdetti, e più veloce, tanto più quanto più lunga è la risposta (RQ2). \\ \addlinespace[2pt]
 Un pannello con i tempi di generazione e di verifica e la memoria occupata. & Generatore e verificatore convivono in 16\,GB, e la verifica costa poco rispetto alla generazione (RQ4). \\ \addlinespace[2pt]
 La riscrittura delle frasi segnalate a partire dai documenti, verificata di nuovo. & La verifica costa abbastanza poco da stare dentro il ciclo di generazione. \\ \addlinespace[2pt]
 Per ogni frase, il passaggio del documento che la sostiene o la contraddice, evidenziato. & L'attribuzione al passaggio si può ottenere con lo stesso modello; è un prototipo non valutato (Sezione~\ref{sec:concl-future}). \\
