@@ -13,7 +13,7 @@ targets:
     sources:
       - path: App
         excludes: ["Resources/AppIcon.icon"]
-      - path: Logo/IconComposer/GroundOne-cool.icon
+      - path: Logo/IconComposer/GroundOne-indigo.icon
         type: file
         buildPhase: resources
     dependencies:
@@ -23,7 +23,7 @@ targets:
         product: GroundOneEngines
     settings:
       PRODUCT_NAME: GroundOne Studio
-      ASSETCATALOG_COMPILER_APPICON_NAME: GroundOne-cool
+      ASSETCATALOG_COMPILER_APPICON_NAME: GroundOne-indigo
       PRODUCT_BUNDLE_IDENTIFIER: it.polito.groundone.studio
       GENERATE_INFOPLIST_FILE: YES
       INFOPLIST_KEY_CFBundleDisplayName: GroundOne Studio

@@ -1,0 +1,89 @@
+{
+  "fill": {
+    "solid": "display-p3:1.00000,1.00000,1.00000,1.00000"
+  },
+  "groups": [
+    {
+      "layers": [
+        {
+          "glass": true,
+          "image-name": "G.svg",
+          "name": "G",
+          "opacity": 1.0,
+          "position": {
+            "scale": 0.86,
+            "translation-in-points": [
+              0,
+              0
+            ]
+          },
+          "fill-specializations": [
+            {
+              "value": {
+                "linear-gradient": [
+                  "display-p3:1,1,1,0.4",
+                  "display-p3:1,1,1,0.95"
+                ],
+                "orientation": {
+                  "start": {
+                    "x": 0.5,
+                    "y": 1.0
+                  },
+                  "stop": {
+                    "x": 0.5,
+                    "y": 0
+                  }
+                }
+              }
+            },
+            {
+              "appearance": "dark",
+              "value": {
+                "linear-gradient": [
+                  "display-p3:1,1,1,0.65",
+                  "display-p3:1,1,1,1.0"
+                ],
+                "orientation": {
+                  "start": {
+                    "x": 0.5,
+                    "y": 1.0
+                  },
+                  "stop": {
+                    "x": 0.5,
+                    "y": 0
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "specular": true,
+      "lighting": "individual",
+      "blur-material": 0.35,
+      "shadow": {
+        "kind": "layer-color",
+        "opacity": 0.65
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.38
+      }
+    },
+    {
+      "layers": [
+        {
+          "glass": false,
+          "image-name": "Background.png",
+          "name": "Background"
+        }
+      ]
+    }
+  ],
+  "supported-platforms": {
+    "circles": [
+      "watchOS"
+    ],
+    "squares": "shared"
+  }
+}
