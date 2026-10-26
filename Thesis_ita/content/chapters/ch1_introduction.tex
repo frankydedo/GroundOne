@@ -222,7 +222,7 @@ dimensione del 3B. Su LLM-AggreFact, un benchmark costruito da fonti diverse, il
 piccole dimensioni.
 
 Il meccanismo del decision model ripaga in velocità e in accuratezza. Quando una risposta contiene quattordici o più frasi,
-GroundOne la verifica da 1.7 a 2 volte più velocemente di un giudice LLM sintetico e circa sei volte più velocemente di un giudice LLM verboso della stessa dimensione, con un output sempre valido e consumando meno energia. Il rapporto complessivo è limitato dalla lettura del testo, comune a ogni approccio: al netto di essa, GroundOne decide da 18 a 33 volte più in fretta del giudice LLM sintetico. Quando il documento è già stato letto, come nella verifica di una risposta riscritta, il riuso della KV cache porta il vantaggio complessivo a 3--5 volte. Anche il modo di leggere la
+GroundOne la verifica da 1.7 a 2 volte più velocemente di un giudice LLM sintetico e circa sei volte più velocemente di un giudice LLM verboso della stessa dimensione, con un output sempre valido e consumando meno energia. Il rapporto complessivo è limitato dalla lettura del testo, comune a ogni approccio: al netto di essa, GroundOne decide da 18 a 33 volte più in fretta del giudice LLM sintetico. Quando il documento è già stato letto, come nella verifica di una risposta riscritta, il riuso della KV cache porta il vantaggio sulle stesse risposte lunghe da 1.7--2 a 3.4--3.6 volte. Anche il modo di leggere la
 decisione conta: con lo stesso modello addestrato, scegliere la più probabile fra le sole tre lettere ammesse è più
 accurato che lasciare al modello generare liberamente il proprio verdetto, con un guadagno di balanced accuracy di 0.25
 per il 0.5B e di 0.07 per il 3B. Dopo la

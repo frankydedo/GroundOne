@@ -504,7 +504,7 @@ cached, GroundOne verifies an answer 3.2 times faster with the 0.5B (0.11 second
 with the 3B (0.58 seconds). The LLM judges gain much less, 1.3 and 1.7 times for the terse one and 1.1 and 1.2 for the
 verbose one, because the cache removes only the reading and leaves the decoding of the verdicts intact, which cannot be
 reused. As a result, GroundOne's advantage over the terse LLM judge rises from about 2 to 4.8 times with the 0.5B (4.1
-to 5.2) and from 1.6 to 3.1 times with the 3B (2.8 to 3.3), and over the verbose LLM judge to about 15 times. With the
+to 5.2) and from 1.6 to 3.1 times with the 3B (2.8 to 3.3), and over the verbose LLM judge to about 15 times. On answers with fourteen or more sentences, the band in which Section~\ref{sec:results-latency} measures the 1.7 to 2 speed-up, the advantage over the terse LLM judge becomes 3.6 times with the 0.5B (3.5 to 3.8) and 3.4 times with the 3B (3.2 to 3.4). With the
 document cached, 90\,\% of GroundOne's time is the reading of the answer alone and the rest is deciding: verifying a
 rewritten answer therefore costs little more than its length.
 

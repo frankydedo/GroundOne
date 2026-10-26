@@ -67,7 +67,7 @@ LLM-AggreFact the 3B is on par with MiniCheck-RoBERTa (74.8 against 74.0, interv
 disappears, and d1-3B is much stronger: a specialist is not a general fact-checking tool. The readout matters by itself:
 with the same trained model, choosing among the three admissible letters is more accurate than letting the model generate
 its verdict (+0.25 for the 0.5B, +0.07 for the 3B), at the same latency. On answers of fourteen or more sentences
-GroundOne is 1.7 to 2 times faster than a terse LLM judge and about six times faster than a verbose one, always with a valid output; net of reading the text, which all approaches pay, it decides 18 to 33 times faster than the terse LLM judge. It uses less energy (5.5 and 33 joules per answer on average), although the saving is smaller than the time
+GroundOne is 1.7 to 2 times faster than a terse LLM judge and about six times faster than a verbose one, always with a valid output; net of reading the text, which all approaches pay, it decides 18 to 33 times faster than the terse LLM judge; if the document is already in the KV cache, as when a rewritten answer is verified, the overall advantage rises to 3.4 to 3.6 times. It uses less energy (5.5 and 33 joules per answer on average), although the saving is smaller than the time
 saving because a long prefill draws more power than decoding. After calibration the Expected Calibration Error of the 3B
 on T1 is 0.019, while LLM judges asked for the same output give probabilities that barely separate right from wrong
 decisions. The whole evaluation runs with no network access and bit-identical results, 8-bit weights cost no accuracy

@@ -220,7 +220,7 @@ specialised encoders and, in three-way balanced accuracy, it clearly outperforms
 
 The decision-model mechanism pays off in speed and in accuracy. When an answer contains fourteen or more sentences, GroundOne
 verifies it 1.7 to 2 times faster than a terse LLM judge and about six times faster than a verbose LLM judge of the same size, with an
-output that is always valid and with less energy. The overall ratio is bounded by reading the text, which every approach pays: net of it, GroundOne decides 18 to 33 times faster than the terse LLM judge. When the document has already been read, as in the verification of a rewritten answer, reusing the KV cache brings the overall advantage to 3 to 5 times. How the decision is read also matters: with the same trained model,
+output that is always valid and with less energy. The overall ratio is bounded by reading the text, which every approach pays: net of it, GroundOne decides 18 to 33 times faster than the terse LLM judge. When the document has already been read, as in the verification of a rewritten answer, reusing the KV cache raises the advantage on the same long answers from 1.7--2 to 3.4--3.6 times. How the decision is read also matters: with the same trained model,
 choosing the most probable of the three admissible letters is more accurate than letting the model generate its verdict
 freely, with a gain in balanced accuracy of 0.25 for the 0.5B and 0.07 for the 3B. After calibration, the probabilities of GroundOne are
 close to the observed frequencies, whereas the probabilities of LLM judges asked for the same output barely
