@@ -24,101 +24,106 @@ però, non elimina le allucinazioni: le risposte contengono ancora frasi che il 
 contraddicono. Individuarle è necessario su ogni risposta, sulla stessa macchina dalle risorse limitate che ospita il
 generatore. La località ha una conseguenza tecnica precisa: su un singolo dispositivo leggere testo costa poco, scriverlo
 costa molto. Il modello legge l'input in un solo forward pass, limitato dal calcolo, ma scrive un token alla volta, e ogni
-token è limitato dalla banda di memoria necessaria a leggere tutti i pesi; sul portatile della tesi scrivere un token costa
-da quattordici a sedici volte più che leggerne uno, e una rassegna dell'hardware locale mostra ovunque la stessa
-asimmetria. I verificatori attuali sono piccoli encoder, che restituiscono un unico punteggio fisso per coppia
-documento–frase, oppure giudici LLM, che scrivono i verdetti token per token e violano spesso il formato. Una terza
-famiglia, i \emph{decision model}, risponde a domande chiuse in un solo forward pass leggendo dai logit la probabilità di
-ciascuna opzione. Non era ancora stato studiato in modo controllato, su hardware consumer, se un decision model compatto
-e specializzato in un unico task possa eguagliare giudici LLM ed encoder, da dove derivi il suo vantaggio e se le sue
-probabilità siano utilizzabili.
+token è limitato dalla banda di memoria necessaria a leggere tutti i pesi; su un portatile scrivere un token costa un
+ordine di grandezza più che leggerne uno, e la stessa asimmetria vale per tutto l'hardware locale attuale. I verificatori
+attuali sono piccoli encoder, che restituiscono un unico punteggio fisso per coppia documento–frase, oppure giudici LLM,
+che scrivono i verdetti token per token e violano spesso il formato. Una terza famiglia, i \emph{decision model}, risponde
+a domande chiuse in un solo forward pass leggendo dai logit la probabilità di ciascuna opzione. Non era ancora stato
+studiato in modo controllato, su hardware consumer, se un decision model compatto e specializzato in un unico task possa
+eguagliare giudici LLM ed encoder, da dove derivi il suo vantaggio e se le sue probabilità siano utilizzabili.
 
 \sect{GroundOne}
 GroundOne è un decision model specializzato in un'unica decisione: per ogni frase di una risposta RAG, il documento
-recuperato la supporta, la contraddice o non la menziona? Ogni frase è seguita da un marker, e i verdetti di tutte le $K$
+recuperato la supporta, la contraddice o non la menziona? Ogni frase è seguita da un marker, e i verdetti di tutte le
 frasi si leggono dai logit di tre lettere di risposta in corrispondenza dei marker, in un solo forward pass e senza
-generare testo (Figura~\ref{fig:prompt}). Modelli Qwen2.5 da 0.5B e 3B parametri sono sottoposti a fine-tuning con LoRA
-sulle risposte di RAGTruth annotate manualmente, con una loss pesata per classe e ristretta alle tre lettere. Una
-temperatura e un bias per classe stimati sul dev set calibrano le probabilità, e una soglia scelta sugli stessi dati le
-traduce in etichette coerenti con le probabilità mostrate all'utente. Tutto, dalla costruzione del dataset
-all'addestramento, alla valutazione e alla messa in servizio, gira su un portatile Apple M4 con 16\,GB di memoria, con MLX
-e senza servizi esterni.
+generare testo (Figura~\ref{fig:prompt}). Due piccoli modelli Qwen2.5 sono sottoposti a fine-tuning con LoRA sulle
+risposte annotate a mano di RAGTruth, con una loss pesata per classe e ristretta alle tre lettere. Una temperatura e un
+bias per classe, stimati sul dev set, calibrano le probabilità, e una soglia scelta sugli stessi dati le converte in
+etichette coerenti con le probabilità mostrate all'utente. Poiché istruzioni e documento precedono la risposta, la loro
+KV cache si può conservare e riusare in modo esatto quando le stesse fonti vengono verificate di nuovo. Tutto, dalla
+costruzione del dataset all'addestramento, alla valutazione e al servizio, gira su un unico portatile Apple con MLX e
+senza servizi esterni.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.86\textwidth]{../Thesis_ita/images/diagrams/method_marked_prompt_tikz.pdf}
-\caption{Il prompt a marker di GroundOne: i verdetti di tutte le frasi si leggono in corrispondenza dei marker
+\caption{Il prompt con i marker di GroundOne: i verdetti di tutte le frasi si leggono in corrispondenza dei marker
 \texttt{Verdict:} in un solo forward pass.}
 \label{fig:prompt}
 \end{figure}
 
 \sect{Dati e impostazione sperimentale}
-Nessuna etichetta è stata annotata ex novo: le annotazioni a livello di span di RAGTruth sono state convertite in
-un'etichetta a tre classi per frase, con regole fissate in anticipo. Tre test set sono stati costruiti, controllati e
-congelati prima di qualunque addestramento, con il leakage controllato a livello di documento: la partizione di test di
-RAGTruth (T1, 17{,}284 frasi), LLM-AggreFact (T2, undici dataset) e VitaminC (T3, un test di fact checking fuori
-dominio). GroundOne è confrontato con indizi che non leggono mai il documento, con i modelli non addestrati, con giudici LLM
-generativi della stessa dimensione, con e senza probabilità, con due decision model generalisti (Rizzo-Flow, 4B, e d1-3B
-di Liquid AI) e con encoder specializzati (MiniCheck-RoBERTa, HHEM), tutti sulla stessa macchina, con intervalli ottenuti
-da un bootstrap a cluster.
+Nessuna etichetta è stata annotata da capo: le annotazioni a span di RAGTruth sono state convertite in un'etichetta a tre
+classi per frase con regole fissate in anticipo. Tre test set sono stati costruiti, verificati e congelati prima di
+qualsiasi addestramento, con il leakage controllato a livello di documento: lo split di test di RAGTruth (nel dominio),
+LLM-AggreFact (un benchmark ampio di groundedness) e VitaminC (un test di fact-checking fuori dominio). GroundOne è
+confrontato con indizi che non leggono mai il documento, con i modelli non addestrati, con giudici LLM della stessa
+dimensione con e senza probabilità, con due decision model generalisti (Rizzo-Flow e d1-3B di Liquid AI) e con encoder
+specializzati (MiniCheck-RoBERTa, HHEM), tutti sulla stessa macchina e con intervalli di confidenza da un cluster
+bootstrap.
 
 \sect{Risultati}
-La specializzazione funziona nel dominio per cui è pensata (Tabella~\ref{tab:results}). Su T1 GroundOne raggiunge una
-balanced accuracy a tre classi di 0.769 (0.5B) e 0.832 (3B), contro 0.37 e 0.44 prima dell'addestramento; il suo AUROC
-(0.905 e 0.940) supera quello degli encoder (circa 0.82), e in balanced accuracy a tre classi supera nettamente entrambi i
-decision model generalisti. Su LLM-AggreFact il 3B è alla pari con MiniCheck-RoBERTa (74.8 contro 74.0, con un intervallo
-che comprende lo zero). Su VitaminC il guadagno scompare e d1-3B è molto più forte: uno specialista non è uno strumento
-generale di verifica dei fatti. Il readout conta di per sé: a parità di modello addestrato, scegliere fra le tre lettere
-ammesse è più accurato che lasciare al modello generare il proprio verdetto (+0.25 per il 0.5B, +0.07 per il 3B), con la
-stessa latenza. Sulle risposte di quattordici o più frasi GroundOne è da 1.7 a 2 volte più veloce di un giudice LLM sintetico
-e circa sei volte più veloce di uno verboso, con un output sempre valido; al netto della lettura del testo, comune a tutti, decide da 18 a 33 volte più in fretta del giudice LLM sintetico; se il documento è già nella KV cache, come quando si verifica una risposta riscritta, il vantaggio complessivo sale a 3.4--3.6 volte. Consuma meno energia (5.5 e 33 joule in media
-per risposta), anche se il risparmio è minore di quello sul tempo, perché un prefill lungo assorbe più potenza del
-decoding. Dopo la calibrazione l'Expected Calibration Error del 3B su T1 è 0.019, mentre i giudici LLM a cui si chiede lo
-stesso output forniscono probabilità che distinguono a stento le decisioni corrette da quelle errate. L'intera valutazione
-gira senza accesso alla rete con risultati identici bit per bit, i pesi a 8 bit non costano accuratezza rispetto a quelli
-in bf16, e generatore e verificatore stanno insieme in un unico processo con un picco di 6.1\,GB.
+La specializzazione funziona nel dominio a cui è rivolta. Su RAGTruth GroundOne è molto più accurato degli stessi modelli
+prima dell'addestramento, ordina le frasi supportate meglio degli encoder specializzati e, in accuratezza a tre classi,
+supera nettamente entrambi i decision model generalisti, compreso uno più grande. Su LLM-AggreFact il modello più grande è
+alla pari con MiniCheck, non sopra. Su VitaminC il guadagno scompare e un decision model generalista è molto più forte: uno
+specialista non è uno strumento generale di fact-checking. Il modo di leggere la decisione conta di per sé: con lo stesso
+modello addestrato, scegliere tra le tre lettere ammesse è nettamente più accurato che lasciare al modello generare il
+proprio verdetto, con la stessa latenza, e lo scarto è maggiore per il modello più piccolo.
+
+GroundOne è più veloce dei giudici LLM della stessa dimensione a ogni lunghezza di risposta, e il vantaggio cresce con il
+numero di frasi: sulle risposte lunghe è circa due volte più rapido di un giudice sintetico e più volte più rapido di uno
+verboso, sempre con un output valido. Scomporre il tempo spiega perché il guadagno complessivo è moderato: la lettura di
+documento e risposta è quasi tutto il tempo di GroundOne ed è comune a ogni approccio, mentre la parte di decisione, quella
+che il readout sostituisce, costa oltre un ordine di grandezza meno della scrittura dei verdetti. Quando il documento è
+già stato letto, come nella verifica di una risposta riscritta, il riuso della KV cache rende la verifica di GroundOne più
+volte più rapida, ma aiuta molto meno i giudici, perché il loro decoding non si può riusare. GroundOne consuma anche meno
+energia, anche se il risparmio è minore di quello sul tempo, perché un prefill lungo assorbe più potenza del decoding. Dopo
+la calibrazione le sue probabilità sono vicine alle frequenze osservate, mentre i giudici LLM a cui si chiede lo stesso
+output producono probabilità che distinguono appena le decisioni giuste da quelle sbagliate. La valutazione gira senza
+rete e con risultati riproducibili, i pesi a 8 bit non costano accuratezza, e generatore e verificatore stanno insieme in
+un unico processo con ampio margine di memoria.
 
 \begin{table}[h]
 \centering
 \small
-\begin{tabular}{>{\raggedright\arraybackslash}p{7.4cm}cc}
+\begin{tabular}{>{\raggedright\arraybackslash}p{6.6cm}>{\raggedright\arraybackslash}p{8.4cm}}
 \toprule
-Misura & GroundOne 0.5B & GroundOne 3B \\
+Domanda & Risultato \\
 \midrule
-Balanced accuracy a tre classi su T1 (non addestrato) & 0.769 (0.37) & 0.832 (0.44) \\
-AUROC di P(supportata) su T1 (miglior encoder 0.82) & 0.905 & 0.940 \\
-Balanced accuracy media su T2 (MiniCheck-RoBERTa 74.0) & 70.1 & 74.8 \\
-Readout contro verdetto generato, stessi pesi & +0.25 & +0.07 \\
-Speed-up con $K \geq 14$ su giudice LLM sintetico / verboso & 1.95$\times$ / 6.2$\times$ & 1.73$\times$ / 6.2$\times$ \\
-Tempo ed energia per risposta & 0.41\,s, 5.5\,J & 2.57\,s, 33\,J \\
+Nel dominio (RAGTruth) & Forte guadagno sui modelli non addestrati; ordinamento migliore degli encoder; nettamente sopra entrambi i decision model generalisti. \\
+Altri benchmark & Alla pari con MiniCheck su LLM-AggreFact; nessun guadagno su VitaminC, dove un generalista è più forte. \\
+Readout e verdetto generato & Il readout ristretto è nettamente più accurato a parità di pesi e di costo. \\
+Velocità rispetto ai giudici LLM & Più veloce a ogni lunghezza, soprattutto sulle risposte lunghe; molto di più con le fonti già in cache. \\
+Probabilità & Ben calibrate dopo una semplice correzione post-hoc; quelle dei giudici quasi prive di informazione. \\
 \bottomrule
 \end{tabular}
-\caption{Risultati principali. I tempi si riferiscono alle risposte di quattordici o più frasi, l'energia è la media per
-risposta; il 3B non addestrato è stato valutato su 600 risposte di T1.}
+\caption{Risultati principali in forma qualitativa; i valori esatti sono riportati nella tesi.}
 \label{tab:results}
 \end{table}
 
 \sect{GroundOne Studio: un'applicazione locale e un caso di studio}
 Un'applicazione nativa per macOS, scritta in Swift con MLX Swift, mette il verificatore al lavoro in un assistente RAG
-completo in cui recupero (ricerca full-text di SQLite e un piccolo modello di embedding), generazione (Qwen2.5-3B a 4
-bit), verifica e un giudice LLM locale condividono un unico processo, con al massimo 6.9\,GB di memoria e senza
-rete. Un test di conformità su 200 risposte di T1 mostra token identici e probabilità entro 0.005 dall'implementazione
-Python per il 3B. La risposta del generatore compare per prima; l'utente può poi verificarla con il solo GroundOne o
-insieme al giudice LLM, consultare le probabilità e il passaggio a supporto di ogni frase e far riscrivere dalle fonti le
-frasi segnalate o selezionate, con una richiesta breve per frase che dipende dal tipo di errore. In un caso di studio con
-100 errori iniettati GroundOne segnala l'errore in 97 delle 98 risposte in cui la frase riceve un verdetto, il giudice LLM in
-84, e la riscrittura mirata riduce dal 100\,\% al 6\,\% le risposte che contengono ancora l'errore: numeri e date
-modificati vengono per lo più ripristinati dalla fonte, le frasi inventate cancellate. Ripetere lo studio con il 0.5B
-mostra perché il verdetto a tre classi conta: il modello piccolo etichetta i valori modificati come non menzionati anziché
-contraddetti, e il generatore allora li cancella invece di correggerli. Queste risposte sono accettate da GroundOne, non
-verificate in modo indipendente.
+completo in cui recupero (ricerca full-text di SQLite e un piccolo modello di embedding), generazione, verifica e un
+giudice LLM locale condividono un unico processo, senza rete e ben dentro la memoria del portatile. Un test di conformità
+mostra token identici e probabilità praticamente identiche a quelle dell'implementazione Python. La risposta del generatore
+compare per prima; l'utente può poi verificarla con il solo GroundOne o insieme al giudice LLM, consultare le probabilità e
+il passaggio a supporto di ogni frase e far riscrivere dalle fonti le frasi segnalate o selezionate, con una richiesta
+breve per frase che dipende dal tipo di errore e un controllo che respinge una riscrittura identica alla frase segnalata.
+In un caso di studio con errori iniettati GroundOne segnala quasi tutti gli errori, più spesso del giudice LLM, e la
+riscrittura mirata ne rimuove la gran parte: numeri e date modificati vengono per lo più ripristinati dalla fonte, le frasi
+inventate cancellate. Ripetere lo studio con il verificatore più piccolo mostra perché il verdetto a tre classi conta: il
+modello etichetta i valori modificati come non menzionati anziché contraddetti, e il generatore li cancella invece di
+correggerli. Un generatore più grande, selezionabile, corregge ancora più errori, ma è sensibilmente più lento e aggiunge
+più contenuto che le fonti non riportano. Le risposte così ottenute sono accettate da GroundOne, non verificate in modo
+indipendente.
 
 \sect{Limiti e sviluppi futuri}
 I limiti principali sono la ristrettezza dei dati di addestramento, a causa della quale le contraddizioni al di fuori del
 data-to-text e le allucinazioni nascoste in frasi per il resto copiate vengono apprese solo in parte, una ricetta di
 addestramento non del tutto robusta rispetto al seed, un'unica piattaforma e famiglia di modelli e dati soltanto in
 inglese. Gli sviluppi futuri comprendono una ricetta più robusta (bias correction, gradient clipping, più seed), dati di
-addestramento con supporto parafrasato e modifiche minime, un porting su llama.cpp per misurare altro hardware, adapter
-per lingua, l'attribuzione di ogni verdetto a un passaggio, un generatore più grande e un controllo indipendente delle
-frasi riscritte nell'applicazione.
+addestramento con supporto parafrasato e modifiche minime, la fusione dell'adapter nei pesi base, un porting su llama.cpp
+per misurare altro hardware, adapter per lingua, l'attribuzione di ogni verdetto a un passaggio, la verifica durante la
+generazione della risposta e un controllo indipendente delle frasi riscritte nell'applicazione.
 \end{document}
