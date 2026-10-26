@@ -46,9 +46,15 @@ class FakeBackend:
         self.prefills = getattr(self, "prefills", 0) + 1
         return {"ids": tuple(ids)}
 
-    def score_positions_from(self, prefix, ids, positions, letters=("A", "B", "C")):
-        assert tuple(ids[:len(prefix["ids"])]) == prefix["ids"] and min(positions) >= len(prefix["ids"])
-        return self.score_positions([ids], [positions], letters)[0]
+    def score_positions_from(self, prefix, ids, positions, letters=("A", "B", "C"), keep=False):
+        assert tuple(ids[:len(prefix["ids"])]) == tuple(prefix["ids"]) and min(positions) >= len(prefix["ids"])
+        self.read_from = len(prefix["ids"])
+        lg = self.score_positions([ids], [positions], letters)[0]
+        return (lg, {"ids": tuple(ids), "state": []}) if keep else lg
+
+    @staticmethod
+    def slice_prefix(entry, n):
+        return {"ids": tuple(entry["ids"])[:n], "state": []}
 
 
 # raw logits per marker: clear supported; borderline (raw argmax = not mentioned, softmax P(supported) = 0.45); contradicted
@@ -159,6 +165,20 @@ def test_verify_b_reuses_the_cached_document(client_b):
     assert [j["prefix_cache"] for j in (first, second, third)] == ["instructions", "document", "instructions"]
     assert engine.backend.prefills == 3                     # fixed instructions once, then one per new document
     assert first["sentences"][1]["p_supported"] == c.post("/v1/verify", json={"document": doc, "answer": ANSWER_B}).json()["sentences"][1]["p_supported"]
+
+
+def test_verify_b_reuses_the_unchanged_first_sentences(client_b):
+    """D32: after a rewrite of a later sentence, the verdicts of the unchanged first sentences are reused and the
+    answer is read only from the first changed token."""
+    c, engine = client_b
+    doc = "Paris is the capital of France."
+    a = "Paris is the capital of France. It has many museums. It is in Germany."
+    b = "Paris is the capital of France. It has many museums. It is in Europe."
+    first = c.post("/v1/verify", json={"document": doc, "answer": a}).json()
+    second = c.post("/v1/verify", json={"document": doc, "answer": b}).json()
+    assert second["prefix_cache"] == "answer prefix"
+    assert engine.backend.read_from > len(engine.backend.tokenizer.encode(doc))          # read after the document
+    assert [s["p_supported"] for s in second["sentences"][:2]] == [s["p_supported"] for s in first["sentences"][:2]]
 
 
 def test_verify_b_labels_flags_and_probabilities_are_coherent(client_b):

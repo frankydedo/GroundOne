@@ -173,6 +173,7 @@ Record future changes below (date, decision, reason).
 - 2026-10-19: **D30** (hosted-judge cost comparison in brief; wiki-ingestion extension cut; injected errors in the demo case study).
 - 2026-10-19: **D31** (thesis terminology: decision model instead of System One, title included; Italian version done, English at alignment).
 - 2026-10-26: **D32** (latency net of the prefill, an added measurement; "LLM judge" terminology in thesis, figures and app).
+- 2026-10-26: D32 extended (author): the prefix cache also keeps the last answer verified, so a re-verification after a rewrite reads only from the first changed token and reuses the earlier verdicts (service and app); measured with `decompose --cache rewrite` (thesis Ch. 7 `tab:results-answer-prefix`).
 - 2026-10-26: **D33** (rewrite copy check + retry; 7B selectable generator; case studies rerun with the final rewrite).
 
 ---

@@ -35,7 +35,7 @@ public enum Conformance {
         public var labelDisagreementsOutsideTau: Int
         public var meanSecondsPerAnswer: Double
         /// Prefix cache (D32): largest probability difference between the cold pass and the cached passes (document
-        /// read and cached, then reused), on the same ids.
+        /// read and cached, then reused; and an answer prefix reused after a one-token change), on the same ids.
         public var cachedMaxAbsProbDelta: Double = 0
         public var loadSeconds: Double
         public var passed: Bool
@@ -81,8 +81,21 @@ public enum Conformance {
             seconds += Date().timeIntervalSince(t)
             let head = model.encoder.encode(MarkedPrompt.head(document: item.doc)).count
             for _ in 0..<2 {   // first call reads and caches the document, the second reuses it
+                model.forgetLastAnswer()
                 let c = try await model.scorePositions(ids: item.ids, positions: item.positions, prefixLength: head).logits
                 for (a, b) in zip(c, logits) {
+                    r.cachedMaxAbsProbDelta = max(r.cachedMaxAbsProbDelta, zip(cal.probs(a), cal.probs(b)).map { abs($0 - $1) }.max()!)
+                }
+            }
+            // answer prefix: change one token after the first marker (as a rewrite of the second sentence would),
+            // then compare the reuse of the unchanged first sentence with a cold pass on the changed sequence
+            if item.positions.count > 1, item.positions[0] + 2 < item.ids.count {
+                var changed = item.ids
+                let k = item.positions[0] + 2
+                changed[k] = changed[k] == 13 ? 14 : 13
+                let cold = try await model.scorePositions(ids: changed, positions: item.positions).logits
+                let warm = try await model.scorePositions(ids: changed, positions: item.positions, prefixLength: head).logits
+                for (a, b) in zip(warm, cold) {
                     r.cachedMaxAbsProbDelta = max(r.cachedMaxAbsProbDelta, zip(cal.probs(a), cal.probs(b)).map { abs($0 - $1) }.max()!)
                 }
             }

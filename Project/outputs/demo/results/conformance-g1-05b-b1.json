@@ -1,16 +1,17 @@
 {
   "answers" : 200,
+  "cachedMaxAbsProbDelta" : 0.018640312335246212,
   "firstMismatches" : [
 
   ],
   "idsIdentical" : 200,
   "labelDisagreementsOutsideTau" : 0,
   "labelsIdentical" : 0.9971379507727532,
-  "loadSeconds" : 0.40848708152770996,
+  "loadSeconds" : 0.433988094329834,
   "markers" : 1747,
   "maxAbsLogitDelta" : 0.171875,
   "maxAbsProbDelta" : 0.03124846682465976,
-  "meanSecondsPerAnswer" : 0.3426753509044647,
+  "meanSecondsPerAnswer" : 0.3351218819618225,
   "passed" : false,
   "positionsIdentical" : 200,
   "probsWithin001" : 0.998282770463652,

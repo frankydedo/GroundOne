@@ -115,7 +115,7 @@ the calibrated probabilities is 0.005 and all the labels coincide: for the same 
 therefore also hold for the verifier of the application. With the 0.5B, three sentences out of 1{,}747 exceed a
 difference of 0.01, with a maximum of 0.031, and the labels coincide in 99.71\,\% of the cases; every disagreement
 concerns a sentence whose probability of support falls within 0.01 of the threshold. A plausible but unverified cause is
-a different order of summation in reduced precision, which weighs more heavily on the small model.
+a different order of summation in reduced precision, which weighs more heavily on the small model. The same test compares in Swift the cached path, which reuses the sources or the beginning of an answer already verified after a one-token change, with the pass without cache: the probabilities differ by at most 0.007 with the 3B and 0.019 with the 0.5B, the same order of magnitude observed in Python (Section~\ref{sec:results-latency-split}).
 
 \begin{table}[htbp]
 \centering
@@ -132,6 +132,7 @@ Maximum difference between the logits & 0.070 & 0.172 \\
 Maximum difference between the calibrated probabilities & 0.005 & 0.031 \\
 Sentences with a probability difference below 0.01 & 100\,\% & 99.83\,\% \\
 Identical served labels & 100\,\% & 99.71\,\% \\
+Maximum difference between the probabilities with and without the cache & 0.007 & 0.019 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -250,7 +251,7 @@ with the closest span highlighted.}
 \paragraph{Targeted rewriting.} Rewriting follows a principle of the verify-and-revise loops that have proved effective
 in the literature: an external critic, or retrieved evidence, flags the errors and the generator changes only what has
 been flagged~\cite{gao2023rarr,gou2024critic}, whereas spontaneous self-correction, without an external signal, does not
-reliably improve the answers~\cite{huang2024cannotselfcorrect}. GroundOne is the critic, and a cheap one: verifying again costs a single prefill, and not even a full one. The instructions and the sources, already read at the first verification, stay in the KV cache (Section~\ref{sec:method-readout}), so the new version only requires reading the rewritten answer, which in the measurements of Section~\ref{sec:results-latency-split} makes the verification 3.4 times faster with the 3B; the LLM judge, when requested, reuses its own cache in the same way, and the timing panel shows when the sources were reused. For every sentence to be rewritten, the generator receives a short request, with the
+reliably improve the answers~\cite{huang2024cannotselfcorrect}. GroundOne is the critic, and a cheap one: verifying again costs a single prefill, and not even a full one. The instructions and the sources, already read at the first verification, stay in the KV cache (Section~\ref{sec:method-readout}), so the new version only requires reading the rewritten answer, which in the measurements of Section~\ref{sec:results-latency-split} makes the verification 3.4 times faster with the 3B. The part of the answer before the first rewritten sentence is also kept, together with the verdicts of its sentences, so the reading restarts at the first change: when the last sentence is rewritten, the verification is about six times faster than with the sources alone (Table~\ref{tab:results-answer-prefix}). The LLM judge, when requested, reuses the cache of the sources, but writes all its verdicts again; the timing panel shows how many tokens were reused. For every sentence to be rewritten, the generator receives a short request, with the
 sentence and only the excerpt of the document that concerns it, and an instruction that depends on the type of error. A
 contradicted sentence must be corrected with the facts of the source and cannot be deleted: if the generator does not
 return a usable sentence, the original one stays in place and is resubmitted in the next round. A sentence that is not
@@ -299,7 +300,7 @@ Conversations & One JSON file per conversation. & Questions, answer versions, ve
 Action log & Append-only JSONL file. & One line for every generation, verification and rewriting; basis of the statistics and of the browsable log. \\ \addlinespace[2pt]
 Library & SQLite database. & Full-text index for BM25 and passage embeddings, with the origin of each passage. \\ \addlinespace[2pt]
 Policies & JSON files. & Selectable decision and rewriting rules. \\ \addlinespace[2pt]
-KV cache of the sources & In memory only. & Instructions and the last documents already read, reused by later verifications; not saved to disk. \\
+KV cache of the sources & In memory only. & Instructions, the last documents already read and the last answer verified, reused by later verifications; not saved to disk. \\
 \bottomrule
 \end{tabular}
 \end{table}

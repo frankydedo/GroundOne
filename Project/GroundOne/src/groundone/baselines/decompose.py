@@ -14,6 +14,10 @@ one answer at a time). Per answer:
   fixed  the fixed instructions (system prompt + instruction), identical for every request
   doc    the instructions and the document, as when a document is verified again (a rewritten answer, another answer
          on the same sources); only the answer is read
+  rewrite  a rewrite of one sentence (the first, middle or last scored one gets ", as reported." appended) re-verified
+         after the original answer: "doc" reads the whole new answer after the cached document, "prefix" reuses the
+         state and the verdicts of the unchanged first sentences and reads from the first changed token (the service's
+         answer-prefix cache). GroundOne and the terse LLM judge only
 The same prefixes are cached for GroundOne and for the LLM judges, so the comparison stays like for like.
 Outputs: results/<name>/decompose/<system>[-<cache>].parquet (create-only); `decompose-report` writes metrics.json
 with medians per K band, overall and decision-only speed-ups per cache setting, and bootstrap 95% intervals over
@@ -38,7 +42,7 @@ from .judges import TOKENS_PER_SENTENCE, judge_prompt, k_stratified
 
 BANDS = ["1-4", "5-8", "9-13", ">=14"]
 SYSTEMS = ("groundone", "terse", "verbose")
-CACHES = ("none", "fixed", "doc")
+CACHES = ("none", "fixed", "doc", "rewrite")
 
 
 def run_file(system, cache):
@@ -72,6 +76,8 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.system == "groundone" and not a.adapter:
         sys.exit("--adapter is required for groundone")
+    if a.cache == "rewrite":
+        return run_rewrite(a)
     out = RESULTS_DIR / a.name / "decompose" / run_file(a.system, a.cache)
     if out.exists():
         sys.exit(f"{out} exists: results are create-only")
@@ -148,6 +154,90 @@ def main(argv=None):
           f"decide {d['decide_s'].median():.4f} s, total {d['total_s'].median():.3f} s", flush=True)
 
 
+def rewritten(sentences, j):
+    s = sentences[j].rstrip()
+    return sentences[:j] + [s.rstrip(".") + ", as reported."] + sentences[j + 1:]
+
+
+def run_rewrite(a):
+    from ..engine import Engine, common_prefix_len
+    from mlx_lm import stream_generate
+    from ..backend import explicit_offset_mask
+    if a.system == "verbose":
+        sys.exit("rewrite: groundone and terse only")
+    out = RESULTS_DIR / a.name / "decompose" / run_file(a.system, "rewrite")
+    if out.exists():
+        sys.exit(f"{out} exists: results are create-only")
+    recs = k_stratified(load("test_ragtruth"), a.per_band)
+    engine = Engine.load(a.size, a.adapter if a.system == "groundone" else None)
+    be, tok = engine.backend, engine.backend.tokenizer
+    rows = []
+
+    def timed(fn, *args):
+        ts, res = [], None
+        for _ in range(a.reps if a.system == "groundone" else 1):
+            t = time.perf_counter()
+            res = engine._run(fn, *args)
+            ts.append(time.perf_counter() - t)
+        return res, float(np.median(ts))
+
+    def judge_once(ids, prefix, max_tokens):
+        cache, n = be._cache_from(prefix, ids)
+        t0 = time.perf_counter()
+        first = None
+        with explicit_offset_mask():
+            for _ in stream_generate(be.model, tok, ids[n:], max_tokens=max_tokens, prompt_cache=cache):
+                if first is None:
+                    first = time.perf_counter() - t0
+        return first, time.perf_counter() - t0
+
+    for n_ans, r in enumerate(recs[:3] + recs):
+        scored = [i for i, y in enumerate(r["labels"]) if y is not None]
+        mask = [y is not None for y in r["labels"]]
+        for where, j in (("first", scored[0]), ("middle", scored[len(scored) // 2]), ("last", scored[-1])):
+            new_sents = rewritten(r["sentences"], j)
+            if a.system == "groundone":
+                ids0, pos0 = encode_marked(tok, r["doc"], r["sentences"], mask)
+                ids1, pos1 = encode_marked(tok, r["doc"], new_sents, mask)
+                n_fixed, n_head = marked_prefix_lengths(tok, r["doc"])
+                head = engine._run(be.prefill, ids0[:n_head])
+                lg0, full0 = engine._run(be.score_positions_from, head, ids0, pos0, ("A", "B", "C"), True)
+                _, t_doc = timed(be.score_positions_from, head, ids1, pos1)
+                n = common_prefix_len(full0["ids"], ids1)
+                old = dict(zip(pos0, lg0))
+                todo = [p for p in pos1 if not (p < n and p in old)]
+                n = min(n, todo[0])
+                _, t_pre = timed(be.score_positions_from, be.slice_prefix(full0, n), ids1, todo)
+                reads = {"doc": len(ids1) - n_head, "prefix": len(ids1) - n}
+                times = {"doc": (None, t_doc), "prefix": (None, t_pre)}
+            else:
+                p0 = judge_prompt(tok, r, "terse")
+                r1 = dict(r, sentences=new_sents)
+                p1 = judge_prompt(tok, r1, "terse")
+                ids0 = tok.encode(p0, add_special_tokens=False)
+                ids1 = tok.encode(p1, add_special_tokens=False)
+                _, n_head = judge_prefix_lengths(tok, p1, ids1)
+                full0 = engine._run(be.prefill, ids0)
+                n = min(common_prefix_len(ids0, ids1), len(ids1) - 1)
+                mt = TOKENS_PER_SENTENCE["terse"] * len(scored) + 40
+                times = {"doc": engine._run(judge_once, ids1, be.slice_prefix(full0, n_head), mt),
+                         "prefix": engine._run(judge_once, ids1, be.slice_prefix(full0, n), mt)}
+                reads = {"doc": len(ids1) - n_head, "prefix": len(ids1) - n}
+            if n_ans < 3:
+                continue
+            for mode in ("doc", "prefix"):
+                rows.append({"rid": r["id"], "K": len(scored), "kband": k_band(len(scored)), "where": where, "mode": mode,
+                             "read_tokens": reads[mode], "read_s": times[mode][0], "total_s": times[mode][1]})
+        if (n_ans - 3) % 25 == 0 and n_ans >= 3:
+            last = rows[-6:]
+            print(f"  [rewrite {a.system} {a.size}] {n_ans - 3}/{len(recs)}: " +
+                  ", ".join(f"{x['where']}/{x['mode']} {x['total_s']:.3f}s" for x in last), flush=True)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    d = pd.DataFrame(rows)
+    d.to_parquet(out)
+    print(d.groupby(["where", "mode"])["total_s"].median().round(3).to_string(), flush=True)
+
+
 def _ratio_ci(num, den, B=2000, seed=1234):
     """Ratio of medians (num / den) over paired answers, with a bootstrap 95% interval resampling answers."""
     rng = np.random.default_rng(seed)
@@ -169,7 +259,7 @@ def report(argv=None):
     ap.add_argument("--name", required=True)
     a = ap.parse_args(argv)
     sd = RESULTS_DIR / a.name / "decompose"
-    runs = {(s, c): pd.read_parquet(sd / run_file(s, c)) for s in SYSTEMS for c in CACHES if (sd / run_file(s, c)).exists()}
+    runs = {(s, c): pd.read_parquet(sd / run_file(s, c)) for s in SYSTEMS for c in CACHES[:3] if (sd / run_file(s, c)).exists()}
     if ("groundone", "none") not in runs:
         sys.exit(f"{sd}/groundone.parquet missing")
     m = {"protocol": "same K-stratified T1 answers as the latency runs; in-process MLX, one answer at a time, 3 warm-up "
@@ -180,7 +270,7 @@ def report(argv=None):
                      "95% intervals from 2,000 bootstrap resamples of answers.",
          # kept flat for cache=none (the first version of this report), per cache setting under "cache"
          "systems": {}, "speedup": {}, "cache": {}}
-    for c in CACHES:
+    for c in CACHES[:3]:
         if ("groundone", c) not in runs:
             continue
         g = runs[("groundone", c)].set_index("rid")
@@ -212,6 +302,27 @@ def report(argv=None):
                     warm = runs[(s, c)].set_index("rid")
                     common = cold.index.intersection(warm.index)
                     block.setdefault("saving_vs_cold", {})[s] = _ratio_ci(cold.loc[common, "total_s"], warm.loc[common, "total_s"])
+    rw = {s: pd.read_parquet(sd / run_file(s, "rewrite")) for s in ("groundone", "terse") if (sd / run_file(s, "rewrite")).exists()}
+    if rw:
+        block = {}
+        for s, d in rw.items():
+            med = {f"{w}/{mo}": {"total_s": float(x["total_s"].median()), "read_tokens": float(x["read_tokens"].median())}
+                   for (w, mo), x in d.groupby(["where", "mode"])}
+            sav = {}
+            for w, x in d.groupby("where"):
+                p = x.pivot_table(index="rid", columns="mode", values="total_s")
+                sav[w] = _ratio_ci(p["doc"], p["prefix"])
+            p = d.pivot_table(index=["rid", "where"], columns="mode", values="total_s")
+            sav["all"] = _ratio_ci(p["doc"], p["prefix"])
+            block[s] = {"medians": med, "doc_over_prefix": sav}
+        if "groundone" in rw and "terse" in rw:
+            g = rw["groundone"].set_index(["rid", "where", "mode"])["total_s"]
+            t = rw["terse"].set_index(["rid", "where", "mode"])["total_s"]
+            common = g.index.intersection(t.index)
+            block["terse_over_groundone"] = {mo: _ratio_ci(t[common][t[common].index.get_level_values(2) == mo],
+                                                           g[common][g[common].index.get_level_values(2) == mo])
+                                             for mo in ("doc", "prefix")}
+        m["rewrite"] = block
     (sd / "metrics.json").write_text(json.dumps(m, indent=2))
     for c, block in m["cache"].items():
         for s, sp in block["speedup"].items():

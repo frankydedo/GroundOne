@@ -416,7 +416,12 @@ any later answer on the same document. `GroundOneModel` keeps the last sixteen p
 keyed by the adapter state and the head's token ids; the verifier passes the head length, so a re-verification after a
 rewrite reads only the answer. The local judge has its own cache under the same policy (its head ends with the
 document; adapter off). `Verdicts.cachedTokens` and `JudgeVerdicts.cachedTokens` record the reuse (audit log, chats),
-and the timing panel shows a note. The conformance test checks the cached path against the cold one (max |Δp| < 0.01).
+and the timing panel shows a note. The verifier also keeps the last answer verified (ids, KV state of the whole
+sequence, marker positions, logits): when a new answer on the same head starts like it, the verdicts of the markers
+before the first changed token are reused and the pass starts there (`forgetLastAnswer()` drops it). The judge keeps
+only the head cache, since its verdicts follow the whole answer. The conformance test checks both cached paths against
+the cold one (document reuse, then an answer prefix after a one-token change; max |Δp| < 0.01): 0.0073 with the 3B
+(PASS), 0.0186 with the 0.5B (bf16 envelope; the 0.5B already misses the cold gate, 0.031 vs Python).
 The cache lives in memory only. Python 0.29.3's attention kernel needs an explicit mask on this path (thesis notes,
 2026-10-26); MLX Swift 0.32.3 does not (`g1studio sdpa-check`).
 

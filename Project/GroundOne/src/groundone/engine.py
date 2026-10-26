@@ -8,7 +8,9 @@ serialised by a lock; parallelism is *inside* a request (K questions in one batc
 served since D27 (one pass, a marker per scored sentence, coherent labels from calibrated probabilities and the dev
 threshold); design (a) remains for base models and design-(a) adapters. /v1/systemone (generic questions) uses (a).
 Design (b) keeps a prefix cache (D32): the fixed instructions are prefilled once, and the last few documents' KV
-states are kept (LRU), so a new answer on a cached document costs only the answer's tokens. Exact under causal
+states are kept (LRU), so a new answer on a cached document costs only the answer's tokens. The last answer verified
+on each document is kept too: a new answer that shares its first sentences (a rewrite of a later sentence) reuses their
+verdicts and is read only from the first changed token. Exact under causal
 attention; GROUNDONE_PREFIX_CACHE=0 disables it.
 """
 import json
@@ -25,6 +27,15 @@ from .prompts import ANSWER_NAMES, letters, render
 from .text import split_sentences
 
 
+def common_prefix_len(a, b):
+    n = 0
+    for x, y in zip(a, b):
+        if x != y:
+            break
+        n += 1
+    return n
+
+
 class Engine:
     def __init__(self, backend, calibration_path=None, design="a"):
         self.backend = backend
@@ -36,6 +47,7 @@ class Engine:
         self.prefix_cache = os.environ.get("GROUNDONE_PREFIX_CACHE", "1") != "0"
         self._fixed = None                 # KV state of the fixed instructions
         self._docs = OrderedDict()         # head ids (instructions + document) -> KV state, least recently used first
+        self._answers = {}                 # head ids -> last answer verified on it: ids, KV state, marker logits
         self.max_cached_docs = 4
 
     @classmethod
@@ -173,8 +185,28 @@ class Engine:
             self._docs[key] = be.prefill(ids[:n_head], base=self._fixed)
             while len(self._docs) > self.max_cached_docs:
                 self._docs.popitem(last=False)
+            self._answers.pop(key, None)
             hit = "instructions"
-        return be.score_positions_from(self._docs[key], ids, pos), hit
+        last = self._answers.get(key)
+        n = common_prefix_len(last["ids"], ids) if last else 0
+        old = dict(zip(last["pos"], last["logits"])) if last else {}
+        keep = [p for p in pos if p < n and p in old]
+        if keep:
+            # the answer shares its first sentences with the last one verified on this document (e.g. a rewrite that
+            # changed a later sentence): their verdicts are unchanged, the rest is read from the first changed token
+            todo = [p for p in pos if p not in keep]
+            n = min(n, todo[0]) if todo else n
+            if todo:
+                fresh, full = be.score_positions_from(be.slice_prefix(last, n), ids, todo, keep=True)
+            else:   # every verdict is unchanged; keep only the part of the state that matches this answer
+                fresh, full = [], (last if tuple(last["ids"]) == tuple(ids) else be.slice_prefix(last, n))
+            got = {**{p: old[p] for p in keep}, **dict(zip(todo, fresh))}
+            logits = [got[p] for p in pos]
+            hit = "answer prefix"
+        else:
+            logits, full = be.score_positions_from(self._docs[key], ids, pos, keep=True)
+        self._answers[key] = {**full, "pos": list(pos), "logits": logits}
+        return logits, hit
 
     # ------------------------------------------------------------------ compatible: /v1/systemone
     def systemone(self, req):

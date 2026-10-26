@@ -496,6 +496,49 @@ e da 1.6 a 3.1 volte con il 3B (da 2.8 a 3.3), e quello sul giudice LLM verboso 
 il tempo di GroundOne è fatto per il 90\,\% della lettura della sola risposta e per il resto della decisione: la verifica
 di una risposta riscritta costa quindi poco più della sua lunghezza.
 
+\paragraph{Riuso del prefisso della risposta.} Una riscrittura cambia di solito una o poche frasi, e tutto ciò che
+precede il primo token modificato coincide con la versione già verificata. La cache può quindi conservare l'intera
+sequenza dell'ultima verifica, risposta compresa: il nuovo passaggio parte dal primo token modificato, e i verdetti dei
+marker precedenti, che l'attenzione causale rende indipendenti da ciò che li segue, sono ripresi senza modifiche dal
+passaggio precedente. Per misurarlo, in ciascuna delle 200 risposte è stata modificata una frase valutata, la prima,
+quella centrale o l'ultima, aggiungendole poche parole (``, as reported.''), e la nuova versione è stata verificata una
+volta con il solo documento in cache e una volta con in cache anche la versione precedente della risposta. La modifica fa
+le veci di una riscrittura: il tempo dipende soltanto da dove cade il primo token cambiato e da quanti token lo seguono,
+non da ciò che la frase dice. La Tabella~\ref{tab:results-answer-prefix} riporta le mediane.
+
+\begin{table}[htbp]
+\centering
+\caption{Verifica di una risposta con una frase modificata, sulle stesse 200 risposte di T1: tempi mediani in secondi con
+il solo documento in cache e con in cache anche la versione precedente della risposta, e fra parentesi il rapporto fra i
+due. Il giudice LLM riusa lo stesso prefisso, ma riscrive tutti i propri verdetti.}
+\label{tab:results-answer-prefix}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llcccc}
+\toprule
+Modello & Sistema & \makecell{Documento\\in cache} & \makecell{Cambia la\\prima frase} & \makecell{Cambia la\\frase centrale} & \makecell{Cambia\\l'ultima frase} \\
+\midrule
+0.5B & GroundOne & 0.106 & 0.095 (1.1$\times$) & 0.051 (2.1$\times$) & 0.021 (5.0$\times$) \\
+ & \makecell[l]{Giudice LLM\\sintetico} & 0.512 & 0.516 (1.0$\times$) & 0.485 (1.1$\times$) & 0.452 (1.1$\times$) \\
+\midrule
+3B & GroundOne & 0.589 & 0.515 (1.2$\times$) & 0.285 (2.1$\times$) & 0.093 (6.3$\times$) \\
+ & \makecell[l]{Giudice LLM\\sintetico} & 1.828 & 1.717 (1.1$\times$) & 1.549 (1.2$\times$) & 1.412 (1.3$\times$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Per GroundOne il tempo segue i token che restano da leggere. Quando cambia l'ultima frase si leggono 8 token in mediana
+invece di 249, e la verifica richiede 0.02 secondi con il 0.5B e 0.09 con il 3B, cinque e sei volte meno che con il solo
+documento in cache; una modifica della frase centrale dimezza il tempo; una modifica della prima frase lascia da leggere
+quasi tutta la risposta, e il guadagno è dal 13 al 15\,\%. Sulle tre posizioni insieme il guadagno è di 2.6 volte con il
+0.5B e di 2.7 volte con il 3B. Il giudice LLM sintetico guadagna dal 3 al 29\,\%: anch'esso legge meno, ma tutti i suoi
+verdetti seguono l'intera risposta, quindi una modifica in una frase qualsiasi li invalida tutti, e il loro decoding, che
+è la maggior parte del suo tempo, va ripetuto per intero. Con in cache la versione precedente, il vantaggio di GroundOne
+sul giudice LLM sintetico sale quindi da 4.8 a 12 volte con il 0.5B (da 11.2 a 12.9) e da 3.1 a 7.1 volte con il 3B (da
+6.6 a 7.8). Il servizio e l'applicazione riusano il prefisso della risposta nello stesso modo (Capitolo~\ref{ch:studio}),
+e gli stessi test che controllano la cache del documento verificano che i verdetti riusati coincidano con quelli di un
+passaggio senza cache.
+
 La velocità non è l'unica differenza (Figura~\ref{fig:results-judges}). I giudici LLM non addestrati sono anche
 molto meno accurati, e non sempre rispettano il formato di output. Il giudice LLM verboso 0.5B produce un verdetto
 interpretabile soltanto per il 3\,\% delle frasi, perché per lo più ricopia la risposta, mentre il giudice LLM sintetico

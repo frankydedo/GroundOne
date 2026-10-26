@@ -101,8 +101,11 @@ risposta e dei suoi marker. È il caso di una risposta riscritta e verificata di
 generate dalle stesse fonti o di più domande sulla stessa libreria. Il riuso del prefisso non è un vantaggio esclusivo
 del decision model: anche il prompt di un giudice LLM comincia con istruzioni e documento, e può riusarli allo stesso
 modo. Il formato a marker, però, lo rende particolarmente efficace, perché dopo il prefisso resta da leggere soltanto
-la risposta, e ogni frase in più costa i tre token del suo marker. GroundOne conserva le istruzioni e gli ultimi
-documenti letti, sia nel servizio sia nell'applicazione del Capitolo~\ref{ch:studio}; la Sezione~\ref{sec:results-latency-split}
+la risposta, e ogni frase in più costa i tre token del suo marker. Lo stesso ragionamento vale dentro la risposta:
+quando una riscrittura cambia una frase, la parte di risposta che la precede resta identica, e con essa i verdetti dei
+suoi marker, che dipendono soltanto da ciò che li precede; va riletto solo ciò che segue la prima modifica. Un giudice
+LLM non può sfruttarlo allo stesso modo, perché i suoi verdetti seguono l'intera risposta e vanno riscritti tutti.
+GroundOne conserva le istruzioni, gli ultimi documenti letti e l'ultima risposta verificata, sia nel servizio sia nell'applicazione del Capitolo~\ref{ch:studio}; la Sezione~\ref{sec:results-latency-split}
 ne misura l'effetto per GroundOne e per i giudici LLM.
 
 \paragraph{Un classificatore, non un generatore più veloce.} Il readout restringe la decisione a tre lettere, e la

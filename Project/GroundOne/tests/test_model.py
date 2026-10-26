@@ -47,6 +47,27 @@ def test_cached_prefix_equals_one_pass(engine):
     assert max(abs(u - v) for x, y in zip(again, engine._run(b.score_positions_from, head, ids, pos)) for u, v in zip(x, y)) == 0
 
 
+def test_answer_prefix_reuse_equals_one_pass(engine):
+    """D32: a rewrite of the last sentence reuses the verdicts of the others and reads only the changed part; the
+    result equals one cold pass on the new answer."""
+    from groundone.prompts import encode_marked, marked_prefix_lengths
+    b = engine.backend
+    doc = "The Eiffel Tower is in Paris. It was completed in 1889 and is 330 metres tall. " * 5
+    a = ["The tower is in Paris.", "It was finished in 1889.", "It is 500 metres tall."]
+    new = a[:2] + ["It is 330 metres tall."]
+    ids_a, pos_a = encode_marked(b.tokenizer, doc, a, [True] * 3)
+    ids_b, pos_b = encode_marked(b.tokenizer, doc, new, [True] * 3)
+    engine._docs.clear(); engine._answers.clear()
+    engine._run(engine._score_cached, doc, ids_a, pos_a)
+    reused, hit = engine._run(engine._score_cached, doc, ids_b, pos_b)
+    assert hit == "answer prefix"
+    cold = engine._run(b.score_positions, [ids_b], [pos_b])[0]
+    from groundone.calibration import softmax
+    for x, y in zip(reused, cold):   # bf16 rounding of a different chunking; measured envelope for the cache: 0.07
+        assert max(abs(u - v) for u, v in zip(x, y)) < 0.08
+        assert max(abs(u - v) for u, v in zip(softmax(x), softmax(y))) < 0.02
+
+
 def test_verify_end_to_end(engine):
     from groundone.schema import VerifyRequest
     r = engine.verify(VerifyRequest(document="Paris is the capital of France.",

@@ -169,7 +169,7 @@ struct TimingSummary: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
             if let v = version.verdicts, let c = v.cachedTokens, c > 0 {
-                Text("The sources were already read for an earlier verification: GroundOne reused \(c) cached tokens and read only the answer\(version.judge?.cachedTokens ?? 0 > 0 ? " (the LLM judge too)" : "").")
+                Text("Already read for an earlier verification: GroundOne reused \(c) cached tokens (the sources, and the sentences unchanged since the last version) and read only the rest\(version.judge?.cachedTokens ?? 0 > 0 ? "; the LLM judge reused the sources too" : "").")
                     .font(.caption).foregroundStyle(.secondary)
                     .accessibilityIdentifier("prefix-cache-note")
             }

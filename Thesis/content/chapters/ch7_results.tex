@@ -508,6 +508,48 @@ to 5.2) and from 1.6 to 3.1 times with the 3B (2.8 to 3.3), and over the verbose
 document cached, 90\,\% of GroundOne's time is the reading of the answer alone and the rest is deciding: verifying a
 rewritten answer therefore costs little more than its length.
 
+\paragraph{Reuse of the answer prefix.} A rewrite usually changes one or a few sentences, and everything before the
+first changed token is identical to the version already verified. The cache can therefore keep the whole sequence of the
+last verification, answer included: the new pass starts at the first changed token, and the verdicts of the earlier
+markers, which causal attention makes independent of what follows them, are taken unchanged from the previous pass. To
+measure it, one scored sentence of each of the 200 answers was changed, the first, the middle or the last one, by
+appending a few words to it (``, as reported.''), and the new version was verified once with only the document cached
+and once with the previous version of the answer cached as well. The change stands in for a rewrite: the time depends
+only on where the first changed token falls and on how many tokens follow it, not on what the sentence says.
+Table~\ref{tab:results-answer-prefix} reports the medians.
+
+\begin{table}[htbp]
+\centering
+\caption{Verification of an answer with one sentence changed, on the same 200 answers of T1: median times in seconds
+with only the document cached and with the previous version of the answer cached as well, and in parentheses the ratio
+between the two. The LLM judge reuses the same prefix but writes all its verdicts again.}
+\label{tab:results-answer-prefix}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llcccc}
+\toprule
+Model & System & \makecell{Document\\cached} & \makecell{First sentence\\changed} & \makecell{Middle sentence\\changed} & \makecell{Last sentence\\changed} \\
+\midrule
+0.5B & GroundOne & 0.106 & 0.095 (1.1$\times$) & 0.051 (2.1$\times$) & 0.021 (5.0$\times$) \\
+ & Terse LLM judge & 0.512 & 0.516 (1.0$\times$) & 0.485 (1.1$\times$) & 0.452 (1.1$\times$) \\
+\midrule
+3B & GroundOne & 0.589 & 0.515 (1.2$\times$) & 0.285 (2.1$\times$) & 0.093 (6.3$\times$) \\
+ & Terse LLM judge & 1.828 & 1.717 (1.1$\times$) & 1.549 (1.2$\times$) & 1.412 (1.3$\times$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For GroundOne the time follows the tokens left to read. When the last sentence changes, 8 tokens are read at the median
+instead of 249, and the verification takes 0.02 seconds with the 0.5B and 0.09 with the 3B, five and six times less than
+with the document alone; a change in the middle sentence halves the time; a change in the first sentence leaves almost
+the whole answer to read, and the gain is 13 to 15\,\%. Over the three positions together, the gain is 2.6 times with the
+0.5B and 2.7 times with the 3B. The terse LLM judge gains 3 to 29\,\%: it reads less as well, but all its verdicts come
+after the whole answer, so a change in any sentence invalidates every one of them, and their decoding, most of its time,
+is repeated in full. With the previous version cached, GroundOne's advantage over the terse LLM judge therefore rises
+from 4.8 to 12 times with the 0.5B (11.2 to 12.9) and from 3.1 to 7.1 times with the 3B (6.6 to 7.8). The service and
+the application reuse the answer prefix in the same way (Chapter~\ref{ch:studio}), and the same tests that check the
+document cache check that the reused verdicts match those of a pass without cache.
+
 Speed is not the only difference (Figure~\ref{fig:results-judges}). The untrained LLM judges are also much less
 accurate, and they do not always respect the output format. The 0.5B verbose LLM judge produces a parsable verdict for only
 3\,\% of the sentences, because it mostly copies the answer back, while the 0.5B terse LLM judge fails on 23\,\% of the

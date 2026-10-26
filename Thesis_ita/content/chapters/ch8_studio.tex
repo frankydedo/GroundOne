@@ -114,7 +114,7 @@ massima differenza tra le probabilità calibrate è 0.005 e le etichette coincid
 della tesi valgono quindi anche per il verificatore dell'applicazione. Con il 0.5B tre frasi su 1{,}747 superano una
 differenza di 0.01, con un massimo di 0.031, e le etichette coincidono nel 99.71\,\% dei casi; ogni disaccordo riguarda
 una frase la cui probabilità di supporto cade a meno di 0.01 dalla soglia. Una causa plausibile, non verificata, è un
-diverso ordine delle somme in precisione ridotta, che pesa di più sul modello piccolo.
+diverso ordine delle somme in precisione ridotta, che pesa di più sul modello piccolo. Lo stesso test confronta in Swift il percorso con la cache, che riusa le fonti o l'inizio di una risposta già verificata dopo la modifica di un token, con il passaggio senza cache: le probabilità differiscono al più di 0.007 con il 3B e di 0.019 con il 0.5B, lo stesso ordine di grandezza osservato in Python (Sezione~\ref{sec:results-latency-split}).
 
 \begin{table}[htbp]
 \centering
@@ -131,6 +131,7 @@ Massima differenza tra i logit & 0.070 & 0.172 \\
 Massima differenza tra le probabilità calibrate & 0.005 & 0.031 \\
 Frasi con differenza di probabilità sotto 0.01 & 100\,\% & 99.83\,\% \\
 Etichette servite identiche & 100\,\% & 99.71\,\% \\
+Massima differenza tra le probabilità con e senza cache & 0.007 & 0.019 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -251,8 +252,8 @@ soltanto ciò che è stato segnalato~\cite{gao2023rarr,gou2024critic}, mentre la
 esterno, non migliora in modo affidabile le risposte~\cite{huang2024cannotselfcorrect}. GroundOne è il critico, ed è
 economico: verificare di nuovo costa un solo prefill, e nemmeno completo. Le istruzioni e le fonti, già lette alla
 prima verifica, restano nella KV cache (Sezione~\ref{sec:method-readout}), quindi la nuova versione richiede soltanto la
-lettura della risposta riscritta, che nelle misure della Sezione~\ref{sec:results-latency-split} rende la verifica 3.4 volte più rapida con il 3B; il giudice LLM, quando è richiesto, riusa allo stesso modo la propria cache, e il
-pannello dei tempi segnala quando le fonti sono state riusate. Per ogni frase da riscrivere, il generatore riceve una richiesta
+lettura della risposta riscritta, che nelle misure della Sezione~\ref{sec:results-latency-split} rende la verifica 3.4 volte più rapida con il 3B. Resta in cache anche la parte della risposta che precede la prima frase riscritta, insieme ai verdetti delle sue frasi, quindi la lettura riparte dalla prima modifica: quando viene riscritta l'ultima frase, la verifica è circa sei volte più rapida che con le sole fonti in cache (Tabella~\ref{tab:results-answer-prefix}). Il giudice LLM, quando è richiesto, riusa la cache delle fonti, ma riscrive tutti i propri verdetti; il
+pannello dei tempi indica quanti token sono stati riusati. Per ogni frase da riscrivere, il generatore riceve una richiesta
 breve, con la frase e il solo estratto del documento che la riguarda, e un'istruzione che dipende dal tipo di errore.
 Una frase contraddetta va corretta con i fatti della fonte, e non può essere cancellata: se il generatore non restituisce
 una frase utilizzabile, quella originale resta al suo posto e viene ripresentata al giro successivo. Una frase non
@@ -301,7 +302,7 @@ Conversazioni & Un file JSON per conversazione. & Domande, versioni della rispos
 Registro delle azioni & File JSONL in sola aggiunta. & Una riga per ogni generazione, verifica e riscrittura; base delle statistiche e del registro consultabile. \\ \addlinespace[2pt]
 Libreria & Database SQLite. & Indice full-text per BM25 ed embedding dei passaggi, con l'origine di ciascun passaggio. \\ \addlinespace[2pt]
 Policy & File JSON. & Regole di decisione e di riscrittura selezionabili. \\ \addlinespace[2pt]
-KV cache delle fonti & Solo in memoria. & Istruzioni e ultimi documenti già letti, riusati dalle verifiche successive; non è salvata su disco. \\
+KV cache delle fonti & Solo in memoria. & Istruzioni, ultimi documenti già letti e ultima risposta verificata, riusati dalle verifiche successive; non è salvata su disco. \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -126,9 +126,10 @@ class Backend:
             c.state = st
         return cache, n
 
-    def score_positions_from(self, prefix, ids, positions, letters=("A", "B", "C")):
+    def score_positions_from(self, prefix, ids, positions, letters=("A", "B", "C"), keep=False):
         """Design (b) for one sequence with a prefilled prefix: the forward pass covers only ids[len(prefix):]; marker
-        positions are absolute and must lie after the prefix. Same logits as score_positions on the whole sequence."""
+        positions are absolute and must lie after the prefix. Same logits as score_positions on the whole sequence.
+        keep=True also returns the KV state of the whole sequence, for a later request that shares a longer prefix."""
         mx = self.mx
         from .readout import head
         cache, n = self._cache_from(prefix, ids)
@@ -139,7 +140,14 @@ class Backend:
             lid = mx.array([self.letter_ids[L] for L in letters])
             lg = head(self.model, h[0, mx.array([p - n for p in positions])])[:, lid].astype(mx.float32)
             mx.eval(lg)
+        if keep:
+            return lg.tolist(), {"ids": tuple(ids), "state": [c.state for c in cache]}
         return lg.tolist()
+
+    @staticmethod
+    def slice_prefix(entry, n):
+        """The first n tokens of a cached sequence state (views on the stored arrays; a read never mutates them)."""
+        return {"ids": entry["ids"][:n], "state": [(k[..., :n, :], v[..., :n, :]) for k, v in entry["state"]]}
 
     # ------------------------------------------------------------------ scoring
     def score_shared(self, prompts, letters_list):

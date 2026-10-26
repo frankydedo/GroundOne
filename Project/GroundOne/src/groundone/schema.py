@@ -59,7 +59,8 @@ class VerifyResponse(Strict):
     n_decisions: int
     usage: dict[str, int]
     timing: dict[str, float]
-    prefix_cache: str | None = Field(default=None, description="Design (b): prefix reused from the cache: document, "
-                                                               "instructions (document read now) or none (D32)")
+    prefix_cache: str | None = Field(default=None, description="Design (b): prefix reused from the cache: answer prefix "
+                                                               "(the unchanged first sentences of the last answer on this document), "
+                                                               "document, instructions (document read now) or none (D32)")
     fingerprint: str
     calibrated: bool

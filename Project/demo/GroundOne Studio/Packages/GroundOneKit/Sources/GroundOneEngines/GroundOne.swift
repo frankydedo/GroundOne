@@ -22,7 +22,12 @@ public final class GroundOneModel: @unchecked Sendable {
     /// Room for the answer's sources plus the per-passage heads that "Find evidence" reads (six passages), so that
     /// a re-verification after it still finds the sources (about 36 KB per token with the 3B).
     public var maxCachedPrefixes = 16
+    /// The last answer verified (adapter on): token ids, KV state of the whole sequence, marker positions and logits.
+    private var lastAnswer: (ids: [Int], state: PrefixState, positions: [Int], logits: [[Double]])?
     public var prefixCacheEnabled = true
+
+    /// Drops the last answer, so that the next pass reuses at most the cached head (used by the conformance check).
+    public func forgetLastAnswer() { lock.withLock { lastAnswer = nil } }
 
     public var name: String { "GroundOne \(info.run)" }
 
@@ -52,28 +57,52 @@ public final class GroundOneModel: @unchecked Sendable {
 
     /// One forward pass; raw A/B/C logits at each marker position (float32, as `score_positions`). With `prefixLength`
     /// the first tokens (instructions + document) come from the prefix cache when present, else they are read and
-    /// cached; the pass then covers only the answer (`score_positions_from`). Returns the logits and the cached tokens.
+    /// cached; the pass then covers only the answer (`score_positions_from`). If the answer also starts like the last
+    /// one verified (a rewrite of a later sentence), the verdicts of the unchanged sentences are reused and the pass
+    /// starts at the first changed token. Returns the logits and the number of tokens taken from the cache.
     public func scorePositions(ids: [Int], positions: [Int], prefixLength: Int? = nil) async throws
         -> (logits: [[Double]], cachedTokens: Int)
     {
         guard !positions.isEmpty else { return ([], 0) }
         try await setAdapter(true)
         let letters = letterIDs
-        let n = prefixCacheEnabled ? min(prefixLength ?? 0, positions.min()!) : 0
-        let hit = n > 0 ? cachedPrefix(adapter: true, ids: Array(ids[..<n])) : nil
-        let (logits, state) = try await container.perform { context -> ([[Double]], PrefixState?) in
+        let head = prefixCacheEnabled ? min(prefixLength ?? 0, positions.min()!) : 0
+        // answer prefix: the last answer verified on the same head
+        var start = head, reused: [Int: [Double]] = [:], from: PrefixState? = nil
+        if head > 0, let last = lock.withLock({ lastAnswer }), last.ids.count > head, Array(last.ids[..<head]) == Array(ids[..<head]) {
+            var n = 0
+            while n < min(last.ids.count, ids.count) && last.ids[n] == ids[n] { n += 1 }
+            let old = Dictionary(uniqueKeysWithValues: zip(last.positions, last.logits))
+            for p in positions where p < n { if let l = old[p] { reused[p] = l } }
+            let todo = positions.filter { reused[$0] == nil }
+            if !reused.isEmpty {
+                if todo.isEmpty { return (positions.map { reused[$0]! }, n) }
+                start = min(n, todo.first!)
+                let cut = start
+                from = PrefixState(last.state.arrays.map { kv in kv.map { $0[.ellipsis, ..<cut, 0...] } })
+            } else { reused = [:] }
+        }
+        let todo = positions.filter { reused[$0] == nil }
+        let n = start
+        let hit = from == nil && head > 0 ? cachedPrefix(adapter: true, ids: Array(ids[..<head])) : nil
+        let given = from
+        let (fresh, freshHead, full) = try await container.perform { context -> ([[Double]], PrefixState?, PrefixState?) in
             guard let qwen = context.model as? Qwen2Model else { throw ModelAdapterError.incompatibleModelType }
-            let cache = n > 0 ? try Self.cache(context, qwen, ids: Array(ids[..<n]), state: hit) : nil
+            let cache = n > 0 ? try Self.cache(context, qwen, ids: Array(ids[..<n]), state: given ?? hit) : nil
             let x = MLXArray(ids[n...].map { Int32($0) }).expandedDimensions(axis: 0)
             let h = qwen.model(x, cache: cache?.layers)[0]
-            let rows = h[MLXArray(positions.map { Int32($0 - n) })]
-            let full = try Self.head(qwen, rows)
-            let lg = full[0..., MLXArray(letters.map { Int32($0) })].asType(.float32)
+            let rows = h[MLXArray(todo.map { Int32($0 - n) })]
+            let out = try Self.head(qwen, rows)
+            let lg = out[0..., MLXArray(letters.map { Int32($0) })].asType(.float32)
             eval(lg)
-            return (lg.asArray(Float.self).chunked(3).map { $0.map(Double.init) }, cache?.fresh)
+            return (lg.asArray(Float.self).chunked(3).map { $0.map(Double.init) }, cache?.fresh,
+                    cache.map { PrefixState($0.layers.map(\.state)) })
         }
-        if let state { storePrefix(adapter: true, ids: Array(ids[..<n]), state: state) }
-        return (logits, hit != nil ? n : 0)
+        if let freshHead, given == nil { storePrefix(adapter: true, ids: Array(ids[..<n]), state: freshHead) }
+        for (p, l) in zip(todo, fresh) { reused[p] = l }
+        let logits = positions.map { reused[$0]! }
+        if let full { lock.withLock { lastAnswer = (ids, full, positions, logits) } }
+        return (logits, given != nil || hit != nil ? n : 0)
     }
 
     /// KV caches holding `ids` already read: restored from `state`, or computed now (then `fresh` is the new state).

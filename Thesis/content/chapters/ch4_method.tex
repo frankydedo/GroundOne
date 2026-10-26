@@ -101,8 +101,11 @@ case of a rewritten answer verified again, of several alternative answers genera
 several questions on the same library. Prefix reuse is not an exclusive advantage of the decision model: the prompt of
 an LLM judge also starts with instructions and document, and can reuse them in the same way. The marker format,
 however, makes it particularly effective, because after the prefix only the answer remains to be read, and every
-additional sentence costs the three tokens of its marker. GroundOne keeps the instructions and the last documents read,
-both in the service and in the application of Chapter~\ref{ch:studio}; Section~\ref{sec:results-latency-split}
+additional sentence costs the three tokens of its marker. The same argument holds inside the answer: when a rewrite
+changes a sentence, the part of the answer before it is unchanged, and so are the verdicts at its markers, which depend
+only on what precedes them; only what follows the first change has to be read again. An LLM judge cannot exploit this
+in the same way, because its verdicts follow the whole answer and must all be written again. GroundOne keeps the
+instructions, the last documents read and the last answer verified, both in the service and in the application of Chapter~\ref{ch:studio}; Section~\ref{sec:results-latency-split}
 measures the effect for GroundOne and for the LLM judges.
 
 \paragraph{A classifier, not a faster generator.} The readout restricts the decision to three letters, and the
