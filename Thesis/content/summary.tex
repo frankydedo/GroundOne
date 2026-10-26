@@ -64,9 +64,9 @@ simple changes to the optimiser could mitigate.
 
 Finally, GroundOne Studio, a macOS application, puts the verifier to work in a complete RAG assistant that runs in a
 single process on the laptop, without network access: retrieval, generation, verification and comparison with a local
-LLM judge take at most 6.2\,GB of memory allocated by MLX. The generator's answer appears first, and the
+LLM judge take at most 6.9\,GB of memory allocated by MLX. The generator's answer appears first, and the
 verification and the rewriting of flagged sentences happen on request. In a case study with 100 injected errors,
 GroundOne flags the error in 97 of the 98 answers in which the sentence receives a verdict, the LLM judge in 84; after two
-rounds of targeted rewriting the answers that still contain the error fall to 9\,\%, with numbers and dates mostly
+rounds of targeted rewriting the answers that still contain the error fall to 6\,\%, with numbers and dates mostly
 restored from the source and invented sentences deleted. The three-way verdict decides the repair: contradicted
 sentences are corrected, sentences that are not mentioned are often removed.

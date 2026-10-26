@@ -1,0 +1,7 @@
+# 2026-10-26 (author): rewrite with copy check + retry (final), and generator 3B vs 7B (examples + injected-error case study); best-of-3 rerun with the final rewrite.
+"demo/GroundOne Studio/build/dd/Build/Products/Release/g1studio" examples outputs/demo/results/example_questions.json --generator mlx-community/Qwen2.5-3B-Instruct-4bit --name examples-gen3b
+"demo/GroundOne Studio/build/dd/Build/Products/Release/g1studio" casestudy --verifier g1-3b-b1 --input injected-set2.jsonl --name casestudy-g1-3b-b1-set2-final --generator mlx-community/Qwen2.5-3B-Instruct-4bit
+"demo/GroundOne Studio/build/dd/Build/Products/Release/g1studio" bestofn --verifier g1-3b-b1 --name bestofn-g1-3b-b1-final --generator mlx-community/Qwen2.5-3B-Instruct-4bit
+while pgrep -f "hf download mlx-community/Qwen2.5-7B" >/dev/null; do sleep 30; done; GroundOne/.venv/bin/hf download mlx-community/Qwen2.5-7B-Instruct-4bit >/dev/null 2>&1
+"demo/GroundOne Studio/build/dd/Build/Products/Release/g1studio" examples outputs/demo/results/example_questions.json --generator mlx-community/Qwen2.5-7B-Instruct-4bit --name examples-gen7b
+"demo/GroundOne Studio/build/dd/Build/Products/Release/g1studio" casestudy --verifier g1-3b-b1 --input injected-set2.jsonl --name casestudy-g1-3b-b1-set2-gen7b --generator mlx-community/Qwen2.5-7B-Instruct-4bit

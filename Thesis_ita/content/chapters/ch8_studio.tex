@@ -87,7 +87,7 @@ Tutte le chiamate ai modelli passano per i contenitori dei modelli di MLX Swift,
 eseguite una alla volta sulla GPU, come avviene con il singolo thread di lavoro del servizio Python
 (Sezione~\ref{sec:method-software}). Generazione e verifica non si contendono quindi le risorse, e i tempi misurati non
 sono confusi da esecuzioni concorrenti. Con i tre modelli caricati, la memoria allocata da MLX è di circa 5.3\,GB e
-raggiunge un picco di 6.2\,GB durante l'uso, in linea con la misura di co-residenza della
+raggiunge un picco di 6.2\,GB durante una domanda e di 6.9\,GB dopo una sessione di dodici domande, quando la KV cache conserva anche le fonti di quelle precedenti. Il primo valore è in linea con la misura di co-residenza della
 Tabella~\ref{tab:results-coresidence}, che non comprendeva il retriever. Il modello di embedding aggiunge quindi poco:
 occupa circa 130\,MB su disco.
 
@@ -256,8 +256,7 @@ pannello dei tempi segnala quando le fonti sono state riusate. Per ogni frase da
 breve, con la frase e il solo estratto del documento che la riguarda, e un'istruzione che dipende dal tipo di errore.
 Una frase contraddetta va corretta con i fatti della fonte, e non può essere cancellata: se il generatore non restituisce
 una frase utilizzabile, quella originale resta al suo posto e viene ripresentata al giro successivo. Una frase non
-menzionata va riscritta con ciò che la fonte dice sullo stesso punto, oppure tolta se la fonte non ne parla. Le altre
-frasi restano invariate. Il numero massimo di giri e le classi da correggere sono fissati dalla policy.
+menzionata va riscritta con ciò che la fonte dice sullo stesso punto, oppure tolta se la fonte non ne parla. In entrambi i casi l'istruzione chiede esplicitamente di non restituire la frase invariata. Se il generatore la ricopia comunque, cosa che con un modello piccolo accade, la richiesta viene ripetuta una volta citando la copia e respingendola; se anche il secondo tentativo restituisce la stessa frase, la frase resta com'è, segnalata, e il pannello indica che il generatore non è riuscito a correggerla. Nei giri successivi non viene ritentata, perché con la decodifica greedy la risposta sarebbe la stessa. Le altre frasi restano invariate. Il numero massimo di giri e le classi da correggere sono fissati dalla policy.
 
 \paragraph{Policy e soglia.} Una policy è un piccolo file JSON che stabilisce quali verdetti vanno corretti, quanti giri
 di riscrittura sono ammessi, che cosa fare se l'errore persiste (evidenziare, nascondere la frase o astenersi) e quale
@@ -326,7 +325,7 @@ quella inventata. Il caso di studio non usa il recupero: il documento è quello 
 \begin{table}[htbp]
 \centering
 \caption{Caso di studio sugli errori iniettati: 100 risposte di T1, un errore ciascuna, GroundOne 3B e generatore
-Qwen2.5-3B-Instruct a 4 bit nello stesso processo, senza il modello di embedding. Rilevamento calcolato sulle 98 risposte
+Qwen2.5-3B-Instruct a 4 bit nello stesso processo, senza il modello di embedding, con la KV cache delle fonti attiva. Rilevamento calcolato sulle 98 risposte
 in cui la frase con l'errore riceve un proprio verdetto.}
 \label{tab:studio-casestudy}
 \small
@@ -336,16 +335,17 @@ Misura & Valore \\
 \midrule
 Frase con l'errore segnalata da GroundOne & 97 su 98 \\
 Frase con l'errore segnalata dal giudice LLM & 84 su 98 \\
-Falsi allarmi di GroundOne sulle altre frasi & 1.6\,\% \\
-Risposte che contengono ancora l'errore: senza ciclo, dopo uno e dopo due giri & 100\,\%, 10\,\%, 9\,\% \\
-Errori rimossi ripristinando il valore della fonte & 41 \\
+Falsi allarmi di GroundOne sulle altre frasi & 1.8\,\% \\
+Risposte che contengono ancora l'errore: senza ciclo, dopo uno e dopo due giri & 100\,\%, 8\,\%, 6\,\% \\
+Errori rimossi ripristinando il valore della fonte & 42 \\
 Errori rimossi riscrivendo la frase & 1 \\
-Errori rimossi cancellando la frase & 49 \\
-Errori rimasti: ancora segnalati / mai segnalati & 6 / 3 \\
-Altre frasi rimaste identiche & 98.2\,\% \\
-Risposte accettate da GroundOne al termine & 90\,\% \\
-Tempo mediano per risposta: GroundOne, giudice LLM, riscrittura per giro & 1.74\,s, 2.27\,s, 0.90\,s \\
-Memoria allocata da MLX: dopo il caricamento e al picco & 5.1\,GB, 6.2\,GB \\
+Errori rimossi cancellando la frase & 51 \\
+Errori rimasti: ancora segnalati / mai segnalati & 3 / 3 \\ 
+Frasi che il generatore ricopia anche al secondo tentativo & 3 \\
+Altre frasi rimaste identiche & 98.0\,\% \\
+Risposte accettate da GroundOne al termine & 94\,\% \\
+Tempo mediano per risposta: GroundOne, giudice LLM, riscrittura per giro & 1.74\,s, 2.36\,s, 0.92\,s \\
+Memoria allocata da MLX: dopo il caricamento e al picco & 5.1\,GB, 6.7\,GB \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -353,19 +353,15 @@ Memoria allocata da MLX: dopo il caricamento e al picco & 5.1\,GB, 6.2\,GB \\
 \paragraph{Risultati.} La Tabella~\ref{tab:studio-casestudy} e la Figura~\ref{fig:studio-outcomes} riassumono il caso di
 studio. In 98 risposte la frase con l'errore riceve un proprio verdetto; nelle altre due, il segmentatore la unisce a una
 frase introduttiva priva di contenuto verificabile, e la frase non viene valutata. GroundOne segnala l'errore in 97 delle
-98 risposte, il giudice LLM in 84. Il ciclo riduce le risposte che contengono ancora l'errore dal 100\,\% al 10\,\% dopo un giro
-e al 9\,\% dopo due, secondo il conteggio automatico. Il modo in cui gli errori vengono rimossi conta quanto il numero. Per
-i numeri e le date sostituiti, nella maggior parte dei casi il generatore ripristina il valore della fonte: 18 numeri e 16
-date su 25. Le frasi inventate vengono invece cancellate, tutte e 25, ed è la correzione appropriata. I nomi inventati,
+98 risposte, il giudice LLM in 84. Il ciclo riduce le risposte che contengono ancora l'errore dal 100\,\% all'8\,\% dopo un giro e al 6\,\% dopo due, secondo il conteggio automatico. Il modo in cui gli errori vengono rimossi conta quanto il numero. Per
+i numeri e le date sostituiti, nella maggior parte dei casi il generatore ripristina il valore della fonte: 19 numeri e 16 date su 25. Le frasi inventate vengono invece cancellate, tutte e 25, ed è la correzione appropriata. I nomi inventati,
 infine, sono etichettati correttamente come non menzionati, e per questo vengono per lo più tolti, 18 su 25, anziché
-sostituiti con quello originale, 7 su 25: la frase perde l'errore, ma anche l'informazione. Delle nove risposte che
-conservano l'errore, sei restano segnalate e vengono quindi evidenziate dalla policy. Nelle altre tre l'errore non viene mai
-segnalato: in una la probabilità di supporto, 0.93, supera di poco la soglia di 0.925; nelle altre due la frase iniettata
+sostituiti con quello originale, 7 su 25: la frase perde l'errore, ma anche l'informazione. Il controllo delle copie interviene tre volte: in tre frasi il generatore restituisce la stessa frase anche al secondo tentativo, e la frase resta segnalata. Delle sei risposte che conservano l'errore, tre restano segnalate e vengono quindi evidenziate dalla policy. Nelle altre tre l'errore non viene mai segnalato: in una la probabilità di supporto, 0.93, supera di poco la soglia di 0.925; nelle altre due la frase iniettata
 non riceve un proprio verdetto.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{images/studio/casestudy_outcomes_g1-3b-b1-set2_it.png}
+\includegraphics[width=\textwidth]{images/studio/casestudy_outcomes_g1-3b-b1-set2-final_it.png}
 \caption{Esito di ciascun errore iniettato dopo il ciclo, per tipo di errore, con GroundOne 3B: valore ripristinato dalla
 fonte, frase riscritta, frase cancellata, errore ancora presente e segnalato, errore accettato da GroundOne.}
 \label{fig:studio-outcomes}
@@ -374,10 +370,9 @@ fonte, frase riscritta, frase cancellata, errore ancora presente e segnalato, er
 \paragraph{Il tipo di errore decide la riparazione.} Ripetere il caso di studio con GroundOne 0.5B come verificatore mostra
 perché il verdetto a tre classi conta, e non soltanto la segnalazione. Il 0.5B segnala l'errore in 97 risposte su 98, come
 il 3B, ma etichetta quasi tutti i numeri e le date sostituiti come non menzionati (44 su 50), mentre il 3B li riconosce come
-contraddetti (40 su 50). Per una frase non menzionata la riscrittura può togliere la frase, e il generatore lo fa: con il
-0.5B gli errori rimossi cancellando la frase sono 87 e quelli rimossi ripristinando il valore appena 9. Le risposte che
+contraddetti (40 su 50). Per una frase non menzionata la riscrittura può togliere la frase, e il generatore lo fa: con il 0.5B gli errori rimossi cancellando la frase sono 84 e quelli rimossi ripristinando il valore appena 12. Le risposte che
 conservano l'errore scendono al 3\,\%, ma a prezzo di informazione persa e di molti falsi allarmi: il 0.5B segnala il 17\,\%
-delle altre frasi, che sono corrette, e solo l'86\,\% di esse resta invariato. La distinzione fra frase contraddetta e frase non
+delle altre frasi, che sono corrette, e solo l'84\,\% di esse resta invariato. La distinzione fra frase contraddetta e frase non
 menzionata, che il Capitolo~\ref{sec:method} motiva in astratto, qui decide se la correzione ripristina l'informazione o
 la elimina.
 
@@ -392,11 +387,18 @@ non sono stati misurati.
 \paragraph{Un confronto a parità di calcolo.} Su 60 nuove risposte di T1, generate dal modello per ciascun task, il ciclo
 completo, cioè risposta, verifica e fino a due giri di riscrittura mirata, è stato confrontato con una strategia che non
 corregge nulla: generare fino a tre risposte con campionamento e tenere la prima che GroundOne accetta. La prima risposta
-è accettata nel 52\,\% dei casi. Al termine, il ciclo porta le risposte accettate al 63\,\%, la generazione multipla al
-62\,\%; il ciclo impiega però una mediana di 6.9 secondi e 115 token generati, contro 10.3 secondi e 218 token. Le
-riscritture, quindi, non accettano più risposte di quante ne accetterebbe rigenerarle da capo, ma costano circa due terzi
-del tempo e la metà dei token. Una parte delle risposte resta segnalata perché il generatore da 3B non riesce a correggere
+è accettata nel 52\,\% dei casi. Al termine, il ciclo porta le risposte accettate al 70\,\%, la generazione multipla al 62\,\% (42 e 37 risposte su 60, una differenza piccola su questo campione). Il ciclo genera però la metà dei token, 115 contro 218 in mediana, in un tempo simile, 6.3 secondi contro 7.0: anche la generazione multipla verifica ogni campione sullo stesso documento, e riusa quindi la sua KV cache. Riscrivere le sole frasi segnalate, quindi, accetta almeno tante risposte quante rigenerarle da capo, con la metà della generazione. Una parte delle risposte resta segnalata perché il generatore da 3B non riesce a correggere
 una frase contraddetta, che il ciclo non può cancellare.
+
+\paragraph{Un generatore più grande.} Il generatore si può scegliere nell'applicazione: oltre al 3B è disponibile
+Qwen2.5-7B-Instruct a 4 bit. Sullo stesso caso di studio il 7B corregge tutti gli errori che GroundOne segnala: le
+risposte che contengono ancora l'errore scendono al 3\,\%, cioè alle tre in cui GroundOne non lo segnala, contro il
+6\,\% con il 3B, e quelle accettate da GroundOne salgono al 98\,\%. Il prezzo è il tempo e la memoria: una riscrittura
+costa 2.1 secondi per giro contro 0.9, e il picco di memoria allocata da MLX sale a 9.2\,GB contro 6.7. Sulle dodici
+domande di esempio della libreria, inoltre, il 7B scrive risposte di lunghezza simile (276 parole in mediana contro
+250) in più del doppio del tempo (17.7 secondi contro 7.6), e aggiunge più contenuto che le fonti non riportano:
+GroundOne considera supportato il 66\,\% delle sue frasi, contro l'85\,\% di quelle del 3B. Per questo il 3B resta il
+generatore predefinito.
 
 \paragraph{Come leggere i risultati.} Tre avvertenze delimitano la portata del caso di studio. La prima riguarda il
 rilevamento. Le risposte sono state scelte fra quelle che GroundOne accetta, e gli errori iniettati sono netti: valori e
@@ -405,9 +407,8 @@ recall di GroundOne, che è misurata nel Capitolo~\ref{sec:results}. La seconda 
 un'etichetta di riferimento, e la loro correttezza è giudicata soltanto da GroundOne, lo stesso modello che decide quando
 fermare il ciclo. Una riscrittura che cade in un punto cieco del modello viene quindi contata come riuscita, e il conteggio
 automatico registra soltanto la scomparsa dell'errore iniettato, non eventuali nuovi errori introdotti dalla riscrittura.
-Per questo i risultati sono espressi come risposte ``accettate da GroundOne'', non come risposte corrette, e il 90\,\% di
-risposte accettate comprende tre risposte che contengono ancora l'errore. La terza riguarda il generatore. Un modello da 3B
-a volte non sa correggere una frase e a volte la toglie: 24 dei 49 errori rimossi per cancellazione portano via anche
+Per questo i risultati sono espressi come risposte ``accettate da GroundOne'', non come risposte corrette, e il 94\,\% di risposte accettate comprende tre risposte che contengono ancora l'errore. La terza riguarda il generatore. Un modello da 3B
+a volte non sa correggere una frase e a volte la toglie: 26 dei 51 errori rimossi per cancellazione portano via anche
 un'informazione corretta, per cui una parte delle risposte accettate è semplicemente più breve.
 
 \section{Un esempio: un errore numerico sottile}
@@ -421,8 +422,7 @@ Sezione~\ref{sec:results-errors} indica come il più difficile per GroundOne. Gr
 supporto di 0.86, sotto la soglia di 0.925, e indica la contraddizione come errore più probabile; il giudice LLM
 la considera supportata. GroundOne segnala inoltre come non menzionate tre frasi che aggiungono dettagli o deduzioni
 assenti dai documenti, per esempio che il display mostri l'importo del pedaggio, mentre il giudice LLM le accetta tutte.
-La riscrittura, però, non riesce: il generatore da 3B restituisce la stessa frase, con lo stesso importo sbagliato, a
-conferma che la qualità del ciclo dipende anche dal generatore.
+La riscrittura, però, non riesce: il generatore da 3B restituisce la stessa frase, con lo stesso importo sbagliato, anche al secondo tentativo, che cita la copia e la respinge. L'applicazione lo rileva e lascia la frase segnalata: la qualità del ciclo dipende anche dal generatore.
 
 \section{Probabilità calibrate e soglia di decisione}
 \label{sec:studio-threshold}

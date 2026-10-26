@@ -1,4 +1,5 @@
 import GroundOneCore
+import GroundOneEngines
 import SwiftUI
 
 struct AskView: View {
@@ -55,6 +56,12 @@ struct AskView: View {
                     ForEach(model.policies) { Text($0.name).tag($0.name) }
                 }
                 .help("Policy: which verdicts Fix rewrites, how many rounds, threshold τ")
+                Picker("Generator", selection: Binding(get: { model.generatorRepo }, set: { r in Task { await model.switchGenerator(to: r) } })) {
+                    ForEach(ModelCatalog.generators, id: \.0) { Text($0.1).tag($0.0) }
+                }
+                .disabled(model.fake)
+                .help("Generator of the answers and of the rewrites")
+                .accessibilityIdentifier("generator-picker")
                 Picker("Verifier", selection: Binding(get: { model.verifierRun }, set: { r in Task { await model.switchVerifier(to: r) } })) {
                     Text("GroundOne 3B").tag("g1-3b-b1")
                     Text("GroundOne 0.5B").tag("g1-05b-b1")

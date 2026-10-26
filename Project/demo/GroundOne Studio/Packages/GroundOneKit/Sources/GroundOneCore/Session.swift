@@ -13,6 +13,8 @@ public struct Version: Codable, Sendable, Identifiable {
     /// Sentence indices of the previous version that were rewritten (fixed versions only).
     public var rewritten: [Int] = []
     public var rewriteLog: String?
+    /// Sentence indices of the previous version that the generator only repeated, even after the retry: kept, flagged.
+    public var unchanged: [Int]?
     public var verdicts: Verdicts?
     public var judge: JudgeVerdicts?
 
@@ -140,22 +142,23 @@ public struct StudioSession: Sendable {
         let sentences = v.sentences
         var repl: [Int: String] = [:]
         var log: [String] = []
+        var unchanged: [Int] = []
         var stats = GenerationStats()
         for i in indices where sentences.indices.contains(i) {
             var s = sentences[i]
             if s.label == nil || s.label == .supported { s.label = .notMentioned }
-            let (out, st) = try await generator.complete(system: Revision.sentenceSystem,
-                                                         user: Revision.sentencePrompt(s, document: document), maxTokens: 90)
+            let (fixed, outcome, st) = try await Revision.rewrite(s, document: document, generator: generator)
             stats.generatedTokens += st.generatedTokens
             stats.promptTokens += st.promptTokens
             stats.seconds += st.seconds
-            let fixed = Revision.cleanSentence(out)
-            log.append("[\(i + 1)] \(fixed ?? "DELETE")")
-            if let fixed { repl[i] = fixed } else if s.label != .contradicted { repl[i] = "" }
+            log.append("[\(i + 1)] " + (outcome == .rewritten ? fixed! : outcome.rawValue.uppercased()))
+            if outcome == .unchanged { unchanged.append(i) }
+            if let fixed { repl[i] = fixed }
         }
         var nv = Version(origin: .fixed, text: Revision.replace(repl, in: v.text, sentences: sentences), generation: stats)
         nv.rewritten = indices
         nv.rewriteLog = log.joined(separator: "\n")
+        nv.unchanged = unchanged.isEmpty ? nil : unchanged
         return nv
     }
 }

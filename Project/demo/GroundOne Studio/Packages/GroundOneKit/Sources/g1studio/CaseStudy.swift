@@ -63,7 +63,7 @@ enum CaseStudy {
 
         let t0 = Date()
         let g1 = try await GroundOneModel.load(run: run)
-        let gen = try await MLXGenerator.load()
+        let gen = try await MLXGenerator.load(repo: opts["--generator"] ?? ModelCatalog.generator)
         let load = Date().timeIntervalSince(t0)
         let afterLoad = Memory.stats()
         Memory.resetPeak()

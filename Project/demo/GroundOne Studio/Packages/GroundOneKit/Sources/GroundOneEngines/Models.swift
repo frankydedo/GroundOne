@@ -7,6 +7,12 @@ import MLXLMCommon
 /// The models the demo uses. All are read from the local Hugging Face cache or from outputs/models.
 public enum ModelCatalog {
     public static let generator = "mlx-community/Qwen2.5-3B-Instruct-4bit"
+    /// Selectable generators (author, 2026-10-26): the 3B stays the default, the 7B is an option.
+    public static let generators = [("mlx-community/Qwen2.5-3B-Instruct-4bit", "Qwen2.5 3B"),
+                                    ("mlx-community/Qwen2.5-7B-Instruct-4bit", "Qwen2.5 7B")]
+    public static func generatorLabel(_ repo: String) -> String {
+        generators.first { $0.0 == repo }?.1 ?? String(repo.split(separator: "/").last ?? "")
+    }
     public static let embedder = "BAAI/bge-small-en-v1.5"  // chosen by the retrieval check (decision 3)
     public static let verifiers = ["g1-3b-b1", "g1-05b-b1"]
     /// Demo library: the T1 sources (news articles and MS MARCO passages), author's decision of 2026-10-25.
@@ -55,6 +61,8 @@ public enum Memory {
     }
 
     public static func resetPeak() { MLX.Memory.peakMemory = 0 }
+    /// Returns freed buffers to the system (after unloading a model).
+    public static func clearCache() { MLX.Memory.clearCache() }
 
     static func residentGB() -> Double {
         var info = mach_task_basic_info()

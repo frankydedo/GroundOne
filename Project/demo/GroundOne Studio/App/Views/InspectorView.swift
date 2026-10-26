@@ -98,6 +98,11 @@ struct AnswerPanel: View {
                 .controlSize(.large)
                 .disabled(flagged.isEmpty || turn.busy || !turn.isLatest)
                 .accessibilityIdentifier("fix-flagged")
+                if let u = version.unchanged, !u.isEmpty {
+                    Text("The generator repeated \(u.count == 1 ? "sentence" : "sentences") \(u.map { String($0 + 1) }.joined(separator: ", ")) of the previous version even after a retry: kept as written and still flagged.")
+                        .font(.caption).foregroundStyle(Palette.color(.contradicted))
+                        .accessibilityIdentifier("unchanged-note")
+                }
                 Text("Policy \(model.policy.name): rewrites \(model.policy.blocking.map(\.display).joined(separator: " and ")) sentences, up to \(model.policy.maxAttempts) round\(model.policy.maxAttempts == 1 ? "" : "s"). Contradicted sentences are corrected from the source; unsupported ones are rewritten from it or removed. The new version is verified again.")
                     .font(.caption).foregroundStyle(.secondary)
             }

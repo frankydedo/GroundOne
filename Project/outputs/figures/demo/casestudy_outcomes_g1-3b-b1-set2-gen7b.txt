@@ -1,0 +1,1 @@
+Outcome of each injected error after the loop (casestudy-g1-3b-b1-set2-gen7b), by error type: value restored from the document, sentence rewritten, sentence deleted (the right repair for fabricated sentences; for swapped values the correct information goes too), error still present and still flagged (highlighted under the policy), or accepted by GroundOne.

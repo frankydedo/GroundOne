@@ -13,7 +13,7 @@ enum BestOfN {
         let run = opts["--verifier"] ?? "g1-3b-b1"
         let n = Int(opts["--n"] ?? "60") ?? 60
         let samples = Int(opts["--samples"] ?? "3") ?? 3
-        let out = Workspace.demo.appendingPathComponent("casestudy/bestofn-\(run).jsonl")
+        let out = Workspace.demo.appendingPathComponent("casestudy/\(opts["--name"] ?? "bestofn-\(run)").jsonl")
         if FileManager.default.fileExists(atPath: out.path) { throw CLIError.usage("\(out.path) exists: results are create-only") }
         // T1 documents, round robin over tasks, seed-free order of the frozen file.
         let t1 = Workspace.project().appendingPathComponent("data/processed/groundone/test_ragtruth.jsonl")
@@ -25,7 +25,7 @@ enum BestOfN {
         let docs = (0..<n).compactMap { i in byTask[tasks[i % 3]]?[safe: i / 3] }
 
         let g1 = try await GroundOneModel.load(run: run)
-        let gen = try await MLXGenerator.load()
+        let gen = try await MLXGenerator.load(repo: opts["--generator"] ?? ModelCatalog.generator)
         let verifier = GroundOneVerifier(model: g1)
         let tau = g1.info.calibration.threshold
         let policy = Policy(name: "bestofn-strict", verifier: run, blocking: [.contradicted, .notMentioned], maxAttempts: 2, onFailure: .highlight)

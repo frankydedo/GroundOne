@@ -101,13 +101,13 @@ risposta; il 3B non addestrato è stato valutato su 600 risposte di T1.}
 \sect{GroundOne Studio: un'applicazione locale e un caso di studio}
 Un'applicazione nativa per macOS, scritta in Swift con MLX Swift, mette il verificatore al lavoro in un assistente RAG
 completo in cui recupero (ricerca full-text di SQLite e un piccolo modello di embedding), generazione (Qwen2.5-3B a 4
-bit), verifica e un giudice LLM locale condividono un unico processo, con un picco di memoria di 6.2\,GB e senza
+bit), verifica e un giudice LLM locale condividono un unico processo, con al massimo 6.9\,GB di memoria e senza
 rete. Un test di conformità su 200 risposte di T1 mostra token identici e probabilità entro 0.005 dall'implementazione
 Python per il 3B. La risposta del generatore compare per prima; l'utente può poi verificarla con il solo GroundOne o
 insieme al giudice LLM, consultare le probabilità e il passaggio a supporto di ogni frase e far riscrivere dalle fonti le
 frasi segnalate o selezionate, con una richiesta breve per frase che dipende dal tipo di errore. In un caso di studio con
 100 errori iniettati GroundOne segnala l'errore in 97 delle 98 risposte in cui la frase riceve un verdetto, il giudice LLM in
-84, e la riscrittura mirata riduce dal 100\,\% al 9\,\% le risposte che contengono ancora l'errore: numeri e date
+84, e la riscrittura mirata riduce dal 100\,\% al 6\,\% le risposte che contengono ancora l'errore: numeri e date
 modificati vengono per lo più ripristinati dalla fonte, le frasi inventate cancellate. Ripetere lo studio con il 0.5B
 mostra perché il verdetto a tre classi conta: il modello piccolo etichetta i valori modificati come non menzionati anziché
 contraddetti, e il generatore allora li cancella invece di correggerli. Queste risposte sono accettate da GroundOne, non

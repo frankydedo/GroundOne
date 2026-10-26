@@ -174,9 +174,10 @@ public struct Orchestrator: Sendable {
 
         // Rounds 1...max_attempts: rewrite only the blocking sentences, keep the others fixed, verify the whole answer.
         var round = 0
+        var unchanged: Set<String> = []    // sentences the generator only repeated, even after the retry
         while round < policy.maxAttempts {
             let flagged = verdicts.sentences.filter { policy.isBlocking($0.label) }
-            if flagged.isEmpty { break }
+            if flagged.isEmpty || (revision == .targeted && flagged.allSatisfy({ unchanged.contains($0.text) })) { break }
             round += 1
             emit(.stage("Revising (round \(round))"))
             var raw: String
@@ -185,17 +186,16 @@ public struct Orchestrator: Sendable {
                 // One short request per flagged sentence, with only the relevant excerpt of the document.
                 var repl: [Int: String] = [:]
                 var logs: [String] = []
-                for f in flagged {
-                    let (out, st) = try await generator.complete(system: Revision.sentenceSystem,
-                                                                 user: Revision.sentencePrompt(f, document: document),
-                                                                 maxTokens: 90)
+                for f in flagged where !unchanged.contains(f.text) {
+                    let (fixed, outcome, st) = try await Revision.rewrite(f, document: document, generator: generator)
                     s.generatedTokens += st.generatedTokens
                     s.seconds += st.seconds
                     s.promptTokens += st.promptTokens
-                    let fixed = Revision.cleanSentence(out)
-                    logs.append("[\(f.index + 1)] \(fixed ?? "DELETE")")
-                    // A contradicted sentence is corrected, never deleted: an unusable reply keeps it for the next round.
-                    if let fixed { repl[f.index] = fixed } else if f.label != .contradicted { repl[f.index] = "" }
+                    logs.append("[\(f.index + 1)] " + (outcome == .rewritten ? fixed! : outcome.rawValue.uppercased()))
+                    // A contradicted sentence is corrected, never deleted; one the generator only repeats is not retried
+                    // in later rounds (greedy decoding would repeat it again) and stays flagged.
+                    if outcome == .unchanged { unchanged.insert(f.text) }
+                    if let fixed { repl[f.index] = fixed }
                 }
                 raw = logs.joined(separator: "\n")
                 text = Revision.replace(repl, in: text, sentences: verdicts.sentences)
@@ -278,7 +278,7 @@ public enum Revision {
 
                 SENTENCE: "\(f.text)"
 
-                The SENTENCE contradicts the SOURCE. Write the corrected SENTENCE: keep its meaning and wording, but replace the wrong facts (numbers, names, dates, places) with the ones in the SOURCE. Write only the corrected sentence.
+                The SENTENCE contradicts the SOURCE. Write the corrected SENTENCE: keep its meaning and wording, but replace the wrong facts (numbers, names, dates, places) with the ones in the SOURCE. The SENTENCE as written is wrong: do not return it unchanged. Write only the corrected sentence.
                 """
         }
         return """
@@ -286,8 +286,49 @@ public enum Revision {
 
             SENTENCE: "\(f.text)"
 
-            The SOURCE does not state the SENTENCE. If the SOURCE says something on the same point, rewrite the SENTENCE so that it says only what the SOURCE says. If the SOURCE says nothing on that point, write DELETE. Write only the sentence, or DELETE.
+            The SOURCE does not state the SENTENCE. If the SOURCE says something on the same point, rewrite the SENTENCE so that it says only what the SOURCE says. If the SOURCE says nothing on that point, write DELETE. Do not return the SENTENCE unchanged. Write only the sentence, or DELETE.
             """
+    }
+
+    /// Second attempt after the reply copied the flagged sentence: the copy is quoted and rejected explicitly.
+    public static func retryPrompt(_ f: SentenceVerdict, document: String, copy: String) -> String {
+        sentencePrompt(f, document: document) + """
+
+
+            Your previous reply was: "\(copy)". It repeats the SENTENCE, which is wrong. Write a different sentence that agrees with the SOURCE\(f.label == .contradicted ? "" : ", or DELETE").
+            """
+    }
+
+    /// True when a reply only repeats the sentence (case, spacing and punctuation ignored).
+    public static func isCopy(_ reply: String, of sentence: String) -> Bool {
+        let norm = { (t: String) in
+            t.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }.joined(separator: " ")
+        }
+        return norm(reply) == norm(sentence)
+    }
+
+    public enum Outcome: String, Codable, Sendable { case rewritten, deleted, unchanged, unusable }
+
+    /// One flagged sentence: a short request by error type; a reply that copies the sentence gets one retry that quotes
+    /// the copy. Returns the replacement ("" deletes, nil keeps the sentence), the outcome and the generation statistics.
+    /// A contradicted sentence is never deleted; a sentence still copied after the retry stays as it is, flagged.
+    public static func rewrite(_ f: SentenceVerdict, document: String, generator: any Generator) async throws
+        -> (replacement: String?, outcome: Outcome, stats: GenerationStats)
+    {
+        var stats = GenerationStats()
+        var prompt = sentencePrompt(f, document: document)
+        for attempt in 0..<2 {
+            let (out, st) = try await generator.complete(system: sentenceSystem, user: prompt, maxTokens: 90)
+            stats.generatedTokens += st.generatedTokens
+            stats.promptTokens += st.promptTokens
+            stats.seconds += st.seconds
+            guard let fixed = cleanSentence(out) else {
+                return f.label == .contradicted ? (nil, .unusable, stats) : ("", .deleted, stats)
+            }
+            if !isCopy(fixed, of: f.text) { return (fixed, .rewritten, stats) }
+            if attempt == 0 { prompt = retryPrompt(f, document: document, copy: fixed) }
+        }
+        return (nil, .unchanged, stats)
     }
 
     /// First line of the reply, without quotes or a leading label; nil for DELETE or an empty reply.

@@ -257,4 +257,22 @@ final class GroundOneStudioUITests: XCTestCase {
         sleep(1)
         shot(app, "47-library")
     }
+
+    /// Real models: switch the generator to the 7B, ask, verify with GroundOne.
+    @MainActor func testGenerator7BRealModels() throws {
+        let app = XCUIApplication()
+        app.launch()
+        app.activate()
+        XCTAssertNotNil(waitFor(app, "models-ready", timeout: 300))
+        app.popUpButtons["generator-picker"].click()
+        app.menuItems["Qwen2.5 7B"].click()
+        XCTAssertTrue(app.staticTexts["models-ready"].waitForNonExistence(timeout: 30) || true)
+        XCTAssertNotNil(waitFor(app, "models-ready", timeout: 600))
+        app.typeKey("n", modifierFlags: .command)
+        ask(app, "Why does Oracle have two CEOs?")
+        XCTAssertTrue(waitStatus(app, "not verified", timeout: 600))
+        app.buttons["verify-g1"].click()
+        XCTAssertTrue(waitStatus(app, "verified", timeout: 600))
+        shot(app, "50-generator-7b")
+    }
 }

@@ -32,7 +32,7 @@ L'intero sistema gira su un portatile da 16\,GB. Una risposta lunga viene verifi
 inferiore al risparmio di tempo, perché un singolo prefill lungo assorbe più potenza del decoding.
 
 L'applicazione GroundOne Studio mostra che attorno al verificatore si può costruire un assistente RAG completo, in un
-unico processo e senza rete: recupero, generazione, verifica e confronto con un giudice LLM richiedono al massimo 6.2\,GB di memoria allocata da MLX. Nel caso di studio con errori iniettati GroundOne segnala l'errore in 97 delle 98 risposte in cui la frase riceve un verdetto, contro 84 del giudice LLM, e la riscrittura mirata riduce dal 100\,\% al 9\,\% le risposte che contengono ancora l'errore, secondo il conteggio automatico: numeri e date vengono per lo più ripristinati dalla fonte, le frasi inventate cancellate. Il caso di studio mostra anche che il tipo di errore conta: una frase contraddetta viene corretta, una non menzionata spesso soltanto tolta. Le risposte che superano il ciclo sono accettate da GroundOne, non verificate in modo indipendente.
+unico processo e senza rete: recupero, generazione, verifica e confronto con un giudice LLM richiedono al massimo 6.9\,GB di memoria allocata da MLX. Nel caso di studio con errori iniettati GroundOne segnala l'errore in 97 delle 98 risposte in cui la frase riceve un verdetto, contro 84 del giudice LLM, e la riscrittura mirata riduce dal 100\,\% al 6\,\% le risposte che contengono ancora l'errore, secondo il conteggio automatico: numeri e date vengono per lo più ripristinati dalla fonte, le frasi inventate cancellate. Il caso di studio mostra anche che il tipo di errore conta: una frase contraddetta viene corretta, una non menzionata spesso soltanto tolta. Le risposte che superano il ciclo sono accettate da GroundOne, non verificate in modo indipendente.
 
 I limiti principali sono due. Il primo è la ristrettezza dei dati di addestramento, a causa della quale le
 contraddizioni al di fuori del data-to-text e le allucinazioni nascoste in frasi copiate vengono apprese solo in parte.
@@ -53,11 +53,7 @@ porting del readout su llama.cpp permetterebbe di misurare GroundOne su una sche
 su una macchina AMD Strix Halo, e su uno smartphone, le cui unità di elaborazione neurale accelerano proprio il prefill
 su cui si regge un decision model. Anche i confronti di latenza con le altre famiglie di verificatori richiedono condizioni eque: gli encoder
 vanno eseguiti in batch, mentre GroundOne e i decision model generalisti vanno interrogati attraverso la stessa interfaccia
-HTTP. Due interventi ridurrebbero inoltre la lettura del testo, che è ormai quasi tutto il tempo di GroundOne. Il primo
-è fondere l'adapter LoRA nei pesi base, che toglierebbe il 10\,\% circa di calcolo aggiuntivo misurato nel prefill, al
-prezzo di una nuova quantizzazione e di una nuova calibrazione. Il secondo è la verifica in streaming: leggere il
-documento mentre il generatore scrive e accodare le frasi man mano che arrivano, sfruttando il riuso del prefisso, così
-che alla fine della generazione resti da leggere soltanto l'ultima frase.
+HTTP. Un intervento ridurrebbe inoltre la lettura del testo, che è ormai quasi tutto il tempo di GroundOne: fondere l'adapter LoRA nei pesi base, che toglierebbe il 10\,\% circa di calcolo aggiuntivo misurato nel prefill, al prezzo di una nuova quantizzazione e di una nuova calibrazione.
 
 Un'altra direzione riguarda la lingua. Il primo passo è misurare quanto l'adapter addestrato in inglese funzioni già
 su documenti e risposte in un'altra lingua, per esempio traducendo una parte di T1 in italiano. Se il trasferimento non
@@ -75,9 +71,6 @@ passaggio sostiene o contraddice ciascuna frase, per esempio con un readout per 
 la fonte di ogni affermazione e trattare in modo esplicito le fonti in conflitto tra loro.
 
 L'applicazione del Capitolo~\ref{ch:studio} contiene un primo prototipo di questa attribuzione, che resta da valutare
-con dati che indichino quale passaggio sostiene ciascuna frase. Dall'applicazione discendono altre tre direzioni. Un
-generatore più grande, per esempio da 7B a 4 bit, starebbe ancora nella memoria del portatile e dovrebbe scrivere risposte
-più complete e correggere meglio le frasi segnalate. Le frasi riscritte andrebbero controllate in modo indipendente, con
+con dati che indichino quale passaggio sostiene ciascuna frase. Dall'applicazione discendono altre tre direzioni. Un generatore più grande, come il 7B a 4 bit già selezionabile nell'applicazione, corregge meglio le frasi segnalate, ma è più lento e aggiunge più contenuto che le fonti non riportano: la scelta del generatore resta un compromesso da studiare su domande reali. Le frasi riscritte andrebbero controllate in modo indipendente, con
 un secondo verificatore o con una lettura umana di un campione, perché oggi la loro correttezza è giudicata solo da
-GroundOne. La verifica, infine, potrebbe procedere durante la generazione della risposta, segnalando ogni frase non
-appena è completa: la soluzione basata sui marker rende naturale questo uso.
+GroundOne. La verifica, infine, potrebbe procedere durante la generazione della risposta, segnalando ogni frase non appena è completa: la soluzione basata sui marker e il riuso del prefisso rendono naturale questo uso, perché il documento si può leggere mentre il generatore scrive, e alla fine della generazione resta da leggere soltanto l'ultima frase.

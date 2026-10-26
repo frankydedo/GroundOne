@@ -88,7 +88,7 @@ All calls to the models go through the model containers of MLX Swift, which seri
 one at a time on the GPU, as happens with the single worker thread of the Python service
 (Section~\ref{sec:method-software}). Generation and verification therefore do not compete for resources, and the
 measured times are not confounded by concurrent executions. With the three models loaded, the memory allocated by MLX is
-about 5.3\,GB and reaches a peak of 6.2\,GB during use, in line with the co-residence measurement of
+about 5.3\,GB and reaches a peak of 6.2\,GB during one question and of 6.9\,GB after a session of twelve questions, when the KV cache also keeps the sources of the earlier ones. The first value is in line with the co-residence measurement of
 Table~\ref{tab:results-coresidence}, which did not include the retriever. The embedding model therefore adds little: it
 takes about 130\,MB on disk.
 
@@ -254,8 +254,7 @@ reliably improve the answers~\cite{huang2024cannotselfcorrect}. GroundOne is the
 sentence and only the excerpt of the document that concerns it, and an instruction that depends on the type of error. A
 contradicted sentence must be corrected with the facts of the source and cannot be deleted: if the generator does not
 return a usable sentence, the original one stays in place and is resubmitted in the next round. A sentence that is not
-mentioned must be rewritten with what the source says on the same point, or removed if the source does not address it.
-The other sentences remain unchanged. The maximum number of rounds and the classes to be corrected are set by the
+mentioned must be rewritten with what the source says on the same point, or removed if the source does not address it. In both cases the instruction explicitly asks not to return the sentence unchanged. If the generator copies it anyway, which happens with a small model, the request is repeated once, quoting the copy and rejecting it; if the second attempt also returns the same sentence, the sentence stays as it is, flagged, and the panel shows that the generator could not correct it. It is not retried in later rounds, because with greedy decoding the reply would be the same. The other sentences remain unchanged. The maximum number of rounds and the classes to be corrected are set by the
 policy.
 
 \paragraph{Policy and threshold.} A policy is a small JSON file that specifies which verdicts are to be corrected, how
@@ -324,7 +323,7 @@ case study does not use retrieval: the document is that of T1.
 \begin{table}[htbp]
 \centering
 \caption{Case study on injected errors: 100 answers of T1, one error each, GroundOne 3B and the 4-bit
-Qwen2.5-3B-Instruct generator in the same process, without the embedding model. Detection is computed on the 98 answers
+Qwen2.5-3B-Instruct generator in the same process, without the embedding model, with the KV cache of the sources active. Detection is computed on the 98 answers
 in which the sentence with the error receives its own verdict.}
 \label{tab:studio-casestudy}
 \small
@@ -334,16 +333,17 @@ Measure & Value \\
 \midrule
 Sentence with the error flagged by GroundOne & 97 of 98 \\
 Sentence with the error flagged by the LLM judge & 84 of 98 \\
-False alarms of GroundOne on the other sentences & 1.6\,\% \\
-Answers still containing the error: without the loop, after one and after two rounds & 100\,\%, 10\,\%, 9\,\% \\
-Errors removed by restoring the value of the source & 41 \\
+False alarms of GroundOne on the other sentences & 1.8\,\% \\
+Answers still containing the error: without the loop, after one and after two rounds & 100\,\%, 8\,\%, 6\,\% \\
+Errors removed by restoring the value of the source & 42 \\
 Errors removed by rewriting the sentence & 1 \\
-Errors removed by deleting the sentence & 49 \\
-Remaining errors: still flagged / never flagged & 6 / 3 \\
-Other sentences left identical & 98.2\,\% \\
-Answers accepted by GroundOne at the end & 90\,\% \\
-Median time per answer: GroundOne, LLM judge, rewriting per round & 1.74\,s, 2.27\,s, 0.90\,s \\
-Memory allocated by MLX: after loading and at peak & 5.1\,GB, 6.2\,GB \\
+Errors removed by deleting the sentence & 51 \\
+Remaining errors: still flagged / never flagged & 3 / 3 \\ 
+Sentences the generator copies even at the second attempt & 3 \\
+Other sentences left identical & 98.0\,\% \\
+Answers accepted by GroundOne at the end & 94\,\% \\
+Median time per answer: GroundOne, LLM judge, rewriting per round & 1.74\,s, 2.36\,s, 0.92\,s \\
+Memory allocated by MLX: after loading and at peak & 5.1\,GB, 6.7\,GB \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -351,19 +351,16 @@ Memory allocated by MLX: after loading and at peak & 5.1\,GB, 6.2\,GB \\
 \paragraph{Results.} Table~\ref{tab:studio-casestudy} and Figure~\ref{fig:studio-outcomes} summarise the case study. In
 98 answers the sentence with the error receives its own verdict; in the other two, the segmenter merges it with an
 introductory sentence without checkable content, and the sentence is not scored. GroundOne flags the error in 97 of the
-98 answers, the LLM judge in 84. The loop reduces the answers that still contain the error from 100\,\% to 10\,\% after one
-round and to 9\,\% after two, according to the automatic count. The way in which errors are removed matters as much as
-their number. For replaced numbers and dates, in most cases the generator restores the value of the source: 18 numbers
-and 16 dates out of 25. Invented sentences, instead, are deleted, all 25 of them, which is the appropriate correction.
+98 answers, the LLM judge in 84. The loop reduces the answers that still contain the error from 100\,\% to 8\,\% after one round and to 6\,\% after two, according to the automatic count. The way in which errors are removed matters as much as
+their number. For replaced numbers and dates, in most cases the generator restores the value of the source: 19 numbers and 16 dates out of 25. Invented sentences, instead, are deleted, all 25 of them, which is the appropriate correction.
 Invented names, finally, are correctly labelled as not mentioned, and for this reason they are mostly removed, 18 out of
-25, rather than replaced with the original one, 7 out of 25: the sentence loses the error, but also the information. Of
-the nine answers that keep the error, six remain flagged and are therefore highlighted by the policy. In the other three
+25, rather than replaced with the original one, 7 out of 25: the sentence loses the error, but also the information. The copy check intervenes three times: in three sentences the generator returns the same sentence even at the second attempt, and the sentence stays flagged. Of the six answers that keep the error, three remain flagged and are therefore highlighted by the policy. In the other three
 the error is never flagged: in one, the probability of support, 0.93, is just above the threshold of 0.925; in the other
 two, the injected sentence does not receive its own verdict.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{images/studio/casestudy_outcomes_g1-3b-b1-set2.png}
+\includegraphics[width=\textwidth]{images/studio/casestudy_outcomes_g1-3b-b1-set2-final.png}
 \caption{Outcome of each injected error after the loop, by error type, with GroundOne 3B: value restored from the
 source, sentence rewritten, sentence deleted, error still present and flagged, error accepted by GroundOne.}
 \label{fig:studio-outcomes}
@@ -373,9 +370,9 @@ source, sentence rewritten, sentence deleted, error still present and flagged, e
 the three-class verdict matters, and not only the flag. The 0.5B flags the error in 97 answers out of 98, like the 3B,
 but labels almost all the replaced numbers and dates as not mentioned (44 out of 50), whereas the 3B recognises them as
 contradicted (40 out of 50). For a sentence that is not mentioned, rewriting may remove the sentence, and the generator
-does so: with the 0.5B, 87 errors are removed by deleting the sentence and only 9 by restoring the value. The answers
+does so: with the 0.5B, 84 errors are removed by deleting the sentence and only 12 by restoring the value. The answers
 that keep the error fall to 3\,\%, but at the price of lost information and of many false alarms: the 0.5B flags
-17\,\% of the other sentences, which are correct, and only 86\,\% of them remain unchanged. The distinction between a
+17\,\% of the other sentences, which are correct, and only 84\,\% of them remain unchanged. The distinction between a
 contradicted and a not-mentioned sentence, which Chapter~\ref{sec:method} motivates in the abstract, here decides
 whether the correction restores the information or eliminates it.
 
@@ -390,11 +387,18 @@ not measured.
 \paragraph{A comparison at equal compute.} On 60 new T1 answers, generated by the model for each task, the complete
 loop, that is, answer, verification and up to two rounds of targeted rewriting, was compared with a strategy that
 corrects nothing: generating up to three answers with sampling and keeping the first one that GroundOne accepts. The
-first answer is accepted in 52\,\% of the cases. At the end, the loop brings the accepted answers to 63\,\%, multiple
-generation to 62\,\%; the loop, however, takes a median of 6.9 seconds and 115 generated tokens, against 10.3 seconds
-and 218 tokens. Rewriting therefore does not get more answers accepted than regenerating them from scratch would, but it
-costs about two thirds of the time and half of the tokens. Part of the answers remains flagged because the 3B generator
+first answer is accepted in 52\,\% of the cases. At the end, the loop brings the accepted answers to 70\,\%, multiple generation to 62\,\% (42 and 37 answers out of 60, a small difference on this sample). The loop, however, generates half the tokens, 115 against 218 at the median, in a similar time, 6.3 seconds against 7.0: multiple generation also verifies every sample on the same document, and therefore reuses its KV cache. Rewriting only the flagged sentences thus gets at least as many answers accepted as regenerating them from scratch, with half the generation. Part of the answers remains flagged because the 3B generator
 fails to correct a contradicted sentence, which the loop cannot delete.
+
+\paragraph{A larger generator.} The generator can be chosen in the application: besides the 3B,
+Qwen2.5-7B-Instruct at 4 bits is available. On the same case study the 7B corrects every error that GroundOne flags: the
+answers that still contain the error fall to 3\,\%, that is, to the three in which GroundOne does not flag it, against
+6\,\% with the 3B, and those accepted by GroundOne rise to 98\,\%. The price is time and memory: a rewrite costs 2.1
+seconds per round against 0.9, and the peak of memory allocated by MLX rises to 9.2\,GB against 6.7. On the twelve
+example questions of the library, moreover, the 7B writes answers of similar length (276 words at the median against
+250) in more than twice the time (17.7 seconds against 7.6), and adds more content that the sources do not report:
+GroundOne considers 66\,\% of its sentences supported, against 85\,\% of those of the 3B. For this reason the 3B remains
+the default generator.
 
 \paragraph{How to read the results.} Three caveats delimit the scope of the case study. The first concerns detection.
 The answers were chosen among those that GroundOne accepts, and the injected errors are clear-cut: values and names
@@ -403,9 +407,8 @@ GroundOne, which is measured in Chapter~\ref{sec:results}. The second concerns t
 reference label, and their correctness is judged only by GroundOne, the same model that decides when to stop the loop. A
 rewriting that falls into a blind spot of the model is therefore counted as successful, and the automatic count records
 only the disappearance of the injected error, not any new errors introduced by the rewriting. For this reason the
-results are expressed as answers ``accepted by GroundOne'', not as correct answers, and the 90\,\% of accepted answers
-includes three answers that still contain the error. The third concerns the generator. A 3B model sometimes cannot
-correct a sentence and sometimes removes it: 24 of the 49 errors removed by deletion also take away correct information,
+results are expressed as answers ``accepted by GroundOne'', not as correct answers, and the 94\,\% of accepted answers includes three answers that still contain the error. The third concerns the generator. A 3B model sometimes cannot
+correct a sentence and sometimes removes it: 26 of the 51 errors removed by deletion also take away correct information,
 so part of the accepted answers is simply shorter.
 
 \section{An example: a subtle numerical error}
@@ -419,8 +422,7 @@ error that Section~\ref{sec:results-errors} identifies as the hardest for Ground
 of support of 0.86, below the threshold of 0.925, and indicates contradiction as the most likely error; the generative
 LLM judge considers it supported. GroundOne also flags as not mentioned three sentences that add details or inferences
 absent from the documents, for example that the display shows the toll amount, whereas the LLM judge accepts them all.
-Rewriting, however, fails: the 3B generator returns the same sentence, with the same wrong amount, confirming that the
-quality of the loop also depends on the generator.
+Rewriting, however, fails: the 3B generator returns the same sentence, with the same wrong amount, even at the second attempt, which quotes the copy and rejects it. The application detects this and leaves the sentence flagged: the quality of the loop also depends on the generator.
 
 \section{Calibrated probabilities and decision threshold}
 \label{sec:studio-threshold}

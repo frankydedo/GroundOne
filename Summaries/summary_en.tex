@@ -95,13 +95,13 @@ Time and energy per answer & 0.41\,s, 5.5\,J & 2.57\,s, 33\,J \\
 \sect{GroundOne Studio: a local application and a case study}
 A native macOS application, written in Swift with MLX Swift, puts the verifier to work in a complete RAG assistant in which
 retrieval (SQLite full-text search and small embeddings), generation (Qwen2.5-3B, 4-bit), verification and a local
-LLM judge share one process, with a 6.2\,GB memory peak and no network. A conformance test on 200 T1 answers
+LLM judge share one process, with at most 6.9\,GB of memory and no network. A conformance test on 200 T1 answers
 shows identical tokens and probabilities within 0.005 of the Python implementation for the 3B. The generator's native
 answer is shown first; the user can then verify it with GroundOne alone or together with the LLM judge, inspect the
 probabilities and the supporting passage of each sentence, and have flagged or selected sentences rewritten from the
 sources, one short request per sentence and by error type. In a case study with 100 injected errors GroundOne flags the
 error in 97 of the 98 answers in which the sentence receives a verdict, the LLM judge in 84, and targeted rewriting lowers the
-answers still containing the error from 100\,\% to 9\,\%: changed numbers and dates are mostly restored from the source,
+answers still containing the error from 100\,\% to 6\,\%: changed numbers and dates are mostly restored from the source,
 fabricated sentences deleted. Repeating the study with the 0.5B shows why the three-way verdict matters: it labels changed
 values as not mentioned rather than contradicted, and the generator then deletes them instead of correcting them. These
 answers are accepted by GroundOne, not independently verified.

@@ -69,7 +69,7 @@ inoltre con un generatore nello stesso processo: insieme a un generatore 3B a 4 
 il 3B e di 3.3\,GB con il 0.5B. L'intera valutazione gira senza alcun accesso alla rete, con risultati identici bit per
 bit, e i pesi a 8 bit non costano accuratezza rispetto a quelli in bf16 (Sezione~\ref{sec:results-locality}). Il
 retriever aggiunge poco: nell'applicazione del Capitolo~\ref{ch:studio}, con generatore, GroundOne 3B e modello di
-embedding caricati insieme, la memoria allocata da MLX raggiunge un picco di 6.2\,GB.
+embedding caricati insieme, la memoria allocata da MLX raggiunge un picco di 6.2\,GB durante una domanda e di 6.9\,GB dopo una sessione di dodici domande, con la KV cache delle fonti già lette.
 
 Anche il costo economico va letto con misura (Tabella~\ref{tab:disc-cost}). Verificare 10{,}000 risposte con
 GroundOne richiede un'energia che, al prezzo medio europeo dell'elettricità per le famiglie~\cite{eurostat2026electricity},

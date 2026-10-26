@@ -208,6 +208,15 @@ def main():
         meta = json.loads((d / "meta.json").read_text()) if (d / "meta.json").exists() else {}
         injected = {json.loads(l)["id"]: json.loads(l) for l in open(CS / meta.get("input", "injected.jsonl"))}
         summary[run] = summarise(rows, meta, injected)
+        if (d / "audit.jsonl").exists():   # outcome of every sentence rewrite, from the drafts' rewrite logs
+            outcomes = {}
+            for line in open(d / "audit.jsonl"):
+                for dr in json.loads(line).get("drafts", [])[1:]:
+                    for l in (dr.get("rewriteRaw") or "").splitlines():
+                        tail = l.split(" ", 1)[1].strip() if " " in l else ""
+                        k = tail.lower() if tail in ("DELETED", "UNCHANGED", "UNUSABLE", "DELETE") else "rewritten"
+                        outcomes[k] = outcomes.get(k, 0) + 1
+            summary[run]["rewrite_outcomes"] = outcomes
         figures(rows, run, run.replace("casestudy-", ""), injected)
     for f in sorted(CS.glob("bestofn-*.jsonl")):
         rows = [json.loads(l) for l in open(f)]

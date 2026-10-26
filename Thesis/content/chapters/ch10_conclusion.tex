@@ -36,9 +36,9 @@ real, but smaller than the time saving, because a single long prefill draws more
 
 The GroundOne Studio application shows that a complete RAG assistant can be built around the verifier, in a single
 process and without network access: retrieval, generation, verification and comparison with an LLM judge require
-at most 6.2\,GB of memory allocated by MLX. In the injected-error case study GroundOne flags the error in 97 of the 98
+at most 6.9\,GB of memory allocated by MLX. In the injected-error case study GroundOne flags the error in 97 of the 98
 answers in which the sentence receives a verdict, against 84 for the LLM judge, and targeted rewriting reduces the answers
-that still contain the error from 100\,\% to 9\,\%, according to the automatic count: numbers and dates are mostly
+that still contain the error from 100\,\% to 6\,\%, according to the automatic count: numbers and dates are mostly
 restored from the source, fabricated sentences deleted. The case study also shows that the type of error matters: a
 contradicted sentence is corrected, a not-mentioned one often merely removed. The answers that pass the loop are
 accepted by GroundOne, not independently verified.
@@ -61,7 +61,7 @@ On the systems side, the cost model of Chapter~\ref{sec:local} should be verifie
 readout to llama.cpp would allow GroundOne to be measured on a discrete graphics card, on a DGX Spark or an AMD Strix Halo
 machine, and on a smartphone, whose neural processing units accelerate precisely the prefill on which a decision model
 relies. Latency comparisons with the other families of verifiers also require fair conditions: the encoders must be run
-in batches, while GroundOne and the general-purpose decision models must be queried through the same HTTP interface. Two changes would also shorten the reading of the text, which is now almost all of GroundOne's time. The first is fusing the LoRA adapter into the base weights, which would remove the roughly 10\,\% of extra computation measured in the prefill, at the price of a new quantisation and a new calibration. The second is streaming verification: reading the document while the generator writes and appending the sentences as they arrive, using prefix reuse, so that at the end of generation only the last sentence remains to be read.
+in batches, while GroundOne and the general-purpose decision models must be queried through the same HTTP interface. One change would also shorten the reading of the text, which is now almost all of GroundOne's time: fusing the LoRA adapter into the base weights, which would remove the roughly 10\,\% of extra computation measured in the prefill, at the price of a new quantisation and a new calibration.
 
 Another direction concerns language. The first step is to measure how well the adapter trained in English already works
 on documents and answers in another language, for example by translating part of T1 into Italian. If the transfer is not
@@ -79,9 +79,6 @@ supports or contradicts each sentence, for example with a readout per passage, s
 claim and to handle conflicting sources explicitly.
 
 The application of Chapter~\ref{ch:studio} contains a first prototype of this attribution, which remains to be evaluated
-with data indicating which passage supports each sentence. Three further directions follow from the application. A larger
-generator, for example a 7B at 4 bits, would still fit in the memory of the laptop and should write more complete answers
-and correct the flagged sentences better. The rewritten sentences should be checked independently, with a second verifier
+with data indicating which passage supports each sentence. Three further directions follow from the application. A larger generator, such as the 7B at 4 bits already selectable in the application, corrects the flagged sentences better, but is slower and adds more content that the sources do not report: choosing the generator remains a trade-off to be studied on real questions. The rewritten sentences should be checked independently, with a second verifier
 or with a human reading of a sample, because their correctness is currently judged by GroundOne alone. Verification,
-finally, could proceed while the answer is being generated, flagging each sentence as soon as it is complete: the
-marker-based design makes this use natural.
+finally, could proceed while the answer is being generated, flagging each sentence as soon as it is complete: the marker-based design and prefix reuse make this use natural, because the document can be read while the generator writes, and at the end of generation only the last sentence remains to be read.

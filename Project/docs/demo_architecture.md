@@ -423,3 +423,12 @@ The cache lives in memory only. Python 0.29.3's attention kernel needs an explic
 Retrieval ties (equal RRF scores are common) are broken by row id, so the same question always yields the same
 passages in the same order; before, Swift's per-process dictionary order could reorder tied passages and change the
 greedy answer (2026-10-26).
+
+## 15. Rewrite copy check and selectable generator (D33, 2026-10-26)
+
+`Revision.rewrite` is the single rewrite path (app session and orchestrator): the prompt forbids returning the sentence
+unchanged; `Revision.isCopy` (case, spacing, punctuation ignored) triggers one retry with `retryPrompt`, which quotes
+the copy; a second copy returns `.unchanged`: the sentence is kept, stays flagged, is skipped in later rounds, and
+`Version.unchanged` drives a note in the Fix panel. Outcomes are logged per sentence (`rewritten`, `DELETED`,
+`UNCHANGED`, `UNUSABLE`). `ModelCatalog.generators` lists Qwen2.5 3B (default) and 7B, both 4-bit; the Ask toolbar has a
+Generator picker (`AppModel.switchGenerator`), and `g1studio examples|casestudy|bestofn --generator <repo>`.

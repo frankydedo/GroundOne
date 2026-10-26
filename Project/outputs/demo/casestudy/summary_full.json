@@ -51,6 +51,10 @@
       "mlx_peak_during_loop": 6.182405084,
       "mlx_active_gb": 5.13499948,
       "resident_gb": 2.110849024
+    },
+    "rewrite_outcomes": {
+      "rewritten": 60,
+      "delete": 60
     }
   },
   "casestudy-g1-05b-b1-set2": {
@@ -105,6 +109,10 @@
       "mlx_peak_during_loop": 3.350921588,
       "mlx_active_gb": 2.300520824,
       "resident_gb": 1.157906432
+    },
+    "rewrite_outcomes": {
+      "rewritten": 57,
+      "delete": 164
     }
   },
   "casestudy-g1-3b-b1-set2-uniform": {
@@ -159,6 +167,128 @@
       "mlx_peak_during_loop": 6.182028188,
       "mlx_active_gb": 5.13499948,
       "resident_gb": 3.568402432
+    },
+    "rewrite_outcomes": {
+      "rewritten": 333,
+      "delete": 255
+    }
+  },
+  "casestudy-g1-3b-b1-set2-final": {
+    "answers": 100,
+    "verifier": "g1-3b-b1",
+    "generator": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+    "input": "injected-set2.jsonl",
+    "revision": "targeted",
+    "detection": {
+      "groundone_flags_injected_sentence": 0.9898,
+      "judge_flags_injected_sentence": 0.8571,
+      "judge_output_fully_parsed": 1.0,
+      "groundone_false_alarm_share_other_sentences": 0.0181,
+      "groundone_flags_number": 0.9583,
+      "groundone_flags_name": 1.0,
+      "groundone_flags_date": 1.0,
+      "groundone_flags_fabricated": 1.0
+    },
+    "error_survival": {
+      "without_loop": 1.0,
+      "after_round_1": 0.08,
+      "after_round_2_final": 0.06,
+      "survival_when_flagged": 0.0309,
+      "survival_when_missed": 1.0,
+      "final_number": 0.12,
+      "final_name": 0.0,
+      "final_date": 0.12,
+      "final_fabricated": 0.0
+    },
+    "repairs": {
+      "swaps_flagged": 72,
+      "swaps_original_value_restored": 0.5833,
+      "other_sentences_kept_verbatim": 0.9801,
+      "final_status_accepted_by_groundone": 0.94,
+      "mean_rewrite_rounds": 1.06,
+      "survivors_still_flagged": 3,
+      "survivors_accepted_by_groundone": 3,
+      "removed_errors_restored": 42,
+      "removed_errors_rewritten": 1,
+      "removed_errors_deleted": 51
+    },
+    "timing_seconds": {
+      "groundone_pass_median": 1.739,
+      "judge_median": 2.362,
+      "judge_over_groundone_median_ratio": 1.345,
+      "rewrite_generation_median": 0.918,
+      "verification_share_of_loop_time": 0.6708,
+      "judge_generated_tokens_median": 23.0,
+      "verifier_input_tokens_median": 769.0
+    },
+    "memory_gb": {
+      "mlx_peak_during_loop": 6.687727628,
+      "mlx_active_gb": 5.13499948,
+      "resident_gb": 3.82263296
+    },
+    "rewrite_outcomes": {
+      "rewritten": 54,
+      "deleted": 61,
+      "unchanged": 3
+    }
+  },
+  "casestudy-g1-3b-b1-set2-gen7b": {
+    "answers": 100,
+    "verifier": "g1-3b-b1",
+    "generator": "mlx-community/Qwen2.5-7B-Instruct-4bit",
+    "input": "injected-set2.jsonl",
+    "revision": "targeted",
+    "detection": {
+      "groundone_flags_injected_sentence": 0.9898,
+      "judge_flags_injected_sentence": 0.8571,
+      "judge_output_fully_parsed": 1.0,
+      "groundone_false_alarm_share_other_sentences": 0.0181,
+      "groundone_flags_number": 0.9583,
+      "groundone_flags_name": 1.0,
+      "groundone_flags_date": 1.0,
+      "groundone_flags_fabricated": 1.0
+    },
+    "error_survival": {
+      "without_loop": 1.0,
+      "after_round_1": 0.04,
+      "after_round_2_final": 0.03,
+      "survival_when_flagged": 0.0,
+      "survival_when_missed": 1.0,
+      "final_number": 0.08,
+      "final_name": 0.0,
+      "final_date": 0.04,
+      "final_fabricated": 0.0
+    },
+    "repairs": {
+      "swaps_flagged": 72,
+      "swaps_original_value_restored": 0.5833,
+      "other_sentences_kept_verbatim": 0.9801,
+      "final_status_accepted_by_groundone": 0.98,
+      "mean_rewrite_rounds": 1.01,
+      "survivors_still_flagged": 0,
+      "survivors_accepted_by_groundone": 3,
+      "removed_errors_restored": 42,
+      "removed_errors_rewritten": 4,
+      "removed_errors_deleted": 51
+    },
+    "timing_seconds": {
+      "groundone_pass_median": 1.744,
+      "judge_median": 2.386,
+      "judge_over_groundone_median_ratio": 1.335,
+      "rewrite_generation_median": 2.11,
+      "verification_share_of_loop_time": 0.5059,
+      "judge_generated_tokens_median": 23.0,
+      "verifier_input_tokens_median": 769.0
+    },
+    "memory_gb": {
+      "mlx_peak_during_loop": 9.238997148,
+      "mlx_active_gb": 7.686301768,
+      "resident_gb": 4.957356032
+    },
+    "rewrite_outcomes": {
+      "rewritten": 54,
+      "deleted": 57,
+      "unchanged": 1
     }
   },
   "casestudy-g1-3b-b1": {
@@ -213,6 +343,10 @@
       "mlx_peak_during_loop": 6.19659306,
       "mlx_active_gb": 5.13499948,
       "resident_gb": 2.124251136
+    },
+    "rewrite_outcomes": {
+      "delete": 288,
+      "rewritten": 372
     }
   },
   "casestudy-g1-05b-b1": {
@@ -267,6 +401,23 @@
       "mlx_peak_during_loop": 3.348889504,
       "mlx_active_gb": 2.300520824,
       "resident_gb": 2.450898944
+    },
+    "rewrite_outcomes": {
+      "delete": 303,
+      "rewritten": 323
+    }
+  },
+  "bestofn-g1-3b-b1-final": {
+    "equal_compute": {
+      "documents": 60,
+      "loop_accepted_by_groundone": 0.7,
+      "loop_first_draft_accepted": 0.5167,
+      "loop_seconds_median": 6.302,
+      "loop_generated_tokens_median": 115.0,
+      "best_of_n_accepted_by_groundone": 0.6167,
+      "best_of_n_samples_used_mean": 2.117,
+      "best_of_n_seconds_median": 6.997,
+      "best_of_n_generated_tokens_median": 218.0
     }
   },
   "bestofn-g1-3b-b1-uniform": {

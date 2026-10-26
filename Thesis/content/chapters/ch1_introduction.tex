@@ -235,9 +235,9 @@ different seeds produces slightly different models: if the results change a lot 
 is not robust.}.
 
 Finally, the GroundOne Studio application shows that a complete RAG assistant can be built around the verifier, in a
-single process and without network access, with a peak of 6.2\,GB of memory allocated by MLX. In a case study with
+single process and without network access, with at most 6.9\,GB of memory allocated by MLX. In a case study with
 injected errors, GroundOne flags the error in 97 of the 98 answers in which the sentence receives a verdict, against 84
-for the LLM judge, and targeted rewriting reduces the answers that still contain it from 100\,\% to 9\,\%.
+for the LLM judge, and targeted rewriting reduces the answers that still contain it from 100\,\% to 6\,\%.
 
 \section{Thesis structure}
 \label{sec:intro-structure}

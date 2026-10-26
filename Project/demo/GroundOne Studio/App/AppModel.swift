@@ -82,6 +82,7 @@ final class AppModel {
     var sidebar: SidebarItem?
     var chats: [Chat] = []
     var verifierRun = "g1-3b-b1"
+    var generatorRepo = ModelCatalog.generator
     var policies: [Policy] = Policy.builtIn
     var policyName = Policy.strict.name
     var selectedTurn: Turn.ID?
@@ -184,8 +185,8 @@ final class AppModel {
         do {
             phase = .loading("Loading GroundOne (\(verifierRun))…")
             let g1 = try await GroundOneModel.load(run: verifierRun)
-            phase = .loading("Loading the generator (Qwen2.5-3B-Instruct 4-bit)…")
-            let gen = try await MLXGenerator.load()
+            phase = .loading("Loading the generator (\(ModelCatalog.generatorLabel(generatorRepo)) 4-bit)…")
+            let gen = try await MLXGenerator.load(repo: generatorRepo)
             phase = .loading("Loading the embedding model…")
             let emb = try await Embedder.load()
             let index = try LibraryIndex(url: Workspace.demo.appendingPathComponent(
@@ -212,6 +213,25 @@ final class AppModel {
             phase = .ready
         } catch {
             phase = .failed("Could not load \(run): \(error.localizedDescription)")
+        }
+    }
+
+    func switchGenerator(to repo: String) async {
+        guard repo != generatorRepo, !fake else { return }
+        let previous = generatorRepo
+        generatorRepo = repo
+        phase = .loading("Loading the generator (\(ModelCatalog.generatorLabel(repo)) 4-bit)…")
+        do {
+            generator = nil
+            session = nil
+            Memory.clearCache()
+            generator = try await MLXGenerator.load(repo: repo)
+            rebuildSession()
+            memory = Memory.stats()
+            phase = .ready
+        } catch {
+            generatorRepo = previous
+            phase = .failed("Could not load \(repo): \(error.localizedDescription)")
         }
     }
 
@@ -280,15 +300,19 @@ final class AppModel {
             do {
                 var current = last
                 var todo = indices
+                var repeated: Set<String> = []   // sentences the generator only repeated: not retried in later rounds
                 for round in 0..<max(rounds, 1) {
                     if round > 0 { turn.stage = "Rewriting again (round \(round + 1))" }
+                    let before = current.sentences
                     let fixed = try await session.fix(current, indices: todo, document: doc)
+                    repeated.formUnion((fixed.unchanged ?? []).compactMap { before.indices.contains($0) ? before[$0].text : nil })
                     turn.stage = "GroundOne is verifying the rewrite"
                     current = try await session.verify(fixed, document: doc, threshold: tau, withJudge: withJudge)
                     turn.record.versions.append(current)
                     turn.versionIndex = nil
                     turn.selection = []
-                    todo = current.verdicts?.sentences.filter { policy.isBlocking($0.label) }.map(\.index) ?? []
+                    todo = current.verdicts?.sentences.filter { policy.isBlocking($0.label) && !repeated.contains($0.text) }
+                        .map(\.index) ?? []
                     if todo.isEmpty { break }
                 }
                 finish(turn, event: "fixed")

@@ -192,3 +192,62 @@ final class SessionTests: XCTestCase {
         XCTAssertEqual(LibraryPrompt.clean("## Title\n**Bold** text.\n- item one"), "Title\nBold text.\nitem one")
     }
 }
+
+/// A generator that replies with fixed texts in order (one per request), recording the prompts it received.
+final class ScriptedGenerator: Generator, @unchecked Sendable {
+    let name = "scripted"
+    var replies: [String]
+    var prompts: [String] = []
+    init(_ replies: [String]) { self.replies = replies }
+    func generate(system: String, user: String, maxTokens: Int) -> AsyncThrowingStream<GenerationEvent, Error> {
+        prompts.append(user)
+        let r = replies.isEmpty ? "" : replies.removeFirst()
+        return AsyncThrowingStream { c in
+            c.yield(.text(r))
+            c.yield(.done(GenerationStats(promptTokens: 10, generatedTokens: 5, timeToFirstToken: 0, seconds: 0.01)))
+            c.finish()
+        }
+    }
+}
+
+final class RewriteCopyTests: XCTestCase {
+    let doc = "The TX-Tag is recharged when the balance falls below $10."
+    func flagged(_ label: Label) -> SentenceVerdict {
+        var s = SentenceVerdict(index: 0, text: "The card is charged when the balance falls below $25.", start: 0, end: 52, scored: true)
+        s.label = label
+        return s
+    }
+
+    func testCopyIgnoresCaseSpacingAndPunctuation() {
+        XCTAssertTrue(Revision.isCopy("\"the card is charged when the balance  falls below $25\"", of: flagged(.contradicted).text))
+        XCTAssertFalse(Revision.isCopy("The card is charged when the balance falls below $10.", of: flagged(.contradicted).text))
+    }
+
+    func testPromptForbidsReturningTheSentenceUnchanged() {
+        XCTAssertTrue(Revision.sentencePrompt(flagged(.contradicted), document: doc).contains("do not return it unchanged"))
+        XCTAssertTrue(Revision.sentencePrompt(flagged(.notMentioned), document: doc).contains("Do not return the SENTENCE unchanged"))
+    }
+
+    func testCopyThenCorrectionUsesTheRetry() async throws {
+        let g = ScriptedGenerator(["The card is charged when the balance falls below $25.", "The card is charged when the balance falls below $10."])
+        let (r, outcome, _) = try await Revision.rewrite(flagged(.contradicted), document: doc, generator: g)
+        XCTAssertEqual(outcome, .rewritten)
+        XCTAssertEqual(r, "The card is charged when the balance falls below $10.")
+        XCTAssertEqual(g.prompts.count, 2)
+        XCTAssertTrue(g.prompts[1].contains("Your previous reply was"))
+    }
+
+    func testTwoCopiesKeepTheSentenceFlagged() async throws {
+        let s = flagged(.contradicted).text
+        let (r, outcome, _) = try await Revision.rewrite(flagged(.contradicted), document: doc, generator: ScriptedGenerator([s, s]))
+        XCTAssertEqual(outcome, .unchanged)
+        XCTAssertNil(r)   // kept as written, still flagged
+    }
+
+    func testContradictedIsNeverDeletedNotMentionedIs() async throws {
+        let (r1, o1, _) = try await Revision.rewrite(flagged(.contradicted), document: doc, generator: ScriptedGenerator(["DELETE"]))
+        XCTAssertNil(r1); XCTAssertEqual(o1, .unusable)
+        let (r2, o2, _) = try await Revision.rewrite(flagged(.notMentioned), document: doc, generator: ScriptedGenerator(["DELETE"]))
+        XCTAssertEqual(r2, ""); XCTAssertEqual(o2, .deleted)
+    }
+}
