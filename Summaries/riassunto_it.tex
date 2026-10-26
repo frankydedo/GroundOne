@@ -71,7 +71,7 @@ che comprende lo zero). Su VitaminC il guadagno scompare e d1-3B è molto più f
 generale di verifica dei fatti. Il readout conta di per sé: a parità di modello addestrato, scegliere fra le tre lettere
 ammesse è più accurato che lasciare al modello generare il proprio verdetto (+0.25 per il 0.5B, +0.07 per il 3B), con la
 stessa latenza. Sulle risposte di quattordici o più frasi GroundOne è da 1.7 a 2 volte più veloce di un giudice LLM sintetico
-e circa sei volte più veloce di uno verboso, con un output sempre valido; al netto della lettura del testo, comune a tutti, decide da 18 a 33 volte più in fretta del giudice sintetico. Consuma meno energia (5.5 e 33 joule in media
+e circa sei volte più veloce di uno verboso, con un output sempre valido; al netto della lettura del testo, comune a tutti, decide da 18 a 33 volte più in fretta del giudice LLM sintetico. Consuma meno energia (5.5 e 33 joule in media
 per risposta), anche se il risparmio è minore di quello sul tempo, perché un prefill lungo assorbe più potenza del
 decoding. Dopo la calibrazione l'Expected Calibration Error del 3B su T1 è 0.019, mentre i giudici LLM a cui si chiede lo
 stesso output forniscono probabilità che distinguono a stento le decisioni corrette da quelle errate. L'intera valutazione
