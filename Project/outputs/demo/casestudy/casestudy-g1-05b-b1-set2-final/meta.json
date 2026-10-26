@@ -1,0 +1,27 @@
+{
+  "answers" : 100,
+  "build" : "Release",
+  "generator" : "mlx-community\/Qwen2.5-3B-Instruct-4bit",
+  "input" : "injected-set2.jsonl",
+  "judge" : "Qwen2.5-3B 8-bit base without the adapter, B0a terse prompt, greedy",
+  "load_seconds" : 1.0660899877548218,
+  "memory_after_load" : {
+    "mlx_active_gb" : 2.3005208239999999,
+    "resident_gb" : 2.466725888
+  },
+  "memory_peak_during_loop" : {
+    "mlx_peak_gb" : 3.4787927920000001,
+    "resident_peak_gb" : 2.5214320639999999
+  },
+  "policy" : {
+    "blocking" : [
+      "contradicted",
+      "not_mentioned"
+    ],
+    "max_attempts" : 2,
+    "on_failure" : "highlight"
+  },
+  "revision" : "targeted",
+  "seconds" : 302.75786507129669,
+  "verifier" : "g1-05b-b1"
+}

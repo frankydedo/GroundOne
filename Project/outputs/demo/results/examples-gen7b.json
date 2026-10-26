@@ -1,0 +1,304 @@
+{
+  "answers" : [
+    {
+      "fix" : {
+        "flagged" : 7,
+        "flagged_after" : 0,
+        "groundone_after_cached_tokens" : 663,
+        "groundone_after_s" : 0.73976600170135498,
+        "K_after" : 11,
+        "outcomes" : {
+          "deleted" : 6,
+          "rewritten" : 1
+        },
+        "rewrite_s" : 7.8319679498672485
+      },
+      "generated_tokens" : 367,
+      "generation_s" : 19.059404969215393,
+      "groundone_s" : 2.7417910099029541,
+      "judge_disagreements" : 9,
+      "judge_s" : 4.8965590000152588,
+      "K" : 16,
+      "labels" : {
+        "not_mentioned" : 7,
+        "supported" : 9
+      },
+      "question" : "What are the benefits and side effects of drinking clove tea?",
+      "words" : 290
+    },
+    {
+      "fix" : {
+        "flagged" : 9,
+        "flagged_after" : 1,
+        "groundone_after_cached_tokens" : 561,
+        "groundone_after_s" : 0.82645106315612793,
+        "K_after" : 11,
+        "outcomes" : {
+          "deleted" : 6,
+          "rewritten" : 3
+        },
+        "rewrite_s" : 10.923924088478088
+      },
+      "generated_tokens" : 439,
+      "generation_s" : 21.780593991279602,
+      "groundone_s" : 2.6951789855957031,
+      "judge_disagreements" : 14,
+      "judge_s" : 4.9045579433441162,
+      "K" : 17,
+      "labels" : {
+        "not_mentioned" : 9,
+        "supported" : 8
+      },
+      "question" : "What is the difference between the nervous system and the endocrine system?",
+      "words" : 377
+    },
+    {
+      "fix" : {
+        "flagged" : 6,
+        "flagged_after" : 1,
+        "groundone_after_cached_tokens" : 665,
+        "groundone_after_s" : 0.73378396034240723,
+        "K_after" : 9,
+        "outcomes" : {
+          "deleted" : 5,
+          "rewritten" : 1
+        },
+        "rewrite_s" : 7.1718549728393555
+      },
+      "generated_tokens" : 342,
+      "generation_s" : 17.978809952735901,
+      "groundone_s" : 3.667248010635376,
+      "judge_disagreements" : 6,
+      "judge_s" : 4.5339449644088745,
+      "K" : 14,
+      "labels" : {
+        "not_mentioned" : 6,
+        "supported" : 8
+      },
+      "question" : "How does E-ZPass charge tolls?",
+      "words" : 272
+    },
+    {
+      "fix" : {
+        "flagged" : 1,
+        "flagged_after" : 0,
+        "groundone_after_cached_tokens" : 1011,
+        "groundone_after_s" : 0.38109099864959717,
+        "K_after" : 4,
+        "outcomes" : {
+          "deleted" : 1
+        },
+        "rewrite_s" : 1.1827670335769653
+      },
+      "generated_tokens" : 135,
+      "generation_s" : 10.745570063591003,
+      "groundone_s" : 2.7912709712982178,
+      "judge_disagreements" : 2,
+      "judge_s" : 3.0904240608215332,
+      "K" : 5,
+      "labels" : {
+        "not_mentioned" : 1,
+        "supported" : 4
+      },
+      "question" : "Why does Oracle have two CEOs?",
+      "words" : 107
+    },
+    {
+      "fix" : {
+        "flagged" : 2,
+        "flagged_after" : 0,
+        "groundone_after_cached_tokens" : 1018,
+        "groundone_after_s" : 0.89751791954040527,
+        "K_after" : 9,
+        "outcomes" : {
+          "deleted" : 2
+        },
+        "rewrite_s" : 2.1438939571380615
+      },
+      "generated_tokens" : 338,
+      "generation_s" : 19.339014053344727,
+      "groundone_s" : 3.3367849588394165,
+      "judge_disagreements" : 2,
+      "judge_s" : 4.6105530261993408,
+      "K" : 11,
+      "labels" : {
+        "not_mentioned" : 2,
+        "supported" : 9
+      },
+      "question" : "What is the effect of a carbon footprint?",
+      "words" : 281
+    },
+    {
+      "fix" : {
+        "flagged" : 8,
+        "flagged_after" : 0,
+        "groundone_after_cached_tokens" : 679,
+        "groundone_after_s" : 0.58166897296905518,
+        "K_after" : 6,
+        "outcomes" : {
+          "deleted" : 8
+        },
+        "rewrite_s" : 8.8688328266143799
+      },
+      "generated_tokens" : 406,
+      "generation_s" : 20.708670973777771,
+      "groundone_s" : 3.9546139240264893,
+      "judge_disagreements" : 5,
+      "judge_s" : 4.6136050224304199,
+      "K" : 14,
+      "labels" : {
+        "not_mentioned" : 8,
+        "supported" : 6
+      },
+      "question" : "How do raffles work?",
+      "words" : 317
+    },
+    {
+      "fix" : {
+        "flagged" : 1,
+        "flagged_after" : 0,
+        "groundone_after_cached_tokens" : 1229,
+        "groundone_after_s" : 0.46106398105621338,
+        "K_after" : 5,
+        "outcomes" : {
+          "deleted" : 1
+        },
+        "rewrite_s" : 1.3154060840606689
+      },
+      "generated_tokens" : 174,
+      "generation_s" : 13.22422194480896,
+      "groundone_s" : 3.3433198928833008,
+      "judge_disagreements" : 0,
+      "judge_s" : 3.776528000831604,
+      "K" : 6,
+      "labels" : {
+        "not_mentioned" : 1,
+        "supported" : 5
+      },
+      "question" : "Why did Walmart oppose the religious freedom laws?",
+      "words" : 152
+    },
+    {
+      "fix" : {
+        "flagged" : 1,
+        "flagged_after" : 0,
+        "groundone_after_cached_tokens" : 1193,
+        "groundone_after_s" : 0.751181960105896,
+        "K_after" : 9,
+        "outcomes" : {
+          "rewritten" : 1
+        },
+        "rewrite_s" : 2.1604989767074585
+      },
+      "generated_tokens" : 233,
+      "generation_s" : 15.75128698348999,
+      "groundone_s" : 3.4683549404144287,
+      "judge_disagreements" : 2,
+      "judge_s" : 4.2788389921188354,
+      "K" : 9,
+      "labels" : {
+        "not_mentioned" : 1,
+        "supported" : 8
+      },
+      "question" : "What happened to Lauren Hill?",
+      "words" : 183
+    },
+    {
+      "fix" : {
+        "flagged" : 1,
+        "flagged_after" : 0,
+        "groundone_after_cached_tokens" : 1200,
+        "groundone_after_s" : 0.82671594619750977,
+        "K_after" : 9,
+        "outcomes" : {
+          "rewritten" : 1
+        },
+        "rewrite_s" : 1.6021109819412231
+      },
+      "generated_tokens" : 265,
+      "generation_s" : 17.061722040176392,
+      "groundone_s" : 3.5597190856933594,
+      "judge_disagreements" : 2,
+      "judge_s" : 4.3460479974746704,
+      "K" : 9,
+      "labels" : {
+        "not_mentioned" : 1,
+        "supported" : 8
+      },
+      "question" : "Who was Richie Benaud and what was his career?",
+      "words" : 203
+    },
+    {
+      "fix" : {
+        "flagged" : 0
+      },
+      "generated_tokens" : 420,
+      "generation_s" : 23.741266965866089,
+      "groundone_s" : 4.6764659881591797,
+      "judge_disagreements" : 1,
+      "judge_s" : 5.4582239389419556,
+      "K" : 13,
+      "labels" : {
+        "supported" : 13
+      },
+      "question" : "What changed for Americans on the US no-fly list?",
+      "words" : 353
+    },
+    {
+      "fix" : {
+        "flagged" : 1,
+        "flagged_after" : 0,
+        "groundone_after_cached_tokens" : 1217,
+        "groundone_after_s" : 0.7513270378112793,
+        "K_after" : 7,
+        "outcomes" : {
+          "deleted" : 1
+        },
+        "rewrite_s" : 0.98725402355194092
+      },
+      "generated_tokens" : 262,
+      "generation_s" : 16.97539496421814,
+      "groundone_s" : 3.559095025062561,
+      "judge_disagreements" : 3,
+      "judge_s" : 4.2741979360580444,
+      "K" : 8,
+      "labels" : {
+        "not_mentioned" : 1,
+        "supported" : 7
+      },
+      "question" : "What did officials find about new HIV infections in rural Indiana?",
+      "words" : 217
+    },
+    {
+      "fix" : {
+        "flagged" : 9,
+        "flagged_after" : 0,
+        "groundone_after_cached_tokens" : 651,
+        "groundone_after_s" : 0.23174607753753662,
+        "K_after" : 3,
+        "outcomes" : {
+          "deleted" : 9
+        },
+        "rewrite_s" : 9.2435208559036255
+      },
+      "generated_tokens" : 334,
+      "generation_s" : 17.401450991630554,
+      "groundone_s" : 2.4914499521255493,
+      "judge_disagreements" : 2,
+      "judge_s" : 4.0247700214385986,
+      "K" : 12,
+      "labels" : {
+        "not_mentioned" : 9,
+        "supported" : 3
+      },
+      "question" : "What are the side effects of clove tea for pregnant women?",
+      "words" : 288
+    }
+  ],
+  "generator" : "mlx-community\/Qwen2.5-7B-Instruct-4bit",
+  "memory" : {
+    "mlx_active_gb" : 8.4897910719999992,
+    "mlx_peak_gb" : 9.4150447760000002
+  },
+  "verifier" : "GroundOne g1-3b-b1"
+}
