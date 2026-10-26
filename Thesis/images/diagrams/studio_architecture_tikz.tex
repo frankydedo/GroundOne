@@ -10,32 +10,32 @@
   \node[cluster, fit=(ask)(insp)(lib)(stats)] (ui) {};
   \node[clusterlabel, anchor=south west] at (ui.north west) {SwiftUI interface};
   % Core
-  \node[model=3.9cm, font=\footnotesize] (sess) at (2.6,-2.3) {Session: native answer $\rightarrow$ verification on request $\rightarrow$ rewriting on request};
-  \node[io, font=\footnotesize, text width=2.0cm] (pol) at (6.6,-2.3) {Policy and threshold $\tau$};
-  \node[data=2.6cm, font=\footnotesize] (store) at (10.2,-2.3) {Chats (JSON),\\audit log (JSONL)};
+  \node[model=3.9cm, font=\footnotesize] (sess) at (2.6,-2.7) {Session: native answer $\rightarrow$ verification on request $\rightarrow$ rewriting on request};
+  \node[io, font=\footnotesize, text width=2.0cm] (pol) at (6.6,-2.7) {Policy and threshold $\tau$};
+  \node[data=2.6cm, font=\footnotesize] (store) at (10.2,-2.7) {Chats (JSON),\\audit log (JSONL)};
   \node[cluster, fit=(sess)(pol)(store)] (core) {};
-  \node[clusterlabel, anchor=south west] at (core.north west) {Core (Swift, no dependency on the engines)};
+  \node[clusterlabel, anchor=south east] at (core.north east) {Core (Swift, no dependency on the engines)};
   % Ports
-  \foreach \n/\x/\t/\g in {pr/0.3/Retriever/0, pg/3.4/Generator/0, pv/6.4/Verifier/1, pa/8.0/Attributor/1, pj/11.1/Judge/0} {
+  \foreach \n/\x/\t/\g in {pr/0.3/Retriever/0, pg/3.4/Generator/0, pv/6.4/Verifier/1, pa/8.0/Attributor/1, pj/11.7/Judge/0} {
     \ifnum\g=1
-      \node[tok, draw=modLine, fill=modFill, very thick] (\n) at (\x,-4.2) {\t};
+      \node[tok, draw=modLine, fill=modFill, very thick] (\n) at (\x,-4.75) {\t};
     \else
-      \node[tok] (\n) at (\x,-4.2) {\t};
+      \node[tok] (\n) at (\x,-4.75) {\t};
     \fi
   }
-  \node[note, anchor=east] at (-0.7,-4.2) {ports};
+  \node[note, anchor=east] at (-0.7,-4.75) {ports};
   % Engines
-  \node[data=2.7cm, font=\footnotesize] (idx) at (0.3,-6.3) {SQLite FTS5 (BM25)\\+ bge-small (MLX)};
-  \node[model=2.8cm, font=\footnotesize, draw=ioLine, fill=ioFill] (gen) at (3.4,-6.3) {Generator\\Qwen2.5-3B-Instruct\\4-bit};
-  \node[model=3.5cm, font=\footnotesize] (g1) at (7.2,-6.3) {\textbf{GroundOne 3B}: 8-bit base + LoRA adapter, marked prompt, A/B/C readout, calibration and $\tau$};
-  \node[model=2.5cm, font=\footnotesize, draw=decLine, fill=decFill] (jd) at (11.1,-6.3) {Judge: same base, adapter removed, B0a prompt};
+  \node[data=2.7cm, font=\footnotesize] (idx) at (0.3,-7.0) {SQLite FTS5 (BM25)\\+ bge-small (MLX)};
+  \node[model=2.8cm, font=\footnotesize, draw=ioLine, fill=ioFill] (gen) at (3.4,-7.0) {Generator\\Qwen2.5-3B-Instruct\\4-bit};
+  \node[model=3.5cm, font=\footnotesize] (g1) at (7.2,-7.0) {\textbf{GroundOne 3B}: 8-bit base + LoRA adapter, marked prompt, A/B/C readout, calibration and $\tau$};
+  \node[model=2.5cm, font=\footnotesize, draw=decLine, fill=decFill] (jd) at (11.7,-7.0) {Judge: same base, adapter removed, B0a prompt};
   \node[cluster, fit=(idx)(gen)(g1)(jd)] (eng) {};
   \node[clusterlabel, anchor=north west] at (eng.south west) {MLX engines in one process; GPU calls serialised};
   % Arrows
   \draw[arrow] (ui.south -| sess.north) -- (sess.north);
   \draw[arrow] (pol) -- (sess);
   \draw[arrow] ([xshift=-4mm]sess.south east) -- ++(0,-0.25) -| (store.south);
-  \foreach \p in {pr,pg,pv,pa,pj} { \draw[arrow] (sess.south) -- ++(0,-0.55) -| (\p.north); }
+  \foreach \p in {pr,pg,pv,pa,pj} { \draw[arrow] (sess.south) -- ++(0,-0.95) -| (\p.north); }
   \draw[arrow] (pr) -- (idx);
   \draw[arrow] (pg) -- (gen);
   \draw[arrow] (pv.south) -- (pv.south |- g1.north);
