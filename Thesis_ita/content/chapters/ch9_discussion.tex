@@ -6,13 +6,12 @@
 Questo capitolo interpreta i risultati alla luce delle cinque domande di ricerca. Indica poi ciò che gli esperimenti non
 possono dimostrare e quali scelte potrebbero averli distorti.
 
-\section{Quando conviene un Decision Model specialista}
+\section{Quando conviene un decision model specialista}
 \label{sec:disc-synthesis}
 
 \paragraph{Specializzazione (RQ1).} A rendere GroundOne accurato è l'addestramento sulla decisione. I modelli non
 addestrati restano vicini al caso, mentre gli stessi modelli, una volta addestrati, raggiungono sul test set di RAGTruth
-una balanced accuracy a tre classi di 0.769 (0.5B) e 0.832 (3B). Superano così gli encoder specializzati in AUROC, e
-Rizzo-Flow, un decision model generalista otto volte più grande, in balanced accuracy a tre classi. Il vantaggio, però, si
+una balanced accuracy a tre classi di 0.769 (0.5B) e 0.832 (3B). Superano così gli encoder specializzati in AUROC, e Rizzo-Flow, un decision model generalista otto volte più grande del 0.5B, in balanced accuracy a tre classi. Il vantaggio, però, si
 concentra dove si trovano i dati di addestramento. Su LLM-AggreFact il 3B si porta alla pari con il miglior encoder di
 piccole dimensioni, senza superarlo, e resta sotto il decision model chiuso Jev e un modello open da 27B, misurati in modo
 indipendente; il 0.5B rimane al di sotto dell'encoder. Su VitaminC, infine, il 3B addestrato non fa meglio di quello non
@@ -57,16 +56,15 @@ coerente con la probabilità mostrata all'utente. Come mostrano i risultati su V
 soltanto per la distribuzione su cui è stata stimata.
 
 \paragraph{Costo sul dispositivo (RQ4).} Il verificatore sta comodamente nel portatile da 16\,GB. Durante
-l'addestramento la memoria occupata raggiunge un picco di 2.6\,GB con il 0.5B e di 5.9\,GB con il 3B. Verificare una
-risposta lunga richiede 0.41 secondi e 5.5 joule con il 0.5B, 2.57 secondi e 33 joule con il 3B. Il 0.5B rientra in un
-budget interattivo; il 3B, invece, su una risposta tipica è più lento di quanto un uso interattivo richiederebbe, e
+l'addestramento la memoria occupata raggiunge un picco di 2.6\,GB con il 0.5B e di 5.9\,GB con il 3B. Verificare una risposta lunga richiede 0.41 secondi con il 0.5B e 2.57 con il 3B, e l'energia media per risposta è di 5.5 e 33 joule. Il 0.5B rientra in un budget interattivo; il 3B, invece, è più lento di quanto un uso interattivo continuo richiederebbe, a meno che la verifica non avvenga su richiesta, come nell'applicazione del Capitolo~\ref{ch:studio}, e
 scambia tempo con accuratezza. Le misure di energia precisano la portata dei risultati sulla velocità. Un singolo
 prefill lungo assorbe più potenza del decoding token per token, per cui l'energia risparmiata è inferiore al tempo
 risparmiato, e la maggiore velocità non va letta come un risparmio equivalente di batteria. Il verificatore convive
 inoltre con un generatore nello stesso processo: insieme a un generatore 3B a 4 bit, il picco di memoria è di 6.1\,GB con
 il 3B e di 3.3\,GB con il 0.5B. L'intera valutazione gira senza alcun accesso alla rete, con risultati identici bit per
-bit, e i pesi a 8 bit non costano accuratezza rispetto a quelli in bf16 (Sezione~\ref{sec:results-locality}). Resta da
-misurare il retriever, che verrà valutato nell'applicazione dimostrativa.
+bit, e i pesi a 8 bit non costano accuratezza rispetto a quelli in bf16 (Sezione~\ref{sec:results-locality}). Il
+retriever aggiunge poco: nell'applicazione del Capitolo~\ref{ch:studio}, con generatore, GroundOne 3B e modello di
+embedding caricati insieme, la memoria allocata da MLX raggiunge un picco di 6.2\,GB.
 
 Anche il costo economico va letto con misura (Tabella~\ref{tab:disc-cost}). Verificare 10{,}000 risposte con
 GroundOne richiede un'energia che, al prezzo medio europeo dell'elettricità per le famiglie~\cite{eurostat2026electricity},
@@ -127,7 +125,7 @@ verificatore binario consente. La Figura~\ref{fig:disc-when} riassume queste ind
 unico runtime e un'unica famiglia di modelli. Latenza ed energia dipendono dall'hardware e dall'implementazione: ciò che
 dovrebbe valere anche altrove sono i rapporti tra i metodi, non i valori assoluti. La latenza di GroundOne non viene
 confrontata con quella degli encoder né con quella dei decision model generalisti, perché questi sono stati eseguiti in
-runtime diversi e in condizioni che renderebbero il confronto iniquo.
+runtime diversi e in condizioni che renderebbero il confronto iniquo (si veda anche il paragrafo ``Una sola macchina'' nella Sezione~\ref{sec:disc-threats}).
 
 \paragraph{Stabilità dell'addestramento.} Due run completi del 0.5B concordano su tutte le metriche aggregate, ma un
 terzo run è collassato nelle prime fasi ed è stato interrotto. La ricetta di addestramento non prevede gradient clipping
@@ -161,10 +159,10 @@ contesto più lungo esce dalla distribuzione su cui il modello è stato misurato
 per ogni frase la probabilità di supporto più alta, come avviene su LLM-AggreFact; un fatto che richiede di combinare
 due frammenti diversi può allora sfuggire. Il secondo riguarda le fonti in conflitto: quando un passaggio sostiene una
 frase e un altro la contraddice, il verdetto atteso non è definito in modo univoco, e RAGTruth non contiene casi di
-questo tipo. Il terzo riguarda l'attribuzione: GroundOne indica se una frase è supportata, ma non da quale passaggio.
+questo tipo. Il terzo riguarda l'attribuzione: GroundOne indica se una frase è supportata, ma non da quale passaggio; un primo prototipo, non valutato, è descritto nella Sezione~\ref{sec:studio-flow}.
 
 \paragraph{Portata statistica.} Gli intervalli bootstrap descrivono la variabilità del test set, non quella
-dell'addestramento. Inoltre, circa cinquanta confronti sono stati sottoposti a test senza correzione per confronti
+dell'addestramento. Inoltre, una sessantina di confronti sono stati sottoposti a test senza correzione per confronti
 multipli. Per questo le conclusioni poggiano su effetti ben lontani dallo zero, e non si rivendicano differenze su
 LLM-AggreFact e VitaminC inferiori alla dispersione tra seed. Diverse baseline, infine, sono state valutate su
 sottocampioni, il che ne allarga gli intervalli.

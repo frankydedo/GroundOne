@@ -1,0 +1,3 @@
+# Demo chapter (2026-10-26): retrieval on the T1 library; screenshots of the final app (real models, light appearance).
+'demo/GroundOne Studio/build/dd3/Build/Products/Release/g1studio' retrieval-t1
+UITEST_TIMEOUT=1800 'demo/GroundOne Studio/scripts/uitest.sh' testScreenshotsForThesis

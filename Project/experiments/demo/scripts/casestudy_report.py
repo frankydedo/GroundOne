@@ -20,6 +20,16 @@ P = Path(__file__).resolve().parents[3]
 CS = P / "outputs/demo/casestudy"
 FIG = P / "outputs/figures/demo"
 KINDS = ["number", "name", "date", "fabricated"]
+LANG = __import__("os").environ.get("GROUNDONE_FIG_LANG", "en")
+IT = {"number": "numero", "name": "nome", "date": "data", "fabricated": "frase inventata",
+      "original value restored": "valore ripristinato dalla fonte", "sentence rewritten": "frase riscritta",
+      "sentence deleted": "frase cancellata", "still present, still flagged": "errore presente, ancora segnalato",
+      "still present, accepted by GroundOne": "errore presente, accettato da GroundOne",
+      "injected errors (25 per type)": "errori iniettati (25 per tipo)"}
+
+
+def tr(x):
+    return IT.get(x, x) if LANG == "it" else x
 BLUE, GREY, PURPLE = "#1f5fbf", "#8c8c9e", "#9e5cb3"
 
 
@@ -134,20 +144,19 @@ def figures(rows, run, tag, injected=None):
                     counts[repair_mode(r, injected[r["id"]])] += 1
             left = 0
             for c, label, color in cats:
-                ax.barh(y, counts[c], left=left, color=color, edgecolor="white", label=label if y == 0 else None)
+                ax.barh(y, counts[c], left=left, color=color, edgecolor="white", label=tr(label) if y == 0 else None)
                 left += counts[c]
-        ax.set_yticks(range(len(KINDS)), KINDS)
+        ax.set_yticks(range(len(KINDS)), [tr(k) for k in KINDS])
         ax.invert_yaxis()
-        ax.set_xlabel("injected errors (25 per type)")
+        ax.set_xlabel(tr("injected errors (25 per type)"))
         ax.legend(frameon=False, fontsize=7, ncol=3, loc="upper center", bbox_to_anchor=(0.5, 1.28))
         ax.spines[["top", "right"]].set_visible(False)
         fig.tight_layout()
-        fig.savefig(FIG / f"casestudy_outcomes_{tag}.png", dpi=200)
+        fig.savefig(FIG / f"casestudy_outcomes_{tag}{'_it' if LANG == 'it' else ''}.png", dpi=200)
         (FIG / f"casestudy_outcomes_{tag}.txt").write_text(
-            f"Outcome of each injected error after the loop ({run}). For swapped numbers, names and dates, removal mostly "
-            "happens by deleting the sentence (the correct information is lost too) rather than by restoring the value from "
-            "the document; for fabricated sentences deletion is the right repair. Errors still present are either still "
-            "flagged (shown highlighted under the policy) or accepted by GroundOne (a miss).")
+            f"Outcome of each injected error after the loop ({run}), by error type: value restored from the document, sentence "
+            "rewritten, sentence deleted (the right repair for fabricated sentences; for swapped values the correct information "
+            "goes too), error still present and still flagged (highlighted under the policy), or accepted by GroundOne.")
         plt.close(fig)
     # 1. survival of the injected error by round and kind
     fig, ax = plt.subplots(figsize=(6.4, 3.6))

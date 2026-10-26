@@ -23,8 +23,7 @@ conflitto sia una parte non verificabile, viene etichettata come contraddetta, p
 grave. Conta soltanto il documento: un'affermazione vera nel mondo reale ma assente dal documento resta non menzionata.
 
 Il numero di decisioni richieste da una risposta coincide con il numero delle sue frasi valutate, indicato con $K$.
-Questa grandezza è centrale nella tesi. Un decision model legge documento e risposta una sola volta, quindi ogni decisione
-aggiuntiva gli costa quasi nulla; un giudice generativo, invece, deve produrre testo per ogni frase. Per questo il
+Questa grandezza è centrale nella tesi. Un decision model legge documento e risposta una sola volta, quindi ogni decisione aggiuntiva gli costa poco, soltanto i token della frase; un giudice generativo, invece, deve produrre testo per ogni frase. Per questo il
 confronto con i giudici generativi è condotto in funzione di $K$, e i dati devono comprendere risposte lunghe oltre che
 brevi.
 
@@ -220,7 +219,7 @@ descritta sopra (Tabella~\ref{tab:data-checks}). Tutte le etichette di test prov
 dataset pubblicati. Le due scelte che potevano introdurre errori sono la segmentazione e la conversione dagli span alle
 etichette di frase. Entrambe sono state confrontate con LLM-AggreFact, i cui autori hanno convertito in modo
 indipendente le stesse risposte di test di RAGTruth in affermazioni a livello di frase. Il segmentatore di questa tesi
-ritrova esattamente il 96.3\,\% delle loro affermazioni, e solo l'8.5\,\% delle frasi valutate manca dal loro insieme. Si
+ritrova esattamente il 96.3\,\% delle loro affermazioni, e solo l'8.5\,\% delle frasi valutate è assente dal loro insieme. Si
 tratta per lo più di frasi eliminate dal loro filtro delle affermazioni ``non meritevoli di verifica'', che non è
 documentato. Sulle 15{,}492 frasi presenti in entrambi gli insiemi, le etichette binarie concordano nel 98.75\,\% dei
 casi. Tutti i 193 disaccordi, inoltre, vanno nella stessa direzione: la regola basata sugli span marca come non
@@ -286,11 +285,9 @@ in T1.}
 \paragraph{Le risposte di test sono più pulite di quelle di addestramento.} In ogni task e per ogni generatore, la quota
 di frasi contraddette e non menzionate è più bassa in T1 che nel training set. Nel question answering, per esempio, è
 contraddetto lo 0.6\,\% delle frasi di T1, contro l'1.6\,\% di quelle del training set. Di conseguenza, le metriche che
-dipendono dalla frequenza di base delle classi, come la precisione o l'F1 sulle classi minoritarie\footnote{La
-\emph{recall} di una classe è la quota dei suoi esempi che il modello riconosce. La \emph{precisione} è la quota delle
+dipendono dalla frequenza di base delle classi, come la precisione o l'F1 sulle classi minoritarie\footnote{La \emph{precisione} è la quota delle
 predizioni di quella classe che risultano corrette, e per questo cambia con la frequenza della classe anche quando il
-modello resta lo stesso. L'F1 è la media armonica delle due.}, non sono confrontabili tra dev set e test set, perché il dev set, estratto dal training set, ne conserva la distribuzione. Le metriche
-principali sono quindi la balanced accuracy, la recall macro e l'AUROC, che dalla frequenza di base non dipendono.
+modello resta lo stesso. L'F1 è la media armonica delle due.}, non sono confrontabili tra dev set e test set, perché il dev set, estratto dal training set, ne conserva la distribuzione. Le metriche principali sono quindi la balanced accuracy, la recall per classe e l'AUROC, che dalla frequenza di base non dipendono.
 
 \paragraph{Le contraddizioni sono per lo più evidenti.} Circa l'85\,\% delle frasi contraddette del training set deriva
 da span annotati come conflitti \emph{evidenti}, per esempio numeri o nomi sbagliati, mentre soltanto 147 derivano da

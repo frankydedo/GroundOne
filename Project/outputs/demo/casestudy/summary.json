@@ -1,4 +1,145 @@
 {
+  "casestudy-g1-3b-b1-set2 \u00b7 detection": {
+    "groundone_flags_injected_sentence": 0.9898,
+    "judge_flags_injected_sentence": 0.8571,
+    "judge_output_fully_parsed": 1.0,
+    "groundone_false_alarm_share_other_sentences": 0.0163,
+    "groundone_flags_number": 0.9583,
+    "groundone_flags_name": 1.0,
+    "groundone_flags_date": 1.0,
+    "groundone_flags_fabricated": 1.0
+  },
+  "casestudy-g1-3b-b1-set2 \u00b7 error_survival": {
+    "without_loop": 1.0,
+    "after_round_1": 0.1,
+    "after_round_2_final": 0.09,
+    "survival_when_flagged": 0.0619,
+    "survival_when_missed": 1.0,
+    "final_number": 0.2,
+    "final_name": 0.0,
+    "final_date": 0.16,
+    "final_fabricated": 0.0
+  },
+  "casestudy-g1-3b-b1-set2 \u00b7 repairs": {
+    "swaps_flagged": 72,
+    "swaps_original_value_restored": 0.5694,
+    "other_sentences_kept_verbatim": 0.9819,
+    "final_status_accepted_by_groundone": 0.9,
+    "mean_rewrite_rounds": 1.09,
+    "survivors_still_flagged": 6,
+    "survivors_accepted_by_groundone": 3,
+    "removed_errors_restored": 41,
+    "removed_errors_rewritten": 1,
+    "removed_errors_deleted": 49
+  },
+  "casestudy-g1-3b-b1-set2 \u00b7 timing_seconds": {
+    "groundone_pass_median": 1.739,
+    "judge_median": 2.265,
+    "judge_over_groundone_median_ratio": 1.358,
+    "rewrite_generation_median": 0.902,
+    "verification_share_of_loop_time": 0.7845,
+    "judge_generated_tokens_median": 23.0,
+    "verifier_input_tokens_median": 769.0
+  },
+  "casestudy-g1-3b-b1-set2 \u00b7 memory_gb": {
+    "mlx_peak_during_loop": 6.182405084,
+    "mlx_active_gb": 5.13499948,
+    "resident_gb": 2.110849024
+  },
+  "casestudy-g1-05b-b1-set2 \u00b7 detection": {
+    "groundone_flags_injected_sentence": 0.9898,
+    "judge_flags_injected_sentence": 0.3457,
+    "judge_output_fully_parsed": 0.78,
+    "groundone_false_alarm_share_other_sentences": 0.1664,
+    "groundone_flags_number": 0.9583,
+    "groundone_flags_name": 1.0,
+    "groundone_flags_date": 1.0,
+    "groundone_flags_fabricated": 1.0
+  },
+  "casestudy-g1-05b-b1-set2 \u00b7 error_survival": {
+    "without_loop": 1.0,
+    "after_round_1": 0.03,
+    "after_round_2_final": 0.03,
+    "survival_when_flagged": 0.0,
+    "survival_when_missed": 1.0,
+    "final_number": 0.08,
+    "final_name": 0.0,
+    "final_date": 0.04,
+    "final_fabricated": 0.0
+  },
+  "casestudy-g1-05b-b1-set2 \u00b7 repairs": {
+    "swaps_flagged": 72,
+    "swaps_original_value_restored": 0.125,
+    "other_sentences_kept_verbatim": 0.8571,
+    "final_status_accepted_by_groundone": 0.81,
+    "mean_rewrite_rounds": 1.25,
+    "survivors_still_flagged": 2,
+    "survivors_accepted_by_groundone": 1,
+    "removed_errors_restored": 9,
+    "removed_errors_rewritten": 1,
+    "removed_errors_deleted": 87
+  },
+  "casestudy-g1-05b-b1-set2 \u00b7 timing_seconds": {
+    "groundone_pass_median": 0.3,
+    "judge_median": 0.509,
+    "judge_over_groundone_median_ratio": 1.399,
+    "rewrite_generation_median": 1.015,
+    "verification_share_of_loop_time": 0.3082,
+    "judge_generated_tokens_median": 31.0,
+    "verifier_input_tokens_median": 769.0
+  },
+  "casestudy-g1-05b-b1-set2 \u00b7 memory_gb": {
+    "mlx_peak_during_loop": 3.350921588,
+    "mlx_active_gb": 2.300520824,
+    "resident_gb": 1.157906432
+  },
+  "casestudy-g1-3b-b1-set2-uniform \u00b7 detection": {
+    "groundone_flags_injected_sentence": 0.9898,
+    "judge_flags_injected_sentence": 0.8571,
+    "judge_output_fully_parsed": 1.0,
+    "groundone_false_alarm_share_other_sentences": 0.0163,
+    "groundone_flags_number": 0.9583,
+    "groundone_flags_name": 1.0,
+    "groundone_flags_date": 1.0,
+    "groundone_flags_fabricated": 1.0
+  },
+  "casestudy-g1-3b-b1-set2-uniform \u00b7 error_survival": {
+    "without_loop": 1.0,
+    "after_round_1": 0.13,
+    "after_round_2_final": 0.13,
+    "survival_when_flagged": 0.1031,
+    "survival_when_missed": 1.0,
+    "final_number": 0.16,
+    "final_name": 0.08,
+    "final_date": 0.16,
+    "final_fabricated": 0.12
+  },
+  "casestudy-g1-3b-b1-set2-uniform \u00b7 repairs": {
+    "swaps_flagged": 72,
+    "swaps_original_value_restored": 0.1111,
+    "other_sentences_kept_verbatim": 0.9765,
+    "final_status_accepted_by_groundone": 0.9,
+    "mean_rewrite_rounds": 1.13,
+    "survivors_still_flagged": 10,
+    "survivors_accepted_by_groundone": 3,
+    "removed_errors_restored": 7,
+    "removed_errors_rewritten": 0,
+    "removed_errors_deleted": 80
+  },
+  "casestudy-g1-3b-b1-set2-uniform \u00b7 timing_seconds": {
+    "groundone_pass_median": 1.728,
+    "judge_median": 2.256,
+    "judge_over_groundone_median_ratio": 1.358,
+    "rewrite_generation_median": 2.058,
+    "verification_share_of_loop_time": 0.5956,
+    "judge_generated_tokens_median": 23.0,
+    "verifier_input_tokens_median": 769.0
+  },
+  "casestudy-g1-3b-b1-set2-uniform \u00b7 memory_gb": {
+    "mlx_peak_during_loop": 6.182028188,
+    "mlx_active_gb": 5.13499948,
+    "resident_gb": 3.568402432
+  },
   "casestudy-g1-3b-b1 \u00b7 detection": {
     "groundone_flags_injected_sentence": 1.0,
     "judge_flags_injected_sentence": 0.8854,
@@ -93,101 +234,7 @@
     "mlx_active_gb": 2.300520824,
     "resident_gb": 2.450898944
   },
-  "casestudy-g1-3b-b1-set2 \u00b7 detection": {
-    "groundone_flags_injected_sentence": 0.9898,
-    "judge_flags_injected_sentence": 0.8571,
-    "judge_output_fully_parsed": 1.0,
-    "groundone_false_alarm_share_other_sentences": 0.0163,
-    "groundone_flags_number": 0.9583,
-    "groundone_flags_name": 1.0,
-    "groundone_flags_date": 1.0,
-    "groundone_flags_fabricated": 1.0
-  },
-  "casestudy-g1-3b-b1-set2 \u00b7 error_survival": {
-    "without_loop": 1.0,
-    "after_round_1": 0.1,
-    "after_round_2_final": 0.09,
-    "survival_when_flagged": 0.0619,
-    "survival_when_missed": 1.0,
-    "final_number": 0.2,
-    "final_name": 0.0,
-    "final_date": 0.16,
-    "final_fabricated": 0.0
-  },
-  "casestudy-g1-3b-b1-set2 \u00b7 repairs": {
-    "swaps_flagged": 72,
-    "swaps_original_value_restored": 0.5694,
-    "other_sentences_kept_verbatim": 0.9819,
-    "final_status_accepted_by_groundone": 0.9,
-    "mean_rewrite_rounds": 1.09,
-    "survivors_still_flagged": 6,
-    "survivors_accepted_by_groundone": 3,
-    "removed_errors_restored": 41,
-    "removed_errors_rewritten": 1,
-    "removed_errors_deleted": 49
-  },
-  "casestudy-g1-3b-b1-set2 \u00b7 timing_seconds": {
-    "groundone_pass_median": 1.739,
-    "judge_median": 2.265,
-    "judge_over_groundone_median_ratio": 1.358,
-    "rewrite_generation_median": 0.902,
-    "verification_share_of_loop_time": 0.7845,
-    "judge_generated_tokens_median": 23.0,
-    "verifier_input_tokens_median": 769.0
-  },
-  "casestudy-g1-3b-b1-set2 \u00b7 memory_gb": {
-    "mlx_peak_during_loop": 6.182405084,
-    "mlx_active_gb": 5.13499948,
-    "resident_gb": 2.110849024
-  },
-  "casestudy-g1-3b-b1-set2-uniform \u00b7 detection": {
-    "groundone_flags_injected_sentence": 0.9898,
-    "judge_flags_injected_sentence": 0.8571,
-    "judge_output_fully_parsed": 1.0,
-    "groundone_false_alarm_share_other_sentences": 0.0163,
-    "groundone_flags_number": 0.9583,
-    "groundone_flags_name": 1.0,
-    "groundone_flags_date": 1.0,
-    "groundone_flags_fabricated": 1.0
-  },
-  "casestudy-g1-3b-b1-set2-uniform \u00b7 error_survival": {
-    "without_loop": 1.0,
-    "after_round_1": 0.13,
-    "after_round_2_final": 0.13,
-    "survival_when_flagged": 0.1031,
-    "survival_when_missed": 1.0,
-    "final_number": 0.16,
-    "final_name": 0.08,
-    "final_date": 0.16,
-    "final_fabricated": 0.12
-  },
-  "casestudy-g1-3b-b1-set2-uniform \u00b7 repairs": {
-    "swaps_flagged": 72,
-    "swaps_original_value_restored": 0.1111,
-    "other_sentences_kept_verbatim": 0.9765,
-    "final_status_accepted_by_groundone": 0.9,
-    "mean_rewrite_rounds": 1.13,
-    "survivors_still_flagged": 10,
-    "survivors_accepted_by_groundone": 3,
-    "removed_errors_restored": 7,
-    "removed_errors_rewritten": 0,
-    "removed_errors_deleted": 80
-  },
-  "casestudy-g1-3b-b1-set2-uniform \u00b7 timing_seconds": {
-    "groundone_pass_median": 1.728,
-    "judge_median": 2.256,
-    "judge_over_groundone_median_ratio": 1.358,
-    "rewrite_generation_median": 2.058,
-    "verification_share_of_loop_time": 0.5956,
-    "judge_generated_tokens_median": 23.0,
-    "verifier_input_tokens_median": 769.0
-  },
-  "casestudy-g1-3b-b1-set2-uniform \u00b7 memory_gb": {
-    "mlx_peak_during_loop": 6.182028188,
-    "mlx_active_gb": 5.13499948,
-    "resident_gb": 3.568402432
-  },
-  "bestofn-g1-3b-b1 \u00b7 equal_compute": {
+  "bestofn-g1-3b-b1-uniform \u00b7 equal_compute": {
     "documents": 60,
     "loop_accepted_by_groundone": 0.9833,
     "loop_first_draft_accepted": 0.5167,
@@ -196,6 +243,17 @@
     "best_of_n_accepted_by_groundone": 0.6167,
     "best_of_n_samples_used_mean": 2.117,
     "best_of_n_seconds_median": 9.99,
+    "best_of_n_generated_tokens_median": 218.0
+  },
+  "bestofn-g1-3b-b1 \u00b7 equal_compute": {
+    "documents": 60,
+    "loop_accepted_by_groundone": 0.6333,
+    "loop_first_draft_accepted": 0.5167,
+    "loop_seconds_median": 6.874,
+    "loop_generated_tokens_median": 115.0,
+    "best_of_n_accepted_by_groundone": 0.6167,
+    "best_of_n_samples_used_mean": 2.117,
+    "best_of_n_seconds_median": 10.254,
     "best_of_n_generated_tokens_median": 218.0
   }
 }

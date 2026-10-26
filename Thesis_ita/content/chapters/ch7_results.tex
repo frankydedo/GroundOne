@@ -7,8 +7,7 @@
 
 Questo capitolo riporta i risultati sperimentali. Si parte da come GroundOne apprende il task e da quanto il suo
 addestramento sia stabile. Seguono i risultati sui tre test set congelati, il confronto con le baseline e il contributo
-che il readout del decision model dà di per sé. Il capitolo esamina poi la qualità delle probabilità, il tempo e l'energia
-necessari per verificare una risposta e, infine, gli errori che restano. Gli intervalli, riportati tra parentesi nella
+che il readout del decision model dà di per sé. Il capitolo esamina poi la qualità delle probabilità, anche a confronto con giudici che producono lo stesso output, il tempo e l'energia necessari per verificare una risposta, le misure di località (esecuzione offline, quantizzazione e co-residenza) e, infine, gli errori che restano. Gli intervalli, riportati tra parentesi nella
 forma ``da $a$ a $b$'', sono intervalli di confidenza al 95\,\% ottenuti con un bootstrap a cluster, calcolati come
 descritto nella Sezione~\ref{sec:setup-statistics}. La Figura~\ref{fig:results-bootstrap} raccoglie in un unico grafico le differenze appaiate discusse nel capitolo.
 
@@ -52,7 +51,7 @@ l'inizializzazione degli adapter e l'ordine dei batch. Quando l'addestramento co
 (Figura~\ref{fig:results-seeds}). Su T1 la seconda esecuzione raggiunge una balanced accuracy a tre classi di 0.767,
 contro 0.769 della prima, e un AUROC di 0.907 contro 0.905. Su LLM-AggreFact la balanced accuracy media macro è 71.5
 contro 70.1, e su VitaminC la balanced accuracy a tre classi è 0.434 contro 0.442. Su T1 la differenza appaiata tra le
-due esecuzioni, calcolata come prima meno seconda, è $+0.001$ (da $-0.008$ a $+0.011$) e non è significativa.
+due esecuzioni, calcolata come prima meno seconda, è $+0.001$ (da $-0.008$ a $+0.012$) e non è significativa.
 
 Le differenze emergono nei dettagli. Anzitutto, gli errori si distribuiscono in modo diverso tra le classi: la recall
 delle frasi supportate e quella delle frasi non menzionate si spostano di circa 0.04, in direzioni opposte. Inoltre, le
@@ -71,7 +70,7 @@ stata interrotta.}
 
 Da questi risultati seguono due conseguenze. La prima riguarda gli intervalli: il bootstrap ricampiona i dati di test,
 e quindi non coglie la variabilità dovuta all'addestramento. Su LLM-AggreFact e su VitaminC, infatti, le due esecuzioni
-della stessa procedura differiscono più di quanto i loro intervalli consentirebbero (prima meno seconda esecuzione: $-0.013$ sulla media macro di T2,
+della stessa procedura differiscono più di quanto i loro intervalli consentirebbero (prima meno seconda esecuzione: $-1.3$ punti sulla media macro di T2,
 $-0.025$ sull'AUROC di T3). Per questo non vengono interpretate le differenze tra sistemi inferiori alla dispersione tra
 seed, cioè a circa 1.5 punti sulla media macro di LLM-AggreFact e a 0.025 di AUROC su VitaminC. Lo stesso vale per i
 singoli dataset di LLM-AggreFact quando lo scarto non supera circa cinque punti.
@@ -79,7 +78,7 @@ singoli dataset di LLM-AggreFact quando lo scarto non supera circa cinque punti.
 La seconda conseguenza è che l'addestramento non sempre converge. Un'esecuzione con un terzo seed è rimasta vicina al
 livello casuale. Il suo punteggio sul dev set era 0.369 al passo 150 e 0.333 al passo 300, quando il modello prediceva
 ``supportata'' per ogni frase, e la loss di addestramento è rimasta prossima a quella di un modello privo di
-informazione. L'esecuzione è stata interrotta al passo 470 di 801, quando il punteggio era risalito a 0.444. Non è quindi
+informazione. Al passo 450 il punteggio era risalito a 0.444, e l'esecuzione è stata interrotta poco dopo, al passo 470 circa di 801. Non è quindi
 possibile sapere se si sarebbe ripresa entro la fine dell'epoca e, poiché incompleta, è esclusa dalle tabelle. La
 procedura ha due caratteristiche note per rendere fragile il fine-tuning: non applica gradient clipping, e
 l'ottimizzatore lavora senza bias correction. L'assenza della bias correction è l'impostazione predefinita del framework
@@ -91,7 +90,7 @@ tasso di fallimento, ma mostra che la procedura non è del tutto robusta rispett
 \label{sec:results-t1}
 
 Sulle 17{,}284 frasi di T1 il modello 0.5B raggiunge una balanced accuracy a tre classi di 0.769 e il 3B di 0.832
-(Tabella~\ref{tab:results-t1}). La differenza tra i due, $+0.063$ (da $+0.052$ a $+0.076$), è l'effetto più netto della
+(Tabella~\ref{tab:results-t1}). La differenza tra i due, $+0.063$ (da $+0.051$ a $+0.076$), è l'effetto più netto della
 dimensione del modello. Sulla decisione binaria il 0.5B ottiene una balanced accuracy di 0.815 e un AUROC di 0.905,
 mentre il 3B ottiene rispettivamente 0.874 e 0.940. Entrambi superano di gran lunga i segnali che non confrontano mai una
 frase con il suo documento: la sovrapposizione lessicale arriva a un AUROC di 0.737, e il classificatore che vede
@@ -100,8 +99,7 @@ soltanto la frase arriva a una balanced accuracy a tre classi di 0.570.
 \begin{table}[htbp]
 \centering
 \caption{GroundOne su T1, sull'intero test set, per task e per numero di decisioni per risposta ($K$). Per ciascun
-modello sono riportate la balanced accuracy a tre classi, la recall delle frasi contraddette e l'AUROC di
-$P(\text{supported})$.}
+modello sono riportate la balanced accuracy a tre classi, la recall delle frasi contraddette e l'AUROC di $P(\text{supported})$. $^{*}$Valore indicativo: la cella contiene meno di 30 frasi contraddette.}
 \label{tab:results-t1}
 \small
 \begin{adjustbox}{max width=\textwidth}
@@ -113,7 +111,7 @@ Sottoinsieme & Frasi & Bal.\ acc. & Contr. & AUROC & Bal.\ acc. & Contr. & AUROC
 \midrule
 Tutte & 17{,}284 & 0.769 & 0.68 & 0.905 & 0.832 & 0.76 & 0.940 \\
 \midrule
-Question answering & 4{,}876 & 0.589 & 0.03 & 0.916 & 0.699 & 0.30 & 0.948 \\
+Question answering & 4{,}876 & 0.589 & 0.03$^{*}$ & 0.916 & 0.699 & 0.30$^{*}$ & 0.948 \\
 Summarization & 4{,}538 & 0.544 & 0.13 & 0.775 & 0.629 & 0.30 & 0.873 \\
 Data-to-text & 7{,}870 & 0.812 & 0.84 & 0.929 & 0.873 & 0.90 & 0.955 \\
 \midrule
@@ -126,15 +124,13 @@ $K \geq 14$ & 1{,}637 & 0.723 & 0.50 & 0.908 & 0.839 & 0.68 & 0.957 \\
 \end{adjustbox}
 \end{table}
 
-Dalla tabella emergono tre aspetti. Il primo è che l'accuratezza non peggiora con la lunghezza della risposta. Le
-risposte con quattordici o più decisioni sono tra quelle gestite meglio, con una balanced accuracy di 0.723 per il 0.5B e
-di 0.839 per il 3B. La fascia più difficile è invece quella delle risposte più brevi, che comprende soprattutto risposte
+Dalla tabella emergono tre aspetti. Il primo è che l'accuratezza non crolla con la lunghezza della risposta. Le risposte con quattordici o più decisioni raggiungono una balanced accuracy di 0.839 con il 3B, tra le migliori, e di 0.723 con il 0.5B, leggermente al di sotto delle fasce intermedie. La fascia più difficile è invece quella delle risposte più brevi, che comprende soprattutto risposte
 di question answering e di summarization. Il dato è importante perché è proprio sulle risposte lunghe che un decision model
-fa risparmiare più tempo; su queste risposte il 3B guadagna sul 0.5B $+0.116$ (da $+0.050$ a $+0.180$).
+fa risparmiare più tempo; su queste risposte il 3B guadagna sul 0.5B $+0.116$ (da $+0.053$ a $+0.186$).
 
 Il secondo aspetto è che le contraddizioni vengono riconosciute soprattutto nel data-to-text, il task in cui RAGTruth le
 concentra. Nel question answering e nella summarization il 0.5B distingue bene le frasi supportate da quelle non
-menzionate, ma non individua quasi nessuna contraddizione: la recall delle frasi contraddette è 0.03 e 0.13. Il 3B la
+menzionate, ma non individua quasi nessuna contraddizione: la recall delle frasi contraddette è 0.03 e 0.13, e il primo valore è solo indicativo, perché nel question answering le frasi contraddette sono meno di 30. Il 3B la
 porta a 0.30 in entrambi i task, quindi la dimensione del modello compensa in parte la scarsità di questi esempi nei
 dati di addestramento. Il terzo aspetto è che question answering e summarization offrono la prova più chiara che i
 modelli leggono davvero il documento. In questi due task il classificatore che vede soltanto la frase resta al livello
@@ -147,7 +143,7 @@ contenuto non supportato, e la metrica è l'F1 di questa classe. Un sistema che 
 già un F1 di 0.52~\cite{decisionindex2026}. Per giudicare una risposta, GroundOne prende il minimo della
 $P(\text{supported})$ calibrata sulle sue frasi e lo confronta con una soglia stimata sul dev set. Con questa regola,
 sulle 2{,}647 risposte di T1 raggiunge un F1 di 0.733 con il 0.5B e di 0.784 con il 3B. Nella leaderboard, invece,
-nessun decision model generalista sotto il miliardo di parametri supera 0.55, Jev raggiunge 0.765 e il modello migliore,
+nessun decision model generalista sotto il miliardo di parametri supera 0.553, Jev raggiunge 0.765 e il modello migliore,
 da 27B parametri, 0.803. Il confronto è solo indicativo, perché GroundOne è stato addestrato su RAGTruth, mentre i
 modelli della leaderboard sono valutati zero-shot, con un prompt diverso e su 53 risposte in più. Colloca comunque uno
 specialista da 0.5B molto al di sopra dei decision model generalisti della stessa dimensione.
@@ -157,7 +153,7 @@ specialista da 0.5B molto al di sopra dei decision model generalisti della stess
 
 La Figura~\ref{fig:results-comparison} mette a confronto tutti i sistemi su T1. Gli encoder specializzati raggiungono un
 AUROC di 0.814 (MiniCheck-RoBERTa) e di 0.821 (HHEM): più della sovrapposizione lessicale, ma meno di entrambi i modelli
-GroundOne. Il 0.5B supera MiniCheck-RoBERTa di $+0.091$ (da $+0.074$ a $+0.107$) e HHEM di $+0.083$ (da $+0.066$ a
+GroundOne. Il 0.5B supera MiniCheck-RoBERTa di $+0.091$ (da $+0.074$ a $+0.108$) e HHEM di $+0.083$ (da $+0.067$ a
 $+0.099$); il 3B li supera rispettivamente di $+0.126$ e $+0.119$. Il confronto per task, però, ridimensiona questo
 risultato. Il vantaggio di GroundOne viene in gran parte dal data-to-text, dove lo avvantaggiano l'addestramento nel dominio e la struttura ricorrente dei template, e dove gli
 encoder sono più deboli (AUROC 0.71--0.75). Nella summarization, invece, MiniCheck-RoBERTa supera il modello 0.5B (0.872
@@ -166,12 +162,11 @@ contro 0.775) ed è alla pari con il 3B (0.873). La Figura~\ref{fig:results-by-t
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/results/t1_by_task.png}
-\caption{AUROC di $P(\text{supported})$ su T1 per task (question answering, riassunto, data-to-text) e per sistema. Il vantaggio di GroundOne si concentra nel data-to-text; nella summarization MiniCheck-RoBERTa supera il 0.5B ed è alla pari con il 3B.}
+\caption{AUROC di $P(\text{supported})$ su T1 per task (question answering, summarization, data-to-text) e per sistema. Il vantaggio di GroundOne si concentra nel data-to-text; nella summarization MiniCheck-RoBERTa supera il 0.5B ed è alla pari con il 3B.}
 \label{fig:results-by-task}
 \end{figure}
 
-I modelli non addestrati mostrano quanta parte dell'accuratezza si debba all'addestramento. Il 0.5B non addestrato è al
-livello casuale, perché non risponde mai ``supportata''. Il 3B non addestrato, a cui si pone la stessa domanda, raggiunge
+I modelli non addestrati mostrano quanta parte dell'accuratezza si debba all'addestramento. Il 0.5B non addestrato è al livello casuale, con una balanced accuracy a tre classi di 0.372, perché non risponde mai ``supportata''. Il 3B non addestrato, a cui si pone la stessa domanda, raggiunge
 una balanced accuracy a tre classi di 0.437, contro 0.818 dello stesso modello dopo l'addestramento, sulle stesse
 risposte. Il contributo del readout ristretto, al di là dell'addestramento, è misurato separatamente nella
 Sezione~\ref{sec:results-readout}.
@@ -187,11 +182,9 @@ gli altri sistemi, compreso d1-3B, sono valutati sull'intero test set.}
 
 Il confronto più istruttivo è quello con Rizzo-Flow, il decision model generalista più grande: un modello da 4B sottoposto a
 fine-tuning per decisioni generiche. Sulle stesse 300 risposte di T1, Rizzo-Flow raggiunge una balanced accuracy a tre
-classi di 0.603, contro 0.798 del GroundOne 0.5B e 0.840 del 3B. Le differenze sono ampie: $+0.195$ (da $+0.136$ a
-$+0.249$) per il 0.5B e $+0.237$ (da $+0.184$ a $+0.285$) per il 3B. In AUROC, invece, Rizzo-Flow (0.894) è vicino al
+classi di 0.603, contro 0.798 del GroundOne 0.5B e 0.840 del 3B. Le differenze sono ampie: $+0.195$ (da $+0.140$ a $+0.251$) per il 0.5B e $+0.237$ (da $+0.184$ a $+0.289$) per il 3B. In AUROC, invece, Rizzo-Flow (0.894) è vicino al
 0.5B, che su queste risposte ottiene 0.916, e la differenza non è significativa. Rizzo-Flow, infatti, ordina bene le
-frasi, ma predice ``supportata'' per il 90\,\% di esse. Il 3B le ordina meglio di Rizzo-Flow ($+0.056$, da $+0.034$ a
-$+0.079$). Uno specialista otto volte più piccolo, quindi, supera il generalista nella decisione per cui è stato
+frasi, ma predice ``supportata'' per il 90\,\% di esse. Il 3B le ordina meglio di Rizzo-Flow ($+0.056$, da $+0.034$ a $+0.081$). Uno specialista otto volte più piccolo, quindi, supera il generalista nella decisione per cui è stato
 progettato e lo eguaglia nella capacità di ordinare le frasi.
 
 d1-3B, un decision model generalista della stessa dimensione del 3B, offre la verifica più severa del valore della
@@ -204,8 +197,7 @@ decisioni, d1-3B scende a 0.527, mentre il GroundOne 3B resta a 0.839 ($+0.312$,
 d1-3B riconosce soltanto metà delle frasi non menzionate (recall 0.49). Nel dominio delle risposte RAG, dunque, la
 specializzazione vale molto più di un addestramento generico a prendere decisioni.
 
-Su LLM-AggreFact (T2) il modello 0.5B raggiunge una balanced accuracy media macro di 70.1 sugli undici dataset, contro
-64.2 dello stesso modello usato zero-shot e 72.8 del modello 7B zero-shot riportato nella leaderboard pubblica. Resta
+Su LLM-AggreFact (T2) il modello 0.5B raggiunge una balanced accuracy media macro di 70.1 sugli undici dataset, contro 64.2 dello stesso modello usato zero-shot (punteggio pubblicato nella leaderboard) e 72.8 del modello 7B zero-shot riportato nella leaderboard pubblica. Resta
 invece 3.9 punti sotto MiniCheck-RoBERTa (74.0), una differenza significativa. Sui quattro dataset più vicini alla
 retrieval-augmented generation i due sistemi sono alla pari (74.4 per GroundOne 0.5B, 74.6 per MiniCheck-RoBERTa). Nella colonna di RAGTruth GroundOne è in
 vantaggio, 82.1 contro 76.5, ma il confronto lo favorisce, perché è stato addestrato sulle risposte del training set di
@@ -213,14 +205,13 @@ RAGTruth. Al di fuori del RAG, invece, il 0.5B è inferiore all'encoder di sette
 AggreFact-XSum, FactCheck-GPT e REVEAL: è il costo atteso di un addestramento sui soli dati RAG.
 
 Il modello 3B, valutato sull'intero test set, colma gran parte di questo divario. La sua balanced accuracy media macro è
-74.8: è alla pari con quella di MiniCheck-RoBERTa (74.0; differenza appaiata $+0.8$ punti, intervallo da $-0.5$ a
-$+2.1$) e superiore al punteggio zero-shot pubblicato per il modello 7B (72.8), per il quale non si può calcolare un
-intervallo. Sui dataset RAG raggiunge 76.9, 2.4 punti sopra l'encoder (intervallo da $+1.4$ a $+3.3$). Il suo guadagno
+74.8: è alla pari con quella di MiniCheck-RoBERTa (74.0; differenza appaiata $+0.8$ punti, intervallo da $-0.5$ a $+2.0$) e superiore al punteggio zero-shot pubblicato per il modello 7B (72.8), per il quale non si può calcolare un
+intervallo. Sui dataset RAG raggiunge 76.9, 2.4 punti sopra l'encoder (intervallo da $+1.4$ a $+3.4$). Il suo guadagno
 rispetto al 0.5B, $+4.7$ punti (da $+3.4$ a $+5.9$), è diffuso tra i dataset, con i miglioramenti maggiori su REVEAL,
 WiCE, FactCheck-GPT e XSum: la dimensione del modello migliora quindi il trasferimento al di fuori del dominio di
 addestramento. Il 3B resta nettamente sotto l'encoder soltanto nella summarization di notizie (AggreFact-CNN, 59.3
 contro 67.1). Rizzo-Flow raggiunge 61.5 sui 1{,}093 elementi del suo sottocampione, e su questi elementi il GroundOne 3B
-fa meglio di 12.0 punti (da $+7.4$ a $+16.5$).
+fa meglio di 12.0 punti (da $+7.6$ a $+16.4$).
 
 Su questo benchmark, tuttavia, i sistemi più forti restano sopra GroundOne. Una valutazione indipendente del decision model
 closed Jev, sullo stesso test set e con la stessa metrica, riporta 78.6, e 76.9 per un modello open da 27B letto
@@ -264,11 +255,10 @@ Il controllo B2 isola il contributo del readout. Il confronto mantiene invariati
 prompt e il singolo forward pass, e cambia soltanto il modo in cui si ricava il verdetto a ogni marker. Il verdetto è
 letto dalle tre lettere di risposta, come fa GroundOne, oppure è il token che emetterebbe la generazione greedy
 (Figura~\ref{fig:results-readout}). Per il 0.5B il token generato dà una balanced accuracy a tre classi di 0.521, contro
-0.769 del readout, con una differenza di $+0.248$ (da $+0.228$ a $+0.269$) a favore del readout. In un quarto dei marker
+0.769 del readout, con una differenza di $+0.248$ (da $+0.228$ a $+0.268$) a favore del readout. In un quarto dei marker
 (24.7\,\%) il modello non emetterebbe affatto una lettera, ma per lo più un semplice spazio, cioè l'inizio di una risposta
 più lunga. Per il 3B, invece, il token generato è quasi sempre una lettera (1.2\,\% di errori di formato) e concorda con
-il readout nel 92\,\% dei marker; eppure il readout resta migliore, con 0.832 contro 0.761 ($+0.071$, da $+0.059$ a
-$+0.083$). Quando la risposta contiene quattordici o più decisioni, il divario è massimo per il modello piccolo: $+0.346$.
+il readout nel 92\,\% dei marker; eppure il readout resta migliore, con 0.832 contro 0.761 ($+0.071$, da $+0.059$ a $+0.082$). Quando la risposta contiene quattordici o più decisioni, il divario è massimo per il modello piccolo: $+0.346$.
 
 \begin{figure}[htbp]
 \centering
@@ -299,18 +289,18 @@ dominio. La Figura~\ref{fig:results-reliability-3b} mostra lo stesso diagramma p
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{images/results/g1-3b-reliability.png}
-\caption{Reliability diagram di $P(\text{supported})$ del 3B, prima e dopo la calibrazione stimata sul dev set, per il dev set, T1 e T3; ogni punto è una fascia di probabilità con almeno 20 frasi. Come per il 0.5B, la calibrazione si trasferisce a T1 ma non a T3.}
-\label{fig:results-reliability-3b}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
 \includegraphics[width=\textwidth]{images/results/g1-05b-reliability.png}
 \caption{Reliability diagram di $P(\text{supported})$ del 0.5B, prima della calibrazione (grezza) e dopo la calibrazione
 stimata sul dev set, per il dev set, T1 e T3. Ogni punto rappresenta una fascia di probabilità che contiene almeno 20
 frasi.}
 \label{fig:results-reliability}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/g1-3b-reliability.png}
+\caption{Reliability diagram di $P(\text{supported})$ del 3B, prima e dopo la calibrazione stimata sul dev set, per il dev set, T1 e T3; ogni punto è una fascia di probabilità con almeno 20 frasi. Come per il 0.5B, la calibrazione si trasferisce a T1 ma non a T3.}
+\label{fig:results-reliability-3b}
 \end{figure}
 
 La calibrazione ha però una conseguenza da tenere presente. Il bias ripristina la frequenza reale di ciascuna classe,
@@ -319,9 +309,7 @@ sale così da 0.82 a 0.93, ma la balanced accuracy a tre classi scende da 0.77 a
 lo stesso peso, quindi, scegliere la classe calibrata più probabile non è una buona regola di decisione. La regola con
 cui vengono restituite le etichette, descritta nella Sezione~\ref{sec:method-calibration}, risolve il problema. La regola
 usa una soglia $\tau$ stimata sul dev set, pari a 0.935 per il 0.5B, a 0.895 per la sua seconda esecuzione e a 0.925 per
-il 3B. Con queste soglie raggiunge su T1 una balanced accuracy a tre classi di 0.758, 0.769 e 0.830, entro 0.01 dalla
-decisione grezza valutata in tutto il capitolo, e mantiene le etichette coerenti con le probabilità calibrate. Le soglie
-sono alte perché il 91\,\% delle frasi di RAGTruth è supportato: una frase viene restituita come supportata soltanto
+il 3B. Con queste soglie raggiunge su T1 una balanced accuracy a tre classi di 0.758, 0.769 e 0.830, entro circa 0.01 dalla decisione grezza valutata in tutto il capitolo, e mantiene le etichette coerenti con le probabilità calibrate. Le soglie sono alte perché circa l'88\,\% delle frasi di addestramento e del dev set è supportato: una frase viene restituita come supportata soltanto
 quando il modello è molto sicuro.
 
 Usate come confidenze, le probabilità calibrate rendono efficace la selective prediction. Rinviare le frasi su cui il
@@ -350,7 +338,7 @@ stesso contenuto di GroundOne, possa eguagliare la qualità delle sue probabilit
 calibrati allo stesso modo sul dev set. Per il 0.5B e per il 3B rispettivamente, l'AUROC di $P(\text{supported})$ è 0.94
 e 0.97 per GroundOne, 0.48 e 0.68 per il giudice le cui probabilità sono lette dai logit, e 0.47 e 0.58 per il giudice
 che le scrive. L'AURC è 0.009 e 0.005 per GroundOne, contro valori da 0.048 a 0.063 per i
-giudici, cioè da cinque a dodici volte maggiori. L'accuratezza delle decisioni segue lo stesso andamento: 0.835 e 0.900
+giudici, cioè da circa sette a dodici volte maggiori di quelli di GroundOne della stessa dimensione. L'accuratezza delle decisioni segue lo stesso andamento: 0.835 e 0.900
 per GroundOne, al massimo 0.41 per qualsiasi giudice.
 
 \begin{figure}[htbp]
@@ -377,7 +365,7 @@ Chiedere le probabilità, infine, ha un costo. Il giudice che le legge dai logit
 perché genera le stesse lettere. Il giudice che scrive l'oggetto JSON, invece, impiega con il 3B 17.0 secondi per una
 risposta con quattordici o più decisioni, quanto il giudice verboso, e non è più accurato del giudice sintetico.
 
-\section{Latenza in funzione di K}
+\section{Latenza in funzione di $K$}
 \label{sec:results-latency}
 
 La Figura~\ref{fig:results-latency} riporta la misura centrale della tesi: il tempo necessario per verificare una
@@ -385,9 +373,8 @@ risposta al crescere del numero di decisioni, misurato sulle stesse 200 risposte
 in-process su MLX, GroundOne è il più veloce con entrambe le dimensioni e in ogni fascia di $K$, e il suo vantaggio
 aumenta con $K$. Quando la risposta contiene quattordici o più decisioni, il GroundOne 0.5B impiega 0.41 secondi, contro
 0.80 del giudice sintetico e 2.51 del giudice verboso della stessa dimensione. È quindi 1.95 volte più veloce del primo
-(da 1.82 a 2.14) e 6.16 volte più veloce del secondo (da 5.72 a 6.67). Nella stessa fascia il GroundOne 3B impiega 2.57
-secondi, contro 4.44 e 15.86 secondi dei due giudici 3B, ed è quindi 1.73 volte (da 1.65 a 1.82) e 6.18 volte (da 5.88
-a 6.65) più veloce.
+(da 1.82 a 2.12) e 6.16 volte più veloce del secondo (da 5.72 a 6.66). Nella stessa fascia il GroundOne 3B impiega 2.57
+secondi, contro 4.44 e 15.86 secondi dei due giudici 3B, ed è quindi 1.73 volte (da 1.65 a 1.82) e 6.18 volte (da 5.88 a 6.63) più veloce.
 
 Leggere tutti i verdetti in un unico forward pass è anche più rapido che porre una domanda per frase in un batch: ai
 valori più alti di $K$ il guadagno è di un fattore 1.4--1.5. L'altra leva è la dimensione del modello: il GroundOne 0.5B
@@ -405,8 +392,7 @@ sintetico e verboso. Scala logaritmica.}
 La velocità non è l'unica differenza (Figura~\ref{fig:results-judges}). I giudici generativi non addestrati sono anche
 molto meno accurati, e non sempre rispettano il formato di output. Il giudice verboso 0.5B produce un verdetto
 interpretabile soltanto per il 3\,\% delle frasi, perché per lo più ricopia la risposta, mentre il giudice sintetico
-0.5B fallisce sul 23\,\% delle frasi. I giudici 3B rispettano il formato molto meglio (0.1\,\% di errori di formato per il giudice sintetico e 7.6\,\% per quello verboso
-formato), ma si fermano a una balanced accuracy a tre classi di circa 0.40, contro 0.90 del GroundOne 3B sulle stesse
+0.5B fallisce sul 23\,\% delle frasi. I giudici 3B rispettano il formato molto meglio (0.1\,\% di errori di formato per il giudice sintetico e 7.6\,\% per quello verboso), ma si fermano a una balanced accuracy a tre classi di circa 0.40, contro 0.90 del GroundOne 3B sulle stesse
 risposte. Il giudice verboso 3B, infine, scrive in media 248 token per risposta, che vanno tutti generati prima di poter
 usare il verdetto; GroundOne, invece, non ne genera nessuno.
 
@@ -422,7 +408,7 @@ contati come errori, e quota di frasi il cui verdetto non è stato possibile int
 \label{sec:results-energy}
 
 La misura dell'energia aggiunge una precisazione che la sola latenza nasconde (Figura~\ref{fig:results-energy}).
-GroundOne è il sistema che consuma meno energia con entrambe le dimensioni: 5.5 joule per risposta con il 0.5B e 33 con
+Fra i sistemi misurati, cioè GroundOne e i giudici generativi, GroundOne è quello che consuma meno energia con entrambe le dimensioni: 5.5 joule per risposta con il 0.5B e 33 con
 il 3B, contro 8.9 e 43 joule del giudice sintetico e 22.5 e 112 joule del giudice verboso. Il suo vantaggio
 sull'energia, tuttavia, è minore di quello sul tempo. Rispetto al giudice sintetico, GroundOne consuma 1.6 volte meno
 energia con il 0.5B e 1.3 volte meno con il 3B; rispetto al giudice verboso, 4.1 e 3.4 volte meno.
@@ -436,7 +422,7 @@ come un risparmio di energia equivalente~\cite{samsi2023words,luccioni2024power}
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/results/energy_per_answer.png}
-\caption{Energia per risposta verificata su 100 risposte del sottoinsieme di latenza, misurata con powermetrics su CPU,
+\caption{Energia per risposta verificata su 100 risposte del sottoinsieme di latenza, misurata con \texttt{powermetrics} su CPU,
 GPU e Neural Engine al netto della potenza a riposo, insieme alla potenza netta media durante l'esecuzione.}
 \label{fig:results-energy}
 \end{figure}
@@ -467,15 +453,15 @@ GroundOne verificano 30 risposte generate da documenti di T1, con una mediana di
 valutate per risposta (Tabella~\ref{tab:results-coresidence}). Con il verificatore 3B il picco di memoria allocata da MLX
 è di 6.1\,GB, con il 0.5B di 3.3\,GB: entrambi ben al di sotto dei 16\,GB della macchina. La verifica occupa il
 30\,\% del tempo complessivo per risposta con il 3B e il 6.7\,\% con il 0.5B. Il modello piccolo aggiunge quindi
-una frazione modesta al tempo della generazione, mentre il 3B lo allunga di circa un terzo in cambio di una maggiore
+una frazione modesta al tempo della generazione, mentre il 3B, confrontando le mediane dei due tempi, lo allunga di circa un terzo in cambio di una maggiore
 accuratezza. Durante l'esecuzione con il 3B, con le normali applicazioni del desktop aperte, la memoria libera
 dell'intero sistema è scesa per qualche istante a circa 1.6\,GB: la coppia sta comodamente nel processo, ma su un
-portatile da 16\,GB lascia poco margine a un uso intenso del desktop. Il retriever non è incluso in questa misura.
+portatile da 16\,GB lascia poco margine a un uso intenso del desktop. Il retriever non è incluso in questa misura; l'applicazione del Capitolo~\ref{ch:studio} lo aggiunge.
 
 \begin{table}[htbp]
 \centering
 \caption{Co-residenza di generatore e verificatore in un unico processo: Qwen2.5-3B-Instruct a 4 bit come generatore,
-30 documenti di T1, generazione greedy fino a 300 token. Memoria allocata da MLX; tempi mediani per risposta.}
+30 documenti di T1, generazione greedy fino a 300 token. Memoria allocata da MLX; tempi mediani per risposta; la quota della verifica è la mediana delle quote per risposta.}
 \label{tab:results-coresidence}
 \small
 \begin{tabular}{lccccc}
@@ -499,8 +485,7 @@ un'affermazione priva di cifre. I modelli, quindi, si appoggiano in parte alla s
 parafrasata sembra ``non menzionata'', mentre una piccola modifica a una frase copiata, spesso un numero, passa
 inosservata.
 
-La stessa debolezza si ritrova su T1, anche se con un peso minore. Quando una frase condivide con il documento poche o
-alcune parole, la balanced accuracy a tre classi del 0.5B è 0.77. Per le frasi che riprendono dal documento più del
+La stessa debolezza si ritrova su T1, anche se con un peso minore. Quando la sovrapposizione lessicale con il documento è bassa o intermedia (fino a 0.7), la balanced accuracy a tre classi del 0.5B è 0.77. Per le frasi che riprendono dal documento più del
 70\,\% delle proprie parole, invece, scende a 0.54, con una recall di 0.24 per le frasi contraddette e di 0.43 per quelle
 non menzionate. Il 3B riduce questo punto cieco senza eliminarlo: sulle stesse frasi la sua recall è 0.36 e 0.56, e la
 sua balanced accuracy 0.63. Le allucinazioni nascoste in frasi che per il resto ricopiano la fonte restano così il limite

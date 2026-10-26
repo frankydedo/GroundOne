@@ -11,6 +11,7 @@ struct GroundOneStudioApp: App {
                 .environment(model)
                 .frame(minWidth: 1100, minHeight: 720)
                 .task { await model.load() }
+                .preferredColorScheme(ProcessInfo.processInfo.arguments.contains("-lightAppearance") ? .light : nil)
         }
         .windowToolbarStyle(.unified)
         .commands {

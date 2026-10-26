@@ -1,0 +1,23 @@
+{
+  "bm25" : {
+    "all_passages@6" : 1,
+    "hit@6" : 1,
+    "mean_seconds" : 0.00045868635177612302,
+    "recall@6" : 1
+  },
+  "dense" : {
+    "all_passages@6" : 0.99333333333333329,
+    "hit@6" : 1,
+    "mean_seconds" : 0.0036975646018981932,
+    "recall@6" : 0.99777777777777776
+  },
+  "hybrid" : {
+    "all_passages@6" : 1,
+    "hit@6" : 1,
+    "mean_seconds" : 0.004381442864735921,
+    "recall@6" : 1
+  },
+  "k" : 6,
+  "protocol" : "T1 library (147 news articles + 450 MS MARCO passages); query = the MS MARCO question; relevant = its own passages; per-document cap 3",
+  "questions" : 150
+}

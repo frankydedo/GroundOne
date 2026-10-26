@@ -11,11 +11,9 @@ in un solo forward pass, fornisce una risposta positiva, sebbene con alcune rise
 
 La specializzazione funziona là dove era mirata. Sul test set di RAGTruth GroundOne raggiunge una balanced accuracy a tre
 classi di 0.769 con 0.5B parametri e di 0.832 con 3B. Supera di molto gli stessi modelli non addestrati, ordina le frasi
-supportate meglio degli encoder specializzati ed è nettamente superiore a Rizzo-Flow, un decision model generalista otto
-volte più grande. Su LLM-AggreFact il 3B è alla pari con il miglior encoder di piccole dimensioni. Su VitaminC, invece,
+supportate meglio degli encoder specializzati ed è nettamente superiore, in balanced accuracy a tre classi, a Rizzo-Flow, un decision model generalista otto volte più grande del 0.5B. Su LLM-AggreFact il 3B è alla pari con il miglior encoder di piccole dimensioni. Su VitaminC, invece,
 il guadagno scompare: uno specialista non è uno strumento generale di verifica dei fatti. d1-3B, un decision model
-generalista della stessa dimensione addestrato a decidere su un'ampia miscela di task, conferma il compromesso: GroundOne
-lo supera nettamente su RAGTruth, lo eguaglia su LLM-AggreFact e resta molto indietro su VitaminC.
+generalista della stessa dimensione addestrato a decidere su un'ampia miscela di task, conferma il compromesso: GroundOne lo supera nettamente su RAGTruth, con il 3B lo eguaglia su LLM-AggreFact e resta molto indietro su VitaminC.
 
 Il meccanismo del decision model ripaga su due fronti. Il primo è la velocità. Leggere tutti i verdetti in un solo forward pass
 rende la verifica delle risposte lunghe circa due volte più rapida di quella di un giudice generativo sintetico e sei
@@ -30,9 +28,11 @@ sugli stessi dati le converte poi in etichette coerenti sia con le probabilità 
 L'Expected Calibration Error, da solo, non distingue però le probabilità utili da quelle inutili: la capacità
 discriminativa va misurata a parte.
 
-L'intero sistema gira su un portatile da 16\,GB. Una risposta lunga viene verificata in 0.41 secondi e 5.5 joule con il
-0.5B, e in 2.57 secondi e 33 joule con il 3B. Rispetto a un giudice generativo il risparmio di energia è reale, ma
+L'intero sistema gira su un portatile da 16\,GB. Una risposta lunga viene verificata in 0.41 secondi con il 0.5B e in 2.57 con il 3B, con un'energia media per risposta di 5.5 e 33 joule. Rispetto a un giudice generativo il risparmio di energia è reale, ma
 inferiore al risparmio di tempo, perché un singolo prefill lungo assorbe più potenza del decoding.
+
+L'applicazione GroundOne Studio mostra che attorno al verificatore si può costruire un assistente RAG completo, in un
+unico processo e senza rete: recupero, generazione, verifica e confronto con un giudice generativo richiedono al massimo 6.2\,GB di memoria allocata da MLX. Nel caso di studio con errori iniettati GroundOne segnala l'errore in 97 delle 98 risposte in cui la frase riceve un verdetto, contro 84 del giudice, e la riscrittura mirata riduce dal 100\,\% al 9\,\% le risposte che contengono ancora l'errore, secondo il conteggio automatico: numeri e date vengono per lo più ripristinati dalla fonte, le frasi inventate cancellate. Il caso di studio mostra anche che il tipo di errore conta: una frase contraddetta viene corretta, una non menzionata spesso soltanto tolta. Le risposte che superano il ciclo sono accettate da GroundOne, non verificate in modo indipendente.
 
 I limiti principali sono due. Il primo è la ristrettezza dei dati di addestramento, a causa della quale le
 contraddizioni al di fuori del data-to-text e le allucinazioni nascoste in frasi copiate vengono apprese solo in parte.
@@ -51,8 +51,7 @@ spontaneamente dopo il marker potrebbe allineare readout e generazione, con effe
 Sul versante dei sistemi, il modello di costo del Capitolo~\ref{sec:local} andrebbe verificato su altro hardware. Un
 porting del readout su llama.cpp permetterebbe di misurare GroundOne su una scheda grafica dedicata, su un DGX Spark o
 su una macchina AMD Strix Halo, e su uno smartphone, le cui unità di elaborazione neurale accelerano proprio il prefill
-su cui si regge un decision model. Per il pilastro della località resta inoltre da misurare la memoria del retriever accanto a
-generatore e verificatore, già misurati insieme in questa tesi. Anche i confronti di latenza con le altre famiglie di verificatori richiedono condizioni eque: gli encoder
+su cui si regge un decision model. Anche i confronti di latenza con le altre famiglie di verificatori richiedono condizioni eque: gli encoder
 vanno eseguiti in batch, mentre GroundOne e i decision model generalisti vanno interrogati attraverso la stessa interfaccia
 HTTP.
 
@@ -71,7 +70,10 @@ Per i contesti composti da più documenti, un'estensione naturale è l'attribuzi
 passaggio sostiene o contraddice ciascuna frase, per esempio con un readout per passaggio, così da mostrare all'utente
 la fonte di ogni affermazione e trattare in modo esplicito le fonti in conflitto tra loro.
 
-La verifica potrebbe inoltre procedere durante la generazione della risposta, segnalando ogni frase non appena è
-completa: la soluzione basata sui marker rende naturale questo uso. Infine, un assistente locale costruito
-sull'interfaccia del servizio permetterebbe agli utenti di scegliere la regola e la soglia più adatte ai propri
-documenti. È proprio in questo uso che le probabilità calibrate mostrano il loro valore.
+L'applicazione del Capitolo~\ref{ch:studio} contiene un primo prototipo di questa attribuzione, che resta da valutare
+con dati che indichino quale passaggio sostiene ciascuna frase. Dall'applicazione discendono altre tre direzioni. Un
+generatore più grande, per esempio da 7B a 4 bit, starebbe ancora nella memoria del portatile e dovrebbe scrivere risposte
+più complete e correggere meglio le frasi segnalate. Le frasi riscritte andrebbero controllate in modo indipendente, con
+un secondo verificatore o con una lettura umana di un campione, perché oggi la loro correttezza è giudicata solo da
+GroundOne. La verifica, infine, potrebbe procedere durante la generazione della risposta, segnalando ogni frase non
+appena è completa: la soluzione basata sui marker rende naturale questo uso.

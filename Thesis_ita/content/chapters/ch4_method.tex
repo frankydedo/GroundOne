@@ -48,7 +48,7 @@ all'indietro. Quanto segue l'ultimo marker non influisce su alcun verdetto, quin
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/diagrams/method_marked_prompt_tikz.pdf}
-\caption{Il prompt a marker di GroundOne (design b). Le frasi della risposta sono numerate e ogni frase valutata è seguita dal marker ``\texttt{~Verdict:}''; una frase senza contenuto verificabile (qui un'intestazione) resta come contesto, senza marker. Il modello elabora l'intera sequenza in un solo forward pass, e la testa di output, ristretta alle lettere A, B e C, si applica soltanto nelle posizioni dei marker. Per l'attenzione causale il verdetto della frase $i$ dipende dal documento e dalle frasi da 1 a $i$.}
+\caption{Il prompt a marker di GroundOne (design b). Le frasi della risposta sono numerate e ogni frase valutata è seguita dal marker ``\texttt{~Verdict:}''; una frase senza contenuto verificabile (qui un'intestazione) resta come contesto, senza marker. Il modello elabora l'intera sequenza in un solo forward pass, e l'output head, ristretto alle lettere A, B e C, si applica soltanto nelle posizioni dei marker. Per l'attenzione causale il verdetto della frase $i$ dipende dal documento e dalle frasi da 1 a $i$.}
 \label{fig:method-marked}
 \end{figure}
 
@@ -96,8 +96,7 @@ come una richiesta di verdetto. Per questo è il formato usato dalla baseline no
 \paragraph{Un classificatore, non un generatore più veloce.} Il readout restringe la decisione a tre lettere, e la
 restrizione non è un dettaglio. Dopo il marker, il modello sottoposto a fine-tuning non scriverebbe la lettera che viene
 letta. Il suo token successivo più probabile è infatti la stessa lettera preceduta da uno spazio, che per il tokenizer è
-un token diverso. In corrispondenza dei marker, le tre lettere del readout raccolgono insieme appena il 4--5\,\% circa
-della massa di probabilità. Una loss ristretta a queste lettere addestra i loro logit relativi, non la loro probabilità
+un token diverso. In corrispondenza dei marker, le tre lettere del readout raccolgono insieme appena il 4--5\,\% della massa di probabilità. Una loss ristretta a queste lettere addestra i loro logit relativi, non la loro probabilità
 assoluta, e il readout si comporta quindi come un classificatore a tre classi innestato sul modello linguistico. È
 questo a definire un decision model: la risposta non passa mai per il decoding, ma viene scelta fra le opzioni ammissibili.
 Il fenomeno richiama anche due risultati della letteratura: la probabilità del primo token di risposta e la risposta
@@ -131,7 +130,7 @@ valutate, e la loss viene calcolata su ciascuno dei suoi marker.
 nell'attenzione ($W_q$, $W_k$, $W_v$, $W_o$) e tre nel blocco MLP ($W_\mathrm{gate}$, $W_\mathrm{up}$, $W_\mathrm{down}$).
 I loro pesi restano congelati a 8 bit, e a ciascuna si affianca un adapter di rango 16 (in blu) che ne corregge
 l'output secondo lo schema della Figura~\ref{fig:bg-lora}. Il blocco è ripetuto 24 volte nel 0.5B e 36 nel 3B;
-embedding e testa di output non hanno adapter.}
+embedding e output head non hanno adapter.}
 \label{fig:method-lora}
 \end{figure}
 
@@ -170,7 +169,7 @@ probabilità grezze non rispecchiano le frequenze reali delle classi. Sul dev se
 post-hoc, applicata ai logit dopo l'addestramento e senza modificare i pesi. I tre logit vengono divisi per una
 temperatura $T$ e traslati di un bias per classe, $\mathrm{softmax}(z / T + b)$, con il bias della classe supportata
 fissato a zero. I parametri $T$ e $b$ sono scelti minimizzando la negative log-likelihood (NLL) delle etichette del dev
-set\footnote{La \emph{negative log-likelihood} di un insieme di $n$ predizioni è la media, cambiata di segno, del logaritmo della probabilità assegnata alla classe corretta: $\mathrm{NLL} = -\frac{1}{n}\sum_{i=1}^{n} \log p_i(y_i)$, dove $y_i$ è la classe corretta della predizione $i$. Coincide con la cross-entropy media. Vale zero quando il modello assegna sempre probabilità uno alla classe giusta e cresce rapidamente quando assegna una probabilità bassa alla classe giusta, cioè quando sbaglia con sicurezza: per questo penalizza sia gli errori sia l'eccesso di confidenza.}, cioè la cross-entropy media~\cite{guo2017calibration}. Il bias svolge il ruolo della correzione contestuale proposta per
+set\footnote{La \emph{negative log-likelihood} di un insieme di $n$ predizioni è la media, cambiata di segno, del logaritmo della probabilità assegnata alla classe corretta: $\mathrm{NLL} = -\frac{1}{n}\sum_{i=1}^{n} \log p_i(y_i)$, dove $y_i$ è la classe corretta della predizione $i$. Vale zero quando il modello assegna sempre probabilità uno alla classe giusta e cresce rapidamente quando assegna una probabilità bassa alla classe giusta, cioè quando sbaglia con sicurezza: per questo penalizza sia gli errori sia l'eccesso di confidenza.}, cioè la cross-entropy media~\cite{guo2017calibration}. Il bias svolge il ruolo della correzione contestuale proposta per
 i modelli linguistici interrogati tramite prompt~\cite{zhao2021calibrate}; a differenza di quella, però, qui è stimato
 su dati etichettati. La sola temperatura cambia le probabilità ma non la classe più probabile né l'ordinamento delle
 frasi. Il bias, invece, può cambiare la classe più probabile e, con tre classi, può anche riordinare leggermente
@@ -248,12 +247,8 @@ confidenza è la probabilità massima e la frequenza osservata è la quota di pr
 distribuzione delle classi predette con quella del test set. Verifica piuttosto se, fra le frasi a cui il modello
 assegna una certa confidenza, quella confidenza corrisponde alla realtà. La misura ha però due limiti: dipende dalla
 scelta degli intervalli, e un predittore costante che restituisce sempre la frequenza di base ottiene un ECE vicino a
-zero pur non discriminando nulla. Per questi motivi l'ECE è sempre riportato insieme al Brier score\footnote{Il
-\emph{Brier score} è l'errore quadratico medio fra la probabilità predetta e l'esito osservato, codificato come 1 se
-l'evento si verifica e 0 altrimenti: più è basso, migliori sono le probabilità.}, alla negative log-likelihood e ai
-reliability diagram, i grafici che riportano per ogni intervallo la frequenza osservata in funzione della confidenza
-media. La capacità delle probabilità di separare le decisioni corrette da quelle errate si misura invece a parte, con due
-misure. La prima è l'AUROC, descritto qui sotto. La seconda è l'AURC (area under the risk--coverage curve), cioè l'area
+zero pur non discriminando nulla. Per questi motivi l'ECE è sempre riportato insieme alla negative log-likelihood e ai reliability diagram, i grafici che riportano per ogni intervallo la frequenza osservata in funzione della confidenza
+media. La capacità discriminativa delle probabilità si misura invece a parte, con due misure. La prima è l'AUROC, descritto qui sotto, che misura quanto bene la probabilità di supporto separa le frasi supportate da quelle non supportate. La seconda è l'AURC (area under the risk--coverage curve), cioè l'area
 sotto la curva risk--coverage della Sezione~\ref{sec:bg-calibration} (Figura~\ref{fig:bg-risk-coverage}): misura il
 tasso di errore medio che si ottiene accettando le decisioni dalla più sicura alla meno sicura, ed è tanto più piccola
 quanto più gli errori si concentrano tra le decisioni meno sicure, che sono quelle che un sistema rinvierebbe.

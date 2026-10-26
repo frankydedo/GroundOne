@@ -30,15 +30,13 @@ readout a un modello da 4B parametri lasciato congelato, cioè senza modificarne
 a un documento ottengono risposta in circa un secondo; la migliore baseline generativa capace di produrre JSON valido
 impiega invece più di cinque secondi~\cite{semif}. Rizzo-Flow, a differenza di SemIf, addestra con LoRA un modello da 4B
 su decisioni tipizzate ed espone la stessa interfaccia di Jev. I suoi autori riportano che il fine-tuning ne migliora sia
-l'accuratezza sia la calibrazione~\cite{rizzoflow}. È questo il decision model generalista usato come baseline in questa tesi.
+l'accuratezza sia la calibrazione~\cite{rizzoflow}. È uno dei due decision model generalisti usati come baseline in questa tesi.
 
 La seconda famiglia codifica separatamente lo stato e ciascuna risposta candidata, e ne confronta gli embedding, cioè i
 vettori numerici che rappresentano ciascun testo. I Contrastive Language Models, che appartengono a questa famiglia, sono
 molto veloci quando i candidati sono numerosi e riutilizzabili. Nel confronto riportato dagli stessi autori, però,
 concordano con le decisioni di Jev molto meno di un modello che fa interagire stato e candidato~\cite{kwok2026clm}. La
-terza famiglia usa piccoli encoder\footnote{Un \emph{encoder} è un transformer in cui ogni token vede tutti gli altri,
-sia quelli che lo precedono sia quelli che lo seguono. Produce una rappresentazione del testo invece di generarlo, come
-BERT e i modelli che ne derivano. Il \emph{token di maschera} è un token speciale che, durante il preaddestramento,
+terza famiglia usa piccoli encoder\footnote{Il \emph{token di maschera} è un token speciale che, durante il preaddestramento,
 prende il posto delle parole che il modello deve ricostruire.} con una head decisionale dedicata. Laya, per esempio, si
 basa su un encoder ModernBERT da circa 400M parametri e assegna un punteggio a ogni opzione in corrispondenza del relativo
 token di maschera. Le domande di una richiesta sono valutate in un'unica chiamata, raggruppate in un batch, ma ciascuna
@@ -48,11 +46,7 @@ Le evidenze a supporto di questi sistemi sono disomogenee. La maggior parte prov
 sola macchina e su un solo benchmark. Le valutazioni indipendenti sono recenti e meno favorevoli ai piccoli modelli
 open. Una valutazione di Jev su 37 dataset trova ben calibrate le probabilità che il modello assegna alle scelte fra
 opzioni. Le probabilità binarie, invece, ordinano bene gli esempi ma risultano mal posizionate rispetto a una soglia
-fissa di 0.5. Lo stesso studio riporta per Jev una balanced accuracy\footnote{La \emph{balanced accuracy} è la media,
-calcolata sulle classi, della recall, cioè della frazione di esempi di ciascuna classe classificati correttamente. A
-differenza dell'accuratezza semplice, non premia un modello che predice sempre la classe più frequente: un predittore
-costante ottiene 0.5 nel caso binario (50 se espressa in percentuale, come qui) e circa 0.33 con tre classi.} media di
-78.6 su LLM-AggreFact~\cite{deusser2026jev}. Una riproduzione indipendente di Laya osserva una calibrazione diversa da
+fissa di 0.5. Lo stesso studio riporta per Jev una balanced accuracy media di 78.6, espressa in percentuale, su LLM-AggreFact~\cite{deusser2026jev}. Una riproduzione indipendente di Laya osserva una calibrazione diversa da
 quella dichiarata e una forte dipendenza da una temperatura di calibrazione stimata sui dati di
 destinazione~\cite{nandakishore2026laya}. Un benchmark costruito su coppie contrastive, cioè su decisioni quasi identiche che differiscono per un solo
 dettaglio decisivo, colloca i piccoli modelli open molto al di sotto di Jev~\cite{yong2026decidebench}. Infine, è stato mostrato che, quando l'etichetta di un'opzione e la

@@ -14,8 +14,7 @@ l'output un token alla volta, e ogni token è limitato dalla banda di memoria ne
 portatile usato in questa tesi scrivere un token costa da quattordici a sedici volte più che leggerne uno, e una
 rassegna dell'hardware locale attuale, dagli smartphone ai portatili fino a macchine dedicate come il Mac Studio di Apple
 e il DGX Spark di NVIDIA, mostra ovunque la stessa asimmetria, con un hardware nuovo che accelera la lettura molto più
-della scrittura. I piccoli modelli open-weight sono ormai indietro di pochi mesi rispetto alla frontiera chiusa, per cui
-pipeline locali capaci sono realistiche; la questione è come verificarle a un costo che il dispositivo possa sostenere.
+della scrittura. I migliori modelli open-weight sono ormai indietro di pochi mesi rispetto alla frontiera chiusa, e quelli che entrano in una scheda grafica consumer di 6--12 mesi, per cui pipeline locali capaci sono realistiche; la questione è come verificarle a un costo che il dispositivo possa sostenere.
 
 La verifica segue oggi due paradigmi. I \textbf{verificatori basati su encoder}, come AlignScore, MiniCheck e HHEM, sono piccoli e
 veloci, ma restituiscono un unico punteggio fisso per ogni coppia di documento e frase. I \textbf{giudici generativi}, invece, sono
@@ -43,13 +42,10 @@ e senza probabilità, con due decision model generalisti e con encoder specializ
 bootstrap a cluster.
 
 Sul test set di RAGTruth GroundOne raggiunge una balanced accuracy a tre classi di 0.769 con 0.5B parametri e di 0.832
-con 3B, contro 0.37 e 0.44 dei modelli non addestrati; la sua AUROC (0.905 e 0.940) supera quella degli encoder (circa
-0.82), e il modello supera nettamente entrambi i decision model generalisti: Rizzo-Flow, otto volte più grande del 0.5B, e
-d1-3B di Liquid AI, della stessa dimensione del 3B (0.657), che a sua volta è molto più forte sul test fuori dominio VitaminC. Su
+con 3B, contro 0.37 e 0.44 dei modelli non addestrati (per il 3B su un sottoinsieme di 600 risposte); il suo AUROC (0.905 e 0.940) supera quello degli encoder (circa 0.82), e in balanced accuracy a tre classi il modello supera nettamente entrambi i decision model generalisti: Rizzo-Flow, otto volte più grande del 0.5B, e d1-3B di Liquid AI, della stessa dimensione del 3B, che si ferma a 0.657 e a sua volta è molto più forte sul test fuori dominio VitaminC. Su
 LLM-AggreFact il 3B è alla pari con MiniCheck-RoBERTa (74.8 contro 74.0), sopra il modello
 7B zero-shot pubblicato e sotto il decision model chiuso Jev, misurato in modo indipendente (78.6). Quando la risposta
-contiene quattordici o più frasi ($K \geq 14$), GroundOne risulta circa due volte più veloce di un giudice sintetico e sei
-volte più veloce di uno verboso della stessa dimensione e, a differenza dei giudici, produce sempre un output valido.
+contiene quattordici o più frasi ($K \geq 14$), GroundOne risulta da 1.7 a 2 volte più veloce di un giudice sintetico e circa sei volte più veloce di uno verboso della stessa dimensione e, a differenza dei giudici, produce sempre un output valido.
 Consuma anche meno energia (5.5 joule per risposta con il 0.5B, 33 con il 3B), ma il risparmio è minore di quello sul
 tempo, perché un prefill lungo assorbe più potenza del decoding. Combinando le specifiche dei produttori con la
 lunghezza misurata degli output dei giudici, un giudice da 3B deve spendere almeno 1.8 secondi soltanto per scrivere i
@@ -65,3 +61,7 @@ futuro: le prestazioni calano su domini lontani da quello di addestramento, come
 allucinazioni più sottili, nascoste in frasi che per il resto ricalcano fedelmente la fonte, vengono individuate solo in
 parte; infine, l'addestramento non è ancora del tutto stabile al variare del seed, un aspetto che semplici modifiche
 all'ottimizzatore potrebbero attenuare.
+
+Infine, GroundOne Studio, un'applicazione per macOS, mette il verificatore al lavoro in un assistente RAG completo che
+gira in un unico processo sul portatile, senza rete: recupero, generazione, verifica e confronto con un giudice generativo locale richiedono al massimo 6.2\,GB di memoria allocata da MLX. La risposta del generatore compare per prima, e la verifica e la riscrittura delle
+frasi segnalate avvengono su richiesta. In un caso di studio con 100 errori iniettati GroundOne segnala l'errore in 97 delle 98 risposte in cui la frase riceve un verdetto, il giudice in 84; dopo due giri di riscrittura mirata le risposte che contengono ancora l'errore scendono al 9\,\%, con numeri e date per lo più ripristinati dalla fonte e frasi inventate cancellate. Il verdetto a tre classi decide la riparazione: le frasi contraddette vengono corrette, quelle non menzionate spesso tolte.

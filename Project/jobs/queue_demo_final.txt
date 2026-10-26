@@ -1,0 +1,4 @@
+# Demo chapter (2026-10-26): runs redone with the final rewriting design, so the chapter reports only the final behaviour.
+'demo/GroundOne Studio/build/dd2/Build/Products/Release/g1studio' casestudy --verifier g1-05b-b1 --n 100 --input injected-set2.jsonl --revision targeted --name casestudy-g1-05b-b1-set2
+'demo/GroundOne Studio/build/dd2/Build/Products/Release/g1studio' bestofn --verifier g1-3b-b1 --n 60 --samples 3
+GroundOne/.venv/bin/python experiments/demo/scripts/casestudy_report.py casestudy-g1-3b-b1-set2 casestudy-g1-05b-b1-set2 casestudy-g1-3b-b1-set2-uniform casestudy-g1-3b-b1 casestudy-g1-05b-b1

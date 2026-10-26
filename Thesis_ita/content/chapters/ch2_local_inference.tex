@@ -323,8 +323,7 @@ l'attenzione è trascurata.}
 \subsection{Un limite inferiore alla generazione}
 \label{sec:local-floor}
 
-Poiché il decoding legge ogni peso una volta per ogni token generato, il suo tempo per token non può scendere sotto la
-dimensione dei pesi divisa per la banda di memoria, qualunque sia l'hardware. Per il modello da 3B a 8 bit, i cui pesi
+Poiché il decoding legge ogni peso una volta per ogni token generato, il suo tempo per token non può scendere sotto la dimensione dei pesi divisa per la banda di memoria, su qualunque hardware, a meno di ricorrere a tecniche come lo speculative decoding (Sezione~\ref{sec:local-speculative}) o a una quantizzazione più spinta. Per il modello da 3B a 8 bit, i cui pesi
 occupano circa 3.3\,GB, questo limite vale 27 millisecondi per token su una macchina da 120\,GB/s; i 31.8 millisecondi
 misurati lo superano solo di circa un sesto. Il limite dipende da due soli numeri, la dimensione del modello e la banda
 della macchina, e si applica a ogni modello che genera testo. È la chiave per confrontare l'hardware nella
@@ -397,7 +396,7 @@ riprodotto a scopo di documentazione scientifica.}
 \begin{table}[htbp]
 \centering
 \caption{Hardware per l'inferenza locale: specifiche pubblicate dai produttori (consultate l'11 ottobre 2026). Memoria:
-intervallo delle configurazioni offerte; banda: relativa a quelle configurazioni; n.d.: non dichiarato dalla fonte.}
+intervallo delle configurazioni offerte; banda: relativa a quelle configurazioni; N.d.: non dichiarato dalla fonte.}
 \label{tab:local-hardware}
 \small
 \begin{tabularx}{\textwidth}{@{}Xrrll@{}}
@@ -411,7 +410,7 @@ MacBook Pro, M5 Max & 36--128 & 460--614 & Unificata & \cite{apple2026mbp} \\
 Mac Studio, M4 Max & 36--128 & 410--546 & Unificata & \cite{apple2025macstudio} \\
 Mac Studio, M3 Ultra & 96--256 & 819 & Unificata & \cite{apple2025macstudio} \\
 NVIDIA DGX Spark (GB10) & 128 & 273 & Unificata & \cite{nvidia2026dgxspark} \\
-Framework Desktop, AMD Strix Halo & 32--128 (96 alla GPU) & n.d. & Unificata & \cite{hachman2025framework} \\
+Framework Desktop, AMD Strix Halo & 32--128 (96 alla GPU) & N.d. & Unificata & \cite{hachman2025framework} \\
 NVIDIA RTX 5090 & 32 & 1792 & Discreta & \cite{nvidia2026geforce} \\
 NVIDIA RTX 5080 & 16 & 960 & Discreta & \cite{nvidia2026geforce} \\
 NVIDIA RTX 5060 Ti & 16 & 448 & Discreta & \cite{nvidia2026geforce} \\
@@ -615,9 +614,7 @@ media di 0.011 e la classe predetta coincide nel 98\,\% delle frasi (Sezione~\re
 Una diversa famiglia di metodi accelera la generazione senza modificare il modello. Nello speculative decoding un piccolo
 modello bozza propone diversi token, e il modello grande li verifica tutti in un unico forward pass, accettando il
 prefisso più lungo che avrebbe prodotto esso stesso; l'output è identico a quello del modello grande, e lo speed-up
-arriva a due-tre volte~\cite{leviathan2023speculative}. Il metodo è utile per qualunque sistema debba generare, ma non
-cambia la natura del costo: ogni token accettato richiede comunque un forward pass del modello grande, e la quantità
-totale di calcolo aumenta~\cite{leviathan2023speculative}. Rende la scrittura più economica, non gratuita.
+arriva a due-tre volte~\cite{leviathan2023speculative}. Il metodo è utile per qualunque sistema debba generare, ma non cambia la natura del costo: ogni blocco di token proposti richiede comunque un forward pass del modello grande, e la quantità totale di calcolo aumenta~\cite{leviathan2023speculative}. Rende la scrittura più economica, non gratuita.
 
 \section{Energia}
 \label{sec:local-energy}
@@ -634,7 +631,7 @@ rispetto all'unità grafica~\cite{xu2025npu}.
 La distinzione tra le due fasi vale anche per la potenza. Il prefill tiene occupate le unità aritmetiche e assorbe più
 potenza; il decoding attende la memoria e assorbe meno potenza, ma per molto più tempo~\cite{patel2024splitwise}. Un
 metodo che fa risparmiare tempo fa quindi risparmiare anche energia, ma in misura minore, e il Capitolo~\ref{sec:results}
-misura proprio questo effetto: GroundOne spende 5.5 joule per risposta lunga con il modello da 0.5B e 33 con il 3B, meno
+misura proprio questo effetto: GroundOne spende in media 5.5 joule per risposta con il modello da 0.5B e 33 con il 3B, meno
 di qualunque giudice generativo della stessa dimensione, ma con un vantaggio inferiore a quello sul tempo
 (Sezione~\ref{sec:results-energy}).
 
@@ -651,7 +648,7 @@ Un giudice generativo verifica una risposta leggendo il documento e la risposta 
 un prefill, come ogni metodo che legge il documento, e poi un passo di decoding per ogni token che scrive. Nel protocollo
 di latenza di questa tesi (Sezione~\ref{sec:results-latency}), per una risposta di quattordici o più frasi un giudice
 sintetico da 3B scrive in mediana 65 token, e uno verboso, che motiva ogni verdetto, ne scrive 388. Il limite inferiore
-della Sezione~\ref{sec:local-floor} traduce questi conteggi in un tempo minimo che nessuna implementazione può battere
+della Sezione~\ref{sec:local-floor} traduce questi conteggi in un tempo minimo che nessuna implementazione del decoding standard, con pesi a 8 bit, può battere
 (Figura~\ref{fig:local-floor}b): sulla macchina della tesi, almeno 1.8 secondi per il giudice sintetico e 10.6 per quello
 verboso, oltre al prefill; persino sulla scheda grafica più veloce, 0.12 e 0.71 secondi.
 

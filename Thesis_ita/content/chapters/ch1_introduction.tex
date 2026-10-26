@@ -77,7 +77,7 @@ l'asimmetria vale per ogni classe di hardware locale, dagli smartphone alle macc
 spiegazione, e il costo cresce ancora con il numero di frasi della risposta. I giudici piccoli, inoltre, non rispettano
 il formato di output richiesto, e la confidenza che dichiarano è raramente utilizzabile come probabilità.
 
-I verificatori basati su encoder evitano del tutto la generazione. Modelli come AlignScore, MiniCheck e HHEM leggono una
+I verificatori basati su encoder\footnote{Un \emph{encoder} è un transformer in cui ogni token vede tutti gli altri, sia quelli che lo precedono sia quelli che lo seguono. Produce una rappresentazione del testo invece di generarlo, come BERT e i modelli che ne derivano.} evitano del tutto la generazione. Modelli come AlignScore, MiniCheck e HHEM leggono una
 coppia di documento e frase e restituiscono un punteggio di supporto~\cite{zha2023alignscore,tang2024minicheck,vectara2024hhem}.
 Sono piccoli e veloci, ma forniscono un unico punteggio binario e fisso per ogni coppia: non distinguono una
 contraddizione da un'omissione, leggono ogni frase senza il resto della risposta, e adattarli a una nuova decisione
@@ -88,10 +88,9 @@ richiede un nuovo modello.
 
 Un modo diverso di usare un modello linguistico per prendere decisioni ha attirato di recente l'attenzione: i
 \emph{decision model}. La categoria è stata introdotta con il nome di \emph{System One model}~\cite{typesafe2026jev},
-che richiama il modo di pensare rapido e intuitivo contrapposto al ragionamento deliberato; questa tesi adotta il
-termine decision model, adottato in seguito dall'ecosistema. Invece di generare una risposta, un modello di questo tipo legge una sola volta la domanda e il
+che richiama il modo di pensare rapido e intuitivo contrapposto al ragionamento deliberato; questa tesi adotta il termine decision model, affermatosi in seguito dall'ecosistema. Invece di generare una risposta, un modello di questo tipo legge una sola volta la domanda e il
 contesto e restituisce una probabilità per ciascuna risposta ammissibile, per esempio leggendo i logit delle lettere
-delle opzioni alla fine del prompt (e.g., A: 90\%, B: 5\%, C: 5\%)~\cite{semif,rizzoflow}. Ne seguono direttamente tre proprietà. Non viene generato
+delle opzioni alla fine del prompt (per esempio A: 90\,\%, B: 5\,\%, C: 5\,\%)~\cite{semif,rizzoflow}. Ne seguono direttamente tre proprietà. Non viene generato
 alcun testo, quindi la decisione costa solo la lettura dell'input. L'output è sempre una delle risposte ammissibili,
 quindi è sempre valido. Molte domande sullo stesso contesto possono condividere un unico forward pass\footnote{Il \emph{forward pass} è un passaggio completo dell'input attraverso
 tutti gli strati della rete: per un modello linguistico, il calcolo che a partire dai token in ingresso produce i logit
@@ -175,15 +174,14 @@ ogni frase, rispetto al semplice punteggio di un verificatore binario?
 
 La tesi studia la fase di verifica in modo isolato. Il documento recuperato è dato, quindi la qualità del recupero non
 viene valutata, e una risposta è giudicata solo rispetto al documento da cui è stata generata, non rispetto alla
-conoscenza generale. GroundOne segnala le frasi ma non le corregge, e restituisce verdetti e probabilità anziché
-spiegazioni scritte. I dati sono in inglese. I documenti più lunghi del contesto usato in addestramento vengono divisi in
+conoscenza generale. GroundOne di per sé segnala le frasi ma non le corregge, e restituisce verdetti e probabilità anziché spiegazioni scritte; l'applicazione del Capitolo~\ref{ch:studio} aggiunge recupero e riscrittura, che non sono valutati come contributo sperimentale. I dati sono in inglese. I documenti più lunghi del contesto usato in addestramento vengono divisi in
 parti, come descritto nel Capitolo~\ref{sec:setup}. Infine, gli esperimenti riguardano una sola classe di hardware, un
 laptop consumer con memoria unificata, e tutti i sistemi, baseline comprese, girano sulla stessa macchina.
 
 \section{Contributi}
 \label{sec:intro-contributions}
 
-La tesi offre quattro contributi.
+La tesi offre cinque contributi.
 \begin{enumerate}
 \item \textbf{GroundOne}, un decision model specialista e open per la verifica della groundedness a livello di frase,
 eseguito interamente su un laptop. Grazie a un marker inserito dopo ogni frase, legge tutti i verdetti di una risposta in
@@ -202,27 +200,29 @@ risultano ottimistiche.}.
 readout ristretto e della dimensione del modello. GroundOne è confrontato con indizi che non verificano mai una frase,
 modelli non addestrati, giudici generativi con e senza probabilità, due decision model generalisti (Rizzo-Flow, da 4B parametri, e d1-3B di Liquid
 AI, della stessa dimensione del 3B) ed encoder specializzati, tutti sullo stesso hardware e con intervalli ottenuti
-tramite cluster bootstrap.
+tramite bootstrap a cluster.
 \item \textbf{Uno studio di calibrazione, tempo ed energia}: come le probabilità possano essere calibrate e tradotte in
 etichette coerenti, quanto aiutino a rinviare le decisioni incerte e come tempo ed energia di una verifica crescano con la
 lunghezza della risposta. Lo studio si inserisce in un'analisi dell'inferenza locale che combina le specifiche dei
 produttori con misure proprie per stabilire, per ogni classe di hardware consumer, il costo minimo che un verificatore
 che genera testo deve pagare e che un decision model non paga.
+\item \textbf{GroundOne Studio}, un'applicazione per macOS in cui recupero, generazione e verifica avvengono nello stesso
+processo, sullo stesso portatile e senza servizi esterni. La risposta del generatore compare per prima; l'utente può poi
+verificarla con GroundOne, da solo o insieme a un giudice generativo eseguito in locale, vedere l'evidenza a supporto di
+ogni frase e far riscrivere le frasi segnalate. Un caso di studio con errori iniettati misura il ciclo di verifica e
+riscrittura.
 \end{enumerate}
 
 \section{Risultati principali}
 \label{sec:intro-results}
 
 I risultati mostrano che la specializzazione funziona nel dominio per cui è stata pensata. Sul test set di RAGTruth
-GroundOne raggiunge una balanced accuracy a tre classi di 0.769 con 0.5B parametri e di 0.832 con 3B, contro 0.37 e 0.44
-degli stessi modelli prima dell'addestramento. Ordina le frasi supportate meglio degli encoder specializzati e supera
-nettamente entrambi i decision model generalisti: Rizzo-Flow, otto volte più grande del 0.5B, e d1-3B, della stessa
+GroundOne raggiunge una balanced accuracy\footnote{La \emph{balanced accuracy} è la media, calcolata sulle classi, della recall, cioè della frazione di esempi di ciascuna classe classificati correttamente. A differenza dell'accuratezza semplice, non premia un modello che predice sempre la classe più frequente: un predittore costante ottiene 0.5 nel caso binario (50 se espressa in percentuale) e circa 0.33 con tre classi.} a tre classi di 0.769 con 0.5B parametri e di 0.832 con 3B, contro 0.37 e 0.44 degli stessi modelli prima dell'addestramento (per il 3B su un sottoinsieme di 600 risposte). Ordina le frasi supportate meglio degli encoder specializzati e, in balanced accuracy a tre classi, supera nettamente entrambi i decision model generalisti: Rizzo-Flow, otto volte più grande del 0.5B, e d1-3B, della stessa
 dimensione del 3B. Su LLM-AggreFact, un benchmark costruito da fonti diverse, il 3B è alla pari con il miglior encoder di
 piccole dimensioni.
 
 Il meccanismo del decision model ripaga in velocità e in accuratezza. Quando una risposta contiene quattordici o più frasi,
-GroundOne la verifica circa due volte più velocemente di un giudice sintetico e sei volte più velocemente di un giudice
-verboso della stessa dimensione, con un output sempre valido e consumando meno energia. Anche il modo di leggere la
+GroundOne la verifica da 1.7 a 2 volte più velocemente di un giudice sintetico e circa sei volte più velocemente di un giudice verboso della stessa dimensione, con un output sempre valido e consumando meno energia. Anche il modo di leggere la
 decisione conta: con lo stesso modello addestrato, scegliere la più probabile fra le sole tre lettere ammesse è più
 accurato che lasciare al modello generare liberamente il proprio verdetto, con un guadagno di balanced accuracy di 0.25
 per il 0.5B e di 0.07 per il 3B. Dopo la
@@ -234,8 +234,12 @@ domini lontani da quello di addestramento, dove il decision model generalista d1
 sottili, nascoste in frasi che per il resto ricalcano fedelmente la fonte, vengono individuate solo in parte; infine,
 l'addestramento non è ancora del tutto stabile al variare del seed\footnote{Il \emph{seed} è il numero che inizializza
 il generatore di numeri casuali usato durante l'addestramento, per esempio per inizializzare i pesi aggiunti e per
-mescolare l'ordine dei dati. Ripetere l'addestramento con seed diversi produce modelli leggermente diversi: se i
-risultati cambiano molto da un seed all'altro, la procedura non è robusta.}.
+mescolare l'ordine dei dati. Ripetere l'addestramento con seed diversi produce modelli leggermente diversi: se i risultati cambiano molto da un seed all'altro, la procedura non è robusta.}.
+
+Infine, l'applicazione GroundOne Studio mostra che attorno al verificatore si può costruire un assistente RAG completo,
+in un unico processo e senza rete, con un picco di 6.2\,GB di memoria allocata da MLX. In un caso di studio con errori
+iniettati, GroundOne segnala l'errore in 97 delle 98 risposte in cui la frase riceve un verdetto, contro 84 del giudice,
+e la riscrittura mirata riduce dal 100\,\% al 9\,\% le risposte che lo contengono ancora.
 
 \section{Struttura della tesi}
 \label{sec:intro-structure}
@@ -248,6 +252,7 @@ nella retrieval-augmented generation, i metodi di verifica e la calibrazione. Il
 addestramento, la calibrazione e l'output esposto dal servizio. Il Capitolo~\ref{ch:data} definisce le etichette e
 descrive come sono stati costruiti, controllati e congelati il training set e i test set. Il Capitolo~\ref{sec:setup}
 presenta i modelli addestrati, le baseline, le metriche e il protocollo di misura. Il Capitolo~\ref{sec:results} riporta
-i risultati, il Capitolo~\ref{sec:discussion} ne discute il significato e i limiti e il Capitolo~\ref{sec:conclusion}
-trae le conclusioni. L'Appendice~\ref{app:examples} mostra l'output di tutti i sistemi sulla risposta di esempio
+i risultati, il Capitolo~\ref{ch:studio} presenta l'applicazione GroundOne Studio e il caso di studio, il
+Capitolo~\ref{sec:discussion} discute il significato e i limiti dei risultati e il Capitolo~\ref{sec:conclusion} trae
+le conclusioni. L'Appendice~\ref{app:examples} mostra l'output di tutti i sistemi sulla risposta di esempio
 descritta nella Sezione~\ref{sec:intro-hallucination}.

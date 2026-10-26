@@ -215,4 +215,46 @@ final class GroundOneStudioUITests: XCTestCase {
         sleep(1)
         shot(app, "26-real-stats")
     }
+
+    /// Screenshots for the thesis chapter: real models, light appearance, the E-ZPass example.
+    @MainActor func testScreenshotsForThesis() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["-lightAppearance"]
+        app.launch()
+        app.activate()
+        XCTAssertNotNil(waitFor(app, "models-ready", timeout: 300))
+        app.typeKey("n", modifierFlags: .command)
+        shot(app, "40-start")
+        ask(app, "How does E-ZPass charge tolls?")
+        XCTAssertTrue(waitStatus(app, "not verified", timeout: 600))
+        shot(app, "41-native")
+        app.buttons["verify-judge"].click()
+        XCTAssertTrue(waitStatus(app, "verified", timeout: 600))
+        sleep(1)
+        shot(app, "42-verified")
+        let s = sentence(app, containing: "falls below $25")
+        if s.waitForExistence(timeout: 5) {
+            s.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.5)).click()
+            XCTAssertNotNil(waitFor(app, "sentence-verdict", timeout: 10))
+            shot(app, "43-sentence")
+            app.buttons["find-evidence"].click()
+            if app.buttons["Done"].waitForExistence(timeout: 300) {
+                sleep(1)
+                shot(app, "44-evidence")
+                app.buttons["Done"].click()
+            }
+            app.buttons["rewrite-selected"].click()
+            _ = app.radioButtons["Fix 1"].waitForExistence(timeout: 300)
+            _ = waitStatus(app, "verified", timeout: 300)
+            shot(app, "45-after-rewrite")
+        }
+        app.staticTexts["sidebar-Stats"].click()
+        XCTAssertNotNil(waitFor(app, "stats-kpis", timeout: 10))
+        sleep(2)
+        shot(app, "46-stats")
+        app.staticTexts["sidebar-Library"].click()
+        app.outlines["library-list"].cells.element(boundBy: 3).click()
+        sleep(1)
+        shot(app, "47-library")
+    }
 }
