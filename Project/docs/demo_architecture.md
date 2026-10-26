@@ -412,10 +412,14 @@ policies as JSON files. No server database, no network.
 ## 14. Prefix cache (D32, 2026-10-26)
 
 GroundOne's prompt puts the instructions and the document before the answer, so their KV cache is reusable exactly by
-any later answer on the same document. `GroundOneModel` keeps the last four prompt heads (instructions + document),
+any later answer on the same document. `GroundOneModel` keeps the last sixteen prompt heads (instructions + document; "Find evidence" adds one per passage),
 keyed by the adapter state and the head's token ids; the verifier passes the head length, so a re-verification after a
 rewrite reads only the answer. The local judge has its own cache under the same policy (its head ends with the
 document; adapter off). `Verdicts.cachedTokens` and `JudgeVerdicts.cachedTokens` record the reuse (audit log, chats),
 and the timing panel shows a note. The conformance test checks the cached path against the cold one (max |Δp| < 0.01).
 The cache lives in memory only. Python 0.29.3's attention kernel needs an explicit mask on this path (thesis notes,
 2026-10-26); MLX Swift 0.32.3 does not (`g1studio sdpa-check`).
+
+Retrieval ties (equal RRF scores are common) are broken by row id, so the same question always yields the same
+passages in the same order; before, Swift's per-process dictionary order could reorder tied passages and change the
+greedy answer (2026-10-26).

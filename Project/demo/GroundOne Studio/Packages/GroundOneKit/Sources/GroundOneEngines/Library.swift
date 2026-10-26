@@ -209,7 +209,7 @@ public final class LibraryIndex: @unchecked Sendable {
                 scored.append((sqlite3_column_int64(st, 0), Double(dot)))
             }
             sqlite3_finalize(st)
-            return Array(scored.sorted { $0.1 > $1.1 }.prefix(limit))
+            return Array(scored.sorted { $0.1 != $1.1 ? $0.1 > $1.1 : $0.0 < $1.0 }.prefix(limit))
         }
     }
 
@@ -263,7 +263,9 @@ public struct HybridRetriever: Retriever {
         for list in [lexical, semantic] {
             for (rank, (id, _)) in list.enumerated() { fused[id, default: 0] += 1.0 / Double(60 + rank + 1) }
         }
-        let ranked = fused.sorted { $0.value > $1.value }
+        // ties (equal fused scores are common: same ranks in the two lists) broken by row id, so the same query always
+        // gives the same passages in the same order (dictionary order changes from one process to the next)
+        let ranked = fused.sorted { $0.value != $1.value ? $0.value > $1.value : $0.key < $1.key }
         let rows = index.passages(Array(ranked.prefix(pool).map(\.key)))
         var out: [Passage] = []
         var perDoc: [String: Int] = [:]

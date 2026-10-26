@@ -19,7 +19,9 @@ public final class GroundOneModel: @unchecked Sendable {
     /// and the head's token ids, least recently used first. Causal attention makes a cached head exactly reusable by
     /// any later prompt that starts with it: a rewritten answer on the same sources reads only the answer.
     private var prefixes: [(adapter: Bool, ids: [Int], state: PrefixState)] = []
-    public var maxCachedPrefixes = 4
+    /// Room for the answer's sources plus the per-passage heads that "Find evidence" reads (six passages), so that
+    /// a re-verification after it still finds the sources (about 36 KB per token with the 3B).
+    public var maxCachedPrefixes = 16
     public var prefixCacheEnabled = true
 
     public var name: String { "GroundOne \(info.run)" }
