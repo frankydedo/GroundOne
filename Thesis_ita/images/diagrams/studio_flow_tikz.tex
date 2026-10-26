@@ -6,9 +6,9 @@
   \node[post=2.6cm, font=\footnotesize] (a) at (3.2,0) {recupero e\\\textbf{risposta nativa}\\(non verificata)};
   \node[decision, font=\footnotesize, text width=1.8cm] (v) at (6.8,0) {verifica?};
   \node[model=2.9cm, font=\footnotesize] (g1) at (10.6,0.75) {GroundOne: tutte le frasi in un forward pass};
-  \node[model=2.9cm, font=\footnotesize, draw=decLine, fill=decFill] (gj) at (10.6,-0.75) {GroundOne + giudice: verdetti e tempi a confronto};
+  \node[model=2.9cm, font=\footnotesize, draw=decLine, fill=decFill] (gj) at (10.6,-0.75) {GroundOne + giudice LLM: verdetti e tempi a confronto};
   \node[post=3.0cm, font=\footnotesize] (col) at (10.6,-2.9) {frasi colorate per verdetto; conteggi; tempi};
-  \node[post=3.3cm, font=\footnotesize] (sel) at (6.2,-2.9) {clic su una frase:\\probabilità, giudice, tempi};
+  \node[post=3.3cm, font=\footnotesize] (sel) at (6.2,-2.9) {clic su una frase:\\probabilità, giudice LLM, tempi};
   \node[model=2.6cm, font=\footnotesize] (ev) at (2.2,-2.1) {Find evidence: anteprima del passaggio, frase evidenziata};
   \node[model=2.6cm, font=\footnotesize] (rw) at (2.2,-3.9) {riscrittura delle frasi scelte o segnalate (Fix)};
   \node[outcome=okLine, fill=okFill, font=\footnotesize] (nv) at (6.2,-5.0) {nuova versione, verificata di nuovo};

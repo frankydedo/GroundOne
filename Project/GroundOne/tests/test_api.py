@@ -42,6 +42,14 @@ class FakeBackend:
         self.calls.append(("b", sum(len(p) for p in positions)))
         return [[LOGITS_B[j % len(LOGITS_B)] for j in range(len(p))] for p in positions]
 
+    def prefill(self, ids, base=None):
+        self.prefills = getattr(self, "prefills", 0) + 1
+        return {"ids": tuple(ids)}
+
+    def score_positions_from(self, prefix, ids, positions, letters=("A", "B", "C")):
+        assert tuple(ids[:len(prefix["ids"])]) == prefix["ids"] and min(positions) >= len(prefix["ids"])
+        return self.score_positions([ids], [positions], letters)[0]
+
 
 # raw logits per marker: clear supported; borderline (raw argmax = not mentioned, softmax P(supported) = 0.45); contradicted
 LOGITS_B = [[3.0, 0.0, 0.0], [0.0, -2.0, 0.2], [0.0, 2.0, 0.0]]
@@ -139,6 +147,18 @@ def test_verify_b_one_pass_and_unscored_sentences(client_b):
     assert engine.backend.calls == [("b", len(scored))] and j["n_decisions"] == len(scored) == 3   # one forward pass
     unscored = [s for s in j["sentences"] if not s["scored"]]
     assert [s["text"] for s in unscored] == ["Sure!"] and unscored[0]["answers"] == {} and unscored[0]["p_supported"] is None
+
+
+def test_verify_b_reuses_the_cached_document(client_b):
+    """D32: a second answer on the same document reads only the answer; a new document reuses the instructions."""
+    c, engine = client_b
+    doc = "Paris is the capital of France."
+    first = c.post("/v1/verify", json={"document": doc, "answer": ANSWER_B}).json()
+    second = c.post("/v1/verify", json={"document": doc, "answer": "Paris is in France."}).json()
+    third = c.post("/v1/verify", json={"document": "Rome is in Italy.", "answer": "Rome is in Italy."}).json()
+    assert [j["prefix_cache"] for j in (first, second, third)] == ["instructions", "document", "instructions"]
+    assert engine.backend.prefills == 3                     # fixed instructions once, then one per new document
+    assert first["sentences"][1]["p_supported"] == c.post("/v1/verify", json={"document": doc, "answer": ANSWER_B}).json()["sentences"][1]["p_supported"]
 
 
 def test_verify_b_labels_flags_and_probabilities_are_coherent(client_b):

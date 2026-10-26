@@ -26,7 +26,7 @@ SYSTEM_COLORS = {
     "GroundOne 0.5B": SERIES[0], "GroundOne 3B": SERIES[6],
     "Untrained 0.5B": NEUTRAL, "Untrained 3B": "#6e6c66",
     "MiniCheck-RoBERTa": SERIES[1], "MiniCheck-DeBERTa": SERIES[4], "HHEM": SERIES[2],
-    "Rizzo-Flow 4B": SERIES[3], "Terse judge": SERIES[7], "Verbose judge": SERIES[5],
+    "Rizzo-Flow 4B": SERIES[3], "Terse LLM judge": SERIES[7], "Verbose LLM judge": SERIES[5],
     "System One (batched)": SERIES[0], "System One (sequential)": SERIES[4],
 }
 

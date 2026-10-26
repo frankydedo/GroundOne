@@ -27,7 +27,7 @@ probability that the sentence is supported. The strict policy flags every unsupp
 policy flags only contradicted sentences. A single forward pass is therefore enough for all these uses.
 
 Asking the model a separate question for each policy would add nothing: once the class of a sentence is known, how each
-policy judges it is already known too. Separate questions would only multiply the number of decisions and, in
+policy LLM judges it is already known too. Separate questions would only multiply the number of decisions and, in
 training, would risk teaching the model mutually inconsistent answers about the same sentence.
 
 \section{All verdicts in a single forward pass}
@@ -61,8 +61,8 @@ at the marker positions.
 
 The marker readout also determines the cost of a verification. Let $S$ denote the total length of document and answer,
 $K$ the number of decisions and $m$ the length of a marker in tokens. The decision model requires a single prefill of
-$S + K m$ tokens. A generative judge, in contrast, must also produce its verdicts during decoding. If each verdict
-requires $n$ tokens and each decoded token takes a time $t_\mathrm{dec}$, the cost of the judge is roughly
+$S + K m$ tokens. An LLM judge, in contrast, must also produce its verdicts during decoding. If each verdict
+requires $n$ tokens and each decoded token takes a time $t_\mathrm{dec}$, the cost of the LLM judge is roughly
 $\mathrm{prefill}(S) + K\, n\, t_\mathrm{dec}$. A marker is only three tokens long, whereas on the reference hardware
 decoding is much slower than prefill for the same number of tokens; the gap between the two costs therefore widens as
 $K$ grows. On the M4 used in this thesis, with the 0.5B model prefill costs about 0.37\,ms per token and decoding
@@ -75,7 +75,7 @@ energy measurements of Chapter~\ref{sec:results}. Figure~\ref{fig:method-cost} t
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/method/cost_model.png}
-\caption{Estimated cost of verifying an answer of $S = 800$ tokens as a function of $K$, computed with only the constants measured on the M4: the per-token time of prefill and decoding and the mean number of tokens each judge generates per verdict on the latency subset (mean $K$ 8.7). It is an analytical model, not a measurement: the measured latencies are in Section~\ref{sec:results-latency}. The cost of the decision model grows by only three prefill tokens per decision, that of the judges by a few decoding tokens per decision.}
+\caption{Estimated cost of verifying an answer of $S = 800$ tokens as a function of $K$, computed with only the constants measured on the M4: the per-token time of prefill and decoding and the mean number of tokens each LLM judge generates per verdict on the latency subset (mean $K$ 8.7). It is an analytical model, not a measurement: the measured latencies are in Section~\ref{sec:results-latency}. For the same text, the cost of the decision model grows by only three prefill tokens per decision, that of the LLM judges by a few decoding tokens per decision. In real answers, however, more sentences also mean a longer text, whose prefill both pay: Section~\ref{sec:results-latency} separates the two components.}
 \label{fig:method-cost}
 \end{figure}
 
@@ -92,6 +92,18 @@ Figure~\ref{fig:method-designs} compares the two solutions.
 \caption{The two solutions for obtaining $K$ verdicts from a single reading. (b) The marker readout, adopted as the default, inserts a marker after every sentence and reads all the verdicts in the same pass. (a) The fallback solution reads the shared prefix once and appends a short question for each sentence, evaluated in a batch; it requires, however, $K$ copies of the KV cache of the prefix, and it is the natural format for an untrained model.}
 \label{fig:method-designs}
 \end{figure}
+
+The order of the prompt has a second consequence for the cost. Instructions, document and answer appear in this order,
+and attention is causal: the keys and values computed for a prefix depend only on that prefix. The KV cache of the
+instructions, which are the same for every request, and that of the document can therefore be kept and reused exactly
+by any later answer on the same document, which then costs only the reading of the answer and its markers. This is the
+case of a rewritten answer verified again, of several alternative answers generated from the same sources, or of
+several questions on the same library. Prefix reuse is not an exclusive advantage of the decision model: the prompt of
+an LLM judge also starts with instructions and document, and can reuse them in the same way. The marker format,
+however, makes it particularly effective, because after the prefix only the answer remains to be read, and every
+additional sentence costs the three tokens of its marker. GroundOne keeps the instructions and the last documents read,
+both in the service and in the application of Chapter~\ref{ch:studio}; Section~\ref{sec:results-latency-split}
+measures the effect for GroundOne and for the LLM judges.
 
 \paragraph{A classifier, not a faster generator.} The readout restricts the decision to three letters, and the
 restriction is not a detail. After the marker, the fine-tuned model would not write the letter that is read. Its most

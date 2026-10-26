@@ -96,7 +96,7 @@ struct EmptyAsk: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Ask the documents").font(.largeTitle.bold())
-            Text("The answer appears as the generator wrote it. Then you choose: verify it with GroundOne (every sentence in one forward pass, on this Mac), or with GroundOne and a generative judge to compare verdicts and times. Flagged or selected sentences can be rewritten from the sources.")
+            Text("The answer appears as the generator wrote it. Then you choose: verify it with GroundOne (every sentence in one forward pass, on this Mac), or with GroundOne and an LLM judge to compare verdicts and times. Flagged or selected sentences can be rewritten from the sources.")
                 .foregroundStyle(.secondary)
             HStack(spacing: 14) {
                 Legend(label: .supported); Legend(label: .contradicted); Legend(label: .notMentioned); Legend(label: nil)

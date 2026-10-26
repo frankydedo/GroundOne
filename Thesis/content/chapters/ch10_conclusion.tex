@@ -18,10 +18,10 @@ decision model of the same size trained to decide on a broad mixture of tasks, c
 ahead of it on RAGTruth, with the 3B it matches d1-3B on LLM-AggreFact, and it is far behind on VitaminC.
 
 The decision-model mechanism pays off on two fronts. The first is speed. Reading all the verdicts in a single forward
-pass makes the verification of long answers about two times faster than that of a terse generative judge and six times
-faster than that of a verbose judge of the same size, with output that is always valid. The second is accuracy:
+pass makes the verification of long answers about two times faster than that of a terse LLM judge and six times
+faster than that of a verbose LLM judge of the same size, with output that is always valid. The second is accuracy:
 restricting the decision to the admissible answers is, by itself, more accurate than letting the same model generate the
-verdict. Moreover, even when asked for the same output, generative judges cannot provide probabilities of comparable
+verdict. Moreover, even when asked for the same output, LLM judges cannot provide probabilities of comparable
 quality. Their probabilities barely separate correct from incorrect decisions, and the verbalised ones are almost always
 all-or-nothing.
 
@@ -31,13 +31,13 @@ The Expected Calibration Error alone, however, does not distinguish useful proba
 discrimination must be measured separately.
 
 The whole system runs on a 16\,GB laptop. A long answer is verified in 0.41 seconds with the 0.5B and in 2.57 with the
-3B, with an energy of 5.5 and 33 joules on average per answer. Compared with a generative judge the energy saving is
+3B, with an energy of 5.5 and 33 joules on average per answer; when the document is already in the KV cache, as in the verification of a rewritten answer, 0.11 and 0.58 seconds suffice. Compared with an LLM judge the energy saving is
 real, but smaller than the time saving, because a single long prefill draws more power than decoding.
 
 The GroundOne Studio application shows that a complete RAG assistant can be built around the verifier, in a single
-process and without network access: retrieval, generation, verification and comparison with a generative judge require
+process and without network access: retrieval, generation, verification and comparison with an LLM judge require
 at most 6.2\,GB of memory allocated by MLX. In the injected-error case study GroundOne flags the error in 97 of the 98
-answers in which the sentence receives a verdict, against 84 for the judge, and targeted rewriting reduces the answers
+answers in which the sentence receives a verdict, against 84 for the LLM judge, and targeted rewriting reduces the answers
 that still contain the error from 100\,\% to 9\,\%, according to the automatic count: numbers and dates are mostly
 restored from the source, fabricated sentences deleted. The case study also shows that the type of error matters: a
 contradicted sentence is corrected, a not-mentioned one often merely removed. The answers that pass the loop are
@@ -61,7 +61,7 @@ On the systems side, the cost model of Chapter~\ref{sec:local} should be verifie
 readout to llama.cpp would allow GroundOne to be measured on a discrete graphics card, on a DGX Spark or an AMD Strix Halo
 machine, and on a smartphone, whose neural processing units accelerate precisely the prefill on which a decision model
 relies. Latency comparisons with the other families of verifiers also require fair conditions: the encoders must be run
-in batches, while GroundOne and the general-purpose decision models must be queried through the same HTTP interface.
+in batches, while GroundOne and the general-purpose decision models must be queried through the same HTTP interface. Two changes would also shorten the reading of the text, which is now almost all of GroundOne's time. The first is fusing the LoRA adapter into the base weights, which would remove the roughly 10\,\% of extra computation measured in the prefill, at the price of a new quantisation and a new calibration. The second is streaming verification: reading the document while the generator writes and appending the sentences as they arrive, using prefix reuse, so that at the end of generation only the last sentence remains to be read.
 
 Another direction concerns language. The first step is to measure how well the adapter trained in English already works
 on documents and answers in another language, for example by translating part of T1 into Italian. If the transfer is not

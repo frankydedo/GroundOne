@@ -28,14 +28,19 @@ migliorare il trasferimento.
 \paragraph{Readout e generazione a confronto (RQ2).} Il meccanismo del decision model contribuisce in due modi distinti. Il primo
 riguarda il costo: un solo forward pass sulla risposta sostituisce la generazione di $K$ verdetti, per cui il tempo
 risparmiato cresce con la lunghezza della risposta. Quando la risposta contiene quattordici o più frasi, il risparmio
-arriva a un fattore di circa due rispetto a un giudice sintetico e di circa sei rispetto a uno verboso. Il secondo
+arriva a un fattore di circa due rispetto a un giudice LLM sintetico e di circa sei rispetto a uno verboso. Questo
+rapporto complessivo è limitato dalla lettura del testo, che ogni approccio deve pagare e che occupa il 97\,\% del tempo
+di GroundOne: al netto di essa, GroundOne decide da 18 a 33 volte più in fretta di un giudice LLM sintetico e circa
+125--130 volte più in fretta di uno verboso (Sezione~\ref{sec:results-latency-split}). Ne segue che ogni riduzione del
+prefill, come il riuso del prefisso già letto, aumenta il vantaggio relativo del readout. Con il documento già in cache, come quando una risposta riscritta viene verificata di nuovo, il vantaggio sul giudice LLM sintetico sale da circa due a tre--cinque volte: la cache elimina la parte condivisa e lascia al giudice il decoding, che non si può riusare.
+Il secondo
 contributo, che questa tesi non aveva previsto, riguarda l'accuratezza. Con gli stessi pesi e lo stesso costo, scegliere
 tra le tre lettere ammissibili è più accurato che prendere il token che il modello genererebbe, con un guadagno di
 balanced accuracy a tre classi di 0.25 per il 0.5B e di 0.07 per il 3B. Un decision model sottoposto a fine-tuning si
 comprende quindi meglio come un classificatore a tre classi innestato su un modello linguistico che come un generatore
 che si ferma dopo un token. La distinzione pesa soprattutto per i modelli piccoli, cioè proprio per quelli che un
-portatile può permettersi. Il confronto con i giudici generativi, infine, misura anche l'effetto dell'addestramento:
-poiché i giudici non sono addestrati, le ampie differenze di accuratezza rispetto a GroundOne vanno lette come l'effetto
+portatile può permettersi. Il confronto con i giudici LLM, infine, misura anche l'effetto dell'addestramento:
+poiché i giudici LLM non sono addestrati, le ampie differenze di accuratezza rispetto a GroundOne vanno lette come l'effetto
 congiunto della specializzazione e del readout. La Figura~\ref{fig:disc-gains} scompone il guadagno su T1 nei due passaggi, l'addestramento e il readout ristretto.
 
 \begin{figure}[htbp]
@@ -48,7 +53,7 @@ congiunto della specializzazione e del readout. La Figura~\ref{fig:disc-gains} s
 \paragraph{Calibrazione (RQ3).} Una temperatura e un bias stimati sul dev set allineano le probabilità alle frequenze
 osservate sul test set dello stesso dominio, e le probabilità calibrate rendono efficace la selective prediction. Due
 indicazioni valgono al di là di GroundOne. La prima è che l'Expected Calibration Error, da solo, non basta a ordinare i
-sistemi. Dopo la stessa calibrazione, giudici le cui probabilità separano a malapena le classi raggiungono lo stesso ECE
+sistemi. Dopo la stessa calibrazione, giudici LLM le cui probabilità separano a malapena le classi raggiungono lo stesso ECE
 di GroundOne, e soltanto l'AUROC e l'AURC ne rivelano la differenza. La seconda è che decisioni e
 probabilità vanno ricavate in modo coerente. Se si sceglie la classe calibrata più probabile, la decisione collassa verso
 la classe maggioritaria; una soglia stimata sul dev set, invece, recupera la decisione bilanciata e mantiene l'etichetta
@@ -68,19 +73,19 @@ embedding caricati insieme, la memoria allocata da MLX raggiunge un picco di 6.2
 
 Anche il costo economico va letto con misura (Tabella~\ref{tab:disc-cost}). Verificare 10{,}000 risposte con
 GroundOne richiede un'energia che, al prezzo medio europeo dell'elettricità per le famiglie~\cite{eurostat2026electricity},
-vale meno di un centesimo di euro con il 0.5B e circa tre centesimi con il 3B. Affidare la stessa verifica a un giudice
+vale meno di un centesimo di euro con il 0.5B e circa tre centesimi con il 3B. Affidare la stessa verifica a un giudice LLM
 in cloud, ai prezzi di listino dei fornitori~\cite{anthropic2026pricing,openai2026pricing,google2026geminipricing},
 costa invece da circa un dollaro con i modelli più economici a oltre duecento con quelli di fascia più alta. Il rapporto
-è quindi di due-quattro ordini di grandezza, ma in valore assoluto i giudici economici restano poco costosi, e il
-confronto non considera né l'acquisto dell'hardware né la qualità dei giudici in cloud, che questa tesi non ha
+è quindi di due-quattro ordini di grandezza, ma in valore assoluto i giudici LLM economici restano poco costosi, e il
+confronto non considera né l'acquisto dell'hardware né la qualità dei giudici LLM in cloud, che questa tesi non ha
 misurato. L'argomento decisivo a favore della verifica locale resta quindi l'indipendenza: i documenti non lasciano la
 macchina e il servizio non dipende da un fornitore esterno.
 
 \begin{table}[htbp]
 \centering
-\caption{Costo indicativo della verifica di 10{,}000 risposte RAG. Giudici in cloud: prezzi di listino del livello
+\caption{Costo indicativo della verifica di 10{,}000 risposte RAG. Giudici LLM in cloud: prezzi di listino del livello
 standard, consultati il 19 ottobre 2026, con circa 900 token in ingresso per risposta (documento e risposta mediani di T1
-più le istruzioni) e i token in uscita misurati per i giudici 3B di questa tesi (36 per il giudice sintetico, 248 per
+più le istruzioni) e i token in uscita misurati per i giudici LLM 3B di questa tesi (36 per il giudice LLM sintetico, 248 per
 quello verboso). GroundOne: energia netta misurata del chip moltiplicata per il prezzo medio dell'elettricità per le
 famiglie nell'UE (0.29~€/kWh, secondo semestre 2025). Sono esclusi il costo dell'hardware e gli sconti per caching o
 elaborazione in batch.}
@@ -88,7 +93,7 @@ elaborazione in batch.}
 \small
 \begin{tabular}{lccc}
 \toprule
-Sistema & \makecell{Prezzo ingresso / uscita\\(USD per Mtoken)} & \makecell{Giudice\\sintetico} & \makecell{Giudice\\verboso} \\
+Sistema & \makecell{Prezzo ingresso / uscita\\(USD per Mtoken)} & \makecell{Giudice LLM\\sintetico} & \makecell{Giudice LLM\\verboso} \\
 \midrule
 \makecell[l]{Claude Haiku 5.5,\\gpt-6-luna} & 0.10 / 0.50 & 1.1 USD & 2.2 USD \\
 Gemini 3.5 Flash-Lite & 0.30 / 2.50 & 3.6 USD & 8.9 USD \\
@@ -183,12 +188,12 @@ colonna RAGTruth di LLM-AggreFact lo avvantaggiano quindi rispetto a sistemi add
 parte dei dati da cui discende l'addestramento di MiniCheck-RoBERTa. Ogni confronto è riportato con la relativa
 avvertenza, e le conclusioni poggiano sull'andamento complessivo nei tre test set anziché su uno solo.
 
-\paragraph{Configurazione delle baseline.} I giudici generativi sono sensibili al prompt. I loro prompt sono stati
-fissati prima di esaminare i risultati di test, e quello del giudice a parità di output è stato scelto sul dev set
-unicamente in base alla validità del formato. Il parsing dell'output è stato permissivo, a vantaggio dei giudici. Il
+\paragraph{Configurazione delle baseline.} I giudici LLM sono sensibili al prompt. I loro prompt sono stati
+fissati prima di esaminare i risultati di test, e quello del giudice LLM a parità di output è stato scelto sul dev set
+unicamente in base alla validità del formato. Il parsing dell'output è stato permissivo, a vantaggio dei giudici LLM. Il
 decoding non era vincolato da una grammatica, e questo incide soprattutto sugli errori di formato del modello più
-piccolo. Non sono stati valutati né un giudice sottoposto a fine-tuning sugli stessi dati né un giudice più grande: il
-confronto misura dunque ciò che offre, senza addestramento, un giudice della stessa dimensione. Rizzo-Flow è stato
+piccolo. Non sono stati valutati né un giudice LLM sottoposto a fine-tuning sugli stessi dati né un giudice LLM più grande: il
+confronto misura dunque ciò che offre, senza addestramento, un giudice LLM della stessa dimensione. Rizzo-Flow è stato
 eseguito con pesi a 4 bit, perché il modello a 8 bit non trovava posto in memoria accanto al sistema operativo, e questo
 potrebbe sottostimarne l'accuratezza. d1-3B, infine, è stato eseguito zero-shot e, su LLM-AggreFact, soltanto su un
 sottocampione. Ha ricevuto le domande usate per tutte le baseline di tipo decision model, che potrebbero non essere la formulazione

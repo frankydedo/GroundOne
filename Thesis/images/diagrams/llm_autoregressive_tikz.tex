@@ -2,7 +2,7 @@
 \input{s1_vs_llm_common.tex}
 \begin{document}
 \begin{tikzpicture}[node distance=5mm]
-  \node[io, text width=5.2cm] (in) {Document + answer of $K$ sentences\\+ instructions for the judge};
+  \node[io, text width=5.2cm] (in) {Document + answer of $K$ sentences\\+ instructions for the LLM judge};
   \node[model, below=8mm of in] (t) {Transformer: one pass\\\textbf{for every token}};
   \node[model, below=3mm of t] (s) {Chooses the next token\\from the whole vocabulary};
   \begin{scope}[on background layer]

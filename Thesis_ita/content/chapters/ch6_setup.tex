@@ -46,7 +46,7 @@ precisa. La Figura~\ref{fig:setup-baselines} riassume che cosa ciascuna baseline
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/diagrams/setup_baseline_map_tikz.pdf}
-\caption{Mappa delle baseline. Ciascuna differisce da GroundOne per un aspetto preciso e risponde quindi a una domanda diversa: quanto conta l'addestramento (B1), quanto il readout ristretto rispetto al token generato (B2), quanto il modo di produrre il verdetto (giudici B0a, B0b, B0d), quanto la specializzazione rispetto a un decision model generalista (B3, B3b), quanto l'architettura (encoder B4) e quanto basta senza leggere il documento (segnali elementari).}
+\caption{Mappa delle baseline. Ciascuna differisce da GroundOne per un aspetto preciso e risponde quindi a una domanda diversa: quanto conta l'addestramento (B1), quanto il readout ristretto rispetto al token generato (B2), quanto il modo di produrre il verdetto (giudici LLM B0a, B0b, B0d), quanto la specializzazione rispetto a un decision model generalista (B3, B3b), quanto l'architettura (encoder B4) e quanto basta senza leggere il documento (segnali elementari).}
 \label{fig:setup-baselines}
 \end{figure}
 
@@ -63,26 +63,26 @@ interpretare il marker \texttt{Verdict:} come una domanda. Per questo la baselin
 esplicita per ogni frase (Sezione~\ref{sec:method-readout}). In questo modo misura ciò che il meccanismo del decision model offre
 prima di qualunque specializzazione.
 
-\paragraph{Giudici generativi (B0a, B0b).} I modelli non addestrati sono impiegati anche nel modo più diffuso nella
-pratica, cioè come giudici. Ricevono il documento, la risposta numerata e l'elenco delle frasi da verificare, e scrivono
+\paragraph{Giudici LLM (B0a, B0b).} I modelli non addestrati sono impiegati anche nel modo più diffuso nella
+pratica, cioè come giudici LLM. Ricevono il documento, la risposta numerata e l'elenco delle frasi da verificare, e scrivono
 un verdetto per ogni frase con greedy decoding\footnote{Nel \emph{greedy decoding} il modello sceglie a ogni passo il
-token più probabile, senza campionamento: a parità di input, quindi, l'output è sempre lo stesso.}. Il giudice
-\emph{sintetico} produce una riga ``\texttt{<number>: <letter>}'' per frase. Il giudice \emph{verboso}, invece, scrive per ogni frase una breve motivazione seguita dal verdetto. Quando un verdetto non può essere interpretato, si ha un
+token più probabile, senza campionamento: a parità di input, quindi, l'output è sempre lo stesso.}. Il giudice LLM
+\emph{sintetico} produce una riga ``\texttt{<number>: <letter>}'' per frase. Il giudice LLM \emph{verboso}, invece, scrive per ogni frase una breve motivazione seguita dal verdetto. Quando un verdetto non può essere interpretato, si ha un
 errore di formato: nel calcolo dell'accuratezza viene contato come errore, e viene inoltre riportato a parte.
 
-\paragraph{Giudici a parità di output (B0d).} I giudici sintetico e verboso restituiscono meno di GroundOne: una lettera
+\paragraph{Giudici LLM a parità di output (B0d).} I giudici LLM sintetico e verboso restituiscono meno di GroundOne: una lettera
 per frase e nessuna probabilità. Non consentono quindi né la calibrazione, né una soglia regolabile, né la scelta di una
-policy di decisione. Per questo a due ulteriori giudici si chiede esattamente ciò che produce GroundOne, cioè
+policy di decisione. Per questo a due ulteriori giudici LLM si chiede esattamente ciò che produce GroundOne, cioè
 un'etichetta e tre probabilità per frase. Il primo scrive etichetta e probabilità in un oggetto JSON, esprimendo le
-probabilità come testo: è quanto uno sviluppatore otterrebbe con il solo prompt. Il secondo è il giudice sintetico, le
+probabilità come testo: è quanto uno sviluppatore otterrebbe con il solo prompt. Il secondo è il giudice LLM sintetico, le
 cui tre probabilità sono lette dai logit nella posizione della lettera che genera. Ottiene così lo stesso contenuto al
-costo del giudice sintetico, ed è l'avversario generativo più forte. Entrambi sono calibrati con la stessa
-trasformazione usata per GroundOne, una temperatura e un bias, stimati per ciascun giudice su 200 risposte del dev set:
+costo del giudice LLM sintetico, ed è l'avversario generativo più forte. Entrambi sono calibrati con la stessa
+trasformazione usata per GroundOne, una temperatura e un bias, stimati per ciascun giudice LLM su 200 risposte del dev set:
 in questo modo le loro probabilità ricevono lo stesso trattamento. Il prompt JSON è stato scelto su dodici risposte del
 dev set, badando unicamente alla validità del formato. I modelli copiavano alla lettera un esempio numerico presente nel
-prompt, che è stato perciò sostituito da segnaposto. Il parsing è permissivo, a vantaggio dei giudici: di un oggetto
+prompt, che è stato perciò sostituito da segnaposto. Il parsing è permissivo, a vantaggio dei giudici LLM: di un oggetto
 troncato si conservano le voci complete, e un'etichetta mancante si ricava dalle probabilità. Il decoding, infine, non è
-vincolato da una grammatica~\cite{willard2023outlines}, così che il protocollo resti quello degli altri giudici. Questa
+vincolato da una grammatica~\cite{willard2023outlines}, così che il protocollo resti quello degli altri giudici LLM. Questa
 scelta pesa soprattutto sugli errori di formato del modello più piccolo.
 
 \paragraph{Readout e generazione a confronto (B2).} I modelli GroundOne addestrati sono eseguiti con lo stesso prompt e
@@ -126,7 +126,7 @@ I sistemi più lenti sono valutati su sottocampioni dei test set, per lo più st
 numero di elementi fissato per ogni strato, invece che dall'insieme intero in modo puramente casuale.}. Rizzo-Flow è
 valutato su 300 risposte di T1, 600 coppie di T3 e 1{,}100 elementi di T2, di cui ne ha valutati 1{,}093, perché sette
 eccedevano il suo contesto. Il modello d1-3B è valutato su un sottocampione casuale di 4{,}000 elementi di T2, il 3B non
-addestrato su 600 risposte di T1 e i giudici generativi sulle 200 risposte del protocollo di latenza descritto più
+addestrato su 600 risposte di T1 e i giudici LLM sulle 200 risposte del protocollo di latenza descritto più
 avanti. Sono invece valutati sui test set completi GroundOne, MiniCheck-RoBERTa e, su T1 e T3, il 0.5B non addestrato, HHEM e d1-3B; il 3B non addestrato è valutato anche sull'intero T3.
 Ogni confronto con un sistema sottocampionato è condotto sugli elementi valutati da entrambi i sistemi.
 
@@ -176,10 +176,10 @@ esecuzioni del 0.5B documentano a parte (Sezione~\ref{sec:results-seeds}).
 \label{sec:setup-protocol}
 
 La latenza è misurata su 200 risposte di T1, 50 per ciascuna fascia di $K$, così che le risposte lunghe siano
-rappresentate quanto quelle brevi. GroundOne, il readout con una domanda per frase e tutti i giudici generativi girano
+rappresentate quanto quelle brevi. GroundOne, il readout con una domanda per frase e tutti i giudici LLM girano
 in-process su MLX, cioè all'interno dello stesso processo che li invoca, e verificano una risposta alla volta, come
 farebbe un verificatore integrato in un assistente locale. Le prime tre risposte servono da warm-up e sono escluse dalla
-misura. Per GroundOne e per il readout con una domanda per frase ogni risposta è cronometrata tre volte e si conserva la mediana. I giudici
+misura. Per GroundOne e per il readout con una domanda per frase ogni risposta è cronometrata tre volte e si conserva la mediana. I giudici LLM
 generativi, invece, sono cronometrati una sola volta, perché il greedy decoding è deterministico e ogni esecuzione dura
 molto di più. Il tempo riportato è il tempo wall-clock della chiamata al modello per una risposta, e da esso si ricava il
 tempo per decisione.

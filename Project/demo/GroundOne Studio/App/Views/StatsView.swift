@@ -40,10 +40,10 @@ struct StatsView: View {
                 } else {
                     HStack(alignment: .top, spacing: 16) {
                         Card(title: "Verification time vs sentences per answer",
-                             caption: "Each answer verified, once per system. GroundOne reads the answer once; the judge writes a verdict per sentence.") {
+                             caption: "Each answer verified, once per system. GroundOne reads the answer once; the LLM judge writes a verdict per sentence.") {
                             TimeVsSentences(checks: cs)
                         }
-                        Card(title: "Cost of the same verifications on a hosted judge",
+                        Card(title: "Cost of the same verifications on a hosted LLM judge",
                              caption: "Cumulative, priced as \(pricingModel) (list prices, \(p.accessed)); local electricity subtracted.") {
                             SavedOverTime(checks: cs, model: pricingModel)
                         }
@@ -52,8 +52,8 @@ struct StatsView: View {
                         Card(title: "GroundOne verdicts", caption: "Checked sentences in all verified answers.") {
                             VerdictBars(checks: cs)
                         }
-                        Card(title: "GroundOne vs judge, same sentences",
-                             caption: "Rows: GroundOne. Columns: judge. Agreement on the diagonal.") {
+                        Card(title: "GroundOne vs LLM judge, same sentences",
+                             caption: "Rows: GroundOne. Columns: LLM judge. Agreement on the diagonal.") {
                             AgreementMatrix(checks: cs)
                         }
                     }
@@ -196,15 +196,15 @@ struct KPIRow: View {
                 KPITile(title: "Sentences checked", value: "\(checks.map(\.k).reduce(0, +))",
                         detail: checks.isEmpty ? "" : String(format: "%.1f per answer", Double(checks.map(\.k).reduce(0, +)) / Double(checks.count)))
                 KPITile(title: "GroundOne, median", value: g1.map(\.s) ?? "–", detail: "one forward pass, 0 tokens generated", color: Palette.groundOne)
-                KPITile(title: "Judge, median", value: jm.map(\.s) ?? "–",
-                        detail: (jm != nil && g1OnJudged != nil) ? String(format: "%.1f× GroundOne on the same answers", jm! / g1OnJudged!) : "run “GroundOne + judge” to compare",
+                KPITile(title: "LLM judge, median", value: jm.map(\.s) ?? "–",
+                        detail: (jm != nil && g1OnJudged != nil) ? String(format: "%.1f× GroundOne on the same answers", jm! / g1OnJudged!) : "run “GroundOne + LLM judge” to compare",
                         color: Palette.judge)
             }
             HStack(spacing: 10) {
                 KPITile(title: "Saved vs \(model)", value: String(format: "$%.4f", saved),
                         detail: checks.isEmpty ? "" : String(format: "$%.2f per 1,000 answers", saved / Double(checks.count) * 1000))
-                KPITile(title: "Judge tokens not generated", value: "\(tokens)", detail: "what a generative judge would have written")
-                KPITile(title: "GroundOne–judge agreement", value: pairs.isEmpty ? "–" : String(format: "%.0f%%", Double(agree) / Double(pairs.count) * 100),
+                KPITile(title: "LLM judge tokens not generated", value: "\(tokens)", detail: "what an LLM judge would have written")
+                KPITile(title: "GroundOne–LLM judge agreement", value: pairs.isEmpty ? "–" : String(format: "%.0f%%", Double(agree) / Double(pairs.count) * 100),
                         detail: pairs.isEmpty ? "" : "\(agree) of \(pairs.count) sentences")
                 KPITile(title: "Rewrites", value: "\(fixes.map(\.rewritten.count).reduce(0, +))",
                         detail: "\(fixes.count) fix\(fixes.count == 1 ? "" : "es")\(peak.map { String(format: " · MLX peak %.1f GB", $0) } ?? "")")
@@ -229,7 +229,7 @@ struct TimeVsSentences: View {
 
     var points: [Point] {
         checks.map { Point(system: "GroundOne", k: $0.k, seconds: $0.groundOne) }
-            + checks.compactMap { c in c.judge.map { Point(system: "Judge", k: c.k, seconds: $0) } }
+            + checks.compactMap { c in c.judge.map { Point(system: "LLM judge", k: c.k, seconds: $0) } }
     }
 
     var body: some View {
@@ -239,7 +239,7 @@ struct TimeVsSentences: View {
                 .symbol(by: .value("System", p.system))
                 .symbolSize(70)
         }
-        .chartForegroundStyleScale(["GroundOne": Palette.groundOne, "Judge": Palette.judge])
+        .chartForegroundStyleScale(["GroundOne": Palette.groundOne, "LLM judge": Palette.judge])
         .chartXAxisLabel("checked sentences in the answer")
         .chartYAxisLabel("seconds")
         .chartLegend(position: .top, alignment: .leading)
@@ -323,14 +323,14 @@ struct AgreementMatrix: View {
         let cols: [String] = Verdict.allCases.map(\.display) + ["unparsed"]
         let maxCount = max(1, Verdict.allCases.flatMap { a in cols.map { b in pairs.filter { $0.0 == a && ($0.1?.display ?? "unparsed") == b }.count } }.max() ?? 1)
         if pairs.isEmpty {
-            Text("Verify with “GroundOne + judge” to compare the two on the same sentences.").foregroundStyle(.secondary)
+            Text("Verify with “GroundOne + LLM judge” to compare the two on the same sentences.").foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             Chart {
                 ForEach(Verdict.allCases, id: \.self) { a in
                     ForEach(cols, id: \.self) { b in
                         let n = pairs.filter { $0.0 == a && ($0.1?.display ?? "unparsed") == b }.count
-                        RectangleMark(x: .value("Judge", b), y: .value("GroundOne", a.display))
+                        RectangleMark(x: .value("LLM judge", b), y: .value("GroundOne", a.display))
                             .foregroundStyle(Palette.groundOne.opacity(n == 0 ? 0.04 : 0.15 + 0.75 * Double(n) / Double(maxCount)))
                             .annotation(position: .overlay) {
                                 Text("\(n)").font(.caption.monospacedDigit())
@@ -339,7 +339,7 @@ struct AgreementMatrix: View {
                     }
                 }
             }
-            .chartXAxisLabel("judge")
+            .chartXAxisLabel("LLM judge")
             .chartYAxisLabel("GroundOne")
         }
     }
@@ -356,10 +356,10 @@ struct OfflineBenchmark: View {
                let r = s["repairs"] as? [String: Any], let t = s["timing_seconds"] as? [String: Any] {
                 HStack(spacing: 10) {
                     KPITile(title: "Errors flagged by GroundOne", value: pct(d["groundone_flags_injected_sentence"]))
-                    KPITile(title: "Flagged by the judge", value: pct(d["judge_flags_injected_sentence"]))
+                    KPITile(title: "Flagged by the LLM judge", value: pct(d["judge_flags_injected_sentence"]))
                     KPITile(title: "Errors left after Fix", value: pct(e["after_round_2_final"]))
                     KPITile(title: "Values restored from the source", value: "\(r["removed_errors_restored"] ?? "–")")
-                    KPITile(title: "GroundOne vs judge, median", value: "\(num(t["groundone_pass_median"])) s vs \(num(t["judge_median"])) s")
+                    KPITile(title: "GroundOne vs LLM judge, median", value: "\(num(t["groundone_pass_median"])) s vs \(num(t["judge_median"])) s")
                 }
                 Text("Run with `g1studio casestudy`; the injected errors are the ground truth, independent of GroundOne. The answers were chosen among those GroundOne accepts, so detection is high by construction.")
                     .font(.caption).foregroundStyle(.secondary)

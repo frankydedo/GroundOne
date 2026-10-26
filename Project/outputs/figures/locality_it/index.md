@@ -30,7 +30,7 @@ Local inference hardware on the two axes that decide what can run: memory capaci
 
 ![](decode_cost_by_hardware.png)
 
-Lower bounds on the cost of generating text on each class of local hardware, computed as weight bytes divided by the vendor's memory bandwidth (batch 1, KV cache ignored). (a) Time per generated token for the two GroundOne base models in 8-bit; diamonds: decode time measured on the thesis machine, about 75–85 % of the bound. (b) Minimum time a 3B generative judge spends only on writing its verdicts for an answer of 14 or more sentences (median generated tokens of the latency protocol). A System One generates no token, so both costs are zero for it on every machine.
+Lower bounds on the cost of generating text on each class of local hardware, computed as weight bytes divided by the vendor's memory bandwidth (batch 1, KV cache ignored). (a) Time per generated token for the two GroundOne base models in 8-bit; diamonds: decode time measured on the thesis machine, about 75–85 % of the bound. (b) Minimum time a 3B LLM judge spends only on writing its verdicts for an answer of 14 or more sentences (median generated tokens of the latency protocol). A System One generates no token, so both costs are zero for it on every machine.
 
 *Source: figures/locality.py (arithmetic on vendor specs) + Phase 0 + results/judge-{terse,verbose}-3b/latency*
 

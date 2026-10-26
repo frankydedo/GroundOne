@@ -22,7 +22,7 @@ Energy per verified answer on 100 latency answers (powermetrics, CPU + GPU + Neu
 
 ![](equal_output_judges.png)
 
-Equal-output comparison on the 200 latency answers: generative judges of the same size asked for GroundOne's output (a label and three probabilities per sentence), with probabilities read from the logits of the generated letter or written in JSON; all systems calibrated on dev with the same map. Sentences with a valid verdict only.
+Equal-output comparison on the 200 latency answers: LLM judges of the same size asked for GroundOne's output (a label and three probabilities per sentence), with probabilities read from the logits of the generated letter or written in JSON; all systems calibrated on dev with the same map. Sentences with a valid verdict only.
 
 *Source: results/{g1-*,judge-tlogit-*,judge-json-*}/latency/calibration.json*
 
@@ -70,7 +70,7 @@ T1 (RAGTruth test) AUROC per task for each system.
 
 ![](latency_vs_K.png)
 
-Latency per answer as a function of K on the same T1 answers (in-process MLX, one answer at a time, M4 16 GB). Generative judges write a verdict per sentence; the System One reads all K verdicts without generating text.
+Latency per answer as a function of K on the same T1 answers (in-process MLX, one answer at a time, M4 16 GB). LLM judges write a verdict per sentence; the System One reads all K verdicts without generating text.
 
 *Source: results/*/latency/metrics.json*
 
@@ -81,3 +81,11 @@ Latency per answer as a function of K on the same T1 answers (in-process MLX, on
 On the latency subset: three-way balanced accuracy (format failures counted as wrong) and share of sentences whose verdict could not be parsed. System One outputs are always valid.
 
 *Source: results/*/latency/metrics.json*
+
+## latency_split.png
+
+![](latency_split.png)
+
+Time to verify one answer split into reading the document and the answer (the prefill, which every approach pays) and deciding: for GroundOne the marker tokens and the readout, for the LLM judges the decoding of the verdicts. Same 200 T1 answers as the latency runs, in-process MLX, medians per K band. The labels give, for K >= 14, how many times longer the LLM judge takes to decide than GroundOne.
+
+*Source: results/decompose-*/decompose/metrics.json*

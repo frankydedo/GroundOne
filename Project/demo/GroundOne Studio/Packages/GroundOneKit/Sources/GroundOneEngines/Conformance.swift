@@ -34,6 +34,9 @@ public enum Conformance {
         public var labelsIdentical: Double
         public var labelDisagreementsOutsideTau: Int
         public var meanSecondsPerAnswer: Double
+        /// Prefix cache (D32): largest probability difference between the cold pass and the cached passes (document
+        /// read and cached, then reused), on the same ids.
+        public var cachedMaxAbsProbDelta: Double = 0
         public var loadSeconds: Double
         public var passed: Bool
         public var firstMismatches: [String]
@@ -74,8 +77,15 @@ public enum Conformance {
             if pos == item.positions { r.positionsIdentical += 1 }
             // Logits are always computed on the Python ids, so a tokenizer difference does not hide a model difference.
             let t = Date()
-            let logits = try await model.scorePositions(ids: item.ids, positions: item.positions)
+            let logits = try await model.scorePositions(ids: item.ids, positions: item.positions).logits
             seconds += Date().timeIntervalSince(t)
+            let head = model.encoder.encode(MarkedPrompt.head(document: item.doc)).count
+            for _ in 0..<2 {   // first call reads and caches the document, the second reuses it
+                let c = try await model.scorePositions(ids: item.ids, positions: item.positions, prefixLength: head).logits
+                for (a, b) in zip(c, logits) {
+                    r.cachedMaxAbsProbDelta = max(r.cachedMaxAbsProbDelta, zip(cal.probs(a), cal.probs(b)).map { abs($0 - $1) }.max()!)
+                }
+            }
             for (k, (lg, ref)) in zip(logits, item.logits).enumerated() {
                 r.markers += 1
                 r.maxAbsLogitDelta = max(r.maxAbsLogitDelta, zip(lg, ref).map { abs($0 - $1) }.max()!)
@@ -93,7 +103,7 @@ public enum Conformance {
         r.labelsIdentical = Double(sameLabel) / Double(max(r.markers, 1))
         r.meanSecondsPerAnswer = seconds / Double(max(r.answers, 1))
         r.passed = r.idsIdentical == r.answers && r.positionsIdentical == r.answers && r.probsWithin001 == 1
-            && r.labelsIdentical >= 0.995 && r.labelDisagreementsOutsideTau == 0
+            && r.labelsIdentical >= 0.995 && r.labelDisagreementsOutsideTau == 0 && r.cachedMaxAbsProbDelta < 0.01
         let out = Workspace.demo.appendingPathComponent("results/conformance-\(run).json")
         try FileManager.default.createDirectory(at: out.deletingLastPathComponent(), withIntermediateDirectories: true)
         let enc = JSONEncoder()

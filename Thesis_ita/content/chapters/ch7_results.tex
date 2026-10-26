@@ -7,7 +7,7 @@
 
 Questo capitolo riporta i risultati sperimentali. Si parte da come GroundOne apprende il task e da quanto il suo
 addestramento sia stabile. Seguono i risultati sui tre test set congelati, il confronto con le baseline e il contributo
-che il readout del decision model dà di per sé. Il capitolo esamina poi la qualità delle probabilità, anche a confronto con giudici che producono lo stesso output, il tempo e l'energia necessari per verificare una risposta, le misure di località (esecuzione offline, quantizzazione e co-residenza) e, infine, gli errori che restano. Gli intervalli, riportati tra parentesi nella
+che il readout del decision model dà di per sé. Il capitolo esamina poi la qualità delle probabilità, anche a confronto con giudici LLM che producono lo stesso output, il tempo e l'energia necessari per verificare una risposta, le misure di località (esecuzione offline, quantizzazione e co-residenza) e, infine, gli errori che restano. Gli intervalli, riportati tra parentesi nella
 forma ``da $a$ a $b$'', sono intervalli di confidenza al 95\,\% ottenuti con un bootstrap a cluster, calcolati come
 descritto nella Sezione~\ref{sec:setup-statistics}. La Figura~\ref{fig:results-bootstrap} raccoglie in un unico grafico le differenze appaiate discusse nel capitolo.
 
@@ -332,19 +332,19 @@ dati.
 \section{Probabilità a parità di output}
 \label{sec:results-equal-output}
 
-I giudici a parità di output servono a stabilire se un giudice generativo della stessa dimensione, a cui si chiede lo
+I giudici LLM a parità di output servono a stabilire se un giudice LLM della stessa dimensione, a cui si chiede lo
 stesso contenuto di GroundOne, possa eguagliare la qualità delle sue probabilità. La risposta è negativa
 (Figura~\ref{fig:results-equal}). Il confronto usa le 200 risposte del sottoinsieme di latenza, con tutti i sistemi
 calibrati allo stesso modo sul dev set. Per il 0.5B e per il 3B rispettivamente, l'AUROC di $P(\text{supported})$ è 0.94
-e 0.97 per GroundOne, 0.48 e 0.68 per il giudice le cui probabilità sono lette dai logit, e 0.47 e 0.58 per il giudice
+e 0.97 per GroundOne, 0.48 e 0.68 per il giudice LLM le cui probabilità sono lette dai logit, e 0.47 e 0.58 per il giudice LLM
 che le scrive. L'AURC è 0.009 e 0.005 per GroundOne, contro valori da 0.048 a 0.063 per i
-giudici, cioè da circa sette a dodici volte maggiori di quelli di GroundOne della stessa dimensione. L'accuratezza delle decisioni segue lo stesso andamento: 0.835 e 0.900
-per GroundOne, al massimo 0.41 per qualsiasi giudice.
+giudici LLM, cioè da circa sette a dodici volte maggiori di quelli di GroundOne della stessa dimensione. L'accuratezza delle decisioni segue lo stesso andamento: 0.835 e 0.900
+per GroundOne, al massimo 0.41 per qualsiasi giudice LLM.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/results/equal_output_judges.png}
-\caption{Confronto a parità di output sulle 200 risposte del sottoinsieme di latenza. Ai giudici generativi della stessa
+\caption{Confronto a parità di output sulle 200 risposte del sottoinsieme di latenza. Ai giudici LLM della stessa
 dimensione si chiede l'output di GroundOne, con le probabilità lette dai logit della lettera generata oppure scritte in
 JSON; tutti i sistemi sono calibrati sul dev set con la stessa mappa. Sono considerate soltanto le frasi con un verdetto
 valido.}
@@ -357,13 +357,13 @@ sedici vettori distinti. Il 0.5B scrive invece pareggi non informativi, come pro
 i pareggi privi di etichetta vengono contati come errori, la sua balanced accuracy scende da 0.234 a 0.081. Il dato
 concorda con l'osservazione che la confidenza verbalizzata dei modelli piccoli è grossolana e poco
 informativa~\cite{xiong2024uncertainty,tian2023justask}. La seconda osservazione è che l'ECE, da solo, nasconderebbe
-tutto ciò. Dopo la calibrazione ogni sistema, giudici compresi, ottiene un ECE binario compreso tra 0.03 e 0.05, perché
+tutto ciò. Dopo la calibrazione ogni sistema, giudici LLM compresi, ottiene un ECE binario compreso tra 0.03 e 0.05, perché
 una mappa di calibrazione può allineare la confidenza media al tasso di base anche quando le probabilità non separano le
 classi. La capacità discriminativa va quindi misurata a parte, con l'AUROC e con l'AURC.
 
-Chiedere le probabilità, infine, ha un costo. Il giudice che le legge dai logit è veloce quanto il giudice sintetico,
-perché genera le stesse lettere. Il giudice che scrive l'oggetto JSON, invece, impiega con il 3B 17.0 secondi per una
-risposta con quattordici o più decisioni, quanto il giudice verboso, e non è più accurato del giudice sintetico.
+Chiedere le probabilità, infine, ha un costo. Il giudice LLM che le legge dai logit è veloce quanto il giudice LLM sintetico,
+perché genera le stesse lettere. Il giudice LLM che scrive l'oggetto JSON, invece, impiega con il 3B 17.0 secondi per una
+risposta con quattordici o più decisioni, quanto il giudice LLM verboso, e non è più accurato del giudice LLM sintetico.
 
 \section{Latenza in funzione di $K$}
 \label{sec:results-latency}
@@ -372,9 +372,9 @@ La Figura~\ref{fig:results-latency} riporta la misura centrale della tesi: il te
 risposta al crescere del numero di decisioni, misurato sulle stesse 200 risposte di T1. Tra i sistemi eseguiti
 in-process su MLX, GroundOne è il più veloce con entrambe le dimensioni e in ogni fascia di $K$, e il suo vantaggio
 aumenta con $K$. Quando la risposta contiene quattordici o più decisioni, il GroundOne 0.5B impiega 0.41 secondi, contro
-0.80 del giudice sintetico e 2.51 del giudice verboso della stessa dimensione. È quindi 1.95 volte più veloce del primo
+0.80 del giudice LLM sintetico e 2.51 del giudice LLM verboso della stessa dimensione. È quindi 1.95 volte più veloce del primo
 (da 1.82 a 2.12) e 6.16 volte più veloce del secondo (da 5.72 a 6.66). Nella stessa fascia il GroundOne 3B impiega 2.57
-secondi, contro 4.44 e 15.86 secondi dei due giudici 3B, ed è quindi 1.73 volte (da 1.65 a 1.82) e 6.18 volte (da 5.88 a 6.63) più veloce.
+secondi, contro 4.44 e 15.86 secondi dei due giudici LLM 3B, ed è quindi 1.73 volte (da 1.65 a 1.82) e 6.18 volte (da 5.88 a 6.63) più veloce.
 
 Leggere tutti i verdetti in un unico forward pass è anche più rapido che porre una domanda per frase in un batch: ai
 valori più alti di $K$ il guadagno è di un fattore 1.4--1.5. L'altra leva è la dimensione del modello: il GroundOne 0.5B
@@ -384,22 +384,129 @@ verifica una risposta circa sei volte più in fretta del 3B, con un tempo median
 \centering
 \includegraphics[width=\textwidth]{images/results/latency_vs_K.png}
 \caption{Tempo mediano per risposta in funzione di $K$ sulle stesse 200 risposte di T1 (MLX in-process, una risposta
-alla volta, M4 con 16\,GB). Sono confrontati GroundOne, il decision model con una domanda per frase e i giudici generativi
+alla volta, M4 con 16\,GB). Sono confrontati GroundOne, il decision model con una domanda per frase e i giudici LLM
 sintetico e verboso. Scala logaritmica.}
 \label{fig:results-latency}
 \end{figure}
 
-La velocità non è l'unica differenza (Figura~\ref{fig:results-judges}). I giudici generativi non addestrati sono anche
-molto meno accurati, e non sempre rispettano il formato di output. Il giudice verboso 0.5B produce un verdetto
-interpretabile soltanto per il 3\,\% delle frasi, perché per lo più ricopia la risposta, mentre il giudice sintetico
-0.5B fallisce sul 23\,\% delle frasi. I giudici 3B rispettano il formato molto meglio (0.1\,\% di errori di formato per il giudice sintetico e 7.6\,\% per quello verboso), ma si fermano a una balanced accuracy a tre classi di circa 0.40, contro 0.90 del GroundOne 3B sulle stesse
-risposte. Il giudice verboso 3B, infine, scrive in media 248 token per risposta, che vanno tutti generati prima di poter
+\subsection{Lettura del testo e decisione}
+\label{sec:results-latency-split}
+
+Il tempo di GroundOne cresce con $K$, ma non per il numero di decisioni in sé. Le risposte con più frasi sono anche più
+lunghe: nel sottoinsieme di latenza il prompt passa da circa 550 token nella fascia $K \leq 4$ a circa 1{,}140 token
+con $K \geq 14$, e il tempo del prefill cresce con la lunghezza del testo. Per separare le due componenti, il tempo di
+ogni risposta è stato scomposto in una parte di \emph{lettura}, cioè il prefill di istruzioni, documento e risposta,
+che ogni approccio deve pagare, e in una parte di \emph{decisione}. Per GroundOne la lettura è un forward pass sullo
+stesso testo senza marker, e la decisione è la differenza rispetto al passaggio servito, cioè il costo dei marker e del
+readout; le due misure sono alternate cinque volte con il 0.5B e tre con il 3B, e se ne tiene la mediana. Per i giudici
+LLM la lettura è il tempo fino al primo token generato, e la decisione è il decoding dei verdetti. La misura usa le
+stesse 200 risposte e lo stesso protocollo della sezione precedente, e ne riproduce i tempi complessivi entro il
+4\,\%. La Tabella~\ref{tab:results-latency-split} riporta le mediane, la Figura~\ref{fig:results-latency-split} il loro
+andamento con $K$.
+
+\begin{table}[htbp]
+\centering
+\caption{Tempo per risposta scomposto in lettura del testo (prefill) e decisione, sulle stesse 200 risposte di T1:
+mediane su tutte le risposte, in secondi. Per GroundOne la decisione è il costo dei marker e del readout, per i
+giudici LLM il decoding dei verdetti. La quota di lettura è la mediana delle quote per risposta.}
+\label{tab:results-latency-split}
+\small
+\begin{tabular}{llcccc}
+\toprule
+Modello & Sistema & Lettura & Decisione & Totale & \makecell{Quota di\\lettura} \\
+\midrule
+0.5B & GroundOne & 0.330 & 0.012 & 0.342 & 97\,\% \\
+ & Giudice LLM sintetico & 0.297 & 0.383 & 0.673 & 46\,\% \\
+ & Giudice LLM verboso & 0.305 & 1.509 & 1.826 & 18\,\% \\
+\midrule
+3B & GroundOne & 1.941 & 0.067 & 2.002 & 97\,\% \\
+ & Giudice LLM sintetico & 1.753 & 1.196 & 3.102 & 61\,\% \\
+ & Giudice LLM verboso & 1.756 & 8.313 & 10.277 & 18\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Per GroundOne la lettura vale il 97\,\% del tempo con entrambe le dimensioni. La decisione costa in mediana 12
+millisecondi per risposta con il 0.5B e 67 con il 3B, cioè 1.3 e 6.7 millisecondi per frase: sono i tre token del
+marker e la proiezione sul vocabolario nelle sole posizioni dei marker. Il giudice LLM sintetico spende invece 30 e 139
+millisecondi per frase, quello verboso 170 e 1{,}033. Per i giudici LLM, invece, la decisione è una
+parte consistente del tempo, e per il giudice verboso la parte principale. Al netto della lettura, GroundOne decide 33
+volte più in fretta del giudice LLM sintetico con il 0.5B (da 30 a 38) e 18 volte con il 3B (da 15 a 20); rispetto al
+giudice LLM verboso, 131 volte (da 112 a 148) e 125 volte (da 116 a 142). Con quattordici o più frasi i rapporti sono
+simili: 29 e 24 volte rispetto al giudice sintetico, 141 e 151 rispetto a quello verboso.
+
+Lo speed-up complessivo resta di circa due volte rispetto al giudice sintetico perché la lettura, che domina il tempo,
+è comune a tutti gli approcci: il vantaggio di GroundOne sta nella parte che il readout sostituisce, non nel prefill.
+La scomposizione mostra anche un costo che i tempi complessivi nascondono. La lettura di GroundOne è circa il 10\,\%
+più lenta di quella dei giudici LLM, benché il suo prompt sia leggermente più corto: è il calcolo aggiuntivo
+dell'adapter LoRA, che resta separato dai pesi base quantizzati. Fondere l'adapter nei pesi eliminerebbe questo costo,
+ma richiederebbe di quantizzare di nuovo il modello e di ricalibrarlo.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/latency_split.png}
+\caption{Tempo mediano per risposta scomposto in lettura del testo (prefill, in grigio, comune a ogni approccio) e
+decisione (in colore), per fascia di $K$, sulle stesse 200 risposte di T1. Le etichette indicano, per $K \geq 14$,
+quante volte il giudice LLM impiega più di GroundOne a decidere.}
+\label{fig:results-latency-split}
+\end{figure}
+
+\paragraph{Riuso del prefisso.} La stessa misura è stata ripetuta con una parte del prompt già nella KV cache quando
+parte il cronometro, la stessa per GroundOne e per i giudici LLM: le sole istruzioni, identiche per ogni richiesta
+(da 63 a 81 token), oppure istruzioni e documento (circa 640 token in mediana), come accade quando una risposta
+riscritta viene verificata di nuovo sulle stesse fonti (Sezione~\ref{sec:method-readout}).\footnote{Nella versione di
+MLX usata per le misure (0.29.3) il kernel di attenzione fuso con maschera causale implicita restituisce risultati errati
+per alcune forme quando molte query seguono chiavi già in cache, per esempio 501 token letti dopo 523 in cache. I
+percorsi con prefisso in cache usano quindi una maschera causale esplicita, che coincide con un riferimento in float32;
+dopo questa correzione i logit con e senza cache differiscono al più di 0.07 e le probabilità di 0.014, cioè entro
+l'arrotondamento in bfloat16. Le misure senza cache, e quindi tutti gli altri risultati, non passano da questo
+percorso. La versione di MLX per Swift usata dall'applicazione non presenta l'errore.} La
+Tabella~\ref{tab:results-prefix-cache} riporta i tempi complessivi.
+
+\begin{table}[htbp]
+\centering
+\caption{Tempo complessivo per risposta con una parte del prompt già nella KV cache, sulle stesse 200 risposte di T1:
+mediane in secondi. La stessa cache vale per GroundOne e per i giudici LLM. L'ultima colonna è il rapporto fra i tempi
+mediani senza cache e con il documento in cache.}
+\label{tab:results-prefix-cache}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llcccc}
+\toprule
+Modello & Sistema & \makecell{Nessun\\prefisso} & \makecell{Istruzioni\\in cache} & \makecell{Documento\\in cache} & \makecell{Risparmio con\\il documento} \\
+\midrule
+0.5B & GroundOne & 0.342 & 0.333 & 0.108 & 3.2$\times$ \\
+ & Giudice LLM sintetico & 0.673 & 0.652 & 0.520 & 1.3$\times$ \\
+ & Giudice LLM verboso & 1.826 & 1.844 & 1.683 & 1.1$\times$ \\
+\midrule
+3B & GroundOne & 2.002 & 1.913 & 0.583 & 3.4$\times$ \\
+ & Giudice LLM sintetico & 3.102 & 3.002 & 1.795 & 1.7$\times$ \\
+ & Giudice LLM verboso & 10.277 & 9.998 & 8.742 & 1.2$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Tenere in cache le sole istruzioni fa risparmiare dal 3 al 5\,\% del tempo, poco più del rumore di misura: sono il 7\,\%
+dei token. Il documento, invece, è circa due terzi del prompt, e la differenza è netta. Con il documento in cache
+GroundOne verifica una risposta 3.2 volte più in fretta con il 0.5B (0.11 secondi in mediana) e 3.4 volte con il 3B
+(0.58 secondi). I giudici LLM guadagnano molto meno, 1.3 e 1.7 volte quello sintetico e 1.1 e 1.2 quello verboso,
+perché la cache elimina soltanto la lettura e lascia intatto il decoding dei verdetti, che non si può riusare. Di
+conseguenza il vantaggio di GroundOne sul giudice LLM sintetico sale da circa 2 a 4.8 volte con il 0.5B (da 4.1 a 5.2)
+e da 1.6 a 3.1 volte con il 3B (da 2.8 a 3.3), e quello sul giudice verboso a circa 15 volte. Con il documento in cache,
+il tempo di GroundOne è fatto per il 90\,\% della lettura della sola risposta e per il resto della decisione: la verifica
+di una risposta riscritta costa quindi poco più della sua lunghezza.
+
+La velocità non è l'unica differenza (Figura~\ref{fig:results-judges}). I giudici LLM non addestrati sono anche
+molto meno accurati, e non sempre rispettano il formato di output. Il giudice LLM verboso 0.5B produce un verdetto
+interpretabile soltanto per il 3\,\% delle frasi, perché per lo più ricopia la risposta, mentre il giudice LLM sintetico
+0.5B fallisce sul 23\,\% delle frasi. I giudici LLM 3B rispettano il formato molto meglio (0.1\,\% di errori di formato per il giudice LLM sintetico e 7.6\,\% per quello verboso), ma si fermano a una balanced accuracy a tre classi di circa 0.40, contro 0.90 del GroundOne 3B sulle stesse
+risposte. Il giudice LLM verboso 3B, infine, scrive in media 248 token per risposta, che vanno tutti generati prima di poter
 usare il verdetto; GroundOne, invece, non ne genera nessuno.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/results/judges_quality_failures.png}
-\caption{Giudici generativi sul sottoinsieme di latenza: balanced accuracy a tre classi, con gli errori di formato
+\caption{Giudici LLM sul sottoinsieme di latenza: balanced accuracy a tre classi, con gli errori di formato
 contati come errori, e quota di frasi il cui verdetto non è stato possibile interpretare.}
 \label{fig:results-judges}
 \end{figure}
@@ -408,13 +515,13 @@ contati come errori, e quota di frasi il cui verdetto non è stato possibile int
 \label{sec:results-energy}
 
 La misura dell'energia aggiunge una precisazione che la sola latenza nasconde (Figura~\ref{fig:results-energy}).
-Fra i sistemi misurati, cioè GroundOne e i giudici generativi, GroundOne è quello che consuma meno energia con entrambe le dimensioni: 5.5 joule per risposta con il 0.5B e 33 con
-il 3B, contro 8.9 e 43 joule del giudice sintetico e 22.5 e 112 joule del giudice verboso. Il suo vantaggio
-sull'energia, tuttavia, è minore di quello sul tempo. Rispetto al giudice sintetico, GroundOne consuma 1.6 volte meno
-energia con il 0.5B e 1.3 volte meno con il 3B; rispetto al giudice verboso, 4.1 e 3.4 volte meno.
+Fra i sistemi misurati, cioè GroundOne e i giudici LLM, GroundOne è quello che consuma meno energia con entrambe le dimensioni: 5.5 joule per risposta con il 0.5B e 33 con
+il 3B, contro 8.9 e 43 joule del giudice LLM sintetico e 22.5 e 112 joule del giudice LLM verboso. Il suo vantaggio
+sull'energia, tuttavia, è minore di quello sul tempo. Rispetto al giudice LLM sintetico, GroundOne consuma 1.6 volte meno
+energia con il 0.5B e 1.3 volte meno con il 3B; rispetto al giudice LLM verboso, 4.1 e 3.4 volte meno.
 
 Il motivo è la potenza assorbita durante il calcolo. GroundOne trascorre il suo tempo in un unico, lungo prefill, che
-tiene la GPU pienamente occupata e assorbe circa 16\,W oltre la potenza a riposo. Il decoding autoregressivo dei giudici,
+tiene la GPU pienamente occupata e assorbe circa 16\,W oltre la potenza a riposo. Il decoding autoregressivo dei giudici LLM,
 invece, è limitato dalla banda di memoria e assorbe 11--14\,W, ma per un tempo molto più lungo. È il comportamento atteso
 dalle due fasi dell'inferenza dei transformer~\cite{patel2024splitwise}, e implica che uno speed-up non vada mai letto
 come un risparmio di energia equivalente~\cite{samsi2023words,luccioni2024power}.

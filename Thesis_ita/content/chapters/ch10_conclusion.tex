@@ -16,10 +16,10 @@ il guadagno scompare: uno specialista non è uno strumento generale di verifica 
 generalista della stessa dimensione addestrato a decidere su un'ampia miscela di task, conferma il compromesso: GroundOne lo supera nettamente su RAGTruth, con il 3B lo eguaglia su LLM-AggreFact e resta molto indietro su VitaminC.
 
 Il meccanismo del decision model ripaga su due fronti. Il primo è la velocità. Leggere tutti i verdetti in un solo forward pass
-rende la verifica delle risposte lunghe circa due volte più rapida di quella di un giudice generativo sintetico e sei
-volte più rapida di quella di un giudice verboso della stessa dimensione, con un output sempre valido. Il secondo è
+rende la verifica delle risposte lunghe circa due volte più rapida di quella di un giudice LLM sintetico e sei
+volte più rapida di quella di un giudice LLM verboso della stessa dimensione, con un output sempre valido. Il secondo è
 l'accuratezza: restringere la decisione alle risposte ammissibili è di per sé più accurato che lasciare allo stesso
-modello la generazione del verdetto. Inoltre, anche quando si chiede loro lo stesso output, i giudici generativi non
+modello la generazione del verdetto. Inoltre, anche quando si chiede loro lo stesso output, i giudici LLM non
 riescono a fornire probabilità di qualità paragonabile. Le loro probabilità separano a malapena le decisioni corrette da
 quelle errate, e quelle espresse a parole sono quasi sempre del tipo tutto-o-niente.
 
@@ -28,11 +28,11 @@ sugli stessi dati le converte poi in etichette coerenti sia con le probabilità 
 L'Expected Calibration Error, da solo, non distingue però le probabilità utili da quelle inutili: la capacità
 discriminativa va misurata a parte.
 
-L'intero sistema gira su un portatile da 16\,GB. Una risposta lunga viene verificata in 0.41 secondi con il 0.5B e in 2.57 con il 3B, con un'energia media per risposta di 5.5 e 33 joule. Rispetto a un giudice generativo il risparmio di energia è reale, ma
+L'intero sistema gira su un portatile da 16\,GB. Una risposta lunga viene verificata in 0.41 secondi con il 0.5B e in 2.57 con il 3B, con un'energia media per risposta di 5.5 e 33 joule; quando il documento è già nella KV cache, come nella verifica di una risposta riscritta, bastano 0.11 e 0.58 secondi. Rispetto a un giudice LLM il risparmio di energia è reale, ma
 inferiore al risparmio di tempo, perché un singolo prefill lungo assorbe più potenza del decoding.
 
 L'applicazione GroundOne Studio mostra che attorno al verificatore si può costruire un assistente RAG completo, in un
-unico processo e senza rete: recupero, generazione, verifica e confronto con un giudice generativo richiedono al massimo 6.2\,GB di memoria allocata da MLX. Nel caso di studio con errori iniettati GroundOne segnala l'errore in 97 delle 98 risposte in cui la frase riceve un verdetto, contro 84 del giudice, e la riscrittura mirata riduce dal 100\,\% al 9\,\% le risposte che contengono ancora l'errore, secondo il conteggio automatico: numeri e date vengono per lo più ripristinati dalla fonte, le frasi inventate cancellate. Il caso di studio mostra anche che il tipo di errore conta: una frase contraddetta viene corretta, una non menzionata spesso soltanto tolta. Le risposte che superano il ciclo sono accettate da GroundOne, non verificate in modo indipendente.
+unico processo e senza rete: recupero, generazione, verifica e confronto con un giudice LLM richiedono al massimo 6.2\,GB di memoria allocata da MLX. Nel caso di studio con errori iniettati GroundOne segnala l'errore in 97 delle 98 risposte in cui la frase riceve un verdetto, contro 84 del giudice LLM, e la riscrittura mirata riduce dal 100\,\% al 9\,\% le risposte che contengono ancora l'errore, secondo il conteggio automatico: numeri e date vengono per lo più ripristinati dalla fonte, le frasi inventate cancellate. Il caso di studio mostra anche che il tipo di errore conta: una frase contraddetta viene corretta, una non menzionata spesso soltanto tolta. Le risposte che superano il ciclo sono accettate da GroundOne, non verificate in modo indipendente.
 
 I limiti principali sono due. Il primo è la ristrettezza dei dati di addestramento, a causa della quale le
 contraddizioni al di fuori del data-to-text e le allucinazioni nascoste in frasi copiate vengono apprese solo in parte.
@@ -53,7 +53,11 @@ porting del readout su llama.cpp permetterebbe di misurare GroundOne su una sche
 su una macchina AMD Strix Halo, e su uno smartphone, le cui unità di elaborazione neurale accelerano proprio il prefill
 su cui si regge un decision model. Anche i confronti di latenza con le altre famiglie di verificatori richiedono condizioni eque: gli encoder
 vanno eseguiti in batch, mentre GroundOne e i decision model generalisti vanno interrogati attraverso la stessa interfaccia
-HTTP.
+HTTP. Due interventi ridurrebbero inoltre la lettura del testo, che è ormai quasi tutto il tempo di GroundOne. Il primo
+è fondere l'adapter LoRA nei pesi base, che toglierebbe il 10\,\% circa di calcolo aggiuntivo misurato nel prefill, al
+prezzo di una nuova quantizzazione e di una nuova calibrazione. Il secondo è la verifica in streaming: leggere il
+documento mentre il generatore scrive e accodare le frasi man mano che arrivano, sfruttando il riuso del prefisso, così
+che alla fine della generazione resti da leggere soltanto l'ultima frase.
 
 Un'altra direzione riguarda la lingua. Il primo passo è misurare quanto l'adapter addestrato in inglese funzioni già
 su documenti e risposte in un'altra lingua, per esempio traducendo una parte di T1 in italiano. Se il trasferimento non

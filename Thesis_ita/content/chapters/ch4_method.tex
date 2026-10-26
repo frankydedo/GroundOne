@@ -61,8 +61,8 @@ vettori che il modello calcola nelle posizioni dei marker.
 
 La lettura a marker determina anche il costo di una verifica. Si indichino con $S$ la lunghezza complessiva di documento
 e risposta, con $K$ il numero di decisioni e con $m$ la lunghezza in token di un marker. Il decision model richiede un solo
-prefill di $S + K m$ token. Un giudice generativo, invece, deve anche produrre i propri verdetti in fase di decoding. Se
-ogni verdetto richiede $n$ token e ogni token in decoding richiede un tempo $t_\mathrm{dec}$, il costo del giudice è
+prefill di $S + K m$ token. Un giudice LLM, invece, deve anche produrre i propri verdetti in fase di decoding. Se
+ogni verdetto richiede $n$ token e ogni token in decoding richiede un tempo $t_\mathrm{dec}$, il costo del giudice LLM è
 all'incirca $\mathrm{prefill}(S) + K\, n\, t_\mathrm{dec}$. La lunghezza $m$ di un marker è di soli tre token, mentre sull'hardware di
 riferimento il decoding è molto più lento del prefill a parità di token; il divario fra i due costi, quindi, si allarga
 al crescere di $K$. Sull'M4 usato in questa tesi, con il modello 0.5B il prefill costa circa 0.37\,ms per token e il
@@ -75,7 +75,7 @@ misure di energia del Capitolo~\ref{sec:results}. La Figura~\ref{fig:method-cost
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/method/cost_model.png}
-\caption{Costo stimato della verifica di una risposta di $S = 800$ token in funzione di $K$, calcolato con le sole costanti misurate sull'M4: il tempo per token del prefill e del decoding e il numero medio di token che ciascun giudice genera per verdetto sul sottoinsieme di latenza ($K$ medio 8.7). È un modello analitico, non una misura: le latenze misurate sono nella Sezione~\ref{sec:results-latency}. Il costo del decision model cresce di soli tre token di prefill per decisione, quello dei giudici di alcuni token di decoding per decisione.}
+\caption{Costo stimato della verifica di una risposta di $S = 800$ token in funzione di $K$, calcolato con le sole costanti misurate sull'M4: il tempo per token del prefill e del decoding e il numero medio di token che ciascun giudice LLM genera per verdetto sul sottoinsieme di latenza ($K$ medio 8.7). È un modello analitico, non una misura: le latenze misurate sono nella Sezione~\ref{sec:results-latency}. A parità di testo, il costo del decision model cresce di soli tre token di prefill per decisione, quello dei giudici LLM di alcuni token di decoding per decisione. Nelle risposte reali, però, le frasi in più allungano anche il testo, il cui prefill è comune a entrambi: la Sezione~\ref{sec:results-latency} separa le due componenti.}
 \label{fig:method-cost}
 \end{figure}
 
@@ -92,6 +92,18 @@ come una richiesta di verdetto. Per questo è il formato usato dalla baseline no
 \caption{Le due soluzioni per ottenere $K$ verdetti da una sola lettura. (b) Il readout a marker, adottato come predefinito, inserisce un marker dopo ogni frase e legge tutti i verdetti nello stesso passaggio. (a) La soluzione di riserva legge una volta il prefisso condiviso e vi accoda una breve domanda per ogni frase, valutate in batch; richiede però $K$ copie della KV cache del prefisso, ed è il formato naturale per un modello non addestrato.}
 \label{fig:method-designs}
 \end{figure}
+
+L'ordine del prompt ha una seconda conseguenza sul costo. Istruzioni, documento e risposta compaiono in quest'ordine, e
+l'attenzione è causale: le chiavi e i valori calcolati per un prefisso dipendono soltanto da quel prefisso. La KV cache
+delle istruzioni, identiche per ogni richiesta, e quella del documento possono quindi essere conservate e riusate in
+modo esatto da qualunque risposta successiva sullo stesso documento, che a quel punto costa solo la lettura della
+risposta e dei suoi marker. È il caso di una risposta riscritta e verificata di nuovo, di più risposte alternative
+generate dalle stesse fonti o di più domande sulla stessa libreria. Il riuso del prefisso non è un vantaggio esclusivo
+del decision model: anche il prompt di un giudice LLM comincia con istruzioni e documento, e può riusarli allo stesso
+modo. Il formato a marker, però, lo rende particolarmente efficace, perché dopo il prefisso resta da leggere soltanto
+la risposta, e ogni frase in più costa i tre token del suo marker. GroundOne conserva le istruzioni e gli ultimi
+documenti letti, sia nel servizio sia nell'applicazione del Capitolo~\ref{ch:studio}; la Sezione~\ref{sec:results-latency-split}
+ne misura l'effetto per GroundOne e per i giudici LLM.
 
 \paragraph{Un classificatore, non un generatore più veloce.} Il readout restringe la decisione a tre lettere, e la
 restrizione non è un dettaglio. Dopo il marker, il modello sottoposto a fine-tuning non scriverebbe la lettera che viene

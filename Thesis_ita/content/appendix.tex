@@ -51,12 +51,12 @@ GroundOne 3B (restituita, $P_\mathrm{sup}$) & S 0.96 & S 0.99 & C 0.58 & N 0.21 
 B2 0.5B (token generato) & S & S & C & N & S & \textbf{--} \\
 B2 3B (token generato) & S & S & C & \textbf{--} & S & S \\
 0.5B non addestrato (readout) & \textbf{C} & \textbf{C} & C & \textbf{C} & \textbf{C} & \textbf{C} \\
-Giudice sintetico 0.5B & S & S & \textbf{S} & \textbf{S} & S & S \\
-Giudice sintetico 3B & \textbf{C} & S & \textbf{S} & \textbf{S} & \textbf{N} & S \\
-Giudice verboso 0.5B & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} \\
-Giudice verboso 3B & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} \\
-Giudice a parità di output 3B, logit & \textbf{C} & S & \textbf{S} & \textbf{S} & \textbf{N} & S \\
-Giudice a parità di output 3B, probabilità espresse a parole & S & \textbf{C} & \textbf{N} & \textbf{S} & \textbf{C} & \textbf{N} \\
+Giudice LLM sintetico 0.5B & S & S & \textbf{S} & \textbf{S} & S & S \\
+Giudice LLM sintetico 3B & \textbf{C} & S & \textbf{S} & \textbf{S} & \textbf{N} & S \\
+Giudice LLM verboso 0.5B & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} \\
+Giudice LLM verboso 3B & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} \\
+Giudice LLM a parità di output 3B, logit & \textbf{C} & S & \textbf{S} & \textbf{S} & \textbf{N} & S \\
+Giudice LLM a parità di output 3B, probabilità espresse a parole & S & \textbf{C} & \textbf{N} & \textbf{S} & \textbf{C} & \textbf{N} \\
 MiniCheck-RoBERTa ($P_\mathrm{sup}$) & 0.78 & 0.90 & 0.09 & 0.03 & \textbf{0.43} & \textbf{0.03} \\
 HHEM-2.1-open ($P_\mathrm{sup}$) & 0.75 & 0.95 & 0.01 & 0.09 & 0.73 & \textbf{0.24} \\
 Rizzo-Flow 4B & S & S & \textbf{S} & \textbf{S} & S & S \\
@@ -73,7 +73,7 @@ due recensioni: la sua $P(\text{supported})$ di 0.85 è inferiore alla soglia el
 RAGTruth, un caso in cui un utente che preferisce meno segnalazioni abbasserebbe la soglia. A parità di pesi, il token
 generato (B2) dà la lettera corretta su cinque frasi su sei, ma sulla restante produce uno spazio (0.5B) o la parola
 ``We'' (3B) al posto di un verdetto. Gli encoder binari separano bene i due errori, ma respingono anche le frasi~5 o~6,
-che riassumono le recensioni con parole diverse; Rizzo-Flow accetta tutte le frasi. I giudici generativi falliscono nei
+che riassumono le recensioni con parole diverse; Rizzo-Flow accetta tutte le frasi. I giudici LLM falliscono nei
 modi quantificati nel Capitolo~\ref{sec:results}, come mostrano gli output grezzi che seguono.
 
 \section{Output grezzi}
@@ -98,7 +98,7 @@ generato, 0.47 secondi (2.6 secondi per il 3B); nel JSON le frasi sono numerate 
 \end{verbatim}
 }
 
-\paragraph{Giudice sintetico 3B.} Una riga per frase, come richiesto, ma con la lettera sbagliata in quattro frasi:
+\paragraph{Giudice LLM sintetico 3B.} Una riga per frase, come richiesto, ma con la lettera sbagliata in quattro frasi:
 {\footnotesize
 \begin{verbatim}
 1: B
@@ -110,7 +110,7 @@ generato, 0.47 secondi (2.6 secondi per il 3B); nel JSON le frasi sono numerate 
 \end{verbatim}
 }
 
-\paragraph{Giudice verboso 3B (primi tre verdetti).} Il ragionamento riformula la frase e cita il documento a
+\paragraph{Giudice LLM verboso 3B (primi tre verdetti).} Il ragionamento riformula la frase e cita il documento a
 sostegno anche della frase contraddetta e di quella non supportata, e tutti i verdetti sono ``A''. I verdetti compaiono
 su una riga a sé anziché sulla stessa riga richiesta dall'istruzione, per cui il protocollo li conta come errori di
 formato:
@@ -129,9 +129,9 @@ Verdict: A
 \end{verbatim}
 }
 
-\paragraph{Giudice verboso 0.5B.} Ricopia le sei frasi, numerate, senza alcun verdetto.
+\paragraph{Giudice LLM verboso 0.5B.} Ricopia le sei frasi, numerate, senza alcun verdetto.
 
-\paragraph{Giudice a parità di output 3B, probabilità espresse a parole.} Le probabilità sono tutte one-hot e, per le
+\paragraph{Giudice LLM a parità di output 3B, probabilità espresse a parole.} Le probabilità sono tutte one-hot e, per le
 frasi~3 e~6, l'etichetta dichiarata (C) contraddice le probabilità dichiarate, che assegnano tutta la massa ad A:
 {\footnotesize
 \begin{verbatim}
@@ -144,7 +144,7 @@ frasi~3 e~6, l'etichetta dichiarata (C) contraddice le probabilità dichiarate, 
 \end{verbatim}
 }
 
-\paragraph{Giudice a parità di output 0.5B, probabilità espresse a parole.} Lo stesso vettore per ogni frase:
+\paragraph{Giudice LLM a parità di output 0.5B, probabilità espresse a parole.} Lo stesso vettore per ogni frase:
 {\footnotesize
 \begin{verbatim}
 {"1": {"label": "A", "p": [0.3, 0.3, 0.3]},

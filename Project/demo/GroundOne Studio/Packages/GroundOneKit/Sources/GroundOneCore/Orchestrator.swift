@@ -163,7 +163,7 @@ public struct Orchestrator: Sendable {
         emit(.draft(draft))
 
         if req.compareWithJudge, let judge {
-            emit(.stage("Generative judge (comparison)"))
+            emit(.stage("LLM judge (comparison)"))
             let segs = verdicts.sentences
             let j = try await judge.judge(document: document, sentences: segs.map(\.text),
                                           check: segs.filter(\.scored).map(\.index))

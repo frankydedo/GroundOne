@@ -45,7 +45,7 @@ Figure~\ref{fig:setup-baselines} summarises what each baseline changes with resp
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/diagrams/setup_baseline_map_tikz.pdf}
-\caption{Map of the baselines. Each one differs from GroundOne in one specific respect and therefore answers a different question: how much training matters (B1), how much the restricted readout matters compared with the generated token (B2), how much the way the verdict is produced matters (judges B0a, B0b, B0d), how much specialisation matters compared with a general-purpose decision model (B3, B3b), how much the architecture matters (encoders B4) and how far one gets without reading the document (elementary cues).}
+\caption{Map of the baselines. Each one differs from GroundOne in one specific respect and therefore answers a different question: how much training matters (B1), how much the restricted readout matters compared with the generated token (B2), how much the way the verdict is produced matters (LLM judges B0a, B0b, B0d), how much specialisation matters compared with a general-purpose decision model (B3, B3b), how much the architecture matters (encoders B4) and how far one gets without reading the document (elementary cues).}
 \label{fig:setup-baselines}
 \end{figure}
 
@@ -61,27 +61,27 @@ each sentence, and the logits of the answer letters are read. An untrained model
 sentence (Section~\ref{sec:method-readout}). In this way it measures what the decision-model mechanism offers before any
 specialisation.
 
-\paragraph{Generative judges (B0a, B0b).} The untrained models are also used in the way that is most common in
-practice, that is, as judges. They receive the document, the numbered answer and the list of sentences to check, and
+\paragraph{LLM judges (B0a, B0b).} The untrained models are also used in the way that is most common in
+practice, that is, as LLM judges. They receive the document, the numbered answer and the list of sentences to check, and
 they write a verdict for each sentence with greedy decoding\footnote{In \emph{greedy decoding} the model chooses the
 most probable token at every step, without sampling: for the same input, the output is therefore always the same.}. The
-\emph{terse} judge produces one line ``\texttt{<number>: <letter>}'' per sentence. The \emph{verbose} judge, instead,
+\emph{terse} LLM judge produces one line ``\texttt{<number>: <letter>}'' per sentence. The \emph{verbose} LLM judge, instead,
 writes a short justification for each sentence followed by the verdict. When a verdict cannot be parsed, a format
 failure occurs: in the computation of accuracy it is counted as an error, and it is also reported separately.
 
-\paragraph{Equal-output judges (B0d).} The terse and verbose judges return less than GroundOne: one letter per sentence
+\paragraph{Equal-output judges (B0d).} The terse and verbose LLM judges return less than GroundOne: one letter per sentence
 and no probability. They therefore allow neither calibration, nor an adjustable threshold, nor the choice of a decision
-policy. For this reason two further judges are asked for exactly what GroundOne produces, namely a label and three
+policy. For this reason two further LLM judges are asked for exactly what GroundOne produces, namely a label and three
 probabilities per sentence. The first writes the label and the probabilities in a JSON object, expressing the
-probabilities as text: this is what a developer would obtain from the prompt alone. The second is the terse judge, whose
+probabilities as text: this is what a developer would obtain from the prompt alone. The second is the terse LLM judge, whose
 three probabilities are read from the logits at the position of the letter it generates. It thus obtains the same
-content at the cost of the terse judge, and it is the strongest generative opponent. Both are calibrated with the same
-transformation used for GroundOne, a temperature and a bias, fitted for each judge on 200 answers of the dev set, so
+content at the cost of the terse LLM judge, and it is the strongest generative opponent. Both are calibrated with the same
+transformation used for GroundOne, a temperature and a bias, fitted for each LLM judge on 200 answers of the dev set, so
 that their probabilities receive the same treatment. The JSON prompt was chosen on twelve answers of the dev set, with
 attention to format validity alone. The models copied verbatim a numeric example contained in the prompt, which was
-therefore replaced by placeholders. Parsing is lenient, in the judges' favour: the complete entries of a truncated
+therefore replaced by placeholders. Parsing is lenient, in the LLM judges' favour: the complete entries of a truncated
 object are kept, and a missing label is derived from the probabilities. Decoding, finally, is not constrained by a
-grammar~\cite{willard2023outlines}, so that the protocol remains that of the other judges. This choice weighs mainly on
+grammar~\cite{willard2023outlines}, so that the protocol remains that of the other LLM judges. This choice weighs mainly on
 the format failures of the smallest model.
 
 \paragraph{Readout versus generation (B2).} The fine-tuned GroundOne models are run with the same prompt and the same
@@ -126,7 +126,7 @@ The slower systems are evaluated on subsamples of the test sets, mostly stratifi
 elements for each stratum, rather than from the whole set in a purely random way.}. Rizzo-Flow is evaluated on 300
 answers of T1, 600 pairs of T3 and 1{,}100 items of T2, of which it scored 1{,}093, because seven exceeded its context.
 The d1-3B model is evaluated on a random subsample of 4{,}000 items of T2, the untrained 3B on 600 answers of T1 and the
-generative judges on the 200 answers of the latency protocol described below. GroundOne and MiniCheck-RoBERTa are
+LLM judges on the 200 answers of the latency protocol described below. GroundOne and MiniCheck-RoBERTa are
 instead evaluated on the complete test sets, as are, on T1 and T3, the untrained 0.5B, HHEM and d1-3B; the untrained 3B
 is also evaluated on the whole of T3. Every comparison with a subsampled system is made on the items scored by both
 systems.
@@ -179,11 +179,11 @@ document separately (Section~\ref{sec:results-seeds}).
 \label{sec:setup-protocol}
 
 Latency is measured on 200 answers of T1, 50 from each band of $K$, so that long answers are as well represented as
-short ones. GroundOne, the readout with one question per sentence and all the generative judges run in process on MLX,
+short ones. GroundOne, the readout with one question per sentence and all the LLM judges run in process on MLX,
 that is, inside the same process that invokes them, and they verify one answer at a time, as a verifier integrated in a
 local assistant would. The first three answers serve as warm-up and are excluded from the measurement. For GroundOne and
 for the readout with one question per sentence, each answer is timed three times and the median is kept. The generative
-judges, instead, are timed only once, because greedy decoding is deterministic and each run lasts much longer. The
+LLM judges, instead, are timed only once, because greedy decoding is deterministic and each run lasts much longer. The
 reported time is the wall-clock time of the model call for one answer, from which the time per decision is derived.
 
 Times were also recorded for the encoders, for Rizzo-Flow and for d1-3B, but under conditions that do not allow a fair

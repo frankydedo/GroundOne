@@ -63,14 +63,13 @@ every answer, automatically, and on the same machine that generated it.
 \label{sec:intro-cost}
 
 A verifier that runs next to the generator competes with it for the same memory, time and battery. The most common
-solution, asking a language model to judge the answer, is expensive precisely where a laptop is weakest. A judge writes
-its verdicts token by token, and on local hardware each generated token costs far more than each token it reads. Reading
+solution, asking a language model to judge the answer, is expensive precisely where a laptop is weakest. An LLM judge, that is, a large language model asked to act as a judge, writes its verdicts token by token, and on local hardware each generated token costs far more than each token it reads. Reading
 the prompt is limited by computation, which a laptop GPU handles well, whereas writing the output is limited by memory
 bandwidth, because every new token must read all the weights~\cite{pope2023scaling}. On the laptop used in this thesis,
 reading one token takes about 0.37 milliseconds for a model of 0.5B parameters, while writing one takes about 5.9, sixteen
 times more, and the asymmetry holds on every class of local hardware, from phones to dedicated AI machines
-(Chapter~\ref{sec:local}). A judge that explains its reasoning before each verdict multiplies this cost by the length of its
-explanation, and the cost grows again with the number of sentences in the answer. Small judges also break the required
+(Chapter~\ref{sec:local}). An LLM judge that explains its reasoning before each verdict multiplies this cost by the length of its
+explanation, and the cost grows again with the number of sentences in the answer. Small LLM judges also break the required
 output format, and the confidence they express is rarely usable as a probability.
 
 Encoder-based verifiers\footnote{An \emph{encoder} is a transformer in which every token attends to all the others,
@@ -128,7 +127,7 @@ answers~\cite{decisionindex2026}. All the open implementations, moreover, are ge
 typed question.
 
 Three problems therefore remain open. The first is whether, for a single task, a small specialised decision model is worth
-using. The second is how such a model compares with the alternatives: a general-purpose decision model, a generative judge
+using. The second is how such a model compares with the alternatives: a general-purpose decision model, an LLM judge
 and a dedicated verifier. The third is where any advantage comes from: from the specialisation, from the way the decision
 is read or, more simply, from the size of the model.
 
@@ -154,13 +153,13 @@ receives only an instruction that describes the task.} and as the encoders speci
 \emph{readout} is the reading of the decision directly from the logits of the model: instead of letting it write an
 answer, the scores it assigns to the admissible answers alone (here the letters A, B and C) are compared and the most
 probable one is chosen.} of the decision from the logits, contribute at the same model size? The comparison is twofold:
-against generative judges that write their verdicts and against the same model left free to generate its answer. And how
+against LLM judges that write their verdicts and against the same model left free to generate its answer. And how
 does the difference change as the number of sentences to verify grows?
 \item[RQ3, calibration.] Are the probabilities returned by the model reliable as a measure of confidence? In
 particular, can they be used to set a decision threshold and to defer uncertain cases to the user? And are they better
-than those that can be obtained from a generative judge?
+than those that can be obtained from an LLM judge?
 \item[RQ4, cost on the device.] Does the verifier fit within the memory, time and energy limits of a 16\,GB laptop? And
-how much does it cost compared with a generative judge running on the same machine?
+how much does it cost compared with an LLM judge running on the same machine?
 \item[RQ5, beyond a binary score.] What does a user of the verifier gain from a three-way decision for every sentence,
 compared with the plain score of a binary verifier?
 \end{description}
@@ -194,7 +193,7 @@ same document, present in both sets. The model can then recognise examples it ha
 and the test metrics become optimistic.}.
 \item \textbf{A controlled decomposition of the gains.} The comparison isolates the contribution of specialisation, of the
 restricted readout and of model size. GroundOne is compared with cues that never verify a sentence, untrained models,
-generative judges with and without probabilities, two general-purpose decision models (Rizzo-Flow, with 4B
+LLM judges with and without probabilities, two general-purpose decision models (Rizzo-Flow, with 4B
 parameters, and Liquid AI's d1-3B, of the same size as the 3B) and specialised encoders, all on the same hardware and with intervals obtained by cluster bootstrap.
 \item \textbf{A study of calibration, time and energy}: how the probabilities can be calibrated and turned into consistent
 labels, how much they help in deferring uncertain decisions, and how the time and energy of a verification grow with the
@@ -203,7 +202,7 @@ measurements to bound, for each class of consumer hardware, what a verifier that
 does not.
 \item \textbf{GroundOne Studio}, a macOS application in which retrieval, generation and verification take place in the
 same process, on the same laptop and without external services. The generator's answer appears first; the user can then
-verify it with GroundOne, alone or together with a generative judge running locally, see the evidence supporting each
+verify it with GroundOne, alone or together with an LLM judge running locally, see the evidence supporting each
 sentence and have the flagged sentences rewritten. A case study with injected errors measures the loop of verification
 and rewriting.
 \end{enumerate}
@@ -220,11 +219,11 @@ for the same models before training (for the 3B on a 600-answer subsample). It r
 specialised encoders and, in three-way balanced accuracy, it clearly outperforms both general-purpose decision models: Rizzo-Flow, eight times larger than the 0.5B, and d1-3B, of the same size as the 3B. On LLM-AggreFact, a benchmark drawn from different sources, the 3B is on par with the best small encoder.
 
 The decision-model mechanism pays off in speed and in accuracy. When an answer contains fourteen or more sentences, GroundOne
-verifies it 1.7 to 2 times faster than a terse judge and about six times faster than a verbose judge of the same size, with an
-output that is always valid and with less energy. How the decision is read also matters: with the same trained model,
+verifies it 1.7 to 2 times faster than a terse LLM judge and about six times faster than a verbose LLM judge of the same size, with an
+output that is always valid and with less energy. The overall ratio is bounded by reading the text, which every approach pays: net of it, GroundOne decides 18 to 33 times faster than the terse LLM judge. When the document has already been read, as in the verification of a rewritten answer, reusing the KV cache brings the overall advantage to 3 to 5 times. How the decision is read also matters: with the same trained model,
 choosing the most probable of the three admissible letters is more accurate than letting the model generate its verdict
 freely, with a gain in balanced accuracy of 0.25 for the 0.5B and 0.07 for the 3B. After calibration, the probabilities of GroundOne are
-close to the observed frequencies, whereas the probabilities of generative judges asked for the same output barely
+close to the observed frequencies, whereas the probabilities of LLM judges asked for the same output barely
 separate correct from incorrect decisions.
 
 Some aspects remain to be improved, and they point to natural directions for future work. Performance drops on domains
@@ -238,7 +237,7 @@ is not robust.}.
 Finally, the GroundOne Studio application shows that a complete RAG assistant can be built around the verifier, in a
 single process and without network access, with a peak of 6.2\,GB of memory allocated by MLX. In a case study with
 injected errors, GroundOne flags the error in 97 of the 98 answers in which the sentence receives a verdict, against 84
-for the judge, and targeted rewriting reduces the answers that still contain it from 100\,\% to 9\,\%.
+for the LLM judge, and targeted rewriting reduces the answers that still contain it from 100\,\% to 9\,\%.
 
 \section{Thesis structure}
 \label{sec:intro-structure}

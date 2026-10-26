@@ -23,8 +23,8 @@ conflitto sia una parte non verificabile, viene etichettata come contraddetta, p
 grave. Conta soltanto il documento: un'affermazione vera nel mondo reale ma assente dal documento resta non menzionata.
 
 Il numero di decisioni richieste da una risposta coincide con il numero delle sue frasi valutate, indicato con $K$.
-Questa grandezza è centrale nella tesi. Un decision model legge documento e risposta una sola volta, quindi ogni decisione aggiuntiva gli costa poco, soltanto i token della frase; un giudice generativo, invece, deve produrre testo per ogni frase. Per questo il
-confronto con i giudici generativi è condotto in funzione di $K$, e i dati devono comprendere risposte lunghe oltre che
+Questa grandezza è centrale nella tesi. Un decision model legge documento e risposta una sola volta, quindi ogni decisione aggiuntiva gli costa poco, soltanto i token della frase; un giudice LLM, invece, deve produrre testo per ogni frase. Per questo il
+confronto con i giudici LLM è condotto in funzione di $K$, e i dati devono comprendere risposte lunghe oltre che
 brevi.
 
 Per ogni frase il modello restituisce tre probabilità, e ogni altra grandezza è derivata da queste, invece di essere

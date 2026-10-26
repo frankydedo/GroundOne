@@ -50,6 +50,8 @@ groundone baselines frozen --system encoder --model minicheck-roberta|hhem --sui
 groundone baselines frozen --system rizzo --url http://127.0.0.1:8017 --suite t1 --limit 300 --name <name>   # B3
 groundone baselines judges --system terse|verbose|json|terse-logits|groundone|readout-a --size 0.5b [--adapter <run>/best] [--split dev] [--energy] --name <name>   # B0, B0d + latency / energy
 groundone baselines judges-calibrate --name <name> [--calibration FILE]   # calibrate a judge on its dev run (D25)
+groundone baselines decompose --system groundone|terse|verbose --size 0.5b [--adapter <run>/best] [--cache none|fixed|doc] --name <name>   # latency split: reading (prefill) vs deciding; prefix caching (D32)
+groundone baselines decompose-report --name <name>                         # medians, overall and decision-only speed-ups
 groundone test --suite t1 --adapter <run>/best --decision generate --name <name>   # control B2: verdict = generated token
 groundone bootstrap                              # CIs and paired tests from saved predictions
 groundone matrix                                 # results matrix -> Project/docs/tracker.md
@@ -75,6 +77,7 @@ curl -s localhost:8019/v1/verify -H 'Content-Type: application/json' -d '{
 With a design (b) adapter (served since D27):
 - **Segmentation.** The answer is segmented with the rule used for training (`data/segment.py`), or you can pass `sentences: [...]`. Sentences without checkable content ("Sure!") come back with `scored: false` and no verdict.
 - **One pass.** All verdicts are read in one forward pass at the markers.
+- **Prefix cache (D32).** The fixed instructions are read once per process, and the last four documents stay in the KV cache, so another answer on a cached document (a rewritten answer, a second question on the same sources) costs only the answer's tokens. It is exact under causal attention (`tests/test_model.py`). The response field `prefix_cache` says what was reused (`document`, `instructions`); `GROUNDONE_PREFIX_CACHE=0` turns it off.
 - **Per scored sentence:** `labels.three` (supported / contradicted / not_mentioned), the three probabilities in `answers.three`, `p_supported`, and the flags `flag_strict` (= `flagged`, not supported) and `flag_lenient` (contradicted). `questions` (`sup`, `strict`, `lenient`) adds derived views of the same three probabilities.
 - **One coherent rule.** Labels, flags and the probabilities shown come from a single rule. The probabilities are calibrated (`<run>/best/calibration.json`), and the label is "supported" iff `p_supported >= threshold`, otherwise the more probable of the other two. The threshold is the one fitted on dev by `calibrate-b`, or the request's `threshold`. With no threshold at all, the label is the argmax of the raw class-balanced logits, the decision used in the evaluation.
 - **Response metadata:** `design`, `decision_rule`, `threshold`, `n_decisions`, `usage` (input tokens, 0 output tokens) and `timing`.
@@ -95,7 +98,7 @@ configs/          training hyper-parameters (train_0.5b.yaml, train_3b.yaml)
 src/groundone/
   prompts.py      single source of truth for the prompt formats (design b markers, design a questions; training = inference)
   readout.py      logits at the marker positions only (design b)
-  backend.py      MLX model + adapter; shared-prefix batched scoring and length-batched scoring
+  backend.py      MLX model + adapter; shared-prefix batched scoring, length-batched scoring, design-(b) pass with a cached prefix
   engine.py       thread-safe service (one MLX thread, request lock); verify / systemone / predict
   schema.py       strict native API contract          compat.py   TypeSafe/Jev-compatible contract
   api.py          FastAPI app + playground.html       cli.py      command-line interface
@@ -103,7 +106,7 @@ src/groundone/
   data/           dataset build, segmentation (segment.py, shared with inference), leakage check, shortcut baseline
   training/       LoRA training loop with the restricted answer-letter loss
   eval/           frozen tests (tests.py, incl. B2), calibrate_b.py, bootstrap.py, metrics
-  baselines/      encoders (B4), Rizzo-Flow (B3), generative judges incl. equal-output (B0, B0d), latency / energy
+  baselines/      encoders (B4), Rizzo-Flow (B3), LLM judges incl. equal-output (B0, B0d), latency / energy, latency split (decompose)
   figures/        thesis figures from every phase (fixed colour per system)
   tools/          memory guard, results matrix, powermetrics meter
 tests/            fast tests with a fake backend; `pytest -m model` runs the real-model tests

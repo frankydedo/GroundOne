@@ -487,7 +487,7 @@ Un hardware migliore abbassa il limite, ma nessun hardware lo elimina.
 \caption{Limiti inferiori al costo della generazione di testo su ciascuna classe di hardware locale, calcolati come byte
 dei pesi divisi per la banda dichiarata dal produttore (una richiesta alla volta; KV cache trascurata). (a) Tempo per
 token generato con i due modelli base di GroundOne a 8 bit; rombi: tempo di decoding misurato sulla macchina della tesi.
-(b) Tempo minimo che un giudice generativo da 3B impiega soltanto per scrivere i verdetti di una risposta di quattordici o
+(b) Tempo minimo che un giudice LLM da 3B impiega soltanto per scrivere i verdetti di una risposta di quattordici o
 più frasi (mediana dei token generati nel protocollo di latenza). Un decision model non genera alcun token, quindi per esso
 entrambi i costi sono nulli su ogni macchina.}
 \label{fig:local-floor}
@@ -632,7 +632,7 @@ La distinzione tra le due fasi vale anche per la potenza. Il prefill tiene occup
 potenza; il decoding attende la memoria e assorbe meno potenza, ma per molto più tempo~\cite{patel2024splitwise}. Un
 metodo che fa risparmiare tempo fa quindi risparmiare anche energia, ma in misura minore, e il Capitolo~\ref{sec:results}
 misura proprio questo effetto: GroundOne spende in media 5.5 joule per risposta con il modello da 0.5B e 33 con il 3B, meno
-di qualunque giudice generativo della stessa dimensione, ma con un vantaggio inferiore a quello sul tempo
+di qualunque giudice LLM della stessa dimensione, ma con un vantaggio inferiore a quello sul tempo
 (Sezione~\ref{sec:results-energy}).
 
 \section{Conseguenze per la verifica sul dispositivo}
@@ -644,17 +644,17 @@ volta, leggere un token costa molto meno che scriverne uno, quattordici-sedici v
 molto più della scrittura (Sezione~\ref{sec:local-asymmetry}). Ne discende una conseguenza diretta per un verificatore che gira
 accanto al generatore.
 
-Un giudice generativo verifica una risposta leggendo il documento e la risposta e poi scrivendo i propri verdetti. Paga
+Un giudice LLM verifica una risposta leggendo il documento e la risposta e poi scrivendo i propri verdetti. Paga
 un prefill, come ogni metodo che legge il documento, e poi un passo di decoding per ogni token che scrive. Nel protocollo
-di latenza di questa tesi (Sezione~\ref{sec:results-latency}), per una risposta di quattordici o più frasi un giudice
+di latenza di questa tesi (Sezione~\ref{sec:results-latency}), per una risposta di quattordici o più frasi un giudice LLM
 sintetico da 3B scrive in mediana 65 token, e uno verboso, che motiva ogni verdetto, ne scrive 388. Il limite inferiore
 della Sezione~\ref{sec:local-floor} traduce questi conteggi in un tempo minimo che nessuna implementazione del decoding standard, con pesi a 8 bit, può battere
-(Figura~\ref{fig:local-floor}b): sulla macchina della tesi, almeno 1.8 secondi per il giudice sintetico e 10.6 per quello
+(Figura~\ref{fig:local-floor}b): sulla macchina della tesi, almeno 1.8 secondi per il giudice LLM sintetico e 10.6 per quello
 verboso, oltre al prefill; persino sulla scheda grafica più veloce, 0.12 e 0.71 secondi.
 
 Un decision model elimina del tutto questo termine. Legge il documento e la risposta una sola volta e prende ogni decisione
 dai logit calcolati durante quell'unica lettura, quindi il suo costo coincide con il solo prefill: la fase limitata dal
-calcolo, quella che l'hardware locale esegue bene e che il nuovo hardware accelera di più. Il suo vantaggio su un giudice
+calcolo, quella che l'hardware locale esegue bene e che il nuovo hardware accelera di più. Il suo vantaggio su un giudice LLM
 non è quindi una proprietà di una particolare macchina, ma della struttura dei costi dell'inferenza locale, ed è massimo
 proprio dove l'inferenza è locale. La località, che a prima vista è soltanto un vincolo sulla dimensione del modello,
 diventa la ragione per cui il progetto conta.

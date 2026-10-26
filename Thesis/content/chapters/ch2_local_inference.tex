@@ -457,7 +457,7 @@ floor, but no hardware removes it.
 \caption{Lower bounds on the cost of generating text on each class of local hardware, computed as weight bytes divided
 by the vendor's bandwidth (one request at a time; key-value cache ignored). (a) Time per generated token with the two
 GroundOne base models in 8 bits; diamonds: decode time measured on the thesis machine. (b) Minimum time that a 3B
-generative judge spends only on writing the verdicts for an answer of fourteen or more sentences (median generated tokens
+LLM judge spends only on writing the verdicts for an answer of fourteen or more sentences (median generated tokens
 of the latency protocol). A decision model generates no token, so both costs are zero for it on every machine.}
 \label{fig:local-floor}
 \end{figure}
@@ -600,7 +600,7 @@ The distinction between the two phases also applies to power. Prefill keeps the 
 power; decoding waits for memory and draws less, but for much longer~\cite{patel2024splitwise}. A method that
 saves time therefore saves energy too, but by a smaller factor, and Chapter~\ref{sec:results} measures exactly this
 effect: GroundOne spends on average 5.5 joules per answer with the 0.5B model and 33 with the 3B, less than any generative
-judge of the same size, but with an advantage smaller than in time (Section~\ref{sec:results-energy}).
+LLM judge of the same size, but with an advantage smaller than in time (Section~\ref{sec:results-energy}).
 
 \section{Consequences for verification on the device}
 \label{sec:local-verification}
@@ -610,18 +610,18 @@ token costs far less than writing one, fourteen to sixteen times less on the the
 (Sections~\ref{sec:local-phases}--\ref{sec:local-floor}), and recent hardware generations accelerate reading much more
 than writing (Section~\ref{sec:local-asymmetry}). This has a direct consequence for a verifier that runs next to the generator.
 
-A generative judge verifies an answer by reading the document and the answer and then writing its verdicts. It pays a
+An LLM judge verifies an answer by reading the document and the answer and then writing its verdicts. It pays a
 prefill, like any method that reads the document, and then one decoding step for every token it writes. In the latency
-protocol of this thesis (Section~\ref{sec:results-latency}), a terse 3B judge writes a median of 65 tokens for an answer of
+protocol of this thesis (Section~\ref{sec:results-latency}), a terse 3B LLM judge writes a median of 65 tokens for an answer of
 fourteen or more sentences, and a verbose one, which explains each verdict, writes 388. The lower bound of
 Section~\ref{sec:local-floor} turns these counts into a minimum time that no implementation of standard decoding with
 8-bit weights can beat
-(Figure~\ref{fig:local-floor}b): on the thesis machine, at least 1.8 seconds for the terse judge and 10.6 for the verbose
+(Figure~\ref{fig:local-floor}b): on the thesis machine, at least 1.8 seconds for the terse LLM judge and 10.6 for the verbose
 one, on top of the prefill; even on the fastest graphics card, 0.12 and 0.71 seconds.
 
 A decision model removes this term altogether. It reads the document and the answer once and takes every decision from the
 logits computed during that single reading, so its cost is the prefill alone: the compute-bound phase, the one that
-local hardware performs well and that new hardware accelerates most. Its advantage over a judge is therefore not a
+local hardware performs well and that new hardware accelerates most. Its advantage over an LLM judge is therefore not a
 property of one machine but of the cost structure of local inference, and it is largest exactly where inference is local.
 Locality, which at first sight is only a constraint on the size of the model, becomes the reason why the design matters.
 

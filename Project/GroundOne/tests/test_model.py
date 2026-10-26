@@ -27,6 +27,26 @@ def test_batched_equals_one_pass_per_question(engine):
         assert max(abs(x - y) for x, y in zip(m, a)) < 2e-2
 
 
+def test_cached_prefix_equals_one_pass(engine):
+    """D32: reading the answer after a cached document (built on cached instructions) gives the logits of one pass."""
+    from groundone.prompts import encode_marked, marked_prefix_lengths
+    b = engine.backend
+    doc = "The Eiffel Tower is in Paris. It was completed in 1889 and is 330 metres tall. " * 5
+    sents = ["The tower is in Paris.", "It was finished in 1889.", "It is 500 metres tall."]
+    ids, pos = encode_marked(b.tokenizer, doc, sents, [True] * 3)
+    n_fixed, n_head = marked_prefix_lengths(b.tokenizer, doc)
+    assert 0 < n_fixed < n_head < pos[0]
+    one = engine._run(b.score_positions, [ids], [pos])[0]
+    fixed = engine._run(b.prefill, ids[:n_fixed])
+    head = engine._run(b.prefill, ids[:n_head], fixed)
+    for prefix in (fixed, head, engine._run(b.prefill, ids[:n_head])):
+        cached = engine._run(b.score_positions_from, prefix, ids, pos)
+        for x, y in zip(cached, one):
+            assert max(abs(u - v) for u, v in zip(x, y)) < 2e-2
+    again = engine._run(b.score_positions_from, head, ids, pos)   # the cached state is not mutated by a read
+    assert max(abs(u - v) for x, y in zip(again, engine._run(b.score_positions_from, head, ids, pos)) for u, v in zip(x, y)) == 0
+
+
 def test_verify_end_to_end(engine):
     from groundone.schema import VerifyRequest
     r = engine.verify(VerifyRequest(document="Paris is the capital of France.",

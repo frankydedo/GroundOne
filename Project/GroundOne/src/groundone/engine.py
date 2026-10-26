@@ -7,10 +7,14 @@ serialised by a lock; parallelism is *inside* a request (K questions in one batc
 /v1/verify follows the adapter's readout design (read from its groundone.json): design (b), the default since D22, is
 served since D27 (one pass, a marker per scored sentence, coherent labels from calibrated probabilities and the dev
 threshold); design (a) remains for base models and design-(a) adapters. /v1/systemone (generic questions) uses (a).
+Design (b) keeps a prefix cache (D32): the fixed instructions are prefilled once, and the last few documents' KV
+states are kept (LRU), so a new answer on a cached document costs only the answer's tokens. Exact under causal
+attention; GROUNDONE_PREFIX_CACHE=0 disables it.
 """
 import json
+import os
 import time
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
@@ -29,6 +33,10 @@ class Engine:
                             if calibration_path else None)
         self._lock = Lock()
         self._worker = ThreadPoolExecutor(max_workers=1, thread_name_prefix="groundone-mlx")
+        self.prefix_cache = os.environ.get("GROUNDONE_PREFIX_CACHE", "1") != "0"
+        self._fixed = None                 # KV state of the fixed instructions
+        self._docs = OrderedDict()         # head ids (instructions + document) -> KV state, least recently used first
+        self.max_cached_docs = 4
 
     @classmethod
     def load(cls, size=None, adapter=None, calibration=None, base=None):
@@ -109,7 +117,13 @@ class Engine:
         if len(ids) > MAX_PROMPT_TOKENS:
             raise ValueError(f"Prompt has {len(ids)} tokens; the limit is {MAX_PROMPT_TOKENS} (GROUNDONE_MAX_TOKENS)")
         t1 = time.perf_counter()
-        logits = self._run(self.backend.score_positions, [ids], [pos])[0] if pos else []
+        cached = "none"
+        if not pos:
+            logits = []
+        elif self.prefix_cache:
+            logits, cached = self._run(self._score_cached, req.document, ids, pos)
+        else:
+            logits = self._run(self.backend.score_positions, [ids], [pos])[0]
         t2 = time.perf_counter()
         cal = self.calibration
         thr = req.threshold if req.threshold is not None else (cal.thresholds.get("three") if cal else None)
@@ -139,8 +153,28 @@ class Engine:
             "model": self.name, "design": "b", "decision_rule": rule, "threshold": thr, "sentences": res,
             "n_decisions": len(pos), "usage": {"input_tokens": len(ids), "output_tokens": 0},
             "timing": {"total_seconds": time.perf_counter() - t0, "encode_seconds": t1 - t0, "forward_seconds": t2 - t1},
+            "prefix_cache": cached,
             "fingerprint": self.backend.metadata["fingerprint"], "calibrated": cal is not None,
         }
+
+    def _score_cached(self, document, ids, pos):
+        """Runs on the worker thread. Reuses the document's KV state if cached, else prefills it from the fixed
+        instructions and caches it; then reads the answer only. Returns (logits, which prefix was reused)."""
+        from .prompts import marked_prefix_lengths
+        be = self.backend
+        n_fixed, n_head = marked_prefix_lengths(be.tokenizer, document)
+        key = tuple(ids[:n_head])
+        if key in self._docs:
+            self._docs.move_to_end(key)
+            hit = "document"
+        else:
+            if self._fixed is None or self._fixed["ids"] != tuple(ids[:n_fixed]):
+                self._fixed = be.prefill(ids[:n_fixed])
+            self._docs[key] = be.prefill(ids[:n_head], base=self._fixed)
+            while len(self._docs) > self.max_cached_docs:
+                self._docs.popitem(last=False)
+            hit = "instructions"
+        return be.score_positions_from(self._docs[key], ids, pos), hit
 
     # ------------------------------------------------------------------ compatible: /v1/systemone
     def systemone(self, req):

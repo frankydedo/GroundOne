@@ -19,7 +19,7 @@ Il termine \emph{System One model} è stato introdotto da TypeSafe con Jev, un m
 risponde a domande chiuse su uno stato dato, cioè sul contesto fornito nella richiesta, e restituisce output tipizzati,
 come un booleano, una scelta tra opzioni o un punteggio, senza generare testo~\cite{typesafe2026jev}. Il nome richiama il
 pensiero veloce e intuitivo descritto da Kahneman, contrapposto al ragionamento deliberato. Il fornitore dichiara latenze
-comprese tra le decine e le centinaia di millisecondi e forti risparmi rispetto ai giudici generativi. Queste cifre,
+comprese tra le decine e le centinaia di millisecondi e forti risparmi rispetto ai giudici LLM. Queste cifre,
 però, restano dichiarazioni del fornitore, e l'architettura non è resa pubblica.
 
 Le implementazioni open arrivate in seguito si distinguono per il modo in cui producono le probabilità, e se ne possono
@@ -72,7 +72,7 @@ parametri individuano in modo affidabile le risposte allucinate.
 
 Gli studi su Jev aggiungono tre osservazioni. Le sue probabilità sono calibrate se aggregate su molti task, ma non sul
 singolo task. Soglie e temperature vanno stimate sul carico di lavoro di destinazione~\cite{guo2026justaskjev,li2026jevjudge}.
-Scegliere la soglia tramite un limite inferiore di confidenza, infine, rende più sicuro mettere in produzione un giudice
+Scegliere la soglia tramite un limite inferiore di confidenza, infine, rende più sicuro mettere in produzione un giudice LLM
 che restituisce soltanto decisioni~\cite{li2026jevjudge}. Anche i runtime si sono adeguati: llama.cpp supporta ora
 nativamente l'interfaccia System One~\cite{llamacpp}. Nessuno di questi modelli, tuttavia, è specializzato nella
 groundedness, cioè nell'aderenza della risposta al documento. Nessuno, inoltre, riporta risultati di verifica a tre classi
@@ -86,7 +86,7 @@ privilegia particolari identificatori di opzione, come certe lettere, e questo b
 rimuovere~\cite{zheng2024mcq}. Entrambi i risultati riguardano modelli usati zero-shot. Suggeriscono che un readout sulle
 lettere, se deve servire da decisione, vada addestrato, calibrato o entrambe le cose. Nessun decision model open, inoltre, è
 stato specializzato nella verifica della groundedness e poi confrontato, in condizioni controllate e sullo stesso
-hardware, con giudici generativi, con verificatori specializzati e con decision model generalisti, di cui uno della stessa
+hardware, con giudici LLM, con verificatori specializzati e con decision model generalisti, di cui uno della stessa
 dimensione.
 
 \section{Retrieval-augmented generation e allucinazioni}
@@ -130,14 +130,14 @@ modelli molto più grandi sui benchmark di grounding~\cite{tang2024minicheck}. H
 allucinazioni dello stesso tipo, rilasciato come modello open~\cite{vectara2024hhem}. Questi modelli valutano ogni coppia
 documento--frase in modo indipendente e restituiscono un'unica probabilità di supporto.
 
-La seconda famiglia usa un modello linguistico come giudice, secondo lo schema
+La seconda famiglia usa un modello linguistico come giudice, il giudice LLM, secondo lo schema
 LLM-as-a-judge\footnote{Nello schema \emph{LLM-as-a-judge} un modello linguistico riceve tramite prompt il testo da
 valutare e i criteri di valutazione, e scrive il proprio giudizio, a volte preceduto da una motivazione.}~\cite{zheng2023judging}.
-Su giudici di questo tipo si basano framework di valutazione per RAG come RAGAS~\cite{es2024ragas} e
-ARES~\cite{saadfalcon2024ares}. Lynx addestra con fine-tuning un giudice dedicato al rilevamento delle
+Su giudici LLM di questo tipo si basano framework di valutazione per RAG come RAGAS~\cite{es2024ragas} e
+ARES~\cite{saadfalcon2024ares}. Lynx addestra con fine-tuning un giudice LLM dedicato al rilevamento delle
 allucinazioni~\cite{ravi2024lynx}, mentre Self-RAG addestra il generatore stesso a emettere token di critica, cioè token
-speciali con cui il modello valuta i passaggi recuperati e il proprio output~\cite{asai2024selfrag}. I giudici sono
-flessibili, ma il loro costo cresce con la quantità di testo che scrivono. I modelli piccoli usati come giudici, inoltre,
+speciali con cui il modello valuta i passaggi recuperati e il proprio output~\cite{asai2024selfrag}. I giudici LLM sono
+flessibili, ma il loro costo cresce con la quantità di testo che scrivono. I modelli piccoli usati come giudici LLM, inoltre,
 violano spesso il formato di output richiesto. Per garantire una risposta che il parser sappia interpretare serve allora
 un decoding vincolato da una grammatica, che a ogni passo ammette soltanto i token compatibili con il formato
 richiesto~\cite{willard2023outlines}. Il benchmark di riferimento per entrambe le famiglie è LLM-AggreFact, che riunisce
@@ -147,7 +147,7 @@ comune~\cite{tang2024minicheck,llmaggrefact}. La Figura~\ref{fig:bg-verifiers} m
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/diagrams/bg_verifier_families_tikz.pdf}
-\caption{Tre modi di verificare le $K$ frasi di una risposta. Un encoder specializzato valuta ogni coppia (documento, frase) in un forward pass separato e restituisce solo una probabilità di supporto. Un giudice generativo legge tutto, ma scrive il proprio verdetto token per token (ciclo rosso), quindi il costo cresce con il testo prodotto e l'output va interpretato da un parser. Un decision model specialista legge documento e risposta in un solo prefill e ricava da ogni marker tre probabilità, senza generare alcun token.}
+\caption{Tre modi di verificare le $K$ frasi di una risposta. Un encoder specializzato valuta ogni coppia (documento, frase) in un forward pass separato e restituisce solo una probabilità di supporto. Un giudice LLM legge tutto, ma scrive il proprio verdetto token per token (ciclo rosso), quindi il costo cresce con il testo prodotto e l'output va interpretato da un parser. Un decision model specialista legge documento e risposta in un solo prefill e ricava da ogni marker tre probabilità, senza generare alcun token.}
 \label{fig:bg-verifiers}
 \end{figure}
 
@@ -224,8 +224,8 @@ Gli elementi necessari a un verificatore locale, veloce e calibrato esistono gi�
 compatti e runtime che li eseguono su un laptop, l'idea dei decision model di leggere le decisioni anziché generarle,
 verificatori specializzati e calibrazione post-hoc. Manca uno studio indipendente e controllato che li metta insieme su un
 unico task. In particolare, nessun lavoro ha misurato se un decision model compatto, specializzato nella verifica della
-groundedness, possa eguagliare su questo task i giudici generativi e gli encoder dedicati. Non è noto nemmeno da dove
+groundedness, possa eguagliare su questo task i giudici LLM e gli encoder dedicati. Non è noto nemmeno da dove
 provenga il suo vantaggio: dalla specializzazione, dal readout o dalla dimensione del modello. Resta infine da
 stabilire se le sue probabilità siano abbastanza buone da fissare soglie e rinviare decisioni, e come il suo tempo e la
-sua energia si confrontino con quelli di un giudice sullo stesso hardware consumer. Il resto della tesi affronta queste
+sua energia si confrontino con quelli di un giudice LLM sullo stesso hardware consumer. Il resto della tesi affronta queste
 domande.

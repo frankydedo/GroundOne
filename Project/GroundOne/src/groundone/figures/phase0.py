@@ -18,7 +18,7 @@ def speed_vs_k(g):
         t = d["table"]
         ks = [1, 3, 8, 24]
         rows = [t[f"L1000_K{x}"] for x in ks]
-        for key, name in [("s1_batched_ms", "System One (batched)"), ("terse_ms", "Terse judge"), ("verbose_ms", "Verbose judge")]:
+        for key, name in [("s1_batched_ms", "System One (batched)"), ("terse_ms", "Terse LLM judge"), ("verbose_ms", "Verbose LLM judge")]:
             ax.plot(ks, [r[key] / 1000 for r in rows], marker="o", color=C[name], label=name)
         ax.set_xscale("log", base=2)
         ax.set_xticks(ks, [str(x) for x in ks])
@@ -28,7 +28,7 @@ def speed_vs_k(g):
     axes[0].legend()
     g.save(fig, "p0b_latency_vs_K", "Time to verify one answer as the number of decisions K over the same 1,000-token "
            "context grows (untrained models, M4 16 GB, MLX 8-bit). The System One scores all K questions in one batched "
-           "pass after a single prefill; generative judges decode their verdicts token by token.",
+           "pass after a single prefill; LLM judges decode their verdicts token by token.",
            "experiments/feasibility/results/06_speed_batched_*.json")
 
 
@@ -47,9 +47,9 @@ def gain_vs_k(g):
         ax.set_xticks([1, 3, 8, 24], ["1", "3", "8", "24"])
         ax.set_title(f"Qwen2.5-{lab}")
         ax.set_xlabel("decisions per context (K)")
-    axes[0].set_ylabel("speed-up vs terse judge (×)")
+    axes[0].set_ylabel("speed-up vs terse LLM judge (×)")
     axes[0].legend(title="context length")
-    g.save(fig, "p0b_speedup_vs_K_by_context", "Speed-up of the batched System One over a terse generative judge as a "
+    g.save(fig, "p0b_speedup_vs_K_by_context", "Speed-up of the batched System One over a terse LLM judge as a "
            "function of K, for three context lengths. The gain grows with K and shrinks with context length, because "
            "prefill is paid by both methods. Dashed line: no gain.", "experiments/feasibility/results/06_speed_batched_*.json")
 
@@ -107,8 +107,8 @@ def generative_judges(g):
         d = load_json(R / f"08_gen_judges_{k}.json")
         r = load_json(R / f"02_readout_{k}.json")
         if d:
-            rows += [(lab, "Terse judge", d["terse"]["bacc"], d["terse"]["format_failure_rate"]),
-                     (lab, "Verbose judge", d["verbose"]["bacc"], d["verbose"]["format_failure_rate"])]
+            rows += [(lab, "Terse LLM judge", d["terse"]["bacc"], d["terse"]["format_failure_rate"]),
+                     (lab, "Verbose LLM judge", d["verbose"]["bacc"], d["verbose"]["format_failure_rate"])]
         if r:
             rows.append((lab, "System One (batched)", r["rt_sent"]["bacc@0.5"], 0.0))
     if not rows:
@@ -117,7 +117,7 @@ def generative_judges(g):
     fig, axes = plt.subplots(1, 2, figsize=(9, 3.2))
     for ax, col, ylab in [(axes[0], "fail", "format failure rate"), (axes[1], "bacc", "balanced accuracy")]:
         x = np.arange(2)
-        for i, s in enumerate(["System One (batched)", "Terse judge", "Verbose judge"]):
+        for i, s in enumerate(["System One (batched)", "Terse LLM judge", "Verbose LLM judge"]):
             vals = [df[(df.model == m) & (df.system == s)][col].mean() for m in ("0.5B", "3B")]
             bars = ax.bar(x + (i - 1) * 0.26, vals, 0.24, color=C[s], label=s.replace(" (batched)", " readout"))
             bar_labels(ax, bars)

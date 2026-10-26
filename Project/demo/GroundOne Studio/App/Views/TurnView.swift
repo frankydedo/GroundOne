@@ -66,7 +66,7 @@ struct StatusLine: View {
         HStack(spacing: 12) {
             if let v = version.verdicts {
                 let scored = v.scored
-                Label("Verified by GroundOne\(version.judge != nil ? " and the judge" : "")", systemImage: "checkmark.shield")
+                Label("Verified by GroundOne\(version.judge != nil ? " and the LLM judge" : "")", systemImage: "checkmark.shield")
                     .foregroundStyle(Palette.groundOne)
                 ForEach(Verdict.allCases, id: \.self) { l in
                     let n = scored.filter { $0.label == l }.count

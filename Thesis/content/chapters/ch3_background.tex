@@ -19,7 +19,7 @@ The term \emph{System One model} was introduced by TypeSafe with Jev, a model of
 closed questions about a given state, that is, about the context supplied in the request, and returns typed outputs,
 such as a boolean, a choice among options or a score, without generating text~\cite{typesafe2026jev}. The name evokes
 the fast, intuitive thinking described by Kahneman, as opposed to deliberate reasoning. The vendor reports latencies
-ranging from tens to hundreds of milliseconds and large savings with respect to generative judges. These figures,
+ranging from tens to hundreds of milliseconds and large savings with respect to LLM judges. These figures,
 however, remain vendor claims, and the architecture is not disclosed.
 
 The open implementations that followed differ in how they produce the probabilities, and three families can be
@@ -71,7 +71,7 @@ trivial baseline on RAGTruth, and only models with tens of billions of parameter
 
 The studies on Jev add three observations. Its probabilities are calibrated when aggregated over many tasks, but not on
 a single task. Thresholds and temperatures have to be estimated on the target workload~\cite{guo2026justaskjev,li2026jevjudge}.
-Finally, choosing the threshold through a lower confidence bound makes it safer to put into production a judge that
+Finally, choosing the threshold through a lower confidence bound makes it safer to put into production an LLM judge that
 returns only decisions~\cite{li2026jevjudge}. Runtimes have adapted as well: llama.cpp now natively supports the System
 One interface~\cite{llamacpp}. None of these models, however, is specialised in groundedness, that is, in the adherence
 of the answer to the document. Nor does any of them report results of three-class, sentence-level verification on the
@@ -84,7 +84,7 @@ coincide~\cite{wang2024myanswerc}. The readout, moreover, favours particular opt
 letters, and this bias can be estimated and removed~\cite{zheng2024mcq}. Both results concern models used zero-shot.
 They suggest that a letter readout, if it is to serve as a decision, needs to be trained, calibrated or both. Moreover,
 no open decision model has been specialised in groundedness verification and then compared, under controlled conditions
-and on the same hardware, with generative judges, with specialised verifiers and with general-purpose decision models,
+and on the same hardware, with LLM judges, with specialised verifiers and with general-purpose decision models,
 one of them of the same size.
 
 \section{Retrieval-augmented generation and hallucination}
@@ -127,14 +127,14 @@ grounding benchmarks~\cite{tang2024minicheck}. HHEM is a hallucination evaluatio
 open model~\cite{vectara2024hhem}. These models evaluate each document--sentence pair independently and return a single
 probability of support.
 
-The second family uses a language model as a judge, following the LLM-as-a-judge
+The second family uses a language model as a judge, the LLM judge, following the LLM-as-a-judge
 scheme\footnote{In the \emph{LLM-as-a-judge} scheme a language model receives, through a prompt, the text to be
 evaluated and the evaluation criteria, and writes its own judgement, sometimes preceded by a rationale.}~\cite{zheng2023judging}.
-Evaluation frameworks for RAG such as RAGAS~\cite{es2024ragas} and ARES~\cite{saadfalcon2024ares} rely on judges of this
-kind. Lynx fine-tunes a judge dedicated to hallucination detection~\cite{ravi2024lynx}, while Self-RAG trains the
+Evaluation frameworks for RAG such as RAGAS~\cite{es2024ragas} and ARES~\cite{saadfalcon2024ares} rely on LLM judges of this
+kind. Lynx fine-tunes an LLM judge dedicated to hallucination detection~\cite{ravi2024lynx}, while Self-RAG trains the
 generator itself to emit critique tokens, that is, special tokens with which the model evaluates the retrieved passages
-and its own output~\cite{asai2024selfrag}. Judges are flexible, but their cost grows with the amount of text they write.
-Small models used as judges, moreover, often violate the required output format. Guaranteeing an answer that the parser
+and its own output~\cite{asai2024selfrag}. LLM judges are flexible, but their cost grows with the amount of text they write.
+Small models used as LLM judges, moreover, often violate the required output format. Guaranteeing an answer that the parser
 can interpret then requires grammar-constrained decoding, which at each step admits only the tokens compatible with the
 required format~\cite{willard2023outlines}. The reference benchmark for both families is LLM-AggreFact, which gathers
 eleven manually annotated grounding datasets and maps them to a common binary
@@ -144,7 +144,7 @@ specialist decision model studied in this thesis.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/diagrams/bg_verifier_families_tikz.pdf}
-\caption{Three ways of verifying the $K$ sentences of an answer. A specialised encoder evaluates each (document, sentence) pair in a separate forward pass and returns only a probability of support. A generative judge reads everything, but writes its verdict token by token (red loop), so its cost grows with the text produced and the output has to be interpreted by a parser. A specialist decision model reads document and answer in a single prefill and derives three probabilities from each marker, without generating any token.}
+\caption{Three ways of verifying the $K$ sentences of an answer. A specialised encoder evaluates each (document, sentence) pair in a separate forward pass and returns only a probability of support. An LLM judge reads everything, but writes its verdict token by token (red loop), so its cost grows with the text produced and the output has to be interpreted by a parser. A specialist decision model reads document and answer in a single prefill and derives three probabilities from each marker, without generating any token.}
 \label{fig:bg-verifiers}
 \end{figure}
 
@@ -221,7 +221,7 @@ The components needed for a local, fast and calibrated verifier already exist, b
 runtimes that run them on a laptop, the decision-model idea of reading decisions instead of generating them, specialised
 verifiers and post-hoc calibration. What is missing is an independent, controlled study that brings them together on a
 single task. In particular, no work has measured whether a compact decision model, specialised in groundedness
-verification, can match generative judges and dedicated encoders on this task. Nor is it known where its advantage would
+verification, can match LLM judges and dedicated encoders on this task. Nor is it known where its advantage would
 come from: from specialisation, from the readout or from model size. Finally, it remains to be established whether its
 probabilities are good enough to set thresholds and defer decisions, and how its time and energy compare with those of a
-judge on the same consumer hardware. The rest of the thesis addresses these questions.
+LLM judge on the same consumer hardware. The rest of the thesis addresses these questions.

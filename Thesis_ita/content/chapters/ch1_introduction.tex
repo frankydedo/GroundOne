@@ -67,14 +67,14 @@ l'ha generata.
 
 Un verificatore eseguito accanto al generatore si contende con esso la stessa memoria, lo stesso tempo e la stessa
 batteria. La soluzione più comune, cioè chiedere a un modello linguistico di giudicare la risposta, è costosa proprio
-dove un laptop è più debole. Un giudice scrive i propri verdetti token per token, e su hardware locale ogni token generato
+dove un laptop è più debole. Un giudice LLM, cioè un large language model a cui si chiede di fare da giudice, scrive i propri verdetti token per token, e su hardware locale ogni token generato
 costa molto più di ogni token letto. La lettura del prompt è limitata dalla capacità di calcolo, che la GPU di un laptop
 gestisce bene, mentre la scrittura dell'output è limitata dalla banda di memoria, perché ogni nuovo token richiede di
 leggere tutti i pesi~\cite{pope2023scaling}. Sul laptop usato in questa tesi, leggere un token richiede circa 0.37
 millisecondi con un modello da 0.5B parametri, mentre scriverne uno ne richiede circa 5.9, sedici volte di più, e
 l'asimmetria vale per ogni classe di hardware locale, dagli smartphone alle macchine dedicate all'IA
-(Capitolo~\ref{sec:local}). Un giudice che spiega il proprio ragionamento prima di ogni verdetto moltiplica questo costo per la lunghezza della
-spiegazione, e il costo cresce ancora con il numero di frasi della risposta. I giudici piccoli, inoltre, non rispettano
+(Capitolo~\ref{sec:local}). Un giudice LLM che spiega il proprio ragionamento prima di ogni verdetto moltiplica questo costo per la lunghezza della
+spiegazione, e il costo cresce ancora con il numero di frasi della risposta. I giudici LLM piccoli, inoltre, non rispettano
 il formato di output richiesto, e la confidenza che dichiarano è raramente utilizzabile come probabilità.
 
 I verificatori basati su encoder\footnote{Un \emph{encoder} è un transformer in cui ogni token vede tutti gli altri, sia quelli che lo precedono sia quelli che lo seguono. Produce una rappresentazione del testo invece di generarlo, come BERT e i modelli che ne derivano.} evitano del tutto la generazione. Modelli come AlignScore, MiniCheck e HHEM leggono una
@@ -132,7 +132,7 @@ sistemi generalisti in grado di rispondere a qualunque domanda tipizzata.
 
 Restano quindi aperti tre problemi. Il primo è capire se, per un singolo task, convenga usare un decision model piccolo e
 specializzato. Il secondo è capire come un modello di questo tipo si confronti con le alternative: un decision model
-generalista, un giudice generativo e un verificatore dedicato. Il terzo è capire da dove derivi l'eventuale vantaggio: dalla
+generalista, un giudice LLM e un verificatore dedicato. Il terzo è capire da dove derivi l'eventuale vantaggio: dalla
 specializzazione, dal modo in cui la decisione viene letta oppure, più semplicemente, dalla dimensione del modello.
 
 \section{Approccio e domande di ricerca}
@@ -157,14 +157,14 @@ e quanto gli encoder specializzati in questa verifica?
 \item[RQ2, readout contro generazione.] Quanto contribuisce il meccanismo del decision model, cioè il readout\footnote{Con \emph{readout} si indica la lettura della decisione direttamente dai logit del modello:
 invece di lasciargli scrivere una risposta, si confrontano i punteggi che assegna alle sole risposte ammesse (qui le
 lettere A, B e C) e si sceglie la più probabile.}
-della decisione dai logit, a parità di dimensione del modello? Il confronto è duplice: con giudici generativi che
+della decisione dai logit, a parità di dimensione del modello? Il confronto è duplice: con giudici LLM che
 scrivono i propri verdetti e con lo stesso modello lasciato libero di generare la risposta. E come cambia la differenza
 quando aumenta il numero di frasi da verificare?
 \item[RQ3, calibrazione.] Le probabilità restituite dal modello sono affidabili come misura di confidenza? In
 particolare, si possono usare per fissare una soglia di decisione e per rinviare all'utente i casi incerti? E sono
-migliori di quelle che si possono ottenere da un giudice generativo?
+migliori di quelle che si possono ottenere da un giudice LLM?
 \item[RQ4, costo sul dispositivo.] Il verificatore rientra nei limiti di memoria, tempo ed energia di un laptop da
-16\,GB? E quanto costa rispetto a un giudice generativo eseguito sulla stessa macchina?
+16\,GB? E quanto costa rispetto a un giudice LLM eseguito sulla stessa macchina?
 \item[RQ5, oltre il punteggio binario.] Che cosa guadagna chi usa il verificatore da una decisione a tre classi per
 ogni frase, rispetto al semplice punteggio di un verificatore binario?
 \end{description}
@@ -198,7 +198,7 @@ entrambi gli insiemi. Il modello può allora riconoscere esempi già visti invec
 risultano ottimistiche.}.
 \item \textbf{Una scomposizione controllata dei guadagni.} Il confronto isola il contributo della specializzazione, del
 readout ristretto e della dimensione del modello. GroundOne è confrontato con indizi che non verificano mai una frase,
-modelli non addestrati, giudici generativi con e senza probabilità, due decision model generalisti (Rizzo-Flow, da 4B parametri, e d1-3B di Liquid
+modelli non addestrati, giudici LLM con e senza probabilità, due decision model generalisti (Rizzo-Flow, da 4B parametri, e d1-3B di Liquid
 AI, della stessa dimensione del 3B) ed encoder specializzati, tutti sullo stesso hardware e con intervalli ottenuti
 tramite bootstrap a cluster.
 \item \textbf{Uno studio di calibrazione, tempo ed energia}: come le probabilità possano essere calibrate e tradotte in
@@ -208,7 +208,7 @@ produttori con misure proprie per stabilire, per ogni classe di hardware consume
 che genera testo deve pagare e che un decision model non paga.
 \item \textbf{GroundOne Studio}, un'applicazione per macOS in cui recupero, generazione e verifica avvengono nello stesso
 processo, sullo stesso portatile e senza servizi esterni. La risposta del generatore compare per prima; l'utente può poi
-verificarla con GroundOne, da solo o insieme a un giudice generativo eseguito in locale, vedere l'evidenza a supporto di
+verificarla con GroundOne, da solo o insieme a un giudice LLM eseguito in locale, vedere l'evidenza a supporto di
 ogni frase e far riscrivere le frasi segnalate. Un caso di studio con errori iniettati misura il ciclo di verifica e
 riscrittura.
 \end{enumerate}
@@ -222,11 +222,11 @@ dimensione del 3B. Su LLM-AggreFact, un benchmark costruito da fonti diverse, il
 piccole dimensioni.
 
 Il meccanismo del decision model ripaga in velocità e in accuratezza. Quando una risposta contiene quattordici o più frasi,
-GroundOne la verifica da 1.7 a 2 volte più velocemente di un giudice sintetico e circa sei volte più velocemente di un giudice verboso della stessa dimensione, con un output sempre valido e consumando meno energia. Anche il modo di leggere la
+GroundOne la verifica da 1.7 a 2 volte più velocemente di un giudice LLM sintetico e circa sei volte più velocemente di un giudice LLM verboso della stessa dimensione, con un output sempre valido e consumando meno energia. Il rapporto complessivo è limitato dalla lettura del testo, comune a ogni approccio: al netto di essa, GroundOne decide da 18 a 33 volte più in fretta del giudice LLM sintetico. Quando il documento è già stato letto, come nella verifica di una risposta riscritta, il riuso della KV cache porta il vantaggio complessivo a 3--5 volte. Anche il modo di leggere la
 decisione conta: con lo stesso modello addestrato, scegliere la più probabile fra le sole tre lettere ammesse è più
 accurato che lasciare al modello generare liberamente il proprio verdetto, con un guadagno di balanced accuracy di 0.25
 per il 0.5B e di 0.07 per il 3B. Dopo la
-calibrazione, le probabilità di GroundOne sono vicine alle frequenze osservate, mentre quelle dei giudici generativi a cui
+calibrazione, le probabilità di GroundOne sono vicine alle frequenze osservate, mentre quelle dei giudici LLM a cui
 si chiede lo stesso output distinguono a stento le decisioni corrette da quelle errate.
 
 Restano alcuni aspetti da migliorare, che indicano direzioni naturali per il lavoro futuro. Le prestazioni calano su
@@ -238,7 +238,7 @@ mescolare l'ordine dei dati. Ripetere l'addestramento con seed diversi produce m
 
 Infine, l'applicazione GroundOne Studio mostra che attorno al verificatore si può costruire un assistente RAG completo,
 in un unico processo e senza rete, con un picco di 6.2\,GB di memoria allocata da MLX. In un caso di studio con errori
-iniettati, GroundOne segnala l'errore in 97 delle 98 risposte in cui la frase riceve un verdetto, contro 84 del giudice,
+iniettati, GroundOne segnala l'errore in 97 delle 98 risposte in cui la frase riceve un verdetto, contro 84 del giudice LLM,
 e la riscrittura mirata riduce dal 100\,\% al 9\,\% le risposte che lo contengono ancora.
 
 \section{Struttura della tesi}

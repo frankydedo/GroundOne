@@ -27,13 +27,14 @@ training mixture that improves transfer.
 \paragraph{Readout and generation compared (RQ2).} The decision-model mechanism contributes in two distinct ways. The
 first concerns cost: a single forward pass over the answer replaces the generation of $K$ verdicts, so the time saved
 grows with the length of the answer. When the answer contains fourteen or more sentences, the saving reaches a factor of
-about two against a terse judge and about six against a verbose one. The second contribution, which this thesis did not
+about two against a terse LLM judge and about six against a verbose one. This overall ratio is bounded by reading the text, which every approach pays and which takes 97\,\% of GroundOne's time: net of it, GroundOne decides 18 to 33 times faster than a terse LLM judge and about 125 to 130 times faster than a verbose one (Section~\ref{sec:results-latency-split}). It follows that any reduction of the prefill, such as reusing a prefix already read, increases the relative advantage of the readout. With the document already cached, as when a rewritten answer is verified again, the advantage over the terse LLM judge rises from about two to three to five times: the cache removes the shared part and leaves the judge with the decoding, which cannot be reused.
+The second contribution, which this thesis did not
 anticipate, concerns accuracy. With the same weights and the same cost, choosing among the three admissible letters is
 more accurate than taking the token the model would generate, with a gain in three-way balanced accuracy of 0.25 for the
 0.5B and 0.07 for the 3B. A fine-tuned decision model is therefore better understood as a three-way classifier grafted
 onto a language model than as a generator that stops after one token. The distinction matters most for small models,
-that is, precisely for those a laptop can afford. The comparison with generative judges, finally, also measures the
-effect of training: since the judges are untrained, the large differences in accuracy with respect to GroundOne should be
+that is, precisely for those a laptop can afford. The comparison with LLM judges, finally, also measures the
+effect of training: since the LLM judges are untrained, the large differences in accuracy with respect to GroundOne should be
 read as the joint effect of specialisation and readout. Figure~\ref{fig:disc-gains} decomposes the gain on T1 into its
 two steps, training and the restricted readout.
 
@@ -50,7 +51,7 @@ answers; the dashed line marks the chance level.}
 \paragraph{Calibration (RQ3).} A temperature and a bias fitted on the dev set align the probabilities with the
 frequencies observed on the test set of the same domain, and the calibrated probabilities make selective prediction
 effective. Two lessons hold beyond GroundOne. The first is that the Expected Calibration Error alone is not enough to
-rank systems. After the same calibration, judges whose probabilities barely separate the classes reach the same ECE as
+rank systems. After the same calibration, LLM judges whose probabilities barely separate the classes reach the same ECE as
 GroundOne, and only the AUROC and the AURC reveal the difference. The second is that decisions and probabilities must be
 derived consistently. If the most probable calibrated class is chosen, the decision collapses towards the majority
 class; a threshold fitted on the dev set, instead, recovers the balanced decision and keeps the label consistent with the
@@ -73,18 +74,18 @@ memory allocated by MLX peaks at 6.2\,GB.
 The economic cost should also be read with care (Table~\ref{tab:disc-cost}). Verifying 10{,}000 answers with GroundOne
 takes an amount of energy that, at the European average household electricity price~\cite{eurostat2026electricity}, is
 worth less than one euro cent with the 0.5B and about three cents with the 3B. Entrusting the same verification to a
-hosted judge, at the providers' list prices~\cite{anthropic2026pricing,openai2026pricing,google2026geminipricing}, costs
+hosted LLM judge, at the providers' list prices~\cite{anthropic2026pricing,openai2026pricing,google2026geminipricing}, costs
 instead from about one dollar with the cheapest models to more than two hundred with the top-tier ones. The ratio is
-thus two to four orders of magnitude, but in absolute terms cheap judges remain inexpensive, and the comparison takes into
-account neither the purchase of the hardware nor the quality of hosted judges, which this thesis did not measure. The
+thus two to four orders of magnitude, but in absolute terms cheap LLM judges remain inexpensive, and the comparison takes into
+account neither the purchase of the hardware nor the quality of hosted LLM judges, which this thesis did not measure. The
 decisive argument for local verification therefore remains independence: the documents never leave the machine and the
 service does not depend on an external provider.
 
 \begin{table}[htbp]
 \centering
-\caption{Indicative cost of verifying 10{,}000 RAG answers. Hosted judges: standard-tier list prices, accessed on 19
+\caption{Indicative cost of verifying 10{,}000 RAG answers. Hosted LLM judges: standard-tier list prices, accessed on 19
 October 2026, with about 900 input tokens per answer (median T1 document and answer plus the instructions) and the
-output tokens measured for the 3B judges of this thesis (36 for the terse judge, 248 for the verbose one). GroundOne:
+output tokens measured for the 3B LLM judges of this thesis (36 for the terse LLM judge, 248 for the verbose one). GroundOne:
 measured net chip energy multiplied by the EU average household electricity price (0.29~€/kWh, second half of 2025).
 Hardware cost and caching or batch discounts are excluded.}
 \label{tab:disc-cost}
@@ -187,11 +188,11 @@ RAGTruth column of LLM-AggreFact therefore favour it with respect to systems tra
 part of the data from which the training of MiniCheck-RoBERTa descends. Each comparison is reported with the relevant
 caveat, and the conclusions rest on the overall pattern across the three test sets rather than on a single one.
 
-\paragraph{Baseline configuration.} Generative judges are sensitive to their prompts. Their prompts were fixed before
-looking at the test results, and the prompt of the equal-output judge was chosen on the dev set on the basis of format
-validity only. Output parsing was lenient, to the judges' advantage. Decoding was not constrained by a grammar, which
-mostly affects the format failures of the smallest model. Neither a judge fine-tuned on the same data nor a larger judge
-was evaluated: the comparison therefore measures what a judge of the same size offers without training. Rizzo-Flow was
+\paragraph{Baseline configuration.} LLM judges are sensitive to their prompts. Their prompts were fixed before
+looking at the test results, and the prompt of the equal-output LLM judge was chosen on the dev set on the basis of format
+validity only. Output parsing was lenient, to the LLM judges' advantage. Decoding was not constrained by a grammar, which
+mostly affects the format failures of the smallest model. Neither an LLM judge fine-tuned on the same data nor a larger LLM judge
+was evaluated: the comparison therefore measures what an LLM judge of the same size offers without training. Rizzo-Flow was
 run with 4-bit weights, because the 8-bit model did not fit in memory beside the operating system, and this may
 understate its accuracy. d1-3B, finally, was run zero-shot and, on LLM-AggreFact, only on a subsample. It received the
 questions used for all decision-model baselines, which may not be the phrasing that suits it best.

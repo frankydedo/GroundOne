@@ -69,16 +69,16 @@ struct AnswerPanel: View {
                 .disabled(turn.busy)
                 .accessibilityIdentifier("verify-g1")
                 Button { model.verify(turn, judge: true) } label: {
-                    Label("Verify with GroundOne + judge", systemImage: "scalemass").frame(maxWidth: .infinity)
+                    Label("Verify with GroundOne + LLM judge", systemImage: "scalemass").frame(maxWidth: .infinity)
                 }
                 .controlSize(.large)
                 .disabled(turn.busy)
                 .accessibilityIdentifier("verify-judge")
-                Text("GroundOne reads the documents and the whole answer once and scores every sentence. The judge is the same base model without the adapter, asked to write one verdict per sentence.")
+                Text("GroundOne reads the documents and the whole answer once and scores every sentence. The LLM judge is the same base model without the adapter, asked to write one verdict per sentence.")
                     .font(.caption).foregroundStyle(.secondary)
             } else if version.judge == nil {
                 Button { model.verify(turn, judge: true) } label: {
-                    Label("Add the judge comparison", systemImage: "scalemass").frame(maxWidth: .infinity)
+                    Label("Add the LLM judge comparison", systemImage: "scalemass").frame(maxWidth: .infinity)
                 }
                 .disabled(turn.busy)
                 .accessibilityIdentifier("verify-judge")
@@ -149,9 +149,9 @@ struct TimingSummary: View {
                     GridRow {
                         Stat(title: "GroundOne (\(v.scored.count) sentences)", value: v.seconds.s, color: Palette.groundOne)
                         if let j = version.judge {
-                            Stat(title: "Judge (\(j.generatedTokens) tokens)", value: j.seconds.s, color: Palette.judge)
+                            Stat(title: "LLM judge (\(j.generatedTokens) tokens)", value: j.seconds.s, color: Palette.judge)
                         } else {
-                            Stat(title: "Judge", value: "–")
+                            Stat(title: "LLM judge", value: "–")
                         }
                     }
                 }
@@ -159,9 +159,14 @@ struct TimingSummary: View {
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("timing-summary")
             if let v = version.verdicts, let j = version.judge, v.seconds > 0 {
-                Text(String(format: "On this answer the judge took %.1f× as long as GroundOne and generated %d tokens; GroundOne generated none.",
+                Text(String(format: "On this answer the LLM judge took %.1f× as long as GroundOne and generated %d tokens; GroundOne generated none.",
                             j.seconds / v.seconds, j.generatedTokens))
                     .font(.caption).foregroundStyle(.secondary)
+            }
+            if let v = version.verdicts, let c = v.cachedTokens, c > 0 {
+                Text("The sources were already read for an earlier verification: GroundOne reused \(c) cached tokens and read only the answer\(version.judge?.cachedTokens ?? 0 > 0 ? " (the LLM judge too)" : "").")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("prefix-cache-note")
             }
         }
     }
@@ -171,7 +176,7 @@ struct JudgeSummary: View {
     let version: Version
     let verdicts: Verdicts
     var body: some View {
-        PanelSection(title: "GroundOne vs judge") {
+        PanelSection(title: "GroundOne vs LLM judge") {
             let scored = verdicts.scored
             let j = version.judge!
             let agree = scored.filter { j.labels[$0.index] == $0.label }.count
@@ -187,7 +192,7 @@ struct JudgeSummary: View {
                             HStack {
                                 Label(s.label?.display ?? "–", systemImage: Palette.symbol(s.label)).foregroundStyle(Palette.color(s.label))
                                 let jl = j.labels[s.index] ?? nil
-                                Label("judge: \(jl?.display ?? "unparsed")", systemImage: Palette.symbol(jl)).foregroundStyle(Palette.color(jl))
+                                Label("LLM judge: \(jl?.display ?? "unparsed")", systemImage: Palette.symbol(jl)).foregroundStyle(Palette.color(jl))
                             }
                             .font(.caption)
                         }
@@ -224,7 +229,7 @@ struct SentencePanel: View {
                 .buttonStyle(.borderedProminent).tint(Palette.groundOne)
                 .disabled(turn.busy)
                 Button { model.verify(turn, judge: true) } label: {
-                    Label("Verify with GroundOne + judge", systemImage: "scalemass").frame(maxWidth: .infinity)
+                    Label("Verify with GroundOne + LLM judge", systemImage: "scalemass").frame(maxWidth: .infinity)
                 }
                 .disabled(turn.busy)
             }
@@ -271,11 +276,11 @@ struct SentenceDetail: View {
                     }
                 }
                 if let jl = judge?.labels[sentence.index] {
-                    Label("Judge: \(jl?.display ?? "unparsed")", systemImage: Palette.symbol(jl ?? nil))
+                    Label("LLM judge: \(jl?.display ?? "unparsed")", systemImage: Palette.symbol(jl ?? nil))
                         .foregroundStyle(Palette.color(jl ?? nil)).font(.callout)
                 }
                 if let t = groundOneSeconds {
-                    Text("Scored with the other \(max(k - 1, 0)) sentences in one GroundOne pass of \(t.s)\(judge.map { "; the judge took \($0.seconds.s) for the whole answer" } ?? "").")
+                    Text("Scored with the other \(max(k - 1, 0)) sentences in one GroundOne pass of \(t.s)\(judge.map { "; the LLM judge took \($0.seconds.s) for the whole answer" } ?? "").")
                         .font(.caption).foregroundStyle(.secondary)
                 }
             } else {

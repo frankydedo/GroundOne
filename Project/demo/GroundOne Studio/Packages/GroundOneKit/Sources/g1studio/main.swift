@@ -17,6 +17,7 @@ do {
     case "bestofn": try await BestOfN.run(rest)
     case "examples": try await Examples.run(rest)
     case "retrieval-t1": try await RetrievalT1.run(rest)
+    case "sdpa-check": SDPACheck.run(rest)
     default:
         print("usage: g1studio verify-fixture <run> [n] | ingest <corpus> <embedder> <paths...> | retrieval-check [embedders...] | ask <question> [--policy p] [--verifier run] [--no-judge]")
     }

@@ -105,3 +105,16 @@ def encode_marked(tokenizer, doc, sentences, scored):
             pos.append(len(ids) - 1)
         ids += newline
     return ids, pos
+
+
+def marked_prefix_lengths(tokenizer, doc):
+    """Token lengths of the two reusable prefixes of `encode_marked`: the fixed instructions (system + instruction, the
+    same for every request) and the whole head up to "ANSWER:" (fixed instructions + document). Causal attention makes
+    their KV cache exactly reusable by any answer on the same document (prefix caching, D32)."""
+    enc = lambda t: tokenizer.encode(t, add_special_tokens=False)  # noqa: E731
+    full = enc(f"<|im_start|>system\n{SYSTEM}<|im_end|>\n<|im_start|>user\n{INSTRUCTION_MARKED}\n\nDOCUMENT:\n{doc}\n\nANSWER:\n")
+    fixed = enc(f"<|im_start|>system\n{SYSTEM}<|im_end|>\n<|im_start|>user\n{INSTRUCTION_MARKED}\n\n")
+    n = 0
+    while n < min(len(fixed), len(full)) and fixed[n] == full[n]:  # tokens can merge across the boundary
+        n += 1
+    return n, len(full)

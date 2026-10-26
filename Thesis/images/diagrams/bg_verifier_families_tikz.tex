@@ -10,7 +10,7 @@
   \node[note, below=2mm of o1, text width=3.6cm] {fast, but binary only;\\each sentence without the rest\\of the answer};
   \draw[arrow] (i1) -- (m1); \draw[arrow] (m1) -- (o1);
   % column 2: judge
-  \node[clusterlabel] (h2) at (5.2,0) {Generative judge\\(LLM-as-a-judge)};
+  \node[clusterlabel] (h2) at (5.2,0) {LLM judge\\(LLM-as-a-judge)};
   \node[io, text width=3.2cm, below=4mm of h2, font=\footnotesize] (i2) {prompt: criteria,\\document, answer};
   \node[model=3.2cm, below=of i2, font=\footnotesize] (m2) {LLM: prefill, then\\\textbf{decoding},\\token by token};
   \node[post=3.2cm, below=of m2, font=\footnotesize] (p2) {generated text\\$\rightarrow$ parser};

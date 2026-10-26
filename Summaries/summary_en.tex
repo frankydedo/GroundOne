@@ -26,10 +26,10 @@ a single device reading text is cheap and writing it is expensive. The model rea
 bounded by compute, but writes one token at a time, each bounded by the memory bandwidth needed to read all the weights;
 on the laptop used in this thesis a written token costs fourteen to sixteen times more than a read one, and a survey of
 current local hardware shows the same asymmetry everywhere. Verifiers today are either small encoders, which return one
-fixed score per document–sentence pair, or generative judges, which write their verdicts token by token and often break
+fixed score per document–sentence pair, or LLM judges, which write their verdicts token by token and often break
 the output format. A third family, \emph{decision models}, answers closed questions in one forward pass by reading the
 probability of each answer option from the logits. Whether a compact decision model specialised in a single task can
-match judges and encoders, where its advantage comes from, and whether its probabilities are usable, had not been studied
+match LLM judges and encoders, where its advantage comes from, and whether its probabilities are usable, had not been studied
 in a controlled way on consumer hardware.
 
 \sect{GroundOne}
@@ -55,7 +55,7 @@ No label was annotated anew: RAGTruth's span annotations were converted into a t
 fixed in advance. Three test sets were built, checked and frozen before any training, with leakage controlled at document
 level: the RAGTruth test split (T1, 17{,}284 sentences), LLM-AggreFact (T2, eleven datasets) and VitaminC (T3, an
 out-of-domain fact-checking test). GroundOne is compared with cues that never read the document, the untrained models,
-generative judges of the same size with and without probabilities, two generalist decision models (Rizzo-Flow, 4B, and
+LLM judges of the same size with and without probabilities, two generalist decision models (Rizzo-Flow, 4B, and
 d1-3B of Liquid AI) and specialised encoders (MiniCheck-RoBERTa, HHEM), all on the same machine, with intervals from a
 cluster bootstrap.
 
@@ -67,10 +67,9 @@ LLM-AggreFact the 3B is on par with MiniCheck-RoBERTa (74.8 against 74.0, interv
 disappears, and d1-3B is much stronger: a specialist is not a general fact-checking tool. The readout matters by itself:
 with the same trained model, choosing among the three admissible letters is more accurate than letting the model generate
 its verdict (+0.25 for the 0.5B, +0.07 for the 3B), at the same latency. On answers of fourteen or more sentences
-GroundOne is 1.7 to 2 times faster than a terse judge and about six times faster than a verbose one, always with a valid
-output, and uses less energy (5.5 and 33 joules per answer on average), although the saving is smaller than the time
+GroundOne is 1.7 to 2 times faster than a terse LLM judge and about six times faster than a verbose one, always with a valid output; net of reading the text, which all approaches pay, it decides 18 to 33 times faster than the terse judge. It uses less energy (5.5 and 33 joules per answer on average), although the saving is smaller than the time
 saving because a long prefill draws more power than decoding. After calibration the Expected Calibration Error of the 3B
-on T1 is 0.019, while judges asked for the same output give probabilities that barely separate right from wrong
+on T1 is 0.019, while LLM judges asked for the same output give probabilities that barely separate right from wrong
 decisions. The whole evaluation runs with no network access and bit-identical results, 8-bit weights cost no accuracy
 against bf16, and generator and verifier fit together in one process with a 6.1\,GB peak.
 
@@ -85,7 +84,7 @@ T1 three-way balanced accuracy (untrained) & 0.769 (0.37) & 0.832 (0.44) \\
 T1 AUROC of P(supported) (best encoder 0.82) & 0.905 & 0.940 \\
 T2 macro balanced accuracy (MiniCheck-RoBERTa 74.0) & 70.1 & 74.8 \\
 Readout vs generated verdict, same weights & +0.25 & +0.07 \\
-Speed-up at $K \geq 14$ vs terse / verbose judge & 1.95$\times$ / 6.2$\times$ & 1.73$\times$ / 6.2$\times$ \\
+Speed-up at $K \geq 14$ vs terse / verbose LLM judge & 1.95$\times$ / 6.2$\times$ & 1.73$\times$ / 6.2$\times$ \\
 Time and energy per answer & 0.41\,s, 5.5\,J & 2.57\,s, 33\,J \\
 \bottomrule
 \end{tabular}
@@ -96,12 +95,12 @@ Time and energy per answer & 0.41\,s, 5.5\,J & 2.57\,s, 33\,J \\
 \sect{GroundOne Studio: a local application and a case study}
 A native macOS application, written in Swift with MLX Swift, puts the verifier to work in a complete RAG assistant in which
 retrieval (SQLite full-text search and small embeddings), generation (Qwen2.5-3B, 4-bit), verification and a local
-generative judge share one process, with a 6.2\,GB memory peak and no network. A conformance test on 200 T1 answers
+LLM judge share one process, with a 6.2\,GB memory peak and no network. A conformance test on 200 T1 answers
 shows identical tokens and probabilities within 0.005 of the Python implementation for the 3B. The generator's native
-answer is shown first; the user can then verify it with GroundOne alone or together with the judge, inspect the
+answer is shown first; the user can then verify it with GroundOne alone or together with the LLM judge, inspect the
 probabilities and the supporting passage of each sentence, and have flagged or selected sentences rewritten from the
 sources, one short request per sentence and by error type. In a case study with 100 injected errors GroundOne flags the
-error in 97 of the 98 answers in which the sentence receives a verdict, the judge in 84, and targeted rewriting lowers the
+error in 97 of the 98 answers in which the sentence receives a verdict, the LLM judge in 84, and targeted rewriting lowers the
 answers still containing the error from 100\,\% to 9\,\%: changed numbers and dates are mostly restored from the source,
 fabricated sentences deleted. Repeating the study with the 0.5B shows why the three-way verdict matters: it labels changed
 values as not mentioned rather than contradicted, and the generator then deletes them instead of correcting them. These

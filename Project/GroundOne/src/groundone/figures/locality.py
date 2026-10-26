@@ -51,8 +51,8 @@ IT = {
     "minimum milliseconds per generated token (log scale)": "millisecondi minimi per token generato (scala log.)",
     "minimum seconds spent writing the verdicts of one answer (log scale)": "secondi minimi per scrivere i verdetti di una risposta (scala log.)",
     "(a) any model that generates: time per token": "(a) qualunque modello che genera: tempo per token",
-    "(b) 3B generative judge: time to write the verdicts (answers with ≥ 14 sentences)": "(b) giudice da 3B: tempo per scrivere i verdetti (risposte con ≥ 14 frasi)",
-    "terse judge": "giudice sintetico", "verbose judge": "giudice verboso",
+    "(b) 3B LLM judge: time to write the verdicts (answers with ≥ 14 sentences)": "(b) giudice LLM da 3B: tempo per scrivere i verdetti (risposte con ≥ 14 frasi)",
+    "terse LLM judge": "giudice LLM sintetico", "verbose LLM judge": "giudice LLM verboso",
     "generated tokens": "token generati",
     "of weights": "di pesi",
     "16-bit (training format)": "16 bit (formato di addestramento)",
@@ -189,20 +189,20 @@ def decode_cost_by_hardware(g):
     colors = {"terse": SERIES[7], "verbose": SERIES[5]}
     for k, j in enumerate(("terse", "verbose")):
         vals = [toks[j] * gb3 / HARDWARE[n][1] for n in names]
-        a2.barh(y + (k - 0.5) * h, vals, h, color=colors[j], label=f"{tr(j + ' judge')} ({toks[j]:.0f} {tr('generated tokens')})")
+        a2.barh(y + (k - 0.5) * h, vals, h, color=colors[j], label=f"{tr(j + ' LLM judge')} ({toks[j]:.0f} {tr('generated tokens')})")
         for yi, v in zip(y + (k - 0.5) * h, vals):
             a2.text(v * 1.05, yi, f"{v:.2f} s", va="center", fontsize=7, color=INK2)
     a2.set_xscale("log")
     a2.set_xlim(right=40)
     a2.set_xlabel(tr("minimum seconds spent writing the verdicts of one answer (log scale)"))
-    a2.set_title(tr("(b) 3B generative judge: time to write the verdicts (answers with ≥ 14 sentences)"), loc="left", fontsize=9)
+    a2.set_title(tr("(b) 3B LLM judge: time to write the verdicts (answers with ≥ 14 sentences)"), loc="left", fontsize=9)
     a2.legend(loc="upper right", fontsize=7)
     for ax in (a1, a2):
         ax.set_yticks(y, labels, fontsize=8)
     g.save(fig, "decode_cost_by_hardware", "Lower bounds on the cost of generating text on each class of local hardware, "
            "computed as weight bytes divided by the vendor's memory bandwidth (batch 1, KV cache ignored). (a) Time per "
            "generated token for the two GroundOne base models in 8-bit; diamonds: decode time measured on the thesis "
-           "machine, about 75–85 % of the bound. (b) Minimum time a 3B generative judge spends only on writing its "
+           "machine, about 75–85 % of the bound. (b) Minimum time a 3B LLM judge spends only on writing its "
            "verdicts for an answer of 14 or more sentences (median generated tokens of the latency protocol). A System "
            "One generates no token, so both costs are zero for it on every machine.",
            "figures/locality.py (arithmetic on vendor specs) + Phase 0 + results/judge-{terse,verbose}-3b/latency")

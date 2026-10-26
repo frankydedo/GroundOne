@@ -8,7 +8,7 @@
 This chapter reports the experimental results. It starts from how GroundOne learns the task and from how stable its
 training is. The results on the three frozen test sets follow, together with the comparison with the baselines and the
 contribution that the decision-model readout makes by itself. The chapter then examines the quality of the
-probabilities, also in comparison with judges that produce the same output, the time and energy needed to verify an
+probabilities, also in comparison with LLM judges that produce the same output, the time and energy needed to verify an
 answer, the locality measurements (offline execution, quantisation and co-residence) and, finally, the errors that
 remain. The intervals, given in parentheses in the form ``$a$ to $b$'', are 95\,\% confidence intervals obtained with a
 cluster bootstrap, computed as described in Section~\ref{sec:setup-statistics}. Figure~\ref{fig:results-bootstrap}
@@ -345,19 +345,19 @@ sample of its own data.
 \section{Probabilities at equal output}
 \label{sec:results-equal-output}
 
-The equal-output judges serve to establish whether a generative judge of the same size, asked for the same content as
+The equal-output LLM judges serve to establish whether an LLM judge of the same size, asked for the same content as
 GroundOne, can match the quality of its probabilities. The answer is negative (Figure~\ref{fig:results-equal}). The
 comparison uses the 200 answers of the latency subset, with all systems calibrated in the same way on the dev set. For
 the 0.5B and the 3B respectively, the AUROC of $P(\text{supported})$ is 0.94 and 0.97 for GroundOne, 0.48 and 0.68 for
-the judge whose probabilities are read from the logits, and 0.47 and 0.58 for the judge that writes them. The AURC is
-0.009 and 0.005 for GroundOne, against values from 0.048 to 0.063 for the judges, that is, about seven to twelve times
+the LLM judge whose probabilities are read from the logits, and 0.47 and 0.58 for the LLM judge that writes them. The AURC is
+0.009 and 0.005 for GroundOne, against values from 0.048 to 0.063 for the LLM judges, that is, about seven to twelve times
 larger than those of GroundOne of the same size. The accuracy of the decisions follows the same pattern: 0.835 and 0.900
-for GroundOne, at most 0.41 for any judge.
+for GroundOne, at most 0.41 for any LLM judge.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/results/equal_output_judges.png}
-\caption{Equal-output comparison on the 200 answers of the latency subset. Generative judges of the same size are asked
+\caption{Equal-output comparison on the 200 answers of the latency subset. LLM judges of the same size are asked
 for GroundOne's output, with the probabilities read from the logits of the generated letter or written in JSON; all
 systems are calibrated on the dev set with the same map. Only the sentences with a valid verdict are considered.}
 \label{fig:results-equal}
@@ -369,14 +369,14 @@ sixteen distinct vectors. The 0.5B instead writes uninformative ties, such as eq
 the ties without a label are counted as errors, its balanced accuracy falls from 0.234 to 0.081. This agrees with the
 observation that the verbalised confidence of small models is coarse and poorly
 informative~\cite{xiong2024uncertainty,tian2023justask}. The second observation is that the ECE alone would hide all of
-this. After calibration every system, judges included, obtains a binary ECE between 0.03 and 0.05, because a
+this. After calibration every system, LLM judges included, obtains a binary ECE between 0.03 and 0.05, because a
 calibration map can align the average confidence with the base rate even when the probabilities do not separate the
 classes. Discriminative ability must therefore be measured separately, with the AUROC and the AURC.
 
-Asking for the probabilities, finally, has a cost. The judge that reads them from the logits is as fast as the terse
-judge, because it generates the same letters. The judge that writes the JSON object, instead, needs 17.0 seconds with
-the 3B for an answer with fourteen or more decisions, as much as the verbose judge, and is no more accurate than the
-terse judge.
+Asking for the probabilities, finally, has a cost. The LLM judge that reads them from the logits is as fast as the terse
+LLM judge, because it generates the same letters. The LLM judge that writes the JSON object, instead, needs 17.0 seconds with
+the 3B for an answer with fourteen or more decisions, as much as the verbose LLM judge, and is no more accurate than the
+terse LLM judge.
 
 \section{Latency as a function of $K$}
 \label{sec:results-latency}
@@ -384,10 +384,10 @@ terse judge.
 Figure~\ref{fig:results-latency} reports the central measurement of the thesis: the time needed to verify an answer as
 the number of decisions grows, measured on the same 200 answers of T1. Among the systems run in process on MLX,
 GroundOne is the fastest at both sizes and in every band of $K$, and its advantage grows with $K$. When the answer
-contains fourteen or more decisions, the 0.5B GroundOne needs 0.41 seconds, against 0.80 for the terse judge and 2.51
-for the verbose judge of the same size. It is therefore 1.95 times faster than the first (1.82 to 2.12) and 6.16 times
+contains fourteen or more decisions, the 0.5B GroundOne needs 0.41 seconds, against 0.80 for the terse LLM judge and 2.51
+for the verbose LLM judge of the same size. It is therefore 1.95 times faster than the first (1.82 to 2.12) and 6.16 times
 faster than the second (5.72 to 6.66). In the same band the 3B GroundOne needs 2.57 seconds, against 4.44 and 15.86
-seconds for the two 3B judges, and is therefore 1.73 times (1.65 to 1.82) and 6.18 times (5.88 to 6.63) faster.
+seconds for the two 3B LLM judges, and is therefore 1.73 times (1.65 to 1.82) and 6.18 times (5.88 to 6.63) faster.
 
 Reading all the verdicts in a single forward pass is also faster than asking one question per sentence in a batch: at
 the highest values of $K$ the gain is a factor of 1.4--1.5. The other lever is model size: the 0.5B GroundOne verifies
@@ -398,22 +398,128 @@ an answer about six times faster than the 3B, with a median time of 0.33 seconds
 \includegraphics[width=\textwidth]{images/results/latency_vs_K.png}
 \caption{Median time per answer as a function of $K$ on the same 200 answers of T1 (in-process MLX, one answer at a
 time, M4 with 16\,GB). GroundOne, the decision model with one question per sentence and the terse and verbose
-generative judges are compared. Logarithmic scale.}
+LLM judges are compared. Logarithmic scale.}
 \label{fig:results-latency}
 \end{figure}
 
-Speed is not the only difference (Figure~\ref{fig:results-judges}). The untrained generative judges are also much less
-accurate, and they do not always respect the output format. The 0.5B verbose judge produces a parsable verdict for only
-3\,\% of the sentences, because it mostly copies the answer back, while the 0.5B terse judge fails on 23\,\% of the
-sentences. The 3B judges respect the format much better (0.1\,\% format failures for the terse judge and 7.6\,\% for the
+\subsection{Reading the text and deciding}
+\label{sec:results-latency-split}
+
+GroundOne's time grows with $K$, but not because of the number of decisions as such. Answers with more sentences are
+also longer: in the latency subset the prompt goes from about 550 tokens in the $K \leq 4$ band to about 1{,}140 tokens
+at $K \geq 14$, and the prefill time grows with the length of the text. To separate the two components, the time of
+every answer was split into a \emph{reading} part, the prefill of instructions, document and answer that every approach
+must pay, and a \emph{deciding} part. For GroundOne, reading is a forward pass over the same text without markers, and
+deciding is the difference from the served pass, that is, the cost of the markers and of the readout; the two
+measurements are interleaved five times with the 0.5B and three times with the 3B, and the median is kept. For the LLM
+judges, reading is the time to the first generated token, and deciding is the decoding of the verdicts. The measurement
+uses the same 200 answers and the same protocol as the previous section, and reproduces its overall times within
+4\,\%. Table~\ref{tab:results-latency-split} reports the medians, Figure~\ref{fig:results-latency-split} their trend
+with $K$.
+
+\begin{table}[htbp]
+\centering
+\caption{Time per answer split into reading the text (prefill) and deciding, on the same 200 T1 answers: medians over
+all answers, in seconds. For GroundOne deciding is the cost of the markers and of the readout, for the LLM judges the
+decoding of the verdicts. The reading share is the median of the per-answer shares.}
+\label{tab:results-latency-split}
+\small
+\begin{tabular}{llcccc}
+\toprule
+Model & System & Reading & Deciding & Total & \makecell{Reading\\share} \\
+\midrule
+0.5B & GroundOne & 0.330 & 0.012 & 0.342 & 97\,\% \\
+ & Terse LLM judge & 0.297 & 0.383 & 0.673 & 46\,\% \\
+ & Verbose LLM judge & 0.305 & 1.509 & 1.826 & 18\,\% \\
+\midrule
+3B & GroundOne & 1.941 & 0.067 & 2.002 & 97\,\% \\
+ & Terse LLM judge & 1.753 & 1.196 & 3.102 & 61\,\% \\
+ & Verbose LLM judge & 1.756 & 8.313 & 10.277 & 18\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For GroundOne, reading takes 97\,\% of the time at both sizes. Deciding costs a median of 12 milliseconds per answer
+with the 0.5B and 67 with the 3B, that is, 1.3 and 6.7 milliseconds per sentence: the three tokens of the marker and the
+vocabulary projection at the marker positions only. The terse LLM judge spends instead 30 and 139 milliseconds per
+sentence, the verbose one 170 and 1{,}033. For the LLM judges, deciding is a substantial part of the time, and for the
+verbose judge the main part. Net of reading, GroundOne decides 33 times faster than the terse LLM judge with the 0.5B
+(30 to 38) and 18 times faster with the 3B (15 to 20); against the verbose LLM judge, 131 times (112 to 148) and 125
+times (116 to 142). With fourteen or more sentences the ratios are similar: 29 and 24 times against the terse judge,
+141 and 151 against the verbose one.
+
+The overall speed-up remains about two against the terse judge because reading, which dominates the time, is shared by
+all approaches: GroundOne's advantage lies in the part that the readout replaces, not in the prefill. The split also
+shows a cost that the overall times hide. GroundOne's reading is about 10\,\% slower than that of the LLM judges,
+although its prompt is slightly shorter: it is the extra computation of the LoRA adapter, which stays separate from the
+quantised base weights. Fusing the adapter into the weights would remove this cost, but would require quantising the
+model again and recalibrating it.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/latency_split.png}
+\caption{Median time per answer split into reading the text (prefill, in grey, shared by every approach) and deciding
+(in colour), per $K$ band, on the same 200 T1 answers. The labels give, for $K \geq 14$, how many times longer the LLM
+judge takes to decide than GroundOne.}
+\label{fig:results-latency-split}
+\end{figure}
+
+\paragraph{Prefix reuse.} The same measurement was repeated with part of the prompt already in the KV cache when the
+clock starts, the same for GroundOne and for the LLM judges: the instructions alone, identical for every request (63 to
+81 tokens), or the instructions and the document (about 640 tokens at the median), as when a rewritten answer is
+verified again on the same sources (Section~\ref{sec:method-readout}).\footnote{In the MLX version used for the
+measurements (0.29.3), the fused attention kernel with the implicit causal mask returns wrong results for some shapes
+when many queries follow cached keys, for example 501 tokens read after 523 cached ones. The paths with a cached prefix
+therefore use an explicit causal mask, which matches a float32 reference; after this correction the logits with and
+without the cache differ by at most 0.07 and the probabilities by 0.014, that is, within bfloat16 rounding. The
+measurements without a cache, and so all the other results, do not take this path. The Swift version of MLX used by the
+application does not show the error.} Table~\ref{tab:results-prefix-cache} reports the overall times.
+
+\begin{table}[htbp]
+\centering
+\caption{Overall time per answer with part of the prompt already in the KV cache, on the same 200 T1 answers: medians
+in seconds. The same cache applies to GroundOne and to the LLM judges. The last column is the ratio between the median
+times without a cache and with the document cached.}
+\label{tab:results-prefix-cache}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llcccc}
+\toprule
+Model & System & \makecell{No\\prefix} & \makecell{Instructions\\cached} & \makecell{Document\\cached} & \makecell{Saving with\\the document} \\
+\midrule
+0.5B & GroundOne & 0.342 & 0.333 & 0.108 & 3.2$\times$ \\
+ & Terse LLM judge & 0.673 & 0.652 & 0.520 & 1.3$\times$ \\
+ & Verbose LLM judge & 1.826 & 1.844 & 1.683 & 1.1$\times$ \\
+\midrule
+3B & GroundOne & 2.002 & 1.913 & 0.583 & 3.4$\times$ \\
+ & Terse LLM judge & 3.102 & 3.002 & 1.795 & 1.7$\times$ \\
+ & Verbose LLM judge & 10.277 & 9.998 & 8.742 & 1.2$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Caching the instructions alone saves 3 to 5\,\% of the time, little more than the measurement noise: they are 7\,\% of
+the tokens. The document, instead, is about two thirds of the prompt, and the difference is clear. With the document
+cached, GroundOne verifies an answer 3.2 times faster with the 0.5B (0.11 seconds at the median) and 3.4 times faster
+with the 3B (0.58 seconds). The LLM judges gain much less, 1.3 and 1.7 times for the terse one and 1.1 and 1.2 for the
+verbose one, because the cache removes only the reading and leaves the decoding of the verdicts intact, which cannot be
+reused. As a result, GroundOne's advantage over the terse LLM judge rises from about 2 to 4.8 times with the 0.5B (4.1
+to 5.2) and from 1.6 to 3.1 times with the 3B (2.8 to 3.3), and over the verbose judge to about 15 times. With the
+document cached, 90\,\% of GroundOne's time is the reading of the answer alone and the rest is deciding: verifying a
+rewritten answer therefore costs little more than its length.
+
+Speed is not the only difference (Figure~\ref{fig:results-judges}). The untrained LLM judges are also much less
+accurate, and they do not always respect the output format. The 0.5B verbose LLM judge produces a parsable verdict for only
+3\,\% of the sentences, because it mostly copies the answer back, while the 0.5B terse LLM judge fails on 23\,\% of the
+sentences. The 3B LLM judges respect the format much better (0.1\,\% format failures for the terse LLM judge and 7.6\,\% for the
 verbose one), but stop at a three-way balanced accuracy of about 0.40, against 0.90 for the 3B GroundOne on the same
-answers. The 3B verbose judge, finally, writes on average 248 tokens per answer, all of which must be generated before
+answers. The 3B verbose LLM judge, finally, writes on average 248 tokens per answer, all of which must be generated before
 the verdict can be used; GroundOne, instead, generates none.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/results/judges_quality_failures.png}
-\caption{Generative judges on the latency subset: three-way balanced accuracy, with format failures counted as errors,
+\caption{LLM judges on the latency subset: three-way balanced accuracy, with format failures counted as errors,
 and share of sentences whose verdict could not be parsed.}
 \label{fig:results-judges}
 \end{figure}
@@ -422,14 +528,14 @@ and share of sentences whose verdict could not be parsed.}
 \label{sec:results-energy}
 
 The energy measurement adds a qualification that latency alone hides (Figure~\ref{fig:results-energy}). Among the
-measured systems, that is, GroundOne and the generative judges, GroundOne is the one that uses the least energy at both
-sizes: 5.5 joules per answer with the 0.5B and 33 with the 3B, against 8.9 and 43 joules for the terse judge and 22.5
-and 112 joules for the verbose judge. Its advantage in energy, however, is smaller than its advantage in time. Compared
-with the terse judge, GroundOne uses 1.6 times less energy with the 0.5B and 1.3 times less with the 3B; compared with
-the verbose judge, 4.1 and 3.4 times less.
+measured systems, that is, GroundOne and the LLM judges, GroundOne is the one that uses the least energy at both
+sizes: 5.5 joules per answer with the 0.5B and 33 with the 3B, against 8.9 and 43 joules for the terse LLM judge and 22.5
+and 112 joules for the verbose LLM judge. Its advantage in energy, however, is smaller than its advantage in time. Compared
+with the terse LLM judge, GroundOne uses 1.6 times less energy with the 0.5B and 1.3 times less with the 3B; compared with
+the verbose LLM judge, 4.1 and 3.4 times less.
 
 The reason is the power drawn during the computation. GroundOne spends its time in a single long prefill, which keeps
-the GPU fully busy and draws about 16\,W above the idle power. The autoregressive decoding of the judges, instead, is
+the GPU fully busy and draws about 16\,W above the idle power. The autoregressive decoding of the LLM judges, instead, is
 limited by memory bandwidth and draws 11--14\,W, but for a much longer time. This is the behaviour expected from the two
 phases of transformer inference~\cite{patel2024splitwise}, and it implies that a speed-up should never be read as an
 equivalent saving of energy~\cite{samsi2023words,luccioni2024power}.

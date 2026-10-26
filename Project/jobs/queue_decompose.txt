@@ -1,0 +1,9 @@
+# 2026-10-26 (author's request): latency net of the prefill (read vs decide), same 200 latency answers, both sizes.
+GroundOne/.venv/bin/groundone baselines decompose --system groundone --size 0.5b --adapter g1-05b-b1/best --reps 5 --name decompose-05b
+GroundOne/.venv/bin/groundone baselines decompose --system terse --size 0.5b --name decompose-05b
+GroundOne/.venv/bin/groundone baselines decompose --system verbose --size 0.5b --name decompose-05b
+GroundOne/.venv/bin/groundone baselines decompose-report --name decompose-05b
+GroundOne/.venv/bin/groundone baselines decompose --system groundone --size 3b --adapter g1-3b-b1/best --reps 3 --name decompose-3b
+GroundOne/.venv/bin/groundone baselines decompose --system terse --size 3b --name decompose-3b
+GroundOne/.venv/bin/groundone baselines decompose --system verbose --size 3b --name decompose-3b
+GroundOne/.venv/bin/groundone baselines decompose-report --name decompose-3b

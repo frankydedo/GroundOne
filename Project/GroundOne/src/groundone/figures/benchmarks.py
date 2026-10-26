@@ -1,7 +1,7 @@
 """Benchmark figures on the frozen test sets: system comparison on T1 and T3, per task, and latency as a function of K.
 
 Reads results/<name>/{t1,t3}/metrics.json (GroundOne, untrained readout, encoders, Rizzo-Flow) and
-results/<name>/latency/metrics.json (judges and System One timings). Missing results are skipped, so the figures can be
+results/<name>/latency/metrics.json (LLM judges and System One timings). Missing results are skipped, so the figures can be
 regenerated as runs complete. Usage: groundone figures benchmarks
 """
 import json
@@ -25,12 +25,12 @@ SYSTEMS = [  # (label, results name, kind)
 COLORS = {**SYSTEM_COLORS, "Word overlap": "#c4c2bb", "Sentence only": "#8a877f", "d1-3B (Liquid AI)": "#e87ba4"}
 LATENCY = {  # size -> [(label, results name)]
     "0.5B": [("GroundOne (design b)", "g1-05b-b1"), ("Decision model (design a)", "untrained-05b"),
-             ("Terse judge", "judge-terse-05b"), ("Verbose judge", "judge-verbose-05b")],
+             ("Terse LLM judge", "judge-terse-05b"), ("Verbose LLM judge", "judge-verbose-05b")],
     "3B": [("GroundOne (design b)", "g1-3b-b1"), ("Decision model (design a)", "untrained-3b"),
-           ("Terse judge", "judge-terse-3b"), ("Verbose judge", "judge-verbose-3b")],
+           ("Terse LLM judge", "judge-terse-3b"), ("Verbose LLM judge", "judge-verbose-3b")],
 }
-LAT_COLORS = {"GroundOne (design b)": SERIES[0], "Decision model (design a)": SERIES[4], "Terse judge": SERIES[7],
-              "Verbose judge": SERIES[5]}
+LAT_COLORS = {"GroundOne (design b)": SERIES[0], "Decision model (design a)": SERIES[4], "Terse LLM judge": SERIES[7],
+              "Verbose LLM judge": SERIES[5]}
 BANDS = ["1-4", "5-8", "9-13", ">=14"]
 
 
@@ -122,7 +122,7 @@ def latency(g):
     np.atleast_1d(axes)[0].set_ylabel("median seconds per answer (log scale)")
     np.atleast_1d(axes)[0].legend(fontsize=7)
     g.save(fig, "latency_vs_K", "Latency per answer as a function of K on the same T1 answers (in-process MLX, one answer at a "
-           "time, M4 16 GB). Generative judges write a verdict per sentence; the System One reads all K verdicts without "
+           "time, M4 16 GB). LLM judges write a verdict per sentence; the System One reads all K verdicts without "
            "generating text.", "results/*/latency/metrics.json")
     fig, axes = plt.subplots(1, len(panels), figsize=(5.5 * len(panels), 3.4))
     for ax, (size, series) in zip(np.atleast_1d(axes), panels.items()):
@@ -145,9 +145,9 @@ def latency(g):
 
 def energy(g):
     """Joules per verified answer (powermetrics, SoC, net of idle) and the speed-up vs energy ratio, per model size."""
-    rows = {"0.5B": [("GroundOne", "energy-g1-05b"), ("Terse judge", "energy-terse-05b"), ("Verbose judge", "energy-verbose-05b")],
-            "3B": [("GroundOne", "energy-g1-3b"), ("Terse judge", "energy-terse-3b"), ("Verbose judge", "energy-verbose-3b")]}
-    col = {"GroundOne": SERIES[0], "Terse judge": SERIES[7], "Verbose judge": SERIES[5]}
+    rows = {"0.5B": [("GroundOne", "energy-g1-05b"), ("Terse LLM judge", "energy-terse-05b"), ("Verbose LLM judge", "energy-verbose-05b")],
+            "3B": [("GroundOne", "energy-g1-3b"), ("Terse LLM judge", "energy-terse-3b"), ("Verbose LLM judge", "energy-verbose-3b")]}
+    col = {"GroundOne": SERIES[0], "Terse LLM judge": SERIES[7], "Verbose LLM judge": SERIES[5]}
     data = {s: [(l, load(n, "energy")) for l, n in v if load(n, "energy")] for s, v in rows.items()}
     data = {s: v for s, v in data.items() if v}
     if not data:
@@ -172,9 +172,9 @@ def energy(g):
 
 
 def equal_output(g):
-    """Equal-output judges (B0d): ranking quality (AUROC) and calibrated risk-coverage (AURC) vs GroundOne."""
-    sys = [("GroundOne", "g1-{t}-b1", SERIES[0]), ("Judge, logits", "judge-tlogit-{t}", "#8a877f"),
-           ("Judge, verbalised", "judge-json-{t}", "#c4c2bb")]
+    """Equal-output LLM judges (B0d): ranking quality (AUROC) and calibrated risk-coverage (AURC) vs GroundOne."""
+    sys = [("GroundOne", "g1-{t}-b1", SERIES[0]), ("LLM judge, logits", "judge-tlogit-{t}", "#8a877f"),
+           ("LLM judge, verbalised", "judge-json-{t}", "#c4c2bb")]
     vals = {}
     for size, t in (("0.5B", "05b"), ("3B", "3b")):
         for label, name, _ in sys:
@@ -197,7 +197,7 @@ def equal_output(g):
     axes[0].axhline(0.5, color=NEUTRAL, ls="--", lw=1)
     axes[0].set_ylim(0, 1.22)
     axes[0].legend(fontsize=7, loc="upper center", ncol=3, frameon=True, facecolor="white", edgecolor="#e4e3df")
-    g.save(fig, "equal_output_judges", "Equal-output comparison on the 200 latency answers: generative judges of the same size "
+    g.save(fig, "equal_output_judges", "Equal-output comparison on the 200 latency answers: LLM judges of the same size "
            "asked for GroundOne's output (a label and three probabilities per sentence), with probabilities read from the "
            "logits of the generated letter or written in JSON; all systems calibrated on dev with the same map. Sentences "
            "with a valid verdict only.", "results/{g1-*,judge-tlogit-*,judge-json-*}/latency/calibration.json")
@@ -289,6 +289,45 @@ def gain_decomposition(g):
            "is evaluated on 600 answers. Dashed: chance.", "results/{untrained,b2,g1}-*/t1/metrics.json")
 
 
+def latency_split(g):
+    """Time per answer split into reading the text (prefill, shared) and deciding, per K band and model size."""
+    runs = {"0.5B": "decompose-05b", "3B": "decompose-3b"}
+    data = {s: json.loads(p.read_text()) for s, n in runs.items()
+            if (p := RESULTS_DIR / n / "decompose" / "metrics.json").exists()}
+    if not data:
+        return
+    systems = [("groundone", "GroundOne", SERIES[0]), ("terse", "Terse LLM judge", SERIES[7]),
+               ("verbose", "Verbose LLM judge", SERIES[5])]
+    fig, axes = plt.subplots(1, len(data), figsize=(5.6 * len(data), 3.8))
+    w = 0.26
+    for ax, (size, m) in zip(np.atleast_1d(axes), data.items()):
+        for k, (key, label, color) in enumerate(systems):
+            if key not in m["systems"]:
+                continue
+            bands = m["systems"][key]["by_K_band"]
+            x = np.arange(len(BANDS)) + (k - 1) * w
+            read = [bands[b]["read_s"] if b in bands else np.nan for b in BANDS]
+            decide = [max(bands[b]["decide_s"], 0) if b in bands else np.nan for b in BANDS]
+            ax.bar(x, read, w * 0.92, color="#d9d7d0", edgecolor="white", linewidth=0.5,
+                   label="reading the text (prefill)" if k == 0 else None)
+            ax.bar(x, decide, w * 0.92, bottom=read, color=color, edgecolor="white", linewidth=0.5,
+                   label="GroundOne: deciding (markers + readout)" if key == "groundone" else f"{label}: writing the verdicts")
+            if key != "groundone" and ">=14" in m["speedup"].get(key, {}):
+                sp = m["speedup"][key][">=14"]["decide"]["ratio"]
+                ax.annotate(f"×{sp:.0f}", (x[-1], read[-1] + decide[-1]), xytext=(0, 2), textcoords="offset points",
+                            ha="center", va="bottom", fontsize=7)
+        ax.set_xticks(range(len(BANDS)), BANDS)
+        ax.set_xlabel("K = sentences checked in the answer")
+        ax.set_title(f"Qwen2.5 {size}")
+    np.atleast_1d(axes)[0].set_ylabel("median seconds per answer")
+    np.atleast_1d(axes)[0].legend(fontsize=7, loc="upper left")
+    g.save(fig, "latency_split", "Time to verify one answer split into reading the document and the answer (the prefill, "
+           "which every approach pays) and deciding: for GroundOne the marker tokens and the readout, for the LLM judges "
+           "the decoding of the verdicts. Same 200 T1 answers as the latency runs, in-process MLX, medians per K band. "
+           "The labels give, for K >= 14, how many times longer the LLM judge takes to decide than GroundOne.",
+           "results/decompose-*/decompose/metrics.json")
+
+
 def main():
     g = Group("benchmarks")
     seed_runs(g)
@@ -300,4 +339,5 @@ def main():
     comparison(g, "t3", "T3 VitaminC test")
     by_task(g)
     latency(g)
+    latency_split(g)
     g.write_index("Benchmarks on the frozen test sets")

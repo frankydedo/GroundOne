@@ -1,0 +1,15 @@
+# 2026-10-26 (author's request, D32): prefix caching, same 200 latency answers, same cache for GroundOne and the LLM judges.
+GroundOne/.venv/bin/groundone baselines decompose --system groundone --size 0.5b --adapter g1-05b-b1/best --reps 5 --cache fixed --name decompose-05b
+GroundOne/.venv/bin/groundone baselines decompose --system terse --size 0.5b --cache fixed --name decompose-05b
+GroundOne/.venv/bin/groundone baselines decompose --system verbose --size 0.5b --cache fixed --name decompose-05b
+GroundOne/.venv/bin/groundone baselines decompose --system groundone --size 0.5b --adapter g1-05b-b1/best --reps 5 --cache doc --name decompose-05b
+GroundOne/.venv/bin/groundone baselines decompose --system terse --size 0.5b --cache doc --name decompose-05b
+GroundOne/.venv/bin/groundone baselines decompose --system verbose --size 0.5b --cache doc --name decompose-05b
+GroundOne/.venv/bin/groundone baselines decompose-report --name decompose-05b
+GroundOne/.venv/bin/groundone baselines decompose --system groundone --size 3b --adapter g1-3b-b1/best --reps 3 --cache fixed --name decompose-3b
+GroundOne/.venv/bin/groundone baselines decompose --system terse --size 3b --cache fixed --name decompose-3b
+GroundOne/.venv/bin/groundone baselines decompose --system verbose --size 3b --cache fixed --name decompose-3b
+GroundOne/.venv/bin/groundone baselines decompose --system groundone --size 3b --adapter g1-3b-b1/best --reps 3 --cache doc --name decompose-3b
+GroundOne/.venv/bin/groundone baselines decompose --system terse --size 3b --cache doc --name decompose-3b
+GroundOne/.venv/bin/groundone baselines decompose --system verbose --size 3b --cache doc --name decompose-3b
+GroundOne/.venv/bin/groundone baselines decompose-report --name decompose-3b

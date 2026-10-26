@@ -63,10 +63,13 @@ public struct Verdicts: Codable, Sendable {
     public var seconds: Double
     public var threshold: Double
     public var model: String
+    /// Tokens read from the prefix cache (instructions + document already read for an earlier verification), D32.
+    public var cachedTokens: Int?
 
-    public init(sentences: [SentenceVerdict], inputTokens: Int, seconds: Double, threshold: Double, model: String) {
+    public init(sentences: [SentenceVerdict], inputTokens: Int, seconds: Double, threshold: Double, model: String,
+                cachedTokens: Int? = nil) {
         self.sentences = sentences; self.inputTokens = inputTokens; self.seconds = seconds
-        self.threshold = threshold; self.model = model
+        self.threshold = threshold; self.model = model; self.cachedTokens = cachedTokens
     }
 
     public var scored: [SentenceVerdict] { sentences.filter(\.scored) }
@@ -79,10 +82,13 @@ public struct JudgeVerdicts: Codable, Sendable {
     public var inputTokens: Int
     public var generatedTokens: Int
     public var seconds: Double
+    /// Prompt tokens read from the judge's own prefix cache (same policy as GroundOne's), D32.
+    public var cachedTokens: Int?
 
-    public init(labels: [Int: Label?], rawText: String, inputTokens: Int, generatedTokens: Int, seconds: Double) {
+    public init(labels: [Int: Label?], rawText: String, inputTokens: Int, generatedTokens: Int, seconds: Double,
+                cachedTokens: Int? = nil) {
         self.labels = labels; self.rawText = rawText; self.inputTokens = inputTokens
-        self.generatedTokens = generatedTokens; self.seconds = seconds
+        self.generatedTokens = generatedTokens; self.seconds = seconds; self.cachedTokens = cachedTokens
     }
 }
 

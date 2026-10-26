@@ -253,7 +253,7 @@ final class AppModel {
     /// One GroundOne pass over the whole shown version; with `judge`, the generative judge on the same answer.
     func verify(_ turn: Turn, judge: Bool) {
         guard let session, let i = turn.shownIndex, !turn.busy else { return }
-        turn.stage = judge ? "GroundOne and the generative judge are verifying" : "GroundOne is verifying"
+        turn.stage = judge ? "GroundOne and the LLM judge are verifying" : "GroundOne is verifying"
         let v = turn.record.versions[i]
         let doc = turn.record.document
         let tau = self.tau

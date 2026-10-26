@@ -6,9 +6,9 @@
   \node[post=2.6cm, font=\footnotesize] (a) at (3.2,0) {retrieval and\\\textbf{native answer}\\(not verified)};
   \node[decision, font=\footnotesize, text width=1.8cm] (v) at (6.8,0) {verify?};
   \node[model=2.9cm, font=\footnotesize] (g1) at (10.6,0.75) {GroundOne: all sentences in one forward pass};
-  \node[model=2.9cm, font=\footnotesize, draw=decLine, fill=decFill] (gj) at (10.6,-0.75) {GroundOne + judge: verdicts and times side by side};
+  \node[model=2.9cm, font=\footnotesize, draw=decLine, fill=decFill] (gj) at (10.6,-0.75) {GroundOne + LLM judge: verdicts and times side by side};
   \node[post=3.0cm, font=\footnotesize] (col) at (10.6,-2.9) {sentences coloured by verdict; counts; times};
-  \node[post=3.3cm, font=\footnotesize] (sel) at (6.2,-2.9) {click a sentence:\\probabilities, judge, times};
+  \node[post=3.3cm, font=\footnotesize] (sel) at (6.2,-2.9) {click a sentence:\\probabilities, LLM judge, times};
   \node[model=2.6cm, font=\footnotesize] (ev) at (2.2,-2.1) {Find evidence: passage preview, span highlighted};
   \node[model=2.6cm, font=\footnotesize] (rw) at (2.2,-3.9) {rewrite the selected or flagged sentences (Fix)};
   \node[outcome=okLine, fill=okFill, font=\footnotesize] (nv) at (6.2,-5.0) {new version, verified again};

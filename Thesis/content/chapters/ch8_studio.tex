@@ -10,7 +10,7 @@ the application completes the argument for locality (Chapter~\ref{sec:local}): i
 able to run locally; it must also be shown that a usable system can be built around it without any external service. On
 the other hand, it makes visible, on real answers, the properties measured in Chapter~\ref{sec:results}: the
 verification of every sentence in a single forward pass, the calibrated probabilities, the comparison with a generative
-judge. The measurements collected in the application form a case study and are kept separate from the results of
+LLM judge. The measurements collected in the application form a case study and are kept separate from the results of
 Chapter~\ref{sec:results}: they describe the behaviour of the complete system and do not establish new records.
 
 \section{Goals and requirements}
@@ -31,7 +31,7 @@ connection.
 What the user sees & Claim supported \\
 \midrule
 Every sentence of the answer coloured according to the GroundOne verdict, with the calibrated probabilities. & The probabilities are usable and consistent with the label shown (RQ3). \\ \addlinespace[2pt]
-The comparison, on the same answer, with a generative judge run locally: verdicts and times side by side. & Reading all the verdicts in a single forward pass, without generating text, is more accurate than a judge that writes the verdicts, and faster, increasingly so as the answer grows longer (RQ2). \\ \addlinespace[2pt]
+The comparison, on the same answer, with an LLM judge run locally: verdicts and times side by side. & Reading all the verdicts in a single forward pass, without generating text, is more accurate than an LLM judge that writes the verdicts, and faster, increasingly so as the answer grows longer (RQ2). \\ \addlinespace[2pt]
 A panel with the generation and verification times and the memory in use. & Generator and verifier coexist in 16\,GB, and verification costs little compared with generation (RQ4). \\ \addlinespace[2pt]
 The rewriting of the flagged sentences from the documents, verified again. & Verification is cheap enough to sit inside the generation loop. \\ \addlinespace[2pt]
 For every sentence, the passage of the document that supports or contradicts it, highlighted. & Attribution to the passage can be obtained with the same model; it is an unevaluated prototype (Section~\ref{sec:concl-future}). \\
@@ -60,7 +60,7 @@ shaders requires Xcode.
 The application is divided into three layers (Figure~\ref{fig:studio-architecture}). The first is the interface. The
 second is a core that does not depend on the engines: it manages the session (answer, verification, rewriting), applies
 the policy and saves conversations and logs. The core knows only five abstract interfaces, called \emph{ports}:
-retriever, generator, verifier, judge and attributor. The third layer contains the engines that implement them. Thanks
+retriever, generator, verifier, LLM judge and attributor. The third layer contains the engines that implement them. Thanks
 to this separation the core was tested with fake, deterministic engines, just as the Python package is tested with a
 fake backend, and a different engine, for example a generator on llama.cpp, could replace the current one without
 touching the rest.
@@ -69,7 +69,7 @@ touching the rest.
 \centering
 \includegraphics[width=\textwidth]{images/diagrams/studio_architecture_tikz.pdf}
 \caption{Architecture of GroundOne Studio. The core knows only the ports; the engines, all in the same process, are the
-retriever, the generator, GroundOne (verifier and, passage by passage, attributor) and the judge, which uses the same
+retriever, the generator, GroundOne (verifier and, passage by passage, attributor) and the LLM judge, which uses the same
 weights as GroundOne with the adapter removed. The components in which GroundOne is involved are shown in blue.}
 \label{fig:studio-architecture}
 \end{figure}
@@ -78,9 +78,9 @@ There are four engines. The generator is Qwen2.5-3B-Instruct quantised to 4 bits
 co-residence measurement of Section~\ref{sec:results-locality}. The verifier is GroundOne 3B, that is, the 8-bit base
 with the LoRA adapter, the marker prompt, the readout of the letters A, B and C and the calibration fitted on the dev
 set. It is the default model because it is the most accurate, and in the application verification happens only on
-request, in less than two seconds for a typical answer; a selector allows switching to the faster 0.5B. The judge used
+request, in less than two seconds for a typical answer; a selector allows switching to the faster 0.5B. The LLM judge used
 for the comparison is the same base model as GroundOne with the adapter removed at runtime and the prompt of the terse
-judge B0a (Section~\ref{sec:setup-baselines}): it is exactly the judge measured in the thesis, it takes no additional
+LLM judge B0a (Section~\ref{sec:setup-baselines}): it is exactly the LLM judge measured in the thesis, it takes no additional
 memory and it does not leave the machine. The retriever, finally, combines a full-text index and a small embedding model
 (Section~\ref{sec:studio-library}).
 
@@ -178,7 +178,7 @@ that the index works, not that retrieval is robust to freely formulated question
 \centering
 \includegraphics[width=\textwidth]{images/diagrams/studio_flow_tikz.pdf}
 \caption{The usage flow. The answer appears as the generator wrote it; verification, with GroundOne or with GroundOne
-and the judge, and rewriting happen only on request, and every rewriting produces a new version that is verified again
+and the LLM judge, and rewriting happen only on request, and every rewriting produces a new version that is verified again
 in the same mode.}
 \label{fig:studio-flow}
 \end{figure}
@@ -186,7 +186,7 @@ in the same mode.}
 The usage flow is summarised in Figure~\ref{fig:studio-flow}. The user asks a question, or picks one of the examples
 offered on the start screen. The generator receives the retrieved passages and writes an answer of several paragraphs,
 which appears exactly as it was generated, without any intervention (Figure~\ref{fig:studio-native}). Only at this point
-does the user decide whether to verify it, and how: with GroundOne alone, or with GroundOne and the generative judge, to
+does the user decide whether to verify it, and how: with GroundOne alone, or with GroundOne and the LLM judge, to
 compare verdicts and times. The separation is deliberate: by showing the native answer first, the effect of verification
 remains visible, instead of delivering an already filtered answer straight away.
 
@@ -202,19 +202,19 @@ GroundOne verification, in both modes, reads the whole answer in a single forwar
 verdict together, and an answer with many sentences does not require more passes. After verification the sentences are
 coloured: light green for supported sentences, red for contradicted ones, orange for those not mentioned by the
 document; sentences without checkable content remain grey (Figure~\ref{fig:studio-verified}). The side panel reports the
-counts, the threshold $\tau$, the times of generation, of verification and, if requested, of the judge, and the
-sentences on which GroundOne and the judge disagree.
+counts, the threshold $\tau$, the times of generation, of verification and, if requested, of the LLM judge, and the
+sentences on which GroundOne and the LLM judge disagree.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/studio/42-verified.png}
-\caption{The same answer after verification with GroundOne and the judge. The sentences are coloured according to the
-GroundOne verdict; the panel reports counts, times and disagreements with the judge.}
+\caption{The same answer after verification with GroundOne and the LLM judge. The sentences are coloured according to the
+GroundOne verdict; the panel reports counts, times and disagreements with the LLM judge.}
 \label{fig:studio-verified}
 \end{figure}
 
 Every sentence can be selected. A click shows, in the panel, the three calibrated probabilities, the verdict of the
-judge and the times; with the Command key several sentences can be selected (Figure~\ref{fig:studio-sentence}). From
+LLM judge and the times; with the Command key several sentences can be selected (Figure~\ref{fig:studio-sentence}). From
 here the user can request the supporting evidence, or the rewriting of the selected sentences. When nothing is selected,
 a button rewrites all the flagged sentences according to the chosen policy. Every rewriting produces a new version of
 the answer, verified again in the same mode, and a selector allows the versions to be compared.
@@ -222,7 +222,7 @@ the answer, verified again in the same mode, and a selector allows the versions 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/studio/43-sentence.png}
-\caption{The panel of a selected sentence: calibrated probabilities of GroundOne, verdict of the judge, times and
+\caption{The panel of a selected sentence: calibrated probabilities of GroundOne, verdict of the LLM judge, times and
 available actions.}
 \label{fig:studio-sentence}
 \end{figure}
@@ -250,8 +250,7 @@ with the closest span highlighted.}
 \paragraph{Targeted rewriting.} Rewriting follows a principle of the verify-and-revise loops that have proved effective
 in the literature: an external critic, or retrieved evidence, flags the errors and the generator changes only what has
 been flagged~\cite{gao2023rarr,gou2024critic}, whereas spontaneous self-correction, without an external signal, does not
-reliably improve the answers~\cite{huang2024cannotselfcorrect}. GroundOne is the critic, and a cheap one: verifying
-again costs a single prefill. For every sentence to be rewritten, the generator receives a short request, with the
+reliably improve the answers~\cite{huang2024cannotselfcorrect}. GroundOne is the critic, and a cheap one: verifying again costs a single prefill, and not even a full one. The instructions and the sources, already read at the first verification, stay in the KV cache (Section~\ref{sec:method-readout}), so the new version only requires reading the rewritten answer, which in the measurements of Section~\ref{sec:results-latency-split} makes the verification 3.4 times faster with the 3B; the LLM judge, when requested, reuses its own cache in the same way, and the timing panel shows when the sources were reused. For every sentence to be rewritten, the generator receives a short request, with the
 sentence and only the excerpt of the document that concerns it, and an instruction that depends on the type of error. A
 contradicted sentence must be corrected with the facts of the source and cannot be deleted: if the generator does not
 return a usable sentence, the original one stays in place and is resubmitted in the next round. A sentence that is not
@@ -268,10 +267,10 @@ contradicted and not-mentioned sentences, the lenient policy only the former.
 \paragraph{Conversations and statistics.} Questions are organised into separate conversations, which can be renamed,
 deleted and resumed at any time. A dedicated section collects the statistics of all the verifications run in the
 application, including those of previous sessions (Figure~\ref{fig:studio-stats}): the time of GroundOne and that of the
-judge as a function of the number of sentences, the agreement between the two on the same sentences, the distribution of
-the verdicts and the cost the same verification would have had with a cloud judge. The cost uses the same list prices
+LLM judge as a function of the number of sentences, the agreement between the two on the same sentences, the distribution of
+the verdicts and the cost the same verification would have had with a cloud LLM judge. The cost uses the same list prices
 as Table~\ref{tab:disc-cost}: the input tokens are those of the document and the answer plus the instruction; the output
-tokens are those actually written by the local judge or, if the judge was not run, their mean number per sentence
+tokens are those actually written by the local LLM judge or, if the LLM judge was not run, their mean number per sentence
 measured in the thesis. The cost of the electricity consumed locally, estimated from the verification time and from the
 power measured in Section~\ref{sec:results-energy}, is subtracted from it.
 
@@ -279,7 +278,7 @@ power measured in Section~\ref{sec:results-energy}, is subtracted from it.
 \centering
 \includegraphics[width=\textwidth]{images/studio/46-stats.png}
 \caption{The statistics section: key indicators, verification time as a function of the number of sentences for
-GroundOne and for the judge, and cost of the same verification with a cloud judge.}
+GroundOne and for the LLM judge, and cost of the same verification with a cloud LLM judge.}
 \label{fig:studio-stats}
 \end{figure}
 
@@ -300,7 +299,8 @@ Data & Format & Use \\
 Conversations & One JSON file per conversation. & Questions, answer versions, verdicts, times; resumption of conversations. \\ \addlinespace[2pt]
 Action log & Append-only JSONL file. & One line for every generation, verification and rewriting; basis of the statistics and of the browsable log. \\ \addlinespace[2pt]
 Library & SQLite database. & Full-text index for BM25 and passage embeddings, with the origin of each passage. \\ \addlinespace[2pt]
-Policies & JSON files. & Selectable decision and rewriting rules. \\
+Policies & JSON files. & Selectable decision and rewriting rules. \\ \addlinespace[2pt]
+KV cache of the sources & In memory only. & Instructions and the last documents already read, reused by later verifications; not saved to disk. \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -316,7 +316,7 @@ injected errors, whose position is known in advance and does not depend on Groun
 full, 100 were drawn from the three tasks: 46 from summarisation, 29 from question answering and 25 from data-to-text. A
 single error was injected into each, of four types, 25 per type: a number replaced with a value absent from the
 document, a name replaced with an invented one, a shifted date, or an invented sentence inserted after an existing one.
-The answers then go through the same engine as the application: GroundOne verifies the answer, the judge verifies it in
+The answers then go through the same engine as the application: GroundOne verifies the answer, the LLM judge verifies it in
 turn for the comparison, and the strict policy rewrites the flagged sentences for up to two rounds. An error counts as
 removed when the wrong value no longer appears in the text, or when no sentence remains similar to the invented one. The
 case study does not use retrieval: the document is that of T1.
@@ -333,7 +333,7 @@ in which the sentence with the error receives its own verdict.}
 Measure & Value \\
 \midrule
 Sentence with the error flagged by GroundOne & 97 of 98 \\
-Sentence with the error flagged by the generative judge & 84 of 98 \\
+Sentence with the error flagged by the LLM judge & 84 of 98 \\
 False alarms of GroundOne on the other sentences & 1.6\,\% \\
 Answers still containing the error: without the loop, after one and after two rounds & 100\,\%, 10\,\%, 9\,\% \\
 Errors removed by restoring the value of the source & 41 \\
@@ -342,7 +342,7 @@ Errors removed by deleting the sentence & 49 \\
 Remaining errors: still flagged / never flagged & 6 / 3 \\
 Other sentences left identical & 98.2\,\% \\
 Answers accepted by GroundOne at the end & 90\,\% \\
-Median time per answer: GroundOne, judge, rewriting per round & 1.74\,s, 2.27\,s, 0.90\,s \\
+Median time per answer: GroundOne, LLM judge, rewriting per round & 1.74\,s, 2.27\,s, 0.90\,s \\
 Memory allocated by MLX: after loading and at peak & 5.1\,GB, 6.2\,GB \\
 \bottomrule
 \end{tabular}
@@ -351,7 +351,7 @@ Memory allocated by MLX: after loading and at peak & 5.1\,GB, 6.2\,GB \\
 \paragraph{Results.} Table~\ref{tab:studio-casestudy} and Figure~\ref{fig:studio-outcomes} summarise the case study. In
 98 answers the sentence with the error receives its own verdict; in the other two, the segmenter merges it with an
 introductory sentence without checkable content, and the sentence is not scored. GroundOne flags the error in 97 of the
-98 answers, the judge in 84. The loop reduces the answers that still contain the error from 100\,\% to 10\,\% after one
+98 answers, the LLM judge in 84. The loop reduces the answers that still contain the error from 100\,\% to 10\,\% after one
 round and to 9\,\% after two, according to the automatic count. The way in which errors are removed matters as much as
 their number. For replaced numbers and dates, in most cases the generator restores the value of the source: 18 numbers
 and 16 dates out of 25. Invented sentences, instead, are deleted, all 25 of them, which is the appropriate correction.
@@ -380,11 +380,11 @@ contradicted and a not-mentioned sentence, which Chapter~\ref{sec:method} motiva
 whether the correction restores the information or eliminates it.
 
 \paragraph{Times.} The comparison of times confirms the picture of Section~\ref{sec:results-latency}. On these answers,
-with a median of about 770 tokens between document and answer and of six scored sentences, the median time of the judge
-is about 1.3 times that of GroundOne, and the judge writes around twenty tokens, whereas GroundOne generates none. The
-difference is small because the terse judge writes little and the answers are short. The comparison on detection, 97
+with a median of about 770 tokens between document and answer and of six scored sentences, the median time of the LLM judge
+is about 1.3 times that of GroundOne, and the LLM judge writes around twenty tokens, whereas GroundOne generates none. The
+difference is small because the terse LLM judge writes little and the answers are short. The comparison on detection, 97
 errors flagged against 84, instead favours GroundOne by construction: the answers were chosen among those that GroundOne
-accepts in full, a filter that the judge did not pass, and the false alarms of the judge on the correct sentences were
+accepts in full, a filter that the LLM judge did not pass, and the false alarms of the LLM judge on the correct sentences were
 not measured.
 
 \paragraph{A comparison at equal compute.} On 60 new T1 answers, generated by the model for each task, the complete
@@ -417,8 +417,8 @@ dollars when the balance falls below 25 dollars. The retrieved passage instead s
 balance falls below 10 dollars. The sentence follows the source almost word for word, and it is precisely the type of
 error that Section~\ref{sec:results-errors} identifies as the hardest for GroundOne. GroundOne assigns it a probability
 of support of 0.86, below the threshold of 0.925, and indicates contradiction as the most likely error; the generative
-judge considers it supported. GroundOne also flags as not mentioned three sentences that add details or inferences
-absent from the documents, for example that the display shows the toll amount, whereas the judge accepts them all.
+LLM judge considers it supported. GroundOne also flags as not mentioned three sentences that add details or inferences
+absent from the documents, for example that the display shows the toll amount, whereas the LLM judge accepts them all.
 Rewriting, however, fails: the 3B generator returns the same sentence, with the same wrong amount, confirming that the
 quality of the loop also depends on the generator.
 
