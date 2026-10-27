@@ -9,7 +9,7 @@ import json
 import numpy as np
 
 from ..config import DATA_PROCESSED, RESULTS_DIR
-from .style import NEUTRAL, SERIES, SYSTEM_COLORS, Group, bar_labels, plt
+from .style import GRID, INK2, LANG, NEUTRAL, SERIES, SYSTEM_COLORS, Group, _tr_text, bar_labels, plt
 
 SYSTEMS = [  # (label, results name, kind)
     ("Word overlap", None, "overlap"),
@@ -391,6 +391,62 @@ def prefill_composition(g):
            "results/decompose-3b/decompose/*.parquet")
 
 
+def speedup_summary(g):
+    """GroundOne's speed-up over the LLM judges in each situation, at equal conditions (same answers, machine, cache):
+    no cache, sources cached (read ahead or verified before), after a rewrite, and the deciding part alone."""
+    runs = {"0.5B": "decompose-05b", "3B": "decompose-3b"}
+    data = {s: json.loads(p.read_text()) for s, n in runs.items()
+            if (p := RESULTS_DIR / n / "decompose" / "metrics.json").exists()}
+    if len(data) < 2 or any("cache" not in m or "rewrite" not in m for m in data.values()):
+        return
+    situations = [  # (label, getter(metrics, judge) -> {"ratio", "ci95"} or None, hatched)
+        ("no cache\nall answers", lambda m, j: m["speedup"][j]["all"]["total"], False),
+        ("no cache\nK ≥ 14", lambda m, j: m["speedup"][j][">=14"]["total"], False),
+        ("sources\ncached\nall answers", lambda m, j: m["cache"]["doc"]["speedup"][j]["all"]["total"], False),
+        ("sources\ncached\nK ≥ 14", lambda m, j: m["cache"]["doc"]["speedup"][j][">=14"]["total"], False),
+        ("after a\nrewrite\nall answers", lambda m, j: m["rewrite"]["terse_over_groundone"]["prefix"] if j == "terse" else None, False),
+        ("deciding\nonly (net\nof reading)", lambda m, j: m["speedup"][j]["all"]["decide"], True),
+    ]
+    fig, axes = plt.subplots(1, 2, figsize=(11.2, 4.0), sharey=True)
+    x = np.arange(len(situations))
+    w = 0.38
+    for ax, (judge, title) in zip(axes, [("terse", "(a) Terse LLM judge"), ("verbose", "(b) Verbose LLM judge")]):
+        for k, size in enumerate(["0.5B", "3B"]):
+            color = SYSTEM_COLORS[f"GroundOne {size}"]
+            for i, (_, get, hatched) in enumerate(situations):
+                r = get(data[size], judge)
+                xi = x[i] + (k - 0.5) * w
+                if r is None:
+                    ax.text(xi, 1.15, "n.m.", ha="center", va="bottom", fontsize=7, color=NEUTRAL)
+                    continue
+                lo, hi = r["ci95"]
+                ax.bar(xi, r["ratio"], w * 0.9, color=color, edgecolor="white", linewidth=0.8,
+                       hatch="///" if hatched else None, alpha=0.75 if hatched else 1.0,
+                       label=f"GroundOne {size}" if i == 0 else None)
+                ax.errorbar(xi, r["ratio"], yerr=[[r["ratio"] - lo], [hi - r["ratio"]]], fmt="none", ecolor=INK2,
+                            elinewidth=0.9, capsize=2)
+                ax.text(xi, hi * 1.06, f"{r['ratio']:.1f}" if r["ratio"] < 10 else f"{r['ratio']:.0f}", ha="center",
+                        va="bottom", fontsize=7)
+        ax.axhline(1, color=INK2, linewidth=0.8, linestyle="--")
+        ax.axvline(len(situations) - 1.5, color=GRID, linewidth=1.2)
+        ax.set_yscale("log")
+        ax.set_yticks([1, 2, 5, 10, 20, 50, 100], ["1", "2", "5", "10", "20", "50", "100"])
+        ax.minorticks_off()
+        ax.grid(axis="x", visible=False)
+        # tick labels are redrawn from the formatter, after `localise`: translate them here
+        ax.set_xticks(x, [_tr_text(s) if LANG == "it" else s for s, _, _ in situations], fontsize=7.5)
+        ax.set_title(title)
+    axes[0].set_ylabel("speed-up of GroundOne (× faster, log scale)")
+    axes[0].legend(fontsize=7.5, loc="upper left")
+    g.save(fig, "speedup_summary",
+           "GroundOne's speed-up over the LLM judges in each situation, on the same 200 T1 answers (ratio of median "
+           "times, 95 % bootstrap intervals). In every situation GroundOne and the judge have the same cache: the sources "
+           "cached are the state after a read-ahead or an earlier verification; after a rewrite, the beginning of the "
+           "answer is cached as well (verbose judge not measured, n.m.). The hatched bars, right of the line, exclude "
+           "reading the text: the limit that the overall speed-up approaches as the reading shrinks.",
+           "results/decompose-*/decompose/metrics.json")
+
+
 def main():
     g = Group("benchmarks")
     seed_runs(g)
@@ -404,4 +460,5 @@ def main():
     latency(g)
     latency_split(g)
     prefill_composition(g)
+    speedup_summary(g)
     g.write_index("Benchmarks on the frozen test sets")

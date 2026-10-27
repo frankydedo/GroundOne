@@ -585,7 +585,7 @@ document cache check that the reused verdicts match those of a pass without cach
 
 \paragraph{The speed-up across situations.} The measurements of this section always compare GroundOne and the LLM
 judges under the same conditions: the same answers, the same machine and, when there is one, the same cache.
-Table~\ref{tab:results-speedup-summary} brings them together. The differences between rows do not come from
+Table~\ref{tab:results-speedup-summary} and Figure~\ref{fig:results-speedup-summary} bring them together. The differences between rows do not come from
 optimisations granted to one system only, but from how much, in each situation, the part that the readout removes
 weighs. Without a cache, reading the text, which both approaches pay, is almost all of GroundOne's time and about half of
 the terse judge's, and the overall speed-up stays between 1.6 and 2 times; net of reading, GroundOne decides 18 to 33
@@ -619,6 +619,16 @@ After a rewrite (the beginning of the answer cached as well) & \makecell{12.0\\{
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/speedup_summary.png}
+\caption{GroundOne's speed-up over the LLM judges in the different situations, on the same 200 T1 answers (ratio of the
+median times, logarithmic scale, 95\,\% bootstrap intervals). In every situation GroundOne and the judge have the same
+cache. The hatched columns, right of the line, exclude reading the text: they are the limit that the overall speed-up
+approaches as the reading shrinks. n.m.: not measured.}
+\label{fig:results-speedup-summary}
+\end{figure}
 
 Speed is not the only difference (Figure~\ref{fig:results-judges}). The untrained LLM judges are also much less
 accurate, and they do not always respect the output format. The 0.5B verbose LLM judge produces a parsable verdict for only

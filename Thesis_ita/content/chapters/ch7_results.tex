@@ -574,7 +574,7 @@ passaggio senza cache.
 
 \paragraph{Lo speed-up nelle diverse situazioni.} Le misure di questa sezione confrontano GroundOne e i giudici LLM
 sempre a parità di condizioni: stesse risposte, stessa macchina e, quando c'è, la stessa cache. La
-Tabella~\ref{tab:results-speedup-summary} le riunisce. Le differenze fra una riga e l'altra non dipendono da
+Tabella~\ref{tab:results-speedup-summary} e la Figura~\ref{fig:results-speedup-summary} le riuniscono. Le differenze fra una riga e l'altra non dipendono da
 ottimizzazioni concesse a un solo sistema, ma da quanto pesa, in ciascuna situazione, la parte che il readout elimina.
 Senza cache la lettura del testo, comune ai due approcci, è quasi tutto il tempo di GroundOne e circa metà di quello del
 giudice sintetico, e lo speed-up complessivo resta fra 1.6 e 2 volte; al netto della lettura, la decisione di GroundOne è
@@ -608,6 +608,16 @@ Dopo una riscrittura (in cache anche l'inizio della risposta) & \makecell{12.0\\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/speedup_summary.png}
+\caption{Speed-up di GroundOne sui giudici LLM nelle diverse situazioni, sulle stesse 200 risposte di T1 (rapporto fra i
+tempi mediani, scala logaritmica, intervalli bootstrap al 95\,\%; ``tutte'': tutte le risposte). In ogni situazione
+GroundOne e il giudice hanno la stessa cache. Le colonne tratteggiate, a destra della linea, escludono la lettura del
+testo: sono il limite a cui tende lo speed-up complessivo quando la lettura si riduce. n.m.: non misurato.}
+\label{fig:results-speedup-summary}
+\end{figure}
 
 La velocità non è l'unica differenza (Figura~\ref{fig:results-judges}). I giudici LLM non addestrati sono anche
 molto meno accurati, e non sempre rispettano il formato di output. Il giudice LLM verboso 0.5B produce un verdetto
