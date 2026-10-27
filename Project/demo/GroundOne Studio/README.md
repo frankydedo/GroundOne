@@ -78,4 +78,5 @@ Long runs that load models go under the memory guard, e.g. `groundone guard Proj
 | `retrieval-check [embedders…]` | the embedding choice (decision 3) |
 | `ask "<question>" [--policy p] [--verifier run] [--no-judge]` | one end-to-end query, printed |
 | `casestudy [--verifier run] [--n N]` | injected-error case study (D30) → `outputs/demo/casestudy/` |
+| `prefetch-timing [run] [n]` | first verification cold vs after the sources were read ahead, on the fixture answers (`outputs/demo/results/prefetch-<run>.json`) |
 | `install` | copies what the app needs into Application Support |

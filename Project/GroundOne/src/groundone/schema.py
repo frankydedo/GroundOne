@@ -38,6 +38,18 @@ class VerifyRequest(Strict):
         return self
 
 
+class PrefetchRequest(Strict):
+    document: str = Field(min_length=1, max_length=200_000,
+                          description="Retrieved context that a later /v1/verify call will use: its KV cache is read now")
+
+
+class PrefetchResponse(Strict):
+    cached: Literal["read", "already", "disabled"] = Field(
+        description="read: the head was read now; already: it was cached; disabled: design (a) or prefix cache off")
+    head_tokens: int
+    seconds: float
+
+
 class SentenceResult(Strict):
     index: int
     text: str

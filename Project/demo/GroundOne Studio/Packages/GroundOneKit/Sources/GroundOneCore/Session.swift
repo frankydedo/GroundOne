@@ -119,6 +119,12 @@ public struct StudioSession: Sendable {
         return Version(origin: .generated, text: LibraryPrompt.clean(text), generation: stats)
     }
 
+    /// Reads the sources into GroundOne's prefix cache in the background, while the user reads the native answer, so
+    /// that the verification, if asked, reads only the answer.
+    public func prefetch(document: String) {
+        verifier.prefetch(document: document)
+    }
+
     /// One GroundOne pass over the whole answer (all sentences at once), labels by τ; optionally the judge too.
     public func verify(_ v: Version, document: String, threshold: Double? = nil, withJudge: Bool) async throws -> Version {
         var out = v

@@ -181,6 +181,21 @@ def test_verify_b_reuses_the_unchanged_first_sentences(client_b):
     assert [s["p_supported"] for s in second["sentences"][:2]] == [s["p_supported"] for s in first["sentences"][:2]]
 
 
+def test_prefetch_reads_the_document_before_the_verification(client_b):
+    """A document read ahead with /v1/prefetch is found in the cache by the verification, which reads only the answer;
+    the verdicts equal those of a verification without prefetch."""
+    c, engine = client_b
+    doc = "Paris is the capital of France."
+    cold = c.post("/v1/verify", json={"document": doc, "answer": ANSWER_B}).json()
+    engine._docs.clear(); engine._answers.clear()
+    first = c.post("/v1/prefetch", json={"document": doc}).json()
+    again = c.post("/v1/prefetch", json={"document": doc}).json()
+    assert (first["cached"], again["cached"]) == ("read", "already") and first["head_tokens"] > 0
+    warm = c.post("/v1/verify", json={"document": doc, "answer": ANSWER_B}).json()
+    assert warm["prefix_cache"] == "document"
+    assert [s["p_supported"] for s in warm["sentences"]] == [s["p_supported"] for s in cold["sentences"]]
+
+
 def test_verify_b_labels_flags_and_probabilities_are_coherent(client_b):
     c, engine = client_b
     engine.calibration = Calibration({"three": 1.0}, "f" * 16, biases={"three": [0.0, 0.0, 0.0]}, thresholds={"three": 0.4})

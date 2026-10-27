@@ -1,0 +1,3 @@
+'demo/GroundOne Studio/build/dd/Build/Products/Release/g1studio' prefetch-timing g1-3b-b1
+'demo/GroundOne Studio/build/dd/Build/Products/Release/g1studio' prefetch-timing g1-05b-b1
+'demo/GroundOne Studio/build/dd/Build/Products/Release/g1studio' verify-fixture g1-3b-b1

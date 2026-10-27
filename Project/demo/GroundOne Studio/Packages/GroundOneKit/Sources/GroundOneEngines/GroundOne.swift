@@ -28,6 +28,47 @@ public final class GroundOneModel: @unchecked Sendable {
 
     /// Drops the last answer, so that the next pass reuses at most the cached head (used by the conformance check).
     public func forgetLastAnswer() { lock.withLock { lastAnswer = nil } }
+    /// A head being read ahead of the verification (`prefetch`), and whether the judge (adapter off) is running.
+    private var pendingPrefetch: Task<Void, Never>?
+    private var judgeActive = false
+
+    /// Reads a prompt head (instructions + document) into the prefix cache in the background, ahead of the
+    /// verification: called when the generator has finished, while the user reads the answer, so that the first
+    /// verification reads only the answer. Skipped if the head is cached, another prefetch is running, or the judge
+    /// has the adapter removed; the next pass waits for a running prefetch, so the work is never done twice.
+    public func prefetch(headIds: [Int]) {
+        guard prefixCacheEnabled, !headIds.isEmpty else { return }
+        lock.withLock {
+            guard pendingPrefetch == nil, !judgeActive, adapterLoaded,
+                  !prefixes.contains(where: { $0.adapter && $0.ids == headIds }) else { return }
+            let container = self.container
+            pendingPrefetch = Task { [self] in
+                let state = try? await container.perform { context -> PrefixState? in
+                    guard let qwen = context.model as? Qwen2Model else { return nil }
+                    return try Self.cache(context, qwen, ids: headIds, state: nil).fresh
+                }
+                if let state = state ?? nil { storePrefix(adapter: true, ids: headIds, state: state) }
+                lock.withLock { pendingPrefetch = nil }
+            }
+        }
+    }
+
+    /// Empties the prefix cache and the last answer (timing runs start every answer from a cold state).
+    public func clearPrefixCache() { lock.withLock { prefixes.removeAll(); lastAnswer = nil } }
+
+    /// Waits for a running prefetch, if any.
+    public func awaitPrefetch() async {
+        let task = lock.withLock { pendingPrefetch }
+        await task?.value
+    }
+
+    /// The judge removes the adapter: no prefetch may start meanwhile, and a running one finishes first.
+    func beginJudge() async {
+        let task: Task<Void, Never>? = lock.withLock { judgeActive = true; return pendingPrefetch }
+        await task?.value
+    }
+
+    func endJudge() { lock.withLock { judgeActive = false } }
 
     public var name: String { "GroundOne \(info.run)" }
 
@@ -64,6 +105,7 @@ public final class GroundOneModel: @unchecked Sendable {
         -> (logits: [[Double]], cachedTokens: Int)
     {
         guard !positions.isEmpty else { return ([], 0) }
+        await awaitPrefetch()
         try await setAdapter(true)
         let letters = letterIDs
         let head = prefixCacheEnabled ? min(prefixLength ?? 0, positions.min()!) : 0
@@ -240,6 +282,10 @@ public struct GroundOneVerifier: Verifier {
         return Verdicts(sentences: out, inputTokens: ids.count, seconds: Date().timeIntervalSince(t0),
                         threshold: cal.threshold, model: name, cachedTokens: cached)
     }
+
+    public func prefetch(document: String) {
+        model.prefetch(headIds: model.encoder.encode(MarkedPrompt.head(document: document)))
+    }
 }
 
 /// B0a terse judge on GroundOne's base weights without the adapter: the judge measured in the thesis, locally.
@@ -250,6 +296,8 @@ public struct LocalJudge: Judge {
 
     public func judge(document: String, sentences: [String], check: [Int]) async throws -> JudgeVerdicts {
         guard !check.isEmpty else { return JudgeVerdicts(labels: [:], rawText: "", inputTokens: 0, generatedTokens: 0, seconds: 0) }
+        await model.beginJudge()
+        defer { model.endJudge() }
         try await model.setAdapter(false)
         let user = JudgePrompt.user(document: document, sentences: sentences, check: check)
         let messages: [[String: any Sendable]] = [["role": "system", "content": MarkedPrompt.system], ["role": "user", "content": user]]

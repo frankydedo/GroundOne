@@ -9,7 +9,7 @@ It runs fully on-device on Apple Silicon (MLX) with fine-tuned Qwen2.5 0.5B or 3
 | --- | --- |
 | Models | Qwen2.5-0.5B-Instruct, Qwen2.5-3B-Instruct (MLX 8-bit) + GroundOne LoRA adapters |
 | Decision | one per sentence: A supported · B contradicted · C not mentioned (design b in training, evaluation and the HTTP API; design a only for base models and the compatible API) |
-| APIs | native `POST /v1/verify`; TypeSafe/Jev-compatible `POST /v1/systemone` (same contract as Rizzo-Flow) |
+| APIs | native `POST /v1/verify` and `POST /v1/prefetch`; TypeSafe/Jev-compatible `POST /v1/systemone` (same contract as Rizzo-Flow) |
 | Output | per sentence: label, three calibrated probabilities, strict / lenient flags (one coherent rule, D27); 0 generated tokens |
 
 ## Install
@@ -78,6 +78,7 @@ With a design (b) adapter (served since D27):
 - **Segmentation.** The answer is segmented with the rule used for training (`data/segment.py`), or you can pass `sentences: [...]`. Sentences without checkable content ("Sure!") come back with `scored: false` and no verdict.
 - **One pass.** All verdicts are read in one forward pass at the markers.
 - **Prefix cache (D32).** The fixed instructions are read once per process, and the last four documents stay in the KV cache, so another answer on a cached document (a rewritten answer, a second question on the same sources) costs only the answer's tokens. It is exact under causal attention (`tests/test_model.py`). The last answer verified on each document is kept as well, so after a rewrite the pass starts at the first changed token and the verdicts of the sentences before it are reused. The response field `prefix_cache` says what was reused (`answer prefix`, `document`, `instructions`); `GROUNDONE_PREFIX_CACHE=0` turns it off.
+- **Prefetch: `POST /v1/prefetch` `{"document": ...}`.** Reads the document into the prefix cache before the answer exists (while the generator writes it, or while the user reads it), so that the first `/v1/verify` on it already reads only the answer. Returns `cached` (`read`, `already`, `disabled`), `head_tokens` and `seconds`.
 - **Per scored sentence:** `labels.three` (supported / contradicted / not_mentioned), the three probabilities in `answers.three`, `p_supported`, and the flags `flag_strict` (= `flagged`, not supported) and `flag_lenient` (contradicted). `questions` (`sup`, `strict`, `lenient`) adds derived views of the same three probabilities.
 - **One coherent rule.** Labels, flags and the probabilities shown come from a single rule. The probabilities are calibrated (`<run>/best/calibration.json`), and the label is "supported" iff `p_supported >= threshold`, otherwise the more probable of the other two. The threshold is the one fitted on dev by `calibrate-b`, or the request's `threshold`. With no threshold at all, the label is the argmax of the raw class-balanced logits, the decision used in the evaluation.
 - **Response metadata:** `design`, `decision_rule`, `threshold`, `n_decisions`, `usage` (input tokens, 0 output tokens) and `timing`.

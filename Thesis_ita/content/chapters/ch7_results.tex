@@ -468,7 +468,7 @@ conta: è la quota maggiore del prompt e del tempo, e resta lo stesso in tutti i
 stesse fonti, cioè una risposta riscritta, più risposte alternative o più domande sulla stessa libreria. Tenerlo in
 memoria costa poco: con il 3B la KV cache occupa circa 36\,KB per token, e un documento mediano circa 21\,MB. Per questo
 il servizio conserva gli ultimi quattro documenti letti e l'applicazione le ultime sedici intestazioni (istruzioni e
-documento). La risposta, invece, non si può riusare come blocco, perché cambia a ogni versione; se ne può riusare soltanto
+documento). Il documento, inoltre, è noto prima della risposta: lo si può leggere mentre il generatore scrive o mentre l'utente legge la risposta, così che anche la prima verifica legga soltanto la risposta (Capitolo~\ref{ch:studio}). La risposta, invece, non si può riusare come blocco, perché cambia a ogni versione; se ne può riusare soltanto
 la parte iniziale, fino alla prima frase modificata, come mostra il paragrafo \emph{Riuso del prefisso della risposta}. La
 decisione di GroundOne, infine, è già una frazione trascurabile del tempo, mentre quella del giudice è decoding, che
 nessuna cache elimina: per questo la cache allarga il divario tra i due.

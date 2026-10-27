@@ -189,7 +189,7 @@ offered on the start screen. The generator receives the retrieved passages and w
 which appears exactly as it was generated, without any intervention (Figure~\ref{fig:studio-native}). Only at this point
 does the user decide whether to verify it, and how: with GroundOne alone, or with GroundOne and the LLM judge, to
 compare verdicts and times. The separation is deliberate: by showing the native answer first, the effect of verification
-remains visible, instead of delivering an already filtered answer straight away.
+remains visible, instead of delivering an already filtered answer straight away. The separation also has a cost advantage. The sources are known before the answer, so, as soon as the generator has finished, GroundOne reads the instructions and the sources into its KV cache in the background while the user reads the answer, and the verification, if requested, reads only the answer. On the 200 answers of the latency measurement, with the 3B the first verification drops at the median from 2.11 to 0.59 seconds (3.6 times), while the read-ahead, 1.41 seconds, uses the GPU when it would otherwise be idle; with the 0.5B the verification drops from 0.35 to 0.10 seconds. If the user asks for the verification before the read-ahead has finished, the verification waits for it instead of repeating it, and costs as much as without read-ahead (2.11 seconds at the median with the 3B). The Python service offers the same mechanism through a dedicated call (\texttt{/v1/prefetch}).
 
 \begin{figure}[htbp]
 \centering
@@ -251,7 +251,7 @@ with the closest span highlighted.}
 \paragraph{Targeted rewriting.} Rewriting follows a principle of the verify-and-revise loops that have proved effective
 in the literature: an external critic, or retrieved evidence, flags the errors and the generator changes only what has
 been flagged~\cite{gao2023rarr,gou2024critic}, whereas spontaneous self-correction, without an external signal, does not
-reliably improve the answers~\cite{huang2024cannotselfcorrect}. GroundOne is the critic, and a cheap one: verifying again costs a single prefill, and not even a full one. The instructions and the sources, already read at the first verification, stay in the KV cache (Section~\ref{sec:method-readout}), so the new version only requires reading the rewritten answer, which in the measurements of Section~\ref{sec:results-latency-split} makes the verification 3.4 times faster with the 3B. The part of the answer before the first rewritten sentence is also kept, together with the verdicts of its sentences, so the reading restarts at the first change: when the last sentence is rewritten, the verification is about six times faster than with the sources alone (Table~\ref{tab:results-answer-prefix}). The LLM judge, when requested, reuses the cache of the sources, but writes all its verdicts again; the timing panel shows how many tokens were reused. For every sentence to be rewritten, the generator receives a short request, with the
+reliably improve the answers~\cite{huang2024cannotselfcorrect}. GroundOne is the critic, and a cheap one: verifying again costs a single prefill, and not even a full one. The instructions and the sources, already read ahead or at the first verification, stay in the KV cache (Section~\ref{sec:method-readout}), so the new version only requires reading the rewritten answer, which in the measurements of Section~\ref{sec:results-latency-split} makes the verification 3.4 times faster with the 3B. The part of the answer before the first rewritten sentence is also kept, together with the verdicts of its sentences, so the reading restarts at the first change: when the last sentence is rewritten, the verification is about six times faster than with the sources alone (Table~\ref{tab:results-answer-prefix}). The LLM judge, when requested, reuses the cache of the sources, but writes all its verdicts again; the timing panel shows how many tokens were reused. For every sentence to be rewritten, the generator receives a short request, with the
 sentence and only the excerpt of the document that concerns it, and an instruction that depends on the type of error. A
 contradicted sentence must be corrected with the facts of the source and cannot be deleted: if the generator does not
 return a usable sentence, the original one stays in place and is resubmitted in the next round. A sentence that is not
@@ -300,7 +300,7 @@ Conversations & One JSON file per conversation. & Questions, answer versions, ve
 Action log & Append-only JSONL file. & One line for every generation, verification and rewriting; basis of the statistics and of the browsable log. \\ \addlinespace[2pt]
 Library & SQLite database. & Full-text index for BM25 and passage embeddings, with the origin of each passage. \\ \addlinespace[2pt]
 Policies & JSON files. & Selectable decision and rewriting rules. \\ \addlinespace[2pt]
-KV cache of the sources & In memory only. & Instructions, the last documents already read and the last answer verified, reused by later verifications; not saved to disk. \\
+KV cache of the sources & In memory only. & Instructions, the last documents already read (also ahead, while the user reads the answer) and the last answer verified, reused by later verifications; not saved to disk. \\
 \bottomrule
 \end{tabular}
 \end{table}

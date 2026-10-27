@@ -3,6 +3,8 @@
 Routes
   POST /v1/verify      native: document + answer -> per-sentence verdicts; design (b) adapters: one pass, three-way
                        label + calibrated probabilities + strict/lenient flags from one rule (D27)
+  POST /v1/prefetch    native: reads a document into the prefix cache ahead of /v1/verify (design b), so that the
+                       verification reads only the answer
   POST /v1/systemone   TypeSafe/Jev-compatible (same contract as Rizzo-Flow): state + noul/choice/score questions
   GET  /v1/models      model list for the compatible API
   GET  /health         readiness + model metadata (base model, adapter hash, prompt version, fingerprint)
@@ -21,7 +23,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 from . import __version__, compat
 from .config import API_KEY_ENV
-from .schema import VerifyRequest, VerifyResponse
+from .schema import PrefetchRequest, PrefetchResponse, VerifyRequest, VerifyResponse
 
 PLAYGROUND = Path(__file__).with_name("playground.html")
 
@@ -61,6 +63,10 @@ def create_app(engine, api_key=None):
             return engine.verify(request)
         except ValueError as e:
             raise HTTPException(status_code=422, detail=str(e)) from e
+
+    @app.post("/v1/prefetch", response_model=PrefetchResponse)
+    def prefetch(request: PrefetchRequest):
+        return engine.prefetch(request.document)
 
     @app.post("/v1/systemone", dependencies=[Depends(authorize)])
     def systemone(request: compat.SystemOneRequest):

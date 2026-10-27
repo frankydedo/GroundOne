@@ -29,13 +29,14 @@ def test_batched_equals_one_pass_per_question(engine):
 
 def test_cached_prefix_equals_one_pass(engine):
     """D32: reading the answer after a cached document (built on cached instructions) gives the logits of one pass."""
-    from groundone.prompts import encode_marked, marked_prefix_lengths
+    from groundone.prompts import encode_marked, marked_head, marked_prefix_lengths
     b = engine.backend
     doc = "The Eiffel Tower is in Paris. It was completed in 1889 and is 330 metres tall. " * 5
     sents = ["The tower is in Paris.", "It was finished in 1889.", "It is 500 metres tall."]
     ids, pos = encode_marked(b.tokenizer, doc, sents, [True] * 3)
     n_fixed, n_head = marked_prefix_lengths(b.tokenizer, doc)
     assert 0 < n_fixed < n_head < pos[0]
+    assert marked_head(b.tokenizer, doc)[1] == ids[:n_head]   # what /v1/prefetch reads is the verification's head
     one = engine._run(b.score_positions, [ids], [pos])[0]
     fixed = engine._run(b.prefill, ids[:n_fixed])
     head = engine._run(b.prefill, ids[:n_head], fixed)

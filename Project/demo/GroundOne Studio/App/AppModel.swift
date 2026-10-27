@@ -266,6 +266,7 @@ final class AppModel {
                 rec.versions = [v]
                 turn.record = rec
                 finish(turn, event: "generated")
+                session.prefetch(document: rec.document)   // read the sources while the user reads the answer
             } catch { fail(turn, error) }
         }
     }

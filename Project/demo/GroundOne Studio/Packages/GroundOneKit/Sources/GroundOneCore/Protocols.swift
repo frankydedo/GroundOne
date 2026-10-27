@@ -15,6 +15,12 @@ public protocol Generator: Sendable {
 public protocol Verifier: Sendable {
     var name: String { get }
     func verify(document: String, sentences: [Segment]) async throws -> Verdicts
+    /// Starts reading `document` into the verifier's prefix cache in the background (default: nothing).
+    func prefetch(document: String)
+}
+
+extension Verifier {
+    public func prefetch(document: String) {}
 }
 
 /// The generative judge of the comparison mode (B0a terse prompt, base model without the adapter).

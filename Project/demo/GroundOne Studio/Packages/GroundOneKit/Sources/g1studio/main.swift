@@ -18,6 +18,7 @@ do {
     case "examples": try await Examples.run(rest)
     case "retrieval-t1": try await RetrievalT1.run(rest)
     case "sdpa-check": SDPACheck.run(rest)
+    case "prefetch-timing": print(try await PrefetchTiming.run(run: rest.first ?? "g1-3b-b1", limit: rest.count > 1 ? Int(rest[1]) : nil))
     default:
         print("usage: g1studio verify-fixture <run> [n] | ingest <corpus> <embedder> <paths...> | retrieval-check [embedders...] | ask <question> [--policy p] [--verifier run] [--no-judge]")
     }

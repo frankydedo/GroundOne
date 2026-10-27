@@ -4,7 +4,7 @@ import GroundOneCore
 /// The conformance gate (demo_architecture.md §5.3): the Swift port must reproduce the Python fixtures exported by
 /// `groundone.tools.export_fixtures` (token ids, marker positions, logits, calibrated probabilities, served labels).
 public enum Conformance {
-    struct Fixture: Decodable {
+    struct Fixture: Decodable {   // also read by PrefetchTiming
         struct Item: Decodable {
             let id: String
             let doc: String

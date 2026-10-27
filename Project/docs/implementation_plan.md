@@ -174,6 +174,7 @@ Record future changes below (date, decision, reason).
 - 2026-10-19: **D31** (thesis terminology: decision model instead of System One, title included; Italian version done, English at alignment).
 - 2026-10-26: **D32** (latency net of the prefill, an added measurement; "LLM judge" terminology in thesis, figures and app).
 - 2026-10-26: D32 extended (author): the prefix cache also keeps the last answer verified, so a re-verification after a rewrite reads only from the first changed token and reuses the earlier verdicts (service and app); measured with `decompose --cache rewrite` (thesis Ch. 7 `tab:results-answer-prefix`).
+- 2026-10-27: D32 extended (author): read-ahead of the sources: the app reads instructions + sources into GroundOne's cache while the user reads the native answer, the service offers `POST /v1/prefetch`; first verification 3.6× faster with the 3B (2.11 → 0.59 s), no penalty when asked at once (`g1studio prefetch-timing`).
 - 2026-10-26: **D33** (rewrite copy check + retry; 7B selectable generator; case studies rerun with the final rewrite).
 
 ---

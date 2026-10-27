@@ -422,6 +422,12 @@ before the first changed token are reused and the pass starts there (`forgetLast
 only the head cache, since its verdicts follow the whole answer. The conformance test checks both cached paths against
 the cold one (document reuse, then an answer prefix after a one-token change; max |Δp| < 0.01): 0.0073 with the 3B
 (PASS), 0.0186 with the 0.5B (bf16 envelope; the 0.5B already misses the cold gate, 0.031 vs Python).
+Read-ahead (2026-10-27): when the generator has finished, `AppModel.ask` calls `Session.prefetch(document:)`, and
+`GroundOneModel.prefetch(headIds:)` reads the head in a background task while the user reads the native answer; the next
+pass waits for a running read-ahead (never computed twice). It is skipped while the judge runs (`beginJudge`/`endJudge`:
+the adapter is removed, so a head read then would be wrong) and the judge waits for a running one. First verification
+2.11 → 0.59 s with the 3B, 0.35 → 0.10 s with the 0.5B; no penalty if verification is asked at once
+(`g1studio prefetch-timing`).
 The cache lives in memory only. Python 0.29.3's attention kernel needs an explicit mask on this path (thesis notes,
 2026-10-26); MLX Swift 0.32.3 does not (`g1studio sdpa-check`).
 

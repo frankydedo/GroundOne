@@ -176,17 +176,7 @@ class Engine:
         be = self.backend
         n_fixed, n_head = marked_prefix_lengths(be.tokenizer, document)
         key = tuple(ids[:n_head])
-        if key in self._docs:
-            self._docs.move_to_end(key)
-            hit = "document"
-        else:
-            if self._fixed is None or self._fixed["ids"] != tuple(ids[:n_fixed]):
-                self._fixed = be.prefill(ids[:n_fixed])
-            self._docs[key] = be.prefill(ids[:n_head], base=self._fixed)
-            while len(self._docs) > self.max_cached_docs:
-                self._docs.popitem(last=False)
-            self._answers.pop(key, None)
-            hit = "instructions"
+        hit = "document" if self._cache_head(ids[:n_head], n_fixed) else "instructions"
         last = self._answers.get(key)
         n = common_prefix_len(last["ids"], ids) if last else 0
         old = dict(zip(last["pos"], last["logits"])) if last else {}
@@ -207,6 +197,34 @@ class Engine:
             logits, full = be.score_positions_from(self._docs[key], ids, pos, keep=True)
         self._answers[key] = {**full, "pos": list(pos), "logits": logits}
         return logits, hit
+
+    def _cache_head(self, head, n_fixed):
+        """Runs on the worker thread. Makes sure the KV state of `head` (instructions + document) is cached, reading it
+        from the cached fixed instructions if needed. Returns True if it was already cached."""
+        be, key = self.backend, tuple(head)
+        if key in self._docs:
+            self._docs.move_to_end(key)
+            return True
+        if self._fixed is None or self._fixed["ids"] != tuple(head[:n_fixed]):
+            self._fixed = be.prefill(head[:n_fixed])
+        self._docs[key] = be.prefill(head, base=self._fixed)
+        while len(self._docs) > self.max_cached_docs:
+            self._docs.popitem(last=False)
+        self._answers.pop(key, None)
+        return False
+
+    # ------------------------------------------------------------------ native: /v1/prefetch
+    def prefetch(self, document):
+        """Reads the head of the marked prompt (instructions + document) into the prefix cache ahead of a verification,
+        e.g. while the generator is writing the answer or the user is reading it: the verification that follows reads
+        only the answer. Exact under causal attention, like every other use of the cache (D32)."""
+        from .prompts import marked_head
+        t0 = time.perf_counter()
+        if self.design != "b" or not self.prefix_cache:
+            return {"cached": "disabled", "head_tokens": 0, "seconds": 0.0}
+        n_fixed, head = marked_head(self.backend.tokenizer, document)
+        was = self._run(self._cache_head, head, n_fixed)
+        return {"cached": "already" if was else "read", "head_tokens": len(head), "seconds": time.perf_counter() - t0}
 
     # ------------------------------------------------------------------ compatible: /v1/systemone
     def systemone(self, req):

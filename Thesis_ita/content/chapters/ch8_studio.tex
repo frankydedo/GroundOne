@@ -188,7 +188,7 @@ proposti nella schermata iniziale. Il generatore riceve i passaggi recuperati e 
 compare così come è stata generata, senza alcun intervento (Figura~\ref{fig:studio-native}). Solo a questo punto l'utente
 decide se verificarla, e come: con il solo GroundOne, oppure con GroundOne e il giudice LLM, per confrontare verdetti
 e tempi. La separazione è voluta: mostrando per prima la risposta nativa, l'effetto della verifica resta visibile, invece di
-consegnare direttamente una risposta già filtrata.
+consegnare direttamente una risposta già filtrata. La separazione ha anche un vantaggio di costo. Le fonti sono note prima della risposta, quindi, appena il generatore ha finito, GroundOne legge in background istruzioni e fonti nella propria KV cache mentre l'utente legge la risposta, e la verifica, se richiesta, legge soltanto la risposta. Sulle 200 risposte della misura di latenza, con il 3B la prima verifica scende in mediana da 2.11 a 0.59 secondi (3.6 volte), mentre la lettura anticipata, 1.41 secondi, occupa la GPU quando sarebbe altrimenti inattiva; con il 0.5B la verifica scende da 0.35 a 0.10 secondi. Se l'utente chiede la verifica prima che la lettura anticipata sia finita, la verifica la attende invece di ripeterla e costa quanto senza lettura anticipata (2.11 secondi in mediana con il 3B). Il servizio Python offre lo stesso meccanismo con una chiamata dedicata (\texttt{/v1/prefetch}).
 
 \begin{figure}[htbp]
 \centering
@@ -250,7 +250,7 @@ più vicino evidenziato.}
 efficaci in letteratura: un critico esterno, o un'evidenza recuperata, segnala gli errori e il generatore modifica
 soltanto ciò che è stato segnalato~\cite{gao2023rarr,gou2024critic}, mentre la correzione spontanea, senza un segnale
 esterno, non migliora in modo affidabile le risposte~\cite{huang2024cannotselfcorrect}. GroundOne è il critico, ed è
-economico: verificare di nuovo costa un solo prefill, e nemmeno completo. Le istruzioni e le fonti, già lette alla
+economico: verificare di nuovo costa un solo prefill, e nemmeno completo. Le istruzioni e le fonti, già lette in anticipo o alla
 prima verifica, restano nella KV cache (Sezione~\ref{sec:method-readout}), quindi la nuova versione richiede soltanto la
 lettura della risposta riscritta, che nelle misure della Sezione~\ref{sec:results-latency-split} rende la verifica 3.4 volte più rapida con il 3B. Resta in cache anche la parte della risposta che precede la prima frase riscritta, insieme ai verdetti delle sue frasi, quindi la lettura riparte dalla prima modifica: quando viene riscritta l'ultima frase, la verifica è circa sei volte più rapida che con le sole fonti in cache (Tabella~\ref{tab:results-answer-prefix}). Il giudice LLM, quando è richiesto, riusa la cache delle fonti, ma riscrive tutti i propri verdetti; il
 pannello dei tempi indica quanti token sono stati riusati. Per ogni frase da riscrivere, il generatore riceve una richiesta
@@ -302,7 +302,7 @@ Conversazioni & Un file JSON per conversazione. & Domande, versioni della rispos
 Registro delle azioni & File JSONL in sola aggiunta. & Una riga per ogni generazione, verifica e riscrittura; base delle statistiche e del registro consultabile. \\ \addlinespace[2pt]
 Libreria & Database SQLite. & Indice full-text per BM25 ed embedding dei passaggi, con l'origine di ciascun passaggio. \\ \addlinespace[2pt]
 Policy & File JSON. & Regole di decisione e di riscrittura selezionabili. \\ \addlinespace[2pt]
-KV cache delle fonti & Solo in memoria. & Istruzioni, ultimi documenti già letti e ultima risposta verificata, riusati dalle verifiche successive; non è salvata su disco. \\
+KV cache delle fonti & Solo in memoria. & Istruzioni, ultimi documenti già letti (anche in anticipo, mentre l'utente legge la risposta) e ultima risposta verificata, riusati dalle verifiche successive; non è salvata su disco. \\
 \bottomrule
 \end{tabular}
 \end{table}
