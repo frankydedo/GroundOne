@@ -25,22 +25,17 @@
 %
 \vspace{\stretch{4}}
 %
-\makebox[\textwidth]{\null\hfill\def\arraystretch{1.1} % to change the spacing change this number
-\begin{minipage}[t]{.4\textwidth}
-    \begin{tabular}[t]{@{}l@{}} % name directly under the label, left-aligned
+\makebox[\textwidth]{\def\arraystretch{1.1} % to change the spacing change this number
+    % supervisor on the left margin, candidate on the right margin, each name under its label
+    \begin{tabular}[t]{@{}l@{}}
         \fixednamesfont \thesissupervisortext: \\
         \namesfont \thesissupervisoronename~\thesissupervisoronesurname
-    \end{tabular}
-\end{minipage}
-%
-\hfill
-%
-\begin{minipage}[t]{.5\textwidth} % wider: the candidate's full name did not fit in .4
-\begin{tabular}[t]{@{}l@{}}
-    \fixednamesfont \thesiscandidatetext: \\
-    \namesfont \thesiscandidatename~\thesiscandidatesurname
-\end{tabular}
-\end{minipage}\hfill\null}\\
+    \end{tabular}%
+    \hfill
+    \begin{tabular}[t]{@{}l@{}}
+        \fixednamesfont \thesiscandidatetext: \\
+        \namesfont \thesiscandidatename~\thesiscandidatesurname
+    \end{tabular}}\\
 %
 \vspace{\stretch{1}}
 %
