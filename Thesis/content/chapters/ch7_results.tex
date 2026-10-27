@@ -464,6 +464,39 @@ judge takes to decide than GroundOne.}
 \label{fig:results-latency-split}
 \end{figure}
 
+\paragraph{Composition of the prefill.} The prefill is almost all of GroundOne's time, but its parts do not change in
+the same way from one verification to the next. The prompt has four of them, in order: the instructions, the same for
+every request; the document, the same as long as answers on the same sources are verified; the answer, which changes with
+every version; the markers, three tokens per sentence (Figure~\ref{fig:results-prefill-composition}a). On the 200 answers
+of the latency measurement the instructions are 63 tokens, 7\,\% of the prompt; the document has 577 at the median,
+65\,\%; answer and markers together make up the remaining 28\,\%, a share that grows with the number of sentences, from
+19\,\% below five sentences to 35\,\% from fourteen up. The time is split in the same way
+(Figure~\ref{fig:results-prefill-composition}b): with the 3B, on answers with fourteen or more sentences, reading the
+document is 60\,\% of GroundOne's time, reading the answer 34\,\%, the instructions 2\,\% and deciding 3\,\%. The terse
+LLM judge reads the same document, but half of its time goes into writing the verdicts.
+
+This composition determines what is worth caching. The instructions can always be reused, but they weigh little: keeping
+them costs a single KV cache per process and saves a few percentage points. The document is the part that matters: it is
+the largest share of the prompt and of the time, and it stays the same whenever the same sources are verified again, that
+is, for a rewritten answer, for several alternative answers or for several questions on the same library. Keeping it in
+memory is cheap: with the 3B the KV cache takes about 36\,KB per token, and a median document about 21\,MB. The service
+therefore keeps the last four documents read and the application the last sixteen heads (instructions and document). The
+answer, instead, cannot be reused as a block, because it changes with every version; only its initial part, up to the
+first changed sentence, can be reused, as the paragraph \emph{Reuse of the answer prefix} shows. GroundOne's decision,
+finally, is already a negligible fraction of the time, while the judge's is decoding, which no cache removes: this is why
+caching widens the gap between the two.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/prefill_composition.png}
+\caption{Composition of the prefill on the 200 T1 answers used for latency. (a) Tokens of GroundOne's prompt by part,
+mean per K band; the labels give the share of the document and that of answer and markers. (b) Time per part with the 3B,
+derived from the runs with nothing, the instructions only, and the instructions and the document in the cache as
+differences of the band medians, so that each column adds up to the median time without cache. In blue, the parts that
+stay the same across verifications of the same sources, the only ones worth caching.}
+\label{fig:results-prefill-composition}
+\end{figure}
+
 \paragraph{Prefix reuse.} The same measurement was repeated with part of the prompt already in the KV cache when the
 clock starts, the same for GroundOne and for the LLM judges: the instructions alone, identical for every request (63 to
 81 tokens), or the instructions and the document (about 640 tokens at the median), as when a rewritten answer is
@@ -498,8 +531,8 @@ Model & System & \makecell{No\\prefix} & \makecell{Instructions\\cached} & \make
 \end{tabular}
 \end{table}
 
-Caching the instructions alone saves 3 to 5\,\% of the time, little more than the measurement noise: they are 7\,\% of
-the tokens. The document, instead, is about two thirds of the prompt, and the difference is clear. With the document
+As the composition of the prefill anticipates, caching the instructions alone saves 3 to 5\,\% of the time, little more
+than the measurement noise, while the document makes a clear difference. With the document
 cached, GroundOne verifies an answer 3.2 times faster with the 0.5B (0.11 seconds at the median) and 3.4 times faster
 with the 3B (0.58 seconds). The LLM judges gain much less, 1.3 and 1.7 times for the terse one and 1.1 and 1.2 for the
 verbose one, because the cache removes only the reading and leaves the decoding of the verdicts intact, which cannot be

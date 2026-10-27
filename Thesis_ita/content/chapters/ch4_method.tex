@@ -106,7 +106,7 @@ quando una riscrittura cambia una frase, la parte di risposta che la precede res
 suoi marker, che dipendono soltanto da ciò che li precede; va riletto solo ciò che segue la prima modifica. Un giudice
 LLM non può sfruttarlo allo stesso modo, perché i suoi verdetti seguono l'intera risposta e vanno riscritti tutti.
 GroundOne conserva le istruzioni, gli ultimi documenti letti e l'ultima risposta verificata, sia nel servizio sia nell'applicazione del Capitolo~\ref{ch:studio}; la Sezione~\ref{sec:results-latency-split}
-ne misura l'effetto per GroundOne e per i giudici LLM.
+analizza la composizione del prefill e misura l'effetto della cache per GroundOne e per i giudici LLM.
 
 \paragraph{Un classificatore, non un generatore più veloce.} Il readout restringe la decisione a tre lettere, e la
 restrizione non è un dettaglio. Dopo il marker, il modello sottoposto a fine-tuning non scriverebbe la lettera che viene

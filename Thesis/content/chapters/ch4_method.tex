@@ -106,7 +106,7 @@ changes a sentence, the part of the answer before it is unchanged, and so are th
 only on what precedes them; only what follows the first change has to be read again. An LLM judge cannot exploit this
 in the same way, because its verdicts follow the whole answer and must all be written again. GroundOne keeps the
 instructions, the last documents read and the last answer verified, both in the service and in the application of Chapter~\ref{ch:studio}; Section~\ref{sec:results-latency-split}
-measures the effect for GroundOne and for the LLM judges.
+analyses the composition of the prefill and measures the effect of caching for GroundOne and for the LLM judges.
 
 \paragraph{A classifier, not a faster generator.} The readout restricts the decision to three letters, and the
 restriction is not a detail. After the marker, the fine-tuned model would not write the letter that is read. Its most

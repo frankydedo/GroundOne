@@ -328,6 +328,69 @@ def latency_split(g):
            "results/decompose-*/decompose/metrics.json")
 
 
+def prefill_composition(g):
+    """What the prompt is made of and what each part costs: (a) GroundOne's prompt tokens by part, (b) measured time per
+    part (cache levels none / instructions / document) for GroundOne and the terse LLM judge, 3B."""
+    import pandas as pd
+    d = RESULTS_DIR / "decompose-3b" / "decompose"
+    runs = {f"{s}{c}": d / f"{s}{c}.parquet" for s in ("groundone", "terse") for c in ("", "-fixed", "-doc")}
+    if not all(p.exists() for p in runs.values()):
+        return
+    r = {k: pd.read_parquet(p) for k, p in runs.items()}
+    parts = [("instructions (fixed: cached)", "#1d4f91"), ("document (fixed for the same sources: cached)", SERIES[0]),
+             ("answer (changes: read from the first changed token)", SERIES[3]),
+             ("deciding (GroundOne: markers + readout; judge: writing the verdicts)", SERIES[7])]
+    fig, (a, b) = plt.subplots(1, 2, figsize=(11.2, 4.0), gridspec_kw={"width_ratios": [1, 1.25]})
+    # (a) tokens: instructions = cached with "fixed", document = cached with "doc" minus that, markers = 3 per sentence
+    m = r["groundone"].merge(r["groundone-doc"][["rid", "cached_tokens"]], on="rid").merge(
+        r["groundone-fixed"][["rid", "cached_tokens"]].rename(columns={"cached_tokens": "fx"}), on="rid")
+    tok = pd.DataFrame({"kband": m.kband, "i": m.fx, "d": m.cached_tokens - m.fx, "a": m.read_tokens - m.cached_tokens,
+                        "k": m.prompt_tokens - m.read_tokens}).groupby("kband").mean().reindex(BANDS)
+    x = np.arange(len(BANDS))
+    bottom = np.zeros(len(BANDS))
+    for col, (_, color) in zip("idak", parts):
+        a.bar(x, tok[col], 0.6, bottom=bottom, color=color, edgecolor="white", linewidth=1)
+        bottom += tok[col].to_numpy()
+    for i, band in enumerate(BANDS):
+        t = tok.loc[band]
+        a.text(i, t.i + t.d / 2, f"{t.d / t.sum():.0%}", ha="center", va="center", fontsize=7, color="white")
+        a.text(i, t.i + t.d + (t.a + t.k) / 2, f"{(t.a + t.k) / t.sum():.0%}", ha="center", va="center", fontsize=7)
+    a.set_xticks(x, BANDS)
+    a.set_xlabel("K = sentences checked in the answer")
+    a.set_ylabel("mean prompt tokens per answer")
+    a.set_title("(a) GroundOne's prompt, by part")
+    # (b) time: differences of band medians between cache levels, so the stack adds up to the median without cache
+    med = {k: v.groupby("kband").total_s.median().reindex(BANDS) for k, v in r.items()}
+    w = 0.36
+    for j, (sys, label, hatch) in enumerate([("groundone", "GroundOne", None), ("terse", "Terse LLM judge", "///")]):
+        doc = r[f"{sys}-doc"].groupby("kband")
+        read = doc.read_s.median().reindex(BANDS)
+        seg = [med[sys] - med[f"{sys}-fixed"], med[f"{sys}-fixed"] - med[f"{sys}-doc"], read, med[f"{sys}-doc"] - read]
+        xs = x + (j - 0.5) * w
+        bottom = np.zeros(len(BANDS))
+        for s, (_, color) in zip(seg, parts):
+            v = np.clip(s.to_numpy(), 0, None)
+            b.bar(xs, v, w * 0.92, bottom=bottom, color=color, edgecolor="white", linewidth=0.8, hatch=hatch)
+            bottom += v
+        for xi, top in zip(xs, bottom):
+            b.text(xi, top, "G1" if sys == "groundone" else "J", ha="center", va="bottom", fontsize=7)
+    b.set_xticks(x, BANDS)
+    b.set_xlabel("K = sentences checked in the answer")
+    b.set_ylabel("median seconds per answer (3B)")
+    b.set_title("(b) Time per part: GroundOne (G1) and terse LLM judge (J)")
+    handles = [plt.Rectangle((0, 0), 1, 1, color=c) for _, c in parts]
+    fig.legend(handles, [p for p, _ in parts], loc="upper center", ncol=2, fontsize=7.5, frameon=False,
+               bbox_to_anchor=(0.5, -0.01))   # below the axes: tight_layout ignores figure legends
+    g.save(fig, "prefill_composition",
+           "Composition of the prefill. (a) GroundOne's prompt on the 200 T1 latency answers, mean tokens by part per K "
+           "band: the fixed instructions, the document, the answer and its markers (labels: share of the document and "
+           "of answer + markers). (b) Measured time per part with the 3B, from the runs with nothing, the instructions or "
+           "the instructions and the document in the KV cache (differences of the band medians, so each stack adds up to "
+           "the median time without cache). The parts that stay the same across verifications of the same sources "
+           "(blue) are the ones worth caching; the answer changes with every version.",
+           "results/decompose-3b/decompose/*.parquet")
+
+
 def main():
     g = Group("benchmarks")
     seed_runs(g)
@@ -340,4 +403,5 @@ def main():
     by_task(g)
     latency(g)
     latency_split(g)
+    prefill_composition(g)
     g.write_index("Benchmarks on the frozen test sets")
