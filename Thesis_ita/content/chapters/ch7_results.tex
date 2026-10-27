@@ -572,6 +572,43 @@ sul giudice LLM sintetico sale quindi da 4.8 a 12 volte con il 0.5B (da 11.2 a 1
 e gli stessi test che controllano la cache del documento verificano che i verdetti riusati coincidano con quelli di un
 passaggio senza cache.
 
+\paragraph{Lo speed-up nelle diverse situazioni.} Le misure di questa sezione confrontano GroundOne e i giudici LLM
+sempre a parità di condizioni: stesse risposte, stessa macchina e, quando c'è, la stessa cache. La
+Tabella~\ref{tab:results-speedup-summary} le riunisce. Le differenze fra una riga e l'altra non dipendono da
+ottimizzazioni concesse a un solo sistema, ma da quanto pesa, in ciascuna situazione, la parte che il readout elimina.
+Senza cache la lettura del testo, comune ai due approcci, è quasi tutto il tempo di GroundOne e circa metà di quello del
+giudice sintetico, e lo speed-up complessivo resta fra 1.6 e 2 volte; al netto della lettura, la decisione di GroundOne è
+da 18 a 33 volte più rapida di quella del giudice sintetico e circa 125--130 volte più rapida di quella del verboso. Ogni
+riduzione della lettura avvicina lo speed-up complessivo a quello della sola decisione. Con le fonti già in cache, lette
+in anticipo mentre l'utente legge la risposta oppure per una verifica precedente (la KV cache è la stessa nei due casi),
+GroundOne è da 3.1 a 4.8 volte più veloce del giudice sintetico e circa 15 volte più veloce del verboso. Dopo una
+riscrittura, quando anche l'inizio della risposta è in cache e i suoi verdetti si riusano, il vantaggio sul giudice
+sintetico sale a 7.1 volte con il 3B e a 12 con il 0.5B. Quest'ultima riga è la sola in cui conta anche il formato, e non
+soltanto il costo del decoding: il giudice riusa la stessa cache, ma i suoi verdetti seguono l'intera risposta e vanno
+riscritti tutti. Il caso di riferimento resta la prima riga, la verifica di una risposta nuova su fonti mai lette; le
+altre descrivono come il vantaggio cresce nell'uso reale di un assistente, in cui le stesse fonti vengono lette più volte.
+
+\begin{table}[htbp]
+\centering
+\caption{Speed-up di GroundOne sui giudici LLM nelle diverse situazioni, sulle stesse 200 risposte di T1: rapporto fra i tempi mediani, con l'intervallo bootstrap al 95\,\%. In ogni riga GroundOne e il giudice hanno la stessa cache; la riga della sola decisione esclude la lettura del testo (Tabella~\ref{tab:results-latency-split}). n.m.: non misurato.}
+\label{tab:results-speedup-summary}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{5.4cm}cccc}
+\toprule
+& \multicolumn{4}{c}{Giudice LLM} \\ \cmidrule(lr){2-5}
+Situazione & \makecell{0.5B\\sintetico} & \makecell{0.5B\\verboso} & \makecell{3B\\sintetico} & \makecell{3B\\verboso} \\
+\midrule
+Prima verifica, nessuna cache: tutte le risposte & \makecell{1.97\\{\footnotesize (1.84--2.15)}} & \makecell{5.34\\{\footnotesize (4.72--5.82)}} & \makecell{1.55\\{\footnotesize (1.42--1.60)}} & \makecell{5.13\\{\footnotesize (4.75--5.79)}} \\ \addlinespace[2pt]
+Prima verifica, nessuna cache: 14 o più frasi & \makecell{2.00\\{\footnotesize (1.87--2.14)}} & \makecell{6.17\\{\footnotesize (5.74--6.59)}} & \makecell{1.79\\{\footnotesize (1.69--1.86)}} & \makecell{6.62\\{\footnotesize (6.18--6.91)}} \\ \addlinespace[2pt]
+Sola decisione, al netto della lettura & \makecell{33.2\\{\footnotesize (29.9--38.1)}} & \makecell{131\\{\footnotesize (112--148)}} & \makecell{17.9\\{\footnotesize (15.1--19.8)}} & \makecell{125\\{\footnotesize (116--142)}} \\ \addlinespace[2pt]
+Fonti in cache (lette in anticipo o per una verifica precedente): tutte le risposte & \makecell{4.83\\{\footnotesize (4.13--5.21)}} & \makecell{15.6\\{\footnotesize (13.9--16.5)}} & \makecell{3.08\\{\footnotesize (2.78--3.25)}} & \makecell{15.0\\{\footnotesize (13.5--15.6)}} \\ \addlinespace[2pt]
+Fonti in cache: 14 o più frasi & \makecell{3.62\\{\footnotesize (3.52--3.81)}} & \makecell{14.3\\{\footnotesize (13.7--14.9)}} & \makecell{3.38\\{\footnotesize (3.18--3.42)}} & \makecell{15.4\\{\footnotesize (14.6--15.6)}} \\ \addlinespace[2pt]
+Dopo una riscrittura (in cache anche l'inizio della risposta) & \makecell{12.0\\{\footnotesize (11.2--12.9)}} & n.m. & \makecell{7.15\\{\footnotesize (6.62--7.79)}} & n.m. \\ \addlinespace[2pt]
+\bottomrule
+\end{tabular}
+\end{table}
+
 La velocità non è l'unica differenza (Figura~\ref{fig:results-judges}). I giudici LLM non addestrati sono anche
 molto meno accurati, e non sempre rispettano il formato di output. Il giudice LLM verboso 0.5B produce un verdetto
 interpretabile soltanto per il 3\,\% delle frasi, perché per lo più ricopia la risposta, mentre il giudice LLM sintetico

@@ -583,6 +583,43 @@ from 4.8 to 12 times with the 0.5B (11.2 to 12.9) and from 3.1 to 7.1 times with
 the application reuse the answer prefix in the same way (Chapter~\ref{ch:studio}), and the same tests that check the
 document cache check that the reused verdicts match those of a pass without cache.
 
+\paragraph{The speed-up across situations.} The measurements of this section always compare GroundOne and the LLM
+judges under the same conditions: the same answers, the same machine and, when there is one, the same cache.
+Table~\ref{tab:results-speedup-summary} brings them together. The differences between rows do not come from
+optimisations granted to one system only, but from how much, in each situation, the part that the readout removes
+weighs. Without a cache, reading the text, which both approaches pay, is almost all of GroundOne's time and about half of
+the terse judge's, and the overall speed-up stays between 1.6 and 2 times; net of reading, GroundOne decides 18 to 33
+times faster than the terse judge and about 125--130 times faster than the verbose one. Every reduction of the reading
+brings the overall speed-up closer to the deciding-only one. With the sources already cached, read ahead while the user
+reads the answer or by an earlier verification (the KV cache is the same in both cases), GroundOne is 3.1 to 4.8 times
+faster than the terse judge and about 15 times faster than the verbose one. After a rewrite, when the beginning of the
+answer is cached as well and its verdicts are reused, the advantage over the terse judge rises to 7.1 times with the 3B
+and 12 with the 0.5B. This last row is the only one in which the format matters as well, and not only the cost of
+decoding: the judge reuses the same cache, but its verdicts follow the whole answer and must all be written again. The
+reference case remains the first row, the verification of a new answer on sources never read; the others describe how
+the advantage grows in the actual use of an assistant, in which the same sources are read several times.
+
+\begin{table}[htbp]
+\centering
+\caption{GroundOne's speed-up over the LLM judges in the different situations, on the same 200 T1 answers: ratio of the median times, with the 95\,\% bootstrap interval. In every row GroundOne and the judge have the same cache; the deciding-only row excludes reading the text (Table~\ref{tab:results-latency-split}). n.m.: not measured.}
+\label{tab:results-speedup-summary}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{5.4cm}cccc}
+\toprule
+& \multicolumn{4}{c}{LLM judge} \\ \cmidrule(lr){2-5}
+Situation & \makecell{0.5B\\terse} & \makecell{0.5B\\verbose} & \makecell{3B\\terse} & \makecell{3B\\verbose} \\
+\midrule
+First verification, no cache: all answers & \makecell{1.97\\{\footnotesize (1.84--2.15)}} & \makecell{5.34\\{\footnotesize (4.72--5.82)}} & \makecell{1.55\\{\footnotesize (1.42--1.60)}} & \makecell{5.13\\{\footnotesize (4.75--5.79)}} \\ \addlinespace[2pt]
+First verification, no cache: 14 or more sentences & \makecell{2.00\\{\footnotesize (1.87--2.14)}} & \makecell{6.17\\{\footnotesize (5.74--6.59)}} & \makecell{1.79\\{\footnotesize (1.69--1.86)}} & \makecell{6.62\\{\footnotesize (6.18--6.91)}} \\ \addlinespace[2pt]
+Deciding only, net of reading & \makecell{33.2\\{\footnotesize (29.9--38.1)}} & \makecell{131\\{\footnotesize (112--148)}} & \makecell{17.9\\{\footnotesize (15.1--19.8)}} & \makecell{125\\{\footnotesize (116--142)}} \\ \addlinespace[2pt]
+Sources cached (read ahead or by an earlier verification): all answers & \makecell{4.83\\{\footnotesize (4.13--5.21)}} & \makecell{15.6\\{\footnotesize (13.9--16.5)}} & \makecell{3.08\\{\footnotesize (2.78--3.25)}} & \makecell{15.0\\{\footnotesize (13.5--15.6)}} \\ \addlinespace[2pt]
+Sources cached: 14 or more sentences & \makecell{3.62\\{\footnotesize (3.52--3.81)}} & \makecell{14.3\\{\footnotesize (13.7--14.9)}} & \makecell{3.38\\{\footnotesize (3.18--3.42)}} & \makecell{15.4\\{\footnotesize (14.6--15.6)}} \\ \addlinespace[2pt]
+After a rewrite (the beginning of the answer cached as well) & \makecell{12.0\\{\footnotesize (11.2--12.9)}} & n.m. & \makecell{7.15\\{\footnotesize (6.62--7.79)}} & n.m. \\ \addlinespace[2pt]
+\bottomrule
+\end{tabular}
+\end{table}
+
 Speed is not the only difference (Figure~\ref{fig:results-judges}). The untrained LLM judges are also much less
 accurate, and they do not always respect the output format. The 0.5B verbose LLM judge produces a parsable verdict for only
 3\,\% of the sentences, because it mostly copies the answer back, while the 0.5B terse LLM judge fails on 23\,\% of the
