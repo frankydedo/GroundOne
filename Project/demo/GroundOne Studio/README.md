@@ -1,5 +1,10 @@
 # GroundOne Studio
 
+<img src="Logo/IconComposer/renders/indigo.png" width="128" alt="GroundOne Studio app icon">
+
+App icon: `Logo/IconComposer/GroundOne-indigo.icon` (Icon Composer document, set in `project.yml`; renders in
+`Logo/IconComposer/renders/`, generator `Logo/IconComposer/build_icons.py`).
+
 Native macOS demo of GroundOne (D28): a RAG assistant in which retrieval, generation and verification run in one
 process on the laptop, and GroundOne decides what the user is shown. Specification and decisions:
 `Project/docs/demo_architecture.md`; progress log: `Project/demo/docs/progress.md`.

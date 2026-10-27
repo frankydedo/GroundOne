@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="GroundOne Studio">
+<defs>
+<linearGradient id="d2-base" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#4F5BFF"></stop>
+<stop offset="0.4" stop-color="#B43CF5"></stop>
+<stop offset="0.75" stop-color="#FF2D6F"></stop>
+<stop offset="1" stop-color="#FF9A2A"></stop>
+</linearGradient>
+<linearGradient id="d2-sheen" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#FFFFFF" stop-opacity="0.3"></stop>
+<stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0"></stop>
+</linearGradient>
+<linearGradient id="d2-body" gradientUnits="userSpaceOnUse" x1="200" y1="200" x2="850" y2="850">
+<stop offset="0" stop-color="#FFFFFF" stop-opacity="0.3"></stop>
+<stop offset="1" stop-color="#FFFFFF" stop-opacity="0.06"></stop>
+</linearGradient>
+<clipPath id="d2-clip"><rect width="1024" height="1024" rx="230"></rect></clipPath>
+<filter id="d2-orb" filterUnits="userSpaceOnUse" x="-300" y="-300" width="1624" height="1624"><feGaussianBlur stdDeviation="90"></feGaussianBlur></filter>
+<filter id="d2-refr" filterUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+<feGaussianBlur stdDeviation="4"></feGaussianBlur>
+<feColorMatrix type="saturate" values="1.4"></feColorMatrix>
+<feComponentTransfer><feFuncR type="linear" slope="1.12"></feFuncR><feFuncG type="linear" slope="1.12"></feFuncG><feFuncB type="linear" slope="1.12"></feFuncB></feComponentTransfer>
+</filter>
+<filter id="d2-shadow" filterUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><feGaussianBlur stdDeviation="26"></feGaussianBlur></filter>
+<filter id="d2-caustic" filterUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><feGaussianBlur stdDeviation="34"></feGaussianBlur></filter>
+<filter id="d2-edge" filterUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><feGaussianBlur stdDeviation="2.5"></feGaussianBlur></filter>
+<filter id="d2-glow" filterUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><feGaussianBlur stdDeviation="10"></feGaussianBlur></filter>
+<mask id="d2-tube" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+<path d="M 710 314 A 280 280 0 1 0 792 512 L 573.7 628.1 L 503 557.4" fill="none" stroke="#FFFFFF" stroke-width="116" stroke-linecap="round" stroke-linejoin="round"></path>
+</mask>
+<mask id="d2-rim" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+<path d="M 710 314 A 280 280 0 1 0 792 512 L 573.7 628.1 L 503 557.4" fill="none" stroke="#FFFFFF" stroke-width="116" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M 710 314 A 280 280 0 1 0 792 512 L 573.7 628.1 L 503 557.4" fill="none" stroke="#000000" stroke-width="104" stroke-linecap="round" stroke-linejoin="round"></path>
+</mask>
+<mask id="d2-tl" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+<path d="M 710 314 A 280 280 0 1 0 792 512 L 573.7 628.1 L 503 557.4" fill="none" stroke="#FFFFFF" stroke-width="116" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M 710 314 A 280 280 0 1 0 792 512 L 573.7 628.1 L 503 557.4" transform="translate(9 11)" fill="none" stroke="#000000" stroke-width="116" stroke-linecap="round" stroke-linejoin="round"></path>
+</mask>
+<mask id="d2-br" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+<path d="M 710 314 A 280 280 0 1 0 792 512 L 573.7 628.1 L 503 557.4" fill="none" stroke="#FFFFFF" stroke-width="116" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M 710 314 A 280 280 0 1 0 792 512 L 573.7 628.1 L 503 557.4" transform="translate(-9 -11)" fill="none" stroke="#000000" stroke-width="116" stroke-linecap="round" stroke-linejoin="round"></path>
+</mask>
+<mask id="d2-inner" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+<path d="M 710 314 A 280 280 0 1 0 792 512 L 573.7 628.1 L 503 557.4" fill="none" stroke="#FFFFFF" stroke-width="116" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M 710 314 A 280 280 0 1 0 792 512 L 573.7 628.1 L 503 557.4" transform="translate(-24 -28)" fill="none" stroke="#000000" stroke-width="116" stroke-linecap="round" stroke-linejoin="round"></path>
+</mask>
+<g id="d2-scene">
+<rect width="1024" height="1024" fill="url(#d2-base)"></rect>
+<g filter="url(#d2-orb)">
+<circle cx="290" cy="250" r="250" fill="#FFD84D" fill-opacity="0.85"></circle>
+<circle cx="880" cy="230" r="220" fill="#FF5FB0" fill-opacity="0.7"></circle>
+<circle cx="200" cy="820" r="240" fill="#3D7BFF" fill-opacity="0.8"></circle>
+<circle cx="860" cy="860" r="230" fill="#7B3CFF" fill-opacity="0.75"></circle>
+</g>
+</g>
+</defs>
+<g clip-path="url(#d2-clip)">
+<use href="#d2-scene" xlink:href="#d2-scene"></use>
+<rect width="1024" height="1024" fill="url(#d2-sheen)"></rect>
+<path d="M 710 314 A 280 280 0 1 0 792 512 L 573.7 628.1 L 503 557.4" transform="translate(0 28)" fill="none" stroke="#4A0630" stroke-opacity="0.33" stroke-width="116" stroke-linecap="round" stroke-linejoin="round" filter="url(#d2-shadow)"></path>
+<path d="M 710 314 A 280 280 0 1 0 792 512 L 573.7 628.1 L 503 557.4" transform="translate(6 50)" fill="none" stroke="#FFF4D6" stroke-opacity="0.3" stroke-width="90" stroke-linecap="round" stroke-linejoin="round" filter="url(#d2-caustic)"></path>
+</g>
+<rect x="4" y="4" width="1016" height="1016" rx="226" fill="none" stroke="#FFFFFF" stroke-opacity="0.32" stroke-width="8"></rect>
+<g mask="url(#d2-tube)">
+<g filter="url(#d2-refr)"><use href="#d2-scene" xlink:href="#d2-scene" transform="matrix(1.14 0 0 1.14 -88 -92)"></use></g>
+<rect width="1024" height="1024" fill="url(#d2-body)"></rect>
+</g>
+<g filter="url(#d2-glow)"><g mask="url(#d2-inner)"><rect width="1024" height="1024" fill="#FFFFFF" fill-opacity="0.22"></rect></g></g>
+<g mask="url(#d2-rim)"><rect width="1024" height="1024" fill="#FFFFFF" fill-opacity="0.5"></rect></g>
+<g filter="url(#d2-edge)"><g mask="url(#d2-br)"><rect width="1024" height="1024" fill="#FFE6F4" fill-opacity="0.75"></rect></g></g>
+<g filter="url(#d2-edge)"><g mask="url(#d2-tl)"><rect width="1024" height="1024" fill="#FFFFFF" fill-opacity="0.95"></rect></g></g>
+</svg>

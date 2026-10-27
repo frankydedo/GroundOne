@@ -59,16 +59,17 @@ def scene_smooth(stops, glow_tl, glow_br):
             '<rect width="1024" height="1024" fill="url(#r)"/></svg>\n')
 
 
-def glass_group_v2(glyph_scale=0.86):
-    """Clearer liquid glass: full-opacity glass layer with a white fill that fades towards the bottom (the background
-    shows through by refraction), coloured shadow, light blur behind; a stronger fill in dark mode keeps it legible."""
-    grad = lambda a, b: {"linear-gradient": [f"display-p3:1,1,1,{a}", f"display-p3:1,1,1,{b}"],  # noqa: E731
-                         "orientation": {"start": {"x": 0.5, "y": 1.0}, "stop": {"x": 0.5, "y": 0}}}
+def glass_group_v2(glyph_scale=0.9):
+    """Clearer liquid glass: glass layer at 80 % opacity with a white fill that fades diagonally (the background shows
+    through by refraction), coloured shadow, light blur behind; a stronger, vertical fill in dark mode keeps it legible.
+    Values as tuned by hand in Icon Composer on 2026-10-26 (scale, opacity, light-mode gradient direction)."""
+    grad = lambda a, b, x0, x1: {"linear-gradient": [f"display-p3:1,1,1,{a}", f"display-p3:1,1,1,{b}"],  # noqa: E731
+                                 "orientation": {"start": {"x": x0, "y": 1.0}, "stop": {"x": x1, "y": 0}}}
     return {
-        "layers": [{"glass": True, "image-name": "G.svg", "name": "G", "opacity": 1.0,
+        "layers": [{"glass": True, "image-name": "G.svg", "name": "G", "opacity": 0.8,
                     "position": {"scale": glyph_scale, "translation-in-points": [0, 0]},
-                    "fill-specializations": [{"value": grad(0.40, 0.95)},
-                                             {"appearance": "dark", "value": grad(0.65, 1.0)}]}],
+                    "fill-specializations": [{"value": grad(0.40, 0.95, 1, 0)},
+                                             {"appearance": "dark", "value": grad(0.65, 1.0, 0.5, 0.5)}]}],
         "specular": True, "lighting": "individual", "blur-material": 0.35,
         "shadow": {"kind": "layer-color", "opacity": 0.65},
         "translucency": {"enabled": True, "value": 0.38},
@@ -125,6 +126,7 @@ def build_smooth(out_dir, name, stops, glow_tl, glow_br):
     render_png(scene_smooth(stops, glow_tl, glow_br), assets / "Background.png")
     j = icon_json(0.7, 0.86)
     j["groups"][0] = glass_group_v2()
+    j["groups"][1].update({"shadow": {"kind": "neutral", "opacity": 0.5}, "translucency": {"enabled": True, "value": 0.3}})
     (doc / "icon.json").write_text(json.dumps(j, indent=2) + "\n")
     return doc
 

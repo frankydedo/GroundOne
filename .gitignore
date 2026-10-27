@@ -155,3 +155,20 @@ Project/outputs/demo/logs/
 Project/outputs/demo/casestudy/injected*.jsonl
 Project/outputs/demo/casestudy/*/rows.jsonl
 Project/outputs/demo/casestudy/*/audit.jsonl
+# Demo outputs: the corpus text files are rebuilt by experiments/demo/scripts/build_corpus.py (questions.json and candidates.json are tracked)
+Project/outputs/demo/corpus/*/
+
+# App icon: only the icon in use (GroundOne-indigo) and its renders are tracked; the other palettes are design
+# explorations, regenerated with Logo/IconComposer/build_icons.py OUT_DIR <palette>
+Project/demo/GroundOne Studio/Logo/IconComposer/GroundOne-*.icon/
+!Project/demo/GroundOne Studio/Logo/IconComposer/GroundOne-indigo.icon/
+Project/demo/GroundOne Studio/Logo/IconComposer/renders/*
+!Project/demo/GroundOne Studio/Logo/IconComposer/renders/indigo.png
+!Project/demo/GroundOne Studio/Logo/IconComposer/renders/indigo-dark.png
+
+# LaTeX build artefacts of the 3-page summaries and of the standalone TikZ diagrams
+Summaries/*.aux
+Summaries/*.fls
+Summaries/*.fdb_latexmk
+Summaries/*.out
+Thesis*/images/diagrams/*.aux

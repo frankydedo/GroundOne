@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="GroundOne Studio">
+<defs>
+<linearGradient id="c3-bg" x1="0" y1="0" x2="0.6" y2="1">
+<stop offset="0" stop-color="#1B1650"></stop>
+<stop offset="1" stop-color="#070A18"></stop>
+</linearGradient>
+<linearGradient id="c3-tube" gradientUnits="userSpaceOnUse" x1="240" y1="760" x2="800" y2="280">
+<stop offset="0" stop-color="#3DFFB0"></stop>
+<stop offset="0.55" stop-color="#00C2FF"></stop>
+<stop offset="1" stop-color="#5B7CFF"></stop>
+</linearGradient>
+<linearGradient id="c3-sheen" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#FFFFFF" stop-opacity="0.14"></stop>
+<stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0"></stop>
+</linearGradient>
+<filter id="c3-glow" filterUnits="userSpaceOnUse" x="-100" y="-100" width="1224" height="1224"><feGaussianBlur stdDeviation="40"></feGaussianBlur></filter>
+<filter id="c3-soft" filterUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><feGaussianBlur stdDeviation="7"></feGaussianBlur></filter>
+<clipPath id="c3-clip"><rect width="1024" height="1024" rx="230"></rect></clipPath>
+<mask id="c3-m" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+<path d="M 702.9 321.1 A 270 270 0 1 0 782 512 L 579.5 628.9 L 502 551" fill="none" stroke="#FFFFFF" stroke-width="100" stroke-linecap="round" stroke-linejoin="round"></path>
+</mask>
+</defs>
+<g clip-path="url(#c3-clip)">
+<rect width="1024" height="1024" fill="url(#c3-bg)"></rect>
+<path d="M 702.9 321.1 A 270 270 0 1 0 782 512 L 579.5 628.9 L 502 551" fill="none" stroke="url(#c3-tube)" stroke-opacity="0.85" stroke-width="130" stroke-linecap="round" stroke-linejoin="round" filter="url(#c3-glow)"></path>
+<rect width="1024" height="1024" fill="url(#c3-sheen)"></rect>
+</g>
+<rect x="4" y="4" width="1016" height="1016" rx="226" fill="none" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="8"></rect>
+<path d="M 702.9 321.1 A 270 270 0 1 0 782 512 L 579.5 628.9 L 502 551" fill="none" stroke="url(#c3-tube)" stroke-width="100" stroke-linecap="round" stroke-linejoin="round"></path>
+<g mask="url(#c3-m)">
+<path d="M 702.9 321.1 A 270 270 0 1 0 782 512 L 579.5 628.9 L 502 551" transform="translate(18 22)" fill="none" stroke="#04213A" stroke-opacity="0.4" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" filter="url(#c3-soft)"></path>
+<path d="M 702.9 321.1 A 270 270 0 1 0 782 512 L 579.5 628.9 L 502 551" transform="translate(-20 -22)" fill="none" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+</svg>

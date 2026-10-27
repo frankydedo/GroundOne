@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="GroundOne Studio">
+<defs>
+<linearGradient id="c6-mark" gradientUnits="userSpaceOnUse" x1="240" y1="220" x2="800" y2="820">
+<stop offset="0" stop-color="#FFFFFF"></stop>
+<stop offset="1" stop-color="#E9EEFF"></stop>
+</linearGradient>
+<linearGradient id="c6-sheen" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#FFFFFF" stop-opacity="0.28"></stop>
+<stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0"></stop>
+</linearGradient>
+<clipPath id="c6-clip"><rect width="1024" height="1024" rx="230"></rect></clipPath>
+<filter id="c6-mesh" filterUnits="userSpaceOnUse" x="-300" y="-300" width="1624" height="1624"><feGaussianBlur stdDeviation="110"></feGaussianBlur></filter>
+<filter id="c6-shadow" filterUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><feGaussianBlur stdDeviation="24"></feGaussianBlur></filter>
+<filter id="c6-soft" filterUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><feGaussianBlur stdDeviation="6"></feGaussianBlur></filter>
+<mask id="c6-m" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+<path d="M 702.9 321.1 A 270 270 0 1 0 782 512 L 579.5 628.9 L 502 551" fill="none" stroke="#FFFFFF" stroke-width="100" stroke-linecap="round" stroke-linejoin="round"></path>
+</mask>
+</defs>
+<g clip-path="url(#c6-clip)">
+<rect width="1024" height="1024" fill="#2457FF"></rect>
+<g filter="url(#c6-mesh)">
+<circle cx="200" cy="220" r="330" fill="#00E0FF"></circle>
+<circle cx="880" cy="260" r="300" fill="#FF3DCB"></circle>
+<circle cx="760" cy="920" r="360" fill="#FFAA00"></circle>
+<circle cx="160" cy="900" r="280" fill="#7B3CFF"></circle>
+</g>
+<rect width="1024" height="1024" fill="url(#c6-sheen)"></rect>
+</g>
+<rect x="4" y="4" width="1016" height="1016" rx="226" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="8"></rect>
+<path d="M 702.9 321.1 A 270 270 0 1 0 782 512 L 579.5 628.9 L 502 551" transform="translate(0 30)" fill="none" stroke="#1A0B4D" stroke-opacity="0.35" stroke-width="100" stroke-linecap="round" stroke-linejoin="round" filter="url(#c6-shadow)"></path>
+<path d="M 702.9 321.1 A 270 270 0 1 0 782 512 L 579.5 628.9 L 502 551" fill="none" stroke="url(#c6-mark)" stroke-width="100" stroke-linecap="round" stroke-linejoin="round"></path>
+<g mask="url(#c6-m)">
+<path d="M 702.9 321.1 A 270 270 0 1 0 782 512 L 579.5 628.9 L 502 551" transform="translate(16 20)" fill="none" stroke="#3B2A99" stroke-opacity="0.18" stroke-width="36" stroke-linecap="round" stroke-linejoin="round" filter="url(#c6-soft)"></path>
+</g>
+</svg>
