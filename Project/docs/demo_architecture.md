@@ -424,7 +424,8 @@ the cold one (document reuse, then an answer prefix after a one-token change; ma
 (PASS), 0.0186 with the 0.5B (bf16 envelope; the 0.5B already misses the cold gate, 0.031 vs Python).
 Read-ahead (2026-10-27): when the generator has finished, `AppModel.ask` calls `Session.prefetch(document:)`, and
 `GroundOneModel.prefetch(headIds:)` reads the head in a background task while the user reads the native answer; the next
-pass waits for a running read-ahead (never computed twice). It is skipped while the judge runs (`beginJudge`/`endJudge`:
+pass waits for a running read-ahead (never computed twice), and so does a new answer (`Session.answer` awaits
+`Verifier.awaitPrefetch()` before generating, 2026-10-28), so the GPU still runs one model at a time. It is skipped while the judge runs (`beginJudge`/`endJudge`:
 the adapter is removed, so a head read then would be wrong) and the judge waits for a running one. First verification
 2.11 → 0.59 s with the 3B, 0.35 → 0.10 s with the 0.5B; no penalty if verification is asked at once
 (`g1studio prefetch-timing`).

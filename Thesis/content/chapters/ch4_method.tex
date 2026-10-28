@@ -96,9 +96,7 @@ Figure~\ref{fig:method-designs} compares the two solutions.
 The order of the prompt has a second consequence for the cost. Instructions, document and answer appear in this order,
 and attention is causal: the keys and values computed for a prefix depend only on that prefix. The KV cache of the
 instructions, which are the same for every request, and that of the document can therefore be kept and reused exactly
-by any later answer on the same document, which then costs only the reading of the answer and its markers. This is the
-case of a rewritten answer verified again, of several alternative answers generated from the same sources, or of
-several questions on the same library. Prefix reuse is not an exclusive advantage of the decision model: the prompt of
+by any later answer on the same document, which then costs only the reading of the answer and its markers. Reusing the KV cache of a shared prefix is standard practice in serving systems~\cite{kwon2023pagedattention} and is also offered by the MLX libraries~\cite{mlxlm}. This is the case of a rewritten answer verified again, of several alternative answers generated from the same sources, or of several questions on the same library. Since the sources are known before the answer is verified, their prefix can also be read ahead, as soon as generation ends and while the user reads the answer, so that the first verification, too, reads only the answer and its markers. Prefix reuse is not an exclusive advantage of the decision model: the prompt of
 an LLM judge also starts with instructions and document, and can reuse them in the same way. The marker format,
 however, makes it particularly effective, because after the prefix only the answer remains to be read, and every
 additional sentence costs the three tokens of its marker. The same argument holds inside the answer: when a rewrite

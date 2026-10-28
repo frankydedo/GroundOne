@@ -286,6 +286,10 @@ public struct GroundOneVerifier: Verifier {
     public func prefetch(document: String) {
         model.prefetch(headIds: model.encoder.encode(MarkedPrompt.head(document: document)))
     }
+
+    public func awaitPrefetch() async {
+        await model.awaitPrefetch()
+    }
 }
 
 /// B0a terse judge on GroundOne's base weights without the adapter: the judge measured in the thesis, locally.

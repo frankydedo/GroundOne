@@ -18,8 +18,7 @@ decision model of the same size trained to decide on a broad mixture of tasks, c
 ahead of it on RAGTruth, with the 3B it matches d1-3B on LLM-AggreFact, and it is far behind on VitaminC.
 
 The decision-model mechanism pays off on two fronts. The first is speed. Reading all the verdicts in a single forward
-pass makes the verification of long answers about two times faster than that of a terse LLM judge and six times
-faster than that of a verbose LLM judge of the same size, with output that is always valid. The second is accuracy:
+pass makes the verification of long answers, even in the least favourable case with nothing read before, 1.8 to 2 times faster than that of a terse LLM judge and six times faster than that of a verbose LLM judge of the same size, with output that is always valid. With the sources already in the KV cache, read ahead while the user reads the answer, the advantage over the terse LLM judge becomes 3.4 to 3.6 times, and after a rewrite, when only GroundOne can reuse the verdicts of the unchanged sentences, 7 to 12 times. The second is accuracy:
 restricting the decision to the admissible answers is, by itself, more accurate than letting the same model generate the
 verdict. Moreover, even when asked for the same output, LLM judges cannot provide probabilities of comparable
 quality. Their probabilities barely separate correct from incorrect decisions, and the verbalised ones are almost always
@@ -31,7 +30,7 @@ The Expected Calibration Error alone, however, does not distinguish useful proba
 discrimination must be measured separately.
 
 The whole system runs on a 16\,GB laptop. A long answer is verified in 0.41 seconds with the 0.5B and in 2.57 with the
-3B, with an energy of 5.5 and 33 joules on average per answer; when the document is already in the KV cache, as in the verification of a rewritten answer, 0.11 and 0.58 seconds suffice. Compared with an LLM judge the energy saving is
+3B, with an energy of 5.5 and 33 joules on average per answer; when the sources are already in the KV cache, read ahead or by an earlier verification, 0.11 and 0.58 seconds suffice, and after a rewrite even less. Compared with an LLM judge the energy saving is
 real, but smaller than the time saving, because a single long prefill draws more power than decoding.
 
 The GroundOne Studio application shows that a complete RAG assistant can be built around the verifier, in a single
@@ -81,4 +80,4 @@ claim and to handle conflicting sources explicitly.
 The application of Chapter~\ref{ch:studio} contains a first prototype of this attribution, which remains to be evaluated
 with data indicating which passage supports each sentence. Three further directions follow from the application. A larger generator, such as the 7B at 4 bits already selectable in the application, corrects the flagged sentences better, but is slower and adds more content that the sources do not report: choosing the generator remains a trade-off to be studied on real questions. The rewritten sentences should be checked independently, with a second verifier
 or with a human reading of a sample, because their correctness is currently judged by GroundOne alone. Verification,
-finally, could proceed while the answer is being generated, flagging each sentence as soon as it is complete: the marker-based design and prefix reuse make this use natural, because the document can be read while the generator writes, and at the end of generation only the last sentence remains to be read.
+finally, could proceed while the answer is being generated, flagging each sentence as soon as it is complete. The application already reads the sources ahead, but only once the answer is complete; reading them, and then each finished sentence, while the generator writes would leave only the last sentence to be read at the end of generation, because the marker format keeps the verdicts of the sentences already read.

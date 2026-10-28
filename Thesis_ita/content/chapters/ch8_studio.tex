@@ -77,16 +77,14 @@ stessi pesi di GroundOne con l'adapter rimosso. In blu le componenti in cui inte
 I motori sono quattro. Il generatore è Qwen2.5-3B-Instruct quantizzato a 4 bit, lo stesso della misura di co-residenza
 della Sezione~\ref{sec:results-locality}. Il verificatore è GroundOne 3B, cioè la base a 8 bit con l'adapter LoRA, il
 prompt con i marker, il readout delle lettere A, B e C e la calibrazione stimata sul dev set. È il modello predefinito
-perché è il più accurato, e nell'applicazione la verifica avviene solo su richiesta, in meno di due secondi per una
-risposta tipica; un selettore permette di passare al 0.5B, più rapido. Il giudice LLM del confronto è lo stesso modello base
+perché è il più accurato, e nell'applicazione la verifica avviene solo su richiesta, in circa due secondi per una risposta tipica letta da zero e in circa mezzo secondo quando le fonti sono già state lette in anticipo (Sezione~\ref{sec:studio-flow}); un selettore permette di passare al 0.5B, più rapido. Il giudice LLM del confronto è lo stesso modello base
 di GroundOne con l'adapter rimosso a runtime e il prompt del giudice LLM sintetico B0a (Sezione~\ref{sec:setup-baselines}):
 è esattamente il giudice LLM misurato nella tesi, non occupa memoria aggiuntiva e non lascia la macchina. Il retriever, infine,
 combina un indice full-text e un piccolo modello di embedding (Sezione~\ref{sec:studio-library}).
 
 Tutte le chiamate ai modelli passano per i contenitori dei modelli di MLX Swift, che ne serializzano l'accesso, e vengono
 eseguite una alla volta sulla GPU, come avviene con il singolo thread di lavoro del servizio Python
-(Sezione~\ref{sec:method-software}). Generazione e verifica non si contendono quindi le risorse, e i tempi misurati non
-sono confusi da esecuzioni concorrenti. Con i tre modelli caricati, la memoria allocata da MLX è di circa 5.3\,GB e
+(Sezione~\ref{sec:method-software}). Generazione e verifica non si contendono quindi le risorse, e i tempi misurati non sono confusi da esecuzioni concorrenti. La lettura anticipata delle fonti, che parte in background quando una risposta è completa, segue la stessa regola: una verifica, un confronto con il giudice LLM o una nuova risposta chiesti mentre è in corso ne attendono la fine. Con i tre modelli caricati, la memoria allocata da MLX è di circa 5.3\,GB e
 raggiunge un picco di 6.2\,GB durante una domanda e di 6.9\,GB dopo una sessione di dodici domande, quando la KV cache conserva anche le fonti di quelle precedenti. Il primo valore è in linea con la misura di co-residenza della
 Tabella~\ref{tab:results-coresidence}, che non comprendeva il retriever. Il modello di embedding aggiunge quindi poco:
 occupa circa 130\,MB su disco.
@@ -378,8 +376,7 @@ menzionata, che il Capitolo~\ref{sec:method} motiva in astratto, qui decide se l
 la elimina.
 
 \paragraph{Tempi.} Il confronto dei tempi conferma il quadro della Sezione~\ref{sec:results-latency}. Su queste risposte,
-con una mediana di circa 770 token tra documento e risposta e di sei frasi valutate, il tempo mediano del giudice LLM è circa
-1.3 volte quello di GroundOne, e il giudice LLM scrive una ventina di token, mentre GroundOne non ne genera nessuno. La
+con una mediana di circa 770 token tra documento e risposta e di sei frasi valutate, il tempo mediano del giudice LLM è 1.36 volte quello di GroundOne (2.36 contro 1.74 secondi, entrambi alla prima lettura delle fonti), e il giudice LLM scrive una ventina di token, mentre GroundOne non ne genera nessuno. La
 differenza è piccola perché il giudice LLM sintetico scrive poco e le risposte sono brevi. Il confronto sul rilevamento, 97
 errori segnalati contro 84, favorisce invece GroundOne per costruzione: le risposte sono state scelte fra quelle che
 GroundOne accetta per intero, un filtro che il giudice LLM non ha superato, e i falsi allarmi del giudice LLM sulle frasi corrette

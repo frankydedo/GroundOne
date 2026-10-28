@@ -106,6 +106,7 @@ public struct StudioSession: Sendable {
         rec.document = Documents.compose(question: question, passages: rec.passages)
         var text = ""
         var stats = GenerationStats()
+        await verifier.awaitPrefetch()   // the GPU runs one model at a time: a read-ahead still running finishes first
         for try await ev in generator.generate(system: LibraryPrompt.system,
                                                user: LibraryPrompt.user(question: question, document: rec.document),
                                                maxTokens: LibraryPrompt.maxTokens) {

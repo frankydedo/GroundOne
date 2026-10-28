@@ -96,9 +96,7 @@ come una richiesta di verdetto. Per questo è il formato usato dalla baseline no
 L'ordine del prompt ha una seconda conseguenza sul costo. Istruzioni, documento e risposta compaiono in quest'ordine, e
 l'attenzione è causale: le chiavi e i valori calcolati per un prefisso dipendono soltanto da quel prefisso. La KV cache
 delle istruzioni, identiche per ogni richiesta, e quella del documento possono quindi essere conservate e riusate in
-modo esatto da qualunque risposta successiva sullo stesso documento, che a quel punto costa solo la lettura della
-risposta e dei suoi marker. È il caso di una risposta riscritta e verificata di nuovo, di più risposte alternative
-generate dalle stesse fonti o di più domande sulla stessa libreria. Il riuso del prefisso non è un vantaggio esclusivo
+modo esatto da qualunque risposta successiva sullo stesso documento, che a quel punto costa solo la lettura della risposta e dei suoi marker. Il riuso della KV cache di un prefisso condiviso è una pratica comune nei sistemi di serving~\cite{kwon2023pagedattention} ed è offerto anche dalle librerie MLX~\cite{mlxlm}. È il caso di una risposta riscritta e verificata di nuovo, di più risposte alternative generate dalle stesse fonti o di più domande sulla stessa libreria. Poiché le fonti sono note prima che la risposta venga verificata, il loro prefisso si può anche leggere in anticipo, appena termina la generazione e mentre l'utente legge la risposta, così che anche la prima verifica legga soltanto la risposta e i suoi marker. Il riuso del prefisso non è un vantaggio esclusivo
 del decision model: anche il prompt di un giudice LLM comincia con istruzioni e documento, e può riusarli allo stesso
 modo. Il formato a marker, però, lo rende particolarmente efficace, perché dopo il prefisso resta da leggere soltanto
 la risposta, e ogni frase in più costa i tre token del suo marker. Lo stesso ragionamento vale dentro la risposta:

@@ -387,7 +387,7 @@ GroundOne is the fastest at both sizes and in every band of $K$, and its advanta
 contains fourteen or more decisions, the 0.5B GroundOne needs 0.41 seconds, against 0.80 for the terse LLM judge and 2.51
 for the verbose LLM judge of the same size. It is therefore 1.95 times faster than the first (1.82 to 2.12) and 6.16 times
 faster than the second (5.72 to 6.66). In the same band the 3B GroundOne needs 2.57 seconds, against 4.44 and 15.86
-seconds for the two 3B LLM judges, and is therefore 1.73 times (1.65 to 1.82) and 6.18 times (5.88 to 6.63) faster.
+seconds for the two 3B LLM judges, and is therefore 1.73 times (1.65 to 1.82) and 6.18 times (5.88 to 6.63) faster. The measurement was repeated, on the same answers and with the same protocol, for the analyses of Section~\ref{sec:results-latency-split}, which compare the situations with and without a cache within the same run: its times are within 4\,\% of these, and on long answers GroundOne is 2.00 and 1.79 times faster than the terse LLM judges and 6.17 and 6.62 times faster than the verbose ones (Table~\ref{tab:results-speedup-summary}). The speed-ups quoted in the rest of the thesis come from the repeated measurement: without any cache, on answers with fourteen or more sentences, GroundOne is 1.8 to 2 times faster than the terse LLM judge.
 
 Reading all the verdicts in a single forward pass is also faster than asking one question per sentence in a batch: at
 the highest values of $K$ the gain is a factor of 1.4--1.5. The other lever is model size: the 0.5B GroundOne verifies
@@ -480,7 +480,7 @@ them costs a single KV cache per process and saves a few percentage points. The 
 the largest share of the prompt and of the time, and it stays the same whenever the same sources are verified again, that
 is, for a rewritten answer, for several alternative answers or for several questions on the same library. Keeping it in
 memory is cheap: with the 3B the KV cache takes about 36\,KB per token, and a median document about 21\,MB. The service
-therefore keeps the last four documents read and the application the last sixteen heads (instructions and document). The document, moreover, is known before the answer: it can be read while the generator writes or while the user reads the answer, so that the first verification, too, reads only the answer (Chapter~\ref{ch:studio}). The
+therefore keeps the last four documents read and the application the last sixteen heads (instructions and document). The document, moreover, is known before the answer: it can be read as soon as the generator has finished, while the user reads the answer, so that the first verification, too, reads only the answer (Chapter~\ref{ch:studio}). The
 answer, instead, cannot be reused as a block, because it changes with every version; only its initial part, up to the
 first changed sentence, can be reused, as the paragraph \emph{Reuse of the answer prefix} shows. GroundOne's decision,
 finally, is already a negligible fraction of the time, while the judge's is decoding, which no cache removes: this is why
@@ -493,7 +493,7 @@ caching widens the gap between the two.
 mean per K band; the labels give the share of the document and that of answer and markers. (b) Time per part with the 3B,
 derived from the runs with nothing, the instructions only, and the instructions and the document in the cache as
 differences of the band medians, so that each column adds up to the median time without cache. In blue, the parts that
-stay the same across verifications of the same sources, the only ones worth caching.}
+stay the same across verifications of the same sources, the only ones that can be cached as a block.}
 \label{fig:results-prefill-composition}
 \end{figure}
 
@@ -537,7 +537,7 @@ cached, GroundOne verifies an answer 3.2 times faster with the 0.5B (0.11 second
 with the 3B (0.58 seconds). The LLM judges gain much less, 1.3 and 1.7 times for the terse one and 1.1 and 1.2 for the
 verbose one, because the cache removes only the reading and leaves the decoding of the verdicts intact, which cannot be
 reused. As a result, GroundOne's advantage over the terse LLM judge rises from about 2 to 4.8 times with the 0.5B (4.1
-to 5.2) and from 1.6 to 3.1 times with the 3B (2.8 to 3.3), and over the verbose LLM judge to about 15 times. On answers with fourteen or more sentences, the band in which Section~\ref{sec:results-latency} measures the 1.7 to 2 speed-up, the advantage over the terse LLM judge becomes 3.6 times with the 0.5B (3.5 to 3.8) and 3.4 times with the 3B (3.2 to 3.4). With the
+to 5.2) and from 1.6 to 3.1 times with the 3B (2.8 to 3.3), and over the verbose LLM judge to about 15 times. On answers with fourteen or more sentences, on which GroundOne is 1.8 to 2 times faster without a cache, the advantage over the terse LLM judge becomes 3.6 times with the 0.5B (3.5 to 3.8) and 3.4 times with the 3B (3.2 to 3.4). With the
 document cached, 90\,\% of GroundOne's time is the reading of the answer alone and the rest is deciding: verifying a
 rewritten answer therefore costs little more than its length.
 
@@ -555,7 +555,7 @@ Table~\ref{tab:results-answer-prefix} reports the medians.
 \centering
 \caption{Verification of an answer with one sentence changed, on the same 200 answers of T1: median times in seconds
 with only the document cached and with the previous version of the answer cached as well, and in parentheses the ratio
-between the two. The LLM judge reuses the same prefix but writes all its verdicts again.}
+between the two. The LLM judge reuses the same prefix but writes all its verdicts again. The times with the document cached come from a separate run and differ from those of Table~\ref{tab:results-prefix-cache} by at most 2\,\%.}
 \label{tab:results-answer-prefix}
 \small
 \setlength{\tabcolsep}{4pt}
@@ -588,20 +588,19 @@ judges under the same conditions: the same answers, the same machine and, when t
 Table~\ref{tab:results-speedup-summary} and Figure~\ref{fig:results-speedup-summary} bring them together. The differences between rows do not come from
 optimisations granted to one system only, but from how much, in each situation, the part that the readout removes
 weighs. Without a cache, reading the text, which both approaches pay, is almost all of GroundOne's time and about half of
-the terse judge's, and the overall speed-up stays between 1.6 and 2 times; net of reading, GroundOne decides 18 to 33
+the terse judge's, and the overall speed-up stays between 1.6 and 2 times, 1.8 to 2 on answers with fourteen or more sentences; net of reading, GroundOne decides 18 to 33
 times faster than the terse judge and about 125--130 times faster than the verbose one. Every reduction of the reading
 brings the overall speed-up closer to the deciding-only one. With the sources already cached, read ahead while the user
 reads the answer or by an earlier verification (the KV cache is the same in both cases), GroundOne is 3.1 to 4.8 times
 faster than the terse judge and about 15 times faster than the verbose one. After a rewrite, when the beginning of the
 answer is cached as well and its verdicts are reused, the advantage over the terse judge rises to 7.1 times with the 3B
 and 12 with the 0.5B. This last row is the only one in which the format matters as well, and not only the cost of
-decoding: the judge reuses the same cache, but its verdicts follow the whole answer and must all be written again. The
-reference case remains the first row, the verification of a new answer on sources never read; the others describe how
+decoding: the judge reuses the same cache, but its verdicts follow the whole answer and must all be written again. The reference case remains the first row, the verification of a new answer on sources never read, which is also the least favourable one; the most favourable measured is the last, and the others describe how
 the advantage grows in the actual use of an assistant, in which the same sources are read several times.
 
 \begin{table}[htbp]
 \centering
-\caption{GroundOne's speed-up over the LLM judges in the different situations, on the same 200 T1 answers: ratio of the median times, with the 95\,\% bootstrap interval. In every row GroundOne and the judge have the same cache; the deciding-only row excludes reading the text (Table~\ref{tab:results-latency-split}). n.m.: not measured.}
+\caption{GroundOne's speed-up over the LLM judges in the different situations, on the same 200 T1 answers: ratio of the median times, with the 95\,\% bootstrap interval. In every row GroundOne and the judge have the same cache; the deciding-only row excludes reading the text (Table~\ref{tab:results-latency-split}). The rows without a cache and with the sources cached come from the same run (Table~\ref{tab:results-prefix-cache}), which repeats the measurement of Section~\ref{sec:results-latency} within 4\,\%; the last row comes from the run of Table~\ref{tab:results-answer-prefix}. n.m.: not measured.}
 \label{tab:results-speedup-summary}
 \small
 \setlength{\tabcolsep}{3.5pt}
@@ -653,8 +652,7 @@ The energy measurement adds a qualification that latency alone hides (Figure~\re
 measured systems, that is, GroundOne and the LLM judges, GroundOne is the one that uses the least energy at both
 sizes: 5.5 joules per answer with the 0.5B and 33 with the 3B, against 8.9 and 43 joules for the terse LLM judge and 22.5
 and 112 joules for the verbose LLM judge. Its advantage in energy, however, is smaller than its advantage in time. Compared
-with the terse LLM judge, GroundOne uses 1.6 times less energy with the 0.5B and 1.3 times less with the 3B; compared with
-the verbose LLM judge, 4.1 and 3.4 times less.
+with the terse LLM judge, GroundOne uses 1.6 times less energy with the 0.5B and 1.3 times less with the 3B; compared with the verbose LLM judge, 4.1 and 3.4 times less. Energy was measured only without a cache: with the sources already read, a verification also takes less energy, but by how much was not measured.
 
 The reason is the power drawn during the computation. GroundOne spends its time in a single long prefill, which keeps
 the GPU fully busy and draws about 16\,W above the idle power. The autoregressive decoding of the LLM judges, instead, is

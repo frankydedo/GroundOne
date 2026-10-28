@@ -184,7 +184,7 @@ that is, inside the same process that invokes them, and they verify one answer a
 local assistant would. The first three answers serve as warm-up and are excluded from the measurement. For GroundOne and
 for the readout with one question per sentence, each answer is timed three times and the median is kept. The generative
 LLM judges, instead, are timed only once, because greedy decoding is deterministic and each run lasts much longer. The
-reported time is the wall-clock time of the model call for one answer, from which the time per decision is derived.
+reported time is the wall-clock time of the model call for one answer, from which the time per decision is derived. Chapter~\ref{sec:results} repeats this measurement, on the same answers, in three variants described where their results are reported (Section~\ref{sec:results-latency-split}): with the reading of the text separated from the decision, with part of the prompt already in the KV cache, the same for GroundOne and for the LLM judges, and with one sentence of the answer changed after a first verification. The read-ahead of the application is measured in Swift on the same answers (Section~\ref{sec:studio-flow}).
 
 Times were also recorded for the encoders, for Rizzo-Flow and for d1-3B, but under conditions that do not allow a fair
 comparison. The encoders ran in PyTorch and scored each sentence separately, re-reading the document every time, which
@@ -197,7 +197,7 @@ CPU, the GPU and the Neural Engine, the NPU of Apple processors. For each system
 loaded is first measured for 60 seconds. Then 100 answers of the latency subset, 25 per band of $K$, are verified once.
 The energy of a verification is the mean power during the run, net of the idle power, multiplied by the duration of the
 run and divided by the number of answers. The measurement covers the computing units of the chip, but not the memory,
-the display or the storage. It was taken at night, with the machine otherwise idle.
+the display or the storage. It was taken at night, with the machine otherwise idle, and only without a cache.
 
 Three measurements concern locality directly. The first checks independence from the network: a complete evaluation of
 T1 is repeated with the libraries in offline mode and inside a macOS sandbox that denies the process any network access,

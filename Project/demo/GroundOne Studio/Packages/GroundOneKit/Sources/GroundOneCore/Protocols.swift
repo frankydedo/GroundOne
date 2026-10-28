@@ -17,10 +17,13 @@ public protocol Verifier: Sendable {
     func verify(document: String, sentences: [Segment]) async throws -> Verdicts
     /// Starts reading `document` into the verifier's prefix cache in the background (default: nothing).
     func prefetch(document: String)
+    /// Returns when a read-ahead in progress has finished (default: at once).
+    func awaitPrefetch() async
 }
 
 extension Verifier {
     public func prefetch(document: String) {}
+    public func awaitPrefetch() async {}
 }
 
 /// The generative judge of the comparison mode (B0a terse prompt, base model without the adapter).

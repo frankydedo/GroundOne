@@ -181,8 +181,7 @@ in-process su MLX, cioè all'interno dello stesso processo che li invoca, e veri
 farebbe un verificatore integrato in un assistente locale. Le prime tre risposte servono da warm-up e sono escluse dalla
 misura. Per GroundOne e per il readout con una domanda per frase ogni risposta è cronometrata tre volte e si conserva la mediana. I giudici LLM
 generativi, invece, sono cronometrati una sola volta, perché il greedy decoding è deterministico e ogni esecuzione dura
-molto di più. Il tempo riportato è il tempo wall-clock della chiamata al modello per una risposta, e da esso si ricava il
-tempo per decisione.
+molto di più. Il tempo riportato è il tempo wall-clock della chiamata al modello per una risposta, e da esso si ricava il tempo per decisione. Il Capitolo~\ref{sec:results} ripete questa misura, sulle stesse risposte, in tre varianti descritte dove se ne riportano i risultati (Sezione~\ref{sec:results-latency-split}): con la lettura del testo separata dalla decisione, con una parte del prompt già nella KV cache, la stessa per GroundOne e per i giudici LLM, e con una frase della risposta modificata dopo una prima verifica. La lettura anticipata dell'applicazione è misurata in Swift sulle stesse risposte (Sezione~\ref{sec:studio-flow}).
 
 I tempi sono stati registrati anche per gli encoder, per Rizzo-Flow e per d1-3B, ma in condizioni che non permettono un
 confronto equo. Gli encoder giravano in PyTorch e valutavano ogni frase separatamente, rileggendo ogni volta il
@@ -195,8 +194,7 @@ assorbita da CPU, GPU e Neural Engine, la NPU dei processori Apple. Per ciascun 
 secondi, la potenza a riposo con il modello già caricato. Si verificano poi, una sola volta, 100 risposte del
 sottoinsieme di latenza, 25 per fascia di $K$. L'energia di una verifica è la potenza media durante l'esecuzione, al
 netto della potenza a riposo, moltiplicata per la durata dell'esecuzione e divisa per il numero di risposte. La misura
-comprende le unità di calcolo del chip, ma non la memoria, lo schermo o l'archiviazione. È stata effettuata di notte,
-con la macchina altrimenti inattiva.
+comprende le unità di calcolo del chip, ma non la memoria, lo schermo o l'archiviazione. È stata effettuata di notte, con la macchina altrimenti inattiva, e soltanto senza cache.
 
 Tre misure riguardano direttamente la località. La prima verifica l'indipendenza dalla rete: una valutazione completa di
 T1 viene ripetuta con le librerie in modalità offline e all'interno di una sandbox di macOS che nega al processo

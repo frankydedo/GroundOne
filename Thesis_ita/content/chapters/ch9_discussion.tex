@@ -32,7 +32,7 @@ arriva a un fattore di circa due rispetto a un giudice LLM sintetico e di circa 
 rapporto complessivo è limitato dalla lettura del testo, che ogni approccio deve pagare e che occupa il 97\,\% del tempo
 di GroundOne: al netto di essa, GroundOne decide da 18 a 33 volte più in fretta di un giudice LLM sintetico e circa
 125--130 volte più in fretta di uno verboso (Sezione~\ref{sec:results-latency-split}). Ne segue che ogni riduzione del
-prefill, come il riuso del prefisso già letto, aumenta il vantaggio relativo del readout. Con il documento già in cache, come quando una risposta riscritta viene verificata di nuovo, il vantaggio sul giudice LLM sintetico, con quattordici o più frasi, sale da 1.7--2 a 3.4--3.6 volte: la cache elimina la parte condivisa e lascia al giudice il decoding, che non si può riusare. Conservando anche la versione precedente della risposta, GroundOne rilegge soltanto ciò che segue la prima frase riscritta e riusa i verdetti delle frasi precedenti, mentre il giudice deve riscriverli tutti: su tutte le risposte il vantaggio sul giudice LLM sintetico sale da 4.8 a 12 volte con il 0.5B e da 3.1 a 7.1 volte con il 3B (Tabella~\ref{tab:results-answer-prefix}).
+prefill, come il riuso del prefisso già letto, aumenta il vantaggio relativo del readout. Con le fonti già in cache, lette in anticipo mentre l'utente legge la risposta oppure per una verifica precedente, il vantaggio sul giudice LLM sintetico, con quattordici o più frasi, sale da 1.8--2 a 3.4--3.6 volte: la cache elimina la parte condivisa e lascia al giudice il decoding, che non si può riusare. Conservando anche la versione precedente della risposta, GroundOne rilegge soltanto ciò che segue la prima frase riscritta e riusa i verdetti delle frasi precedenti, mentre il giudice deve riscriverli tutti: su tutte le risposte il vantaggio sul giudice LLM sintetico sale da 4.8 a 12 volte con il 0.5B e da 3.1 a 7.1 volte con il 3B (Tabella~\ref{tab:results-answer-prefix}).
 Il secondo
 contributo, che questa tesi non aveva previsto, riguarda l'accuratezza. Con gli stessi pesi e lo stesso costo, scegliere
 tra le tre lettere ammissibili è più accurato che prendere il token che il modello genererebbe, con un guadagno di
@@ -61,8 +61,7 @@ coerente con la probabilità mostrata all'utente. Come mostrano i risultati su V
 soltanto per la distribuzione su cui è stata stimata.
 
 \paragraph{Costo sul dispositivo (RQ4).} Il verificatore sta comodamente nel portatile da 16\,GB. Durante
-l'addestramento la memoria occupata raggiunge un picco di 2.6\,GB con il 0.5B e di 5.9\,GB con il 3B. Verificare una risposta lunga richiede 0.41 secondi con il 0.5B e 2.57 con il 3B, e l'energia media per risposta è di 5.5 e 33 joule. Il 0.5B rientra in un budget interattivo; il 3B, invece, è più lento di quanto un uso interattivo continuo richiederebbe, a meno che la verifica non avvenga su richiesta, come nell'applicazione del Capitolo~\ref{ch:studio}, e
-scambia tempo con accuratezza. Le misure di energia precisano la portata dei risultati sulla velocità. Un singolo
+l'addestramento la memoria occupata raggiunge un picco di 2.6\,GB con il 0.5B e di 5.9\,GB con il 3B. Verificare una risposta lunga richiede 0.41 secondi con il 0.5B e 2.57 con il 3B, e l'energia media per risposta è di 5.5 e 33 joule. Il 0.5B rientra in un budget interattivo. Il 3B scambia tempo con accuratezza: leggendo ogni risposta da zero, è più lento di quanto un uso interattivo continuo richiederebbe. Nell'applicazione del Capitolo~\ref{ch:studio}, però, la verifica avviene su richiesta e le fonti vengono lette in anticipo mentre l'utente legge la risposta, e la prima verifica con il 3B richiede allora 0.59 secondi in mediana, contro 2.11 senza lettura anticipata. Le misure di energia precisano la portata dei risultati sulla velocità. Un singolo
 prefill lungo assorbe più potenza del decoding token per token, per cui l'energia risparmiata è inferiore al tempo
 risparmiato, e la maggiore velocità non va letta come un risparmio equivalente di batteria. Il verificatore convive
 inoltre con un generatore nello stesso processo: insieme a un generatore 3B a 4 bit, il picco di memoria è di 6.1\,GB con
@@ -93,7 +92,7 @@ elaborazione in batch.}
 \small
 \begin{tabular}{lccc}
 \toprule
-Sistema & \makecell{Prezzo ingresso / uscita\\(USD per Mtoken)} & \makecell{Giudice LLM\\sintetico} & \makecell{Giudice LLM\\verboso} \\
+Sistema & \makecell{Prezzo\\ingresso / uscita\\(USD per Mtoken)} & \makecell{Giudice LLM\\sintetico} & \makecell{Giudice LLM\\verboso} \\
 \midrule
 \makecell[l]{Claude Haiku 5.5,\\gpt-6-luna} & 0.10 / 0.50 & 1.1 USD & 2.2 USD \\
 Gemini 3.5 Flash-Lite & 0.30 / 2.50 & 3.6 USD & 8.9 USD \\
