@@ -32,7 +32,7 @@ Che cosa vede l'utente & Affermazione sostenuta \\
 \midrule
 Ogni frase della risposta colorata secondo il verdetto di GroundOne, con le probabilità calibrate. & Le probabilità sono utilizzabili e coerenti con l'etichetta mostrata (RQ3). \\ \addlinespace[2pt]
 Il confronto, sulla stessa risposta, con un giudice LLM eseguito localmente: verdetti e tempi affiancati. & Leggere tutti i verdetti in un solo forward pass, senza generare testo, è più accurato di un giudice LLM che scrive i verdetti, e più veloce, tanto più quanto più lunga è la risposta (RQ2). \\ \addlinespace[2pt]
-Un pannello con i tempi di generazione e di verifica e la memoria occupata. & Generatore e verificatore convivono in 16\,GB, e la verifica costa poco rispetto alla generazione (RQ4). \\ \addlinespace[2pt]
+Un pannello con i tempi di generazione e di verifica e la memoria occupata. & Generatore e verificatore convivono in 16\,GB, e la verifica aggiunge una frazione del tempo di generazione, piccola con il 0.5B (RQ4). \\ \addlinespace[2pt]
 La riscrittura delle frasi segnalate a partire dai documenti, verificata di nuovo. & La verifica costa abbastanza poco da stare dentro il ciclo di generazione. \\ \addlinespace[2pt]
 Per ogni frase, il passaggio del documento che la sostiene o la contraddice, evidenziato. & L'attribuzione al passaggio si può ottenere con lo stesso modello; è un prototipo non valutato (Sezione~\ref{sec:concl-future}). \\
 \bottomrule
@@ -58,9 +58,7 @@ compilazione degli shader di MLX richiede Xcode.
 \label{sec:studio-architecture}
 
 L'applicazione è divisa in tre livelli (Figura~\ref{fig:studio-architecture}). Il primo è l'interfaccia. Il secondo è un
-nucleo che non dipende dai motori: gestisce la sessione (risposta, verifica, riscrittura), applica la policy e salva
-conversazioni e registri. Il nucleo conosce soltanto cinque interfacce astratte, dette \emph{porte}: retriever,
-generatore, verificatore, giudice LLM e attributore. Il terzo livello contiene i motori che le implementano. Grazie a questa
+nucleo che non dipende dai motori: gestisce la sessione (risposta, verifica, riscrittura), applica la policy e scrive il registro delle azioni, mentre le conversazioni vengono salvate dal livello dell'interfaccia. Il nucleo conosce cinque interfacce astratte, dette \emph{porte}: retriever, generatore, verificatore, giudice LLM e attributore. Il terzo livello contiene i motori che implementano le prime quattro; l'attribuzione è calcolata da un componente di GroundOne che l'interfaccia chiama direttamente. Grazie a questa
 separazione il nucleo è stato collaudato con motori fittizi, deterministici, come il pacchetto Python viene collaudato con
 un backend fittizio, e un motore diverso, per esempio un generatore su llama.cpp, potrebbe sostituire quello attuale senza
 toccare il resto.
@@ -77,14 +75,12 @@ stessi pesi di GroundOne con l'adapter rimosso. In blu le componenti in cui inte
 I motori sono quattro. Il generatore è Qwen2.5-3B-Instruct quantizzato a 4 bit, lo stesso della misura di co-residenza
 della Sezione~\ref{sec:results-locality}. Il verificatore è GroundOne 3B, cioè la base a 8 bit con l'adapter LoRA, il
 prompt con i marker, il readout delle lettere A, B e C e la calibrazione stimata sul dev set. È il modello predefinito
-perché è il più accurato, e nell'applicazione la verifica avviene solo su richiesta, in circa due secondi per una risposta tipica letta da zero e in circa mezzo secondo quando le fonti sono già state lette in anticipo (Sezione~\ref{sec:studio-flow}); un selettore permette di passare al 0.5B, più rapido. Il giudice LLM del confronto è lo stesso modello base
+perché è il più accurato, e nell'applicazione la verifica avviene solo su richiesta, in circa due secondi sulle risposte brevi della misura di latenza e in circa tre sulle risposte più lunghe dell'applicazione (3.3 secondi in mediana sulle domande di esempio), e in meno di un terzo di questo tempo quando le fonti sono già state lette in anticipo (Sezione~\ref{sec:studio-flow}); un selettore permette di passare al 0.5B, più rapido. Il giudice LLM del confronto è lo stesso modello base
 di GroundOne con l'adapter rimosso a runtime e il prompt del giudice LLM sintetico B0a (Sezione~\ref{sec:setup-baselines}):
 è esattamente il giudice LLM misurato nella tesi, non occupa memoria aggiuntiva e non lascia la macchina. Il retriever, infine,
 combina un indice full-text e un piccolo modello di embedding (Sezione~\ref{sec:studio-library}).
 
-Tutte le chiamate ai modelli passano per i contenitori dei modelli di MLX Swift, che ne serializzano l'accesso, e vengono
-eseguite una alla volta sulla GPU, come avviene con il singolo thread di lavoro del servizio Python
-(Sezione~\ref{sec:method-software}). Generazione e verifica non si contendono quindi le risorse, e i tempi misurati non sono confusi da esecuzioni concorrenti. La lettura anticipata delle fonti, che parte in background quando una risposta è completa, segue la stessa regola: una verifica, un confronto con il giudice LLM o una nuova risposta chiesti mentre è in corso ne attendono la fine. Con i tre modelli caricati, la memoria allocata da MLX è di circa 5.3\,GB e
+Tutte le chiamate a un modello passano per il suo contenitore di MLX Swift, che le serializza, come fa il singolo thread di lavoro del servizio Python (Sezione~\ref{sec:method-software}). Generatore e GroundOne hanno contenitori distinti: la lettura anticipata delle fonti, che parte in background quando una risposta è completa, fa attendere la propria fine a una verifica, a un confronto con il giudice LLM o a una nuova risposta chiesti mentre è in corso, e l'interfaccia disattiva le azioni di una risposta mentre viene elaborata, ma nulla impedisce di generare una nuova domanda mentre si verifica una risposta precedente. I tempi riportati in questo capitolo sono stati misurati un'operazione alla volta, quindi non sono confusi da esecuzioni concorrenti. Con i tre modelli caricati, la memoria allocata da MLX è di circa 5.3\,GB e
 raggiunge un picco di 6.2\,GB durante una domanda e di 6.9\,GB dopo una sessione di dodici domande, quando la KV cache conserva anche le fonti di quelle precedenti. Il primo valore è in linea con la misura di co-residenza della
 Tabella~\ref{tab:results-coresidence}, che non comprendeva il retriever. Il modello di embedding aggiunge quindi poco:
 occupa circa 130\,MB su disco.
@@ -134,8 +130,7 @@ Massima differenza tra le probabilità con e senza cache & 0.007 & 0.019 \\
 \end{tabular}
 \end{table}
 
-Anche la velocità è quasi la stessa. Sulle stesse 200 risposte, la verifica richiede in media 2.13 secondi in Swift contro
-2.04 in Python con il 3B, circa il 4\,\% in più, e 0.34 contro 0.33 secondi con il 0.5B; sono medie, mentre il
+Anche la velocità è quasi la stessa. Sulle stesse 200 risposte, la verifica richiede in media 2.05 secondi in Swift contro 2.04 in Python con il 3B, meno dell'1\,\% in più, e 0.335 contro 0.333 secondi con il 0.5B; sono medie, mentre il
 Capitolo~\ref{sec:results} riporta le mediane. La segmentazione, infine, produce le stesse frasi di PySBD nel 98.4\,\%
 delle 2{,}647 risposte di T1. Le differenze residue riguardano soprattutto titoli abbreviati e citazioni che attraversano
 più frasi. Senza tre regole aggiuntive, che non spezzano la frase dopo le iniziali e le abbreviazioni comuni né prima di
@@ -227,8 +222,7 @@ disponibili.}
 
 \paragraph{Evidenza.} GroundOne indica se una frase è supportata, ma non da quale passaggio
 (Sezione~\ref{sec:disc-limitations}). L'applicazione ricostruisce l'informazione in due passi. Nel primo verifica la
-risposta contro ciascun passaggio recuperato separatamente, con un forward pass per passaggio, e sceglie quello in cui la
-frase ottiene la probabilità di supporto più alta, o di contraddizione, se la frase è contraddetta. Nel secondo, dentro il
+risposta contro ciascun passaggio recuperato separatamente, con un forward pass per passaggio, e conserva il passaggio in cui la frase ottiene la probabilità di supporto più alta e quello in cui ottiene la probabilità di contraddizione più alta, ciascuno solo se quel passaggio, da solo, produce quel verdetto; il passaggio a sostegno viene mostrato per primo. Nel secondo, dentro il
 passaggio scelto, individua la frase più vicina a quella della risposta, pesando le parole condivise in base alla loro
 rarità nel passaggio. L'anteprima del documento si apre con quel tratto evidenziato (Figura~\ref{fig:studio-evidence}).
 È il primo prototipo del readout per passaggio indicato tra gli sviluppi futuri (Sezione~\ref{sec:concl-future}). Non è
@@ -258,7 +252,7 @@ una frase utilizzabile, quella originale resta al suo posto e viene ripresentata
 menzionata va riscritta con ciò che la fonte dice sullo stesso punto, oppure tolta se la fonte non ne parla. In entrambi i casi l'istruzione chiede esplicitamente di non restituire la frase invariata. Se il generatore la ricopia comunque, cosa che con un modello piccolo accade, la richiesta viene ripetuta una volta citando la copia e respingendola; se anche il secondo tentativo restituisce la stessa frase, la frase resta com'è, segnalata, e il pannello indica che il generatore non è riuscito a correggerla. Nei giri successivi non viene ritentata, perché con la decodifica greedy la risposta sarebbe la stessa. Le altre frasi restano invariate. Il numero massimo di giri e le classi da correggere sono fissati dalla policy.
 
 \paragraph{Policy e soglia.} Una policy è un piccolo file JSON che stabilisce quali verdetti vanno corretti, quanti giri
-di riscrittura sono ammessi, che cosa fare se l'errore persiste (evidenziare, nascondere la frase o astenersi) e quale
+di riscrittura sono ammessi, che cosa fare se l'errore persiste (evidenziare, nascondere la frase o astenersi, un'azione che applica il ciclo batch da riga di comando, mentre l'interfaccia evidenzia sempre) e quale
 soglia usare: quella stimata sul dev set oppure una scelta dall'utente. Le due policy predefinite corrispondono alle due
 letture già introdotte nella tesi (Sezione~\ref{sec:method-calibration}): la policy strict corregge sia le frasi
 contraddette sia quelle non menzionate, la policy lenient soltanto le prime.
@@ -317,7 +311,7 @@ accetta per intero, ne sono state estratte 100, dai tre task: 46 di summarizatio
 data-to-text. In ciascuna è stato iniettato un solo errore, di quattro tipi, 25 per tipo: un numero sostituito con un
 valore assente dal documento, un nome sostituito con uno inventato, una data spostata, oppure una frase inventata inserita
 dopo una frase esistente. Le risposte passano poi per lo stesso motore dell'applicazione: GroundOne verifica la risposta,
-il giudice LLM la verifica a sua volta per il confronto, e la policy strict riscrive le frasi segnalate fino a due giri. Un
+il giudice LLM la verifica a sua volta per il confronto, e una policy strict, che evidenzia le frasi che restano segnalate, riscrive le frasi segnalate fino a due giri. Un
 errore conta come rimosso quando il valore sbagliato non compare più nel testo, o quando nessuna frase resta simile a
 quella inventata. Il caso di studio non usa il recupero: il documento è quello di T1.
 
@@ -325,7 +319,7 @@ quella inventata. Il caso di studio non usa il recupero: il documento è quello 
 \centering
 \caption{Caso di studio sugli errori iniettati: 100 risposte di T1, un errore ciascuna, GroundOne 3B e generatore
 Qwen2.5-3B-Instruct a 4 bit nello stesso processo, senza il modello di embedding, con la KV cache delle fonti attiva. Rilevamento calcolato sulle 98 risposte
-in cui la frase con l'errore riceve un proprio verdetto.}
+in cui la frase con l'errore viene valutata.}
 \label{tab:studio-casestudy}
 \small
 \begin{tabular}{>{\raggedright\arraybackslash}p{9.4cm}c}
@@ -350,8 +344,7 @@ Memoria allocata da MLX: dopo il caricamento e al picco & 5.1\,GB, 6.7\,GB \\
 \end{table}
 
 \paragraph{Risultati.} La Tabella~\ref{tab:studio-casestudy} e la Figura~\ref{fig:studio-outcomes} riassumono il caso di
-studio. In 98 risposte la frase con l'errore riceve un proprio verdetto; nelle altre due, il segmentatore la unisce a una
-frase introduttiva priva di contenuto verificabile, e la frase non viene valutata. GroundOne segnala l'errore in 97 delle
+studio. In 98 risposte la frase con l'errore viene valutata, in una di esse unita dal segmentatore alla frase precedente; nelle altre due è unita a una frase introduttiva priva di contenuto verificabile, e non viene valutata. GroundOne segnala l'errore in 97 delle
 98 risposte, il giudice LLM in 84. Il ciclo riduce le risposte che contengono ancora l'errore dal 100\,\% all'8\,\% dopo un giro e al 6\,\% dopo due, secondo il conteggio automatico. Il modo in cui gli errori vengono rimossi conta quanto il numero. Per
 i numeri e le date sostituiti, nella maggior parte dei casi il generatore ripristina il valore della fonte: 19 numeri e 16 date su 25. Le frasi inventate vengono invece cancellate, tutte e 25, ed è la correzione appropriata. I nomi inventati,
 infine, sono etichettati correttamente come non menzionati, e per questo vengono per lo più tolti, 18 su 25, anziché
@@ -370,13 +363,12 @@ fonte, frase riscritta, frase cancellata, errore ancora presente e segnalato, er
 perché il verdetto a tre classi conta, e non soltanto la segnalazione. Il 0.5B segnala l'errore in 97 risposte su 98, come
 il 3B, ma etichetta quasi tutti i numeri e le date sostituiti come non menzionati (44 su 50), mentre il 3B li riconosce come
 contraddetti (40 su 50). Per una frase non menzionata la riscrittura può togliere la frase, e il generatore lo fa: con il 0.5B gli errori rimossi cancellando la frase sono 84 e quelli rimossi ripristinando il valore appena 12. Le risposte che
-conservano l'errore scendono al 3\,\%, ma a prezzo di informazione persa e di molti falsi allarmi: il 0.5B segnala il 17\,\%
-delle altre frasi, che sono corrette, e solo l'84\,\% di esse resta invariato. La distinzione fra frase contraddetta e frase non
+conservano l'errore scendono al 3\,\%, ma a prezzo di informazione persa e di molti falsi allarmi: il 0.5B segnala il 17\,\% delle altre frasi, che sono corrette, e solo l'84\,\% di esse resta invariato. Il confronto con l'1.8\,\% del 3B favorisce quest'ultimo, perché le risposte sono state scelte fra quelle che il 3B accetta per intero. La distinzione fra frase contraddetta e frase non
 menzionata, che il Capitolo~\ref{sec:method} motiva in astratto, qui decide se la correzione ripristina l'informazione o
 la elimina.
 
 \paragraph{Tempi.} Il confronto dei tempi conferma il quadro della Sezione~\ref{sec:results-latency}. Su queste risposte,
-con una mediana di circa 770 token tra documento e risposta e di sei frasi valutate, il tempo mediano del giudice LLM è 1.36 volte quello di GroundOne (2.36 contro 1.74 secondi, entrambi alla prima lettura delle fonti), e il giudice LLM scrive una ventina di token, mentre GroundOne non ne genera nessuno. La
+con una mediana di circa 770 token in ingresso a GroundOne e di sei frasi valutate, il tempo mediano del giudice LLM è 1.36 volte quello di GroundOne (2.36 contro 1.74 secondi, entrambi alla prima lettura delle fonti), e il giudice LLM scrive una ventina di token, mentre GroundOne non ne genera nessuno. La
 differenza è piccola perché il giudice LLM sintetico scrive poco e le risposte sono brevi. Il confronto sul rilevamento, 97
 errori segnalati contro 84, favorisce invece GroundOne per costruzione: le risposte sono state scelte fra quelle che
 GroundOne accetta per intero, un filtro che il giudice LLM non ha superato, e i falsi allarmi del giudice LLM sulle frasi corrette
@@ -398,7 +390,7 @@ domande di esempio della libreria, inoltre, il 7B scrive risposte di lunghezza s
 GroundOne considera supportato il 66\,\% delle sue frasi, contro l'85\,\% di quelle del 3B. Per questo il 3B resta il
 generatore predefinito.
 
-\paragraph{Come leggere i risultati.} Tre avvertenze delimitano la portata del caso di studio. La prima riguarda il
+\paragraph{Come leggere i risultati.} Tre avvertenze delimitano la portata del caso di studio, a cui va aggiunta una nota di procedura: il prompt di riscrittura è stato scelto dopo aver esaminato un primo insieme disgiunto di risposte con errori iniettati, ma il controllo delle copie è stato aggiunto in seguito e misurato di nuovo sullo stesso insieme riportato qui, che quindi ha orientato anche il progetto finale. La prima riguarda il
 rilevamento. Le risposte sono state scelte fra quelle che GroundOne accetta, e gli errori iniettati sono netti: valori e
 nomi assenti dal documento. L'alta percentuale di errori segnalati mostra quindi il funzionamento del ciclo, non la
 recall di GroundOne, che è misurata nel Capitolo~\ref{sec:results}. La seconda riguarda le frasi riscritte: non hanno
@@ -452,8 +444,7 @@ $\tau$ & \makecell{Frasi\\segnalate} & \makecell{Recall\\supportate} & \makecell
 
 Passare da 0.8 a 0.925 aggiunge appena 0.01 di balanced accuracy, ma porta le frasi segnalate dal 15\,\% al 25\,\%, quando
 gli errori veri in T1 sono il 9\,\%. D'altra parte, l'errore sulla tessera TX-Tag sta proprio in questa fascia: con una
-soglia di 0.8 sarebbe passato inosservato. Il caso di studio offre l'esempio speculare: l'unico errore che GroundOne lascia
-passare ha una probabilità di supporto di 0.93, appena sopra la soglia. Nessuna delle due scelte è sbagliata. Una soglia
+soglia di 0.8 sarebbe passato inosservato. Il caso di studio offre l'esempio speculare: l'unico errore valutato che GroundOne lascia passare ha una probabilità di supporto di 0.93, appena sopra la soglia. Nessuna delle due scelte è sbagliata. Una soglia
 alta conviene quando un errore non segnalato costa molto, una soglia più bassa quando i falsi allarmi disturbano l'utente.
 È questo il vantaggio pratico delle probabilità calibrate: la soglia si può scegliere in modo consapevole, e l'applicazione
 la espone come parametro della policy. L'etichetta mostrata per una frase sotto soglia va letta di conseguenza: indica il
@@ -462,10 +453,7 @@ tipo di errore più probabile, non una certezza, ed è per questo che il pannell
 \section{Limiti}
 \label{sec:studio-limits}
 
-\paragraph{Il generatore.} Il generatore da 3B scrive risposte più brevi di quanto richiesto, fra circa 120 e 250 parole
-contro le 300--500 indicate nel prompt, e non sempre riesce a correggere una frase segnalata: nell'esempio della
-Sezione~\ref{sec:studio-example} restituisce la frase invariata. Un generatore più grande, per esempio da 7B a 4 bit,
-starebbe ancora nella memoria del portatile e dovrebbe migliorare entrambi gli aspetti, ma non è stato valutato.
+\paragraph{Il generatore.} Il generatore da 3B scrive spesso risposte più brevi di quanto richiesto, fra 122 e 440 parole con una mediana di 250 sulle domande di esempio, contro le almeno 300 chieste dal prompt, e non sempre riesce a correggere una frase segnalata: nell'esempio della Sezione~\ref{sec:studio-example} restituisce la frase invariata. Il 7B a 4 bit corregge più errori, ma scrive risposte di lunghezza simile, è circa due volte più lento e aggiunge più contenuto che le fonti non riportano (paragrafo \emph{Un generatore più grande}).
 
 \paragraph{Le frasi riscritte.} La correttezza delle frasi riscritte è giudicata solo da GroundOne. Un controllo
 indipendente, con un secondo verificatore come un encoder specializzato oppure con una lettura umana di un campione,

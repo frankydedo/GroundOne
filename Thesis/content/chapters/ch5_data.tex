@@ -23,8 +23,7 @@ error. Only the document counts: a statement that is true in the real world but 
 mentioned.
 
 The number of decisions required by an answer equals the number of its scored sentences, denoted $K$. This quantity is
-central to the thesis. A decision model reads the document and the answer only once, so each additional decision costs
-it little, only the sentence's tokens; an LLM judge, by contrast, has to produce text for every sentence. For this reason the
+central to the thesis. A decision model reads the document and the answer only once, so each additional decision costs it little, only the tokens of the sentence and the three of its marker; an LLM judge, by contrast, has to produce text for every sentence. For this reason the
 comparison with LLM judges is carried out as a function of $K$, and the data must include long answers as well
 as short ones.
 
@@ -82,7 +81,7 @@ MeetB), retrieval-based or long-form question answering (RAGTruth~\cite{niu2024r
 ClaimVerify~\cite{liu2023verifiability}, ExpertQA~\cite{malaviya2024expertqa}, LFQA~\cite{chen2024lfqa}) and fact
 checking proper (WiCE~\cite{kamoi2023wice}, REVEAL~\cite{jacovi2024reveal},
 FactCheck-GPT~\cite{wang2024factcheckbench}). The benchmark has a public leaderboard, which makes the results comparable
-with those of published systems. Its licence, however, forbids using the data to train models~\cite{hf_llmaggrefact}.
+with those of published systems. Its access condition, however, forbids using the data to train models~\cite{hf_llmaggrefact}.
 In this thesis the dataset therefore serves only for evaluation: no training, calibration or selection takes place on
 any of its splits.
 
@@ -123,8 +122,7 @@ sources to the frozen test sets.
 \paragraph{Sentences without checkable content.} Some sentences assert nothing about the document: greetings, headings
 that introduce a list, lines containing only a citation, such as ``(Passage 2)'', and refusal formulas. These sentences
 remain in the numbered answer as context, but they are not decisions and carry no label. A short rule identifies them,
-and it applies to 8.2\,\% of all RAGTruth sentences, mostly list headings. The rule considers only formatting, that is,
-list markers, citation-only lines and conversational formulas, and it never changes a label. Its coverage was verified
+and it applies to 8.2\,\% of all RAGTruth sentences, mostly list headings. The rule considers only the form of the sentence, that is, fewer than two words, a final colon, a line containing only a citation or a conversational or refusal formula, and it never changes a label. Its coverage was verified
 against the independent segmentation of LLM-AggreFact, described in Section~\ref{sec:data-reliability}.
 
 \paragraph{Labels.} In RAGTruth the label of a scored sentence depends on the spans it overlaps. The sentence is
@@ -142,8 +140,7 @@ information} not mentioned. Figure~\ref{fig:data-label-rule} summarises the rule
 \end{figure}
 
 \paragraph{Exclusions and splits.} Three categories of answers are removed: those that RAGTruth flags as incorrect
-refusals or as truncated, those without any scored sentence and those in which document and answer together exceed
-2{,}048 tokens. This last length limit is imposed by the memory of the 16\,GB laptop. The official RAGTruth test split
+refusals or as truncated, those without any scored sentence and those in which document, answer and the about 80 tokens of the prompt together exceed 2{,}048 tokens. This last length limit is imposed by the memory of the 16\,GB laptop. The official RAGTruth test split
 becomes test set T1. The training sources, instead, are shuffled with a fixed seed and divided into two parts: 10\,\%
 forms the dev set and the rest the training set. Since the division is made by source, answers about the same source
 never appear in both sets. Six training answers about a news article that also appears in the LLM-AggreFact test set
@@ -179,16 +176,14 @@ T3 & VitaminC test & 3{,}000 & 3{,}000 & 1{,}000 & 1{,}000 & 1{,}000 \\
 \end{adjustbox}
 \end{table}
 
-RAGTruth is strongly imbalanced: about 88\,\% of the labelled sentences are supported, and contradictions are only
-3--4\,\% (Figure~\ref{fig:data-balance}). This is the natural frequency of errors in model answers, and it is
+RAGTruth is strongly imbalanced: about 88\,\% of the labelled sentences are supported, and contradictions are only about 4\,\% (Figure~\ref{fig:data-balance}). This is the natural frequency of errors in model answers, and it is
 preserved. The test set thus reflects what a verifier meets in practice, while the imbalance is handled during
 training. T3 compensates by offering a test balanced across the three classes.
 
-Answers contain on average 6.9 scored sentences in the training set and 6.5 in T1, with a maximum of 28
+Answers contain on average 6.9 scored sentences in the training set and 6.5 in T1, with a maximum of 28 in the training set and 23 in T1
 (Figure~\ref{fig:data-k}). To analyse the results as a function of length, T1 is divided into four bands of $K$: 756
 answers with 1--4 sentences, 1{,}288 with 5--8, 497 with 9--13 and 106 with 14 or more. When a results cell contains
-fewer than 30 sentences of a minority class, as happens for contradicted sentences in question answering, the value is
-reported but marked as indicative.
+at most 30 sentences of a minority class, as happens for contradicted sentences in question answering and in answers with fourteen or more sentences, the value is reported but marked as indicative.
 
 \begin{figure}[htbp]
 \centering
@@ -334,9 +329,6 @@ sentence, so that all answers about the same source fall into the same split. In
 every build of the dataset, and it fails in two cases: when a source, a document or a (document, sentence) pair of the
 training set or of the dev set appears in any of the test sets, and when the dev set and the training set share a
 source. On the final dataset the check found no overlap of this kind. Without blocking the build, the check also lists
-the sentences that appear with the same words in both training and test data, but refer to different documents. There
-are 788 of them, and they are all standard data-to-text sentences, such as ``The business has a rating of 4.0
-stars.'': the generator model repeats them for different businesses, so their presence in the training data does not
-anticipate any test label, which always depends on the document the sentence refers to. One aspect remains that cannot
+the sentences that appear with the same words in both training and test data, but refer to different documents. There are 788 in the training set and 82 in the dev set. Most of them, 702 of the 788, are standard data-to-text sentences, such as ``The business has a rating of 4.0 stars.'': the generator model repeats them for different businesses, so their presence in the training data does not anticipate any test label, which always depends on the document the sentence refers to. The others are generic phrases or come from different news articles on the same event, which the check, based on identical documents, does not recognise as related; they are few, but the overlap between different articles on the same story is not controlled. One aspect remains that cannot
 be verified: whether the public datasets used here were part of the pre-training data of Qwen2.5. This is a limitation
 common to most work on public benchmarks.

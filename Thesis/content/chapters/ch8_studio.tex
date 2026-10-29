@@ -32,7 +32,7 @@ What the user sees & Claim supported \\
 \midrule
 Every sentence of the answer coloured according to the GroundOne verdict, with the calibrated probabilities. & The probabilities are usable and consistent with the label shown (RQ3). \\ \addlinespace[2pt]
 The comparison, on the same answer, with an LLM judge run locally: verdicts and times side by side. & Reading all the verdicts in a single forward pass, without generating text, is more accurate than an LLM judge that writes the verdicts, and faster, increasingly so as the answer grows longer (RQ2). \\ \addlinespace[2pt]
-A panel with the generation and verification times and the memory in use. & Generator and verifier coexist in 16\,GB, and verification costs little compared with generation (RQ4). \\ \addlinespace[2pt]
+A panel with the generation and verification times and the memory in use. & Generator and verifier coexist in 16\,GB, and verification adds a fraction of the generation time, small with the 0.5B (RQ4). \\ \addlinespace[2pt]
 The rewriting of the flagged sentences from the documents, verified again. & Verification is cheap enough to sit inside the generation loop. \\ \addlinespace[2pt]
 For every sentence, the passage of the document that supports or contradicts it, highlighted. & Attribution to the passage can be obtained with the same model; it is an unevaluated prototype (Section~\ref{sec:concl-future}). \\
 \bottomrule
@@ -58,9 +58,7 @@ shaders requires Xcode.
 \label{sec:studio-architecture}
 
 The application is divided into three layers (Figure~\ref{fig:studio-architecture}). The first is the interface. The
-second is a core that does not depend on the engines: it manages the session (answer, verification, rewriting), applies
-the policy and saves conversations and logs. The core knows only five abstract interfaces, called \emph{ports}:
-retriever, generator, verifier, LLM judge and attributor. The third layer contains the engines that implement them. Thanks
+second is a core that does not depend on the engines: it manages the session (answer, verification, rewriting), applies the policy and writes the action log, while the conversations are saved by the interface layer. The core knows five abstract interfaces, called \emph{ports}: retriever, generator, verifier, LLM judge and attributor. The third layer contains the engines that implement the first four; attribution is computed by a component of GroundOne that the interface calls directly. Thanks
 to this separation the core was tested with fake, deterministic engines, just as the Python package is tested with a
 fake backend, and a different engine, for example a generator on llama.cpp, could replace the current one without
 touching the rest.
@@ -77,15 +75,13 @@ weights as GroundOne with the adapter removed. The components in which GroundOne
 There are four engines. The generator is Qwen2.5-3B-Instruct quantised to 4 bits, the same one used in the
 co-residence measurement of Section~\ref{sec:results-locality}. The verifier is GroundOne 3B, that is, the 8-bit base
 with the LoRA adapter, the marker prompt, the readout of the letters A, B and C and the calibration fitted on the dev
-set. It is the default model because it is the most accurate, and in the application verification happens only on request, in about two seconds for a typical answer read from scratch and in about half a second once the sources have been read ahead (Section~\ref{sec:studio-flow}); a selector allows switching to the faster 0.5B. The LLM judge used
+set. It is the default model because it is the most accurate, and in the application verification happens only on request, in about two seconds on the short answers of the latency measurement and about three on the longer answers of the application (3.3 seconds at the median on the example questions), and in less than a third of that time once the sources have been read ahead (Section~\ref{sec:studio-flow}); a selector allows switching to the faster 0.5B. The LLM judge used
 for the comparison is the same base model as GroundOne with the adapter removed at runtime and the prompt of the terse
 LLM judge B0a (Section~\ref{sec:setup-baselines}): it is exactly the LLM judge measured in the thesis, it takes no additional
 memory and it does not leave the machine. The retriever, finally, combines a full-text index and a small embedding model
 (Section~\ref{sec:studio-library}).
 
-All calls to the models go through the model containers of MLX Swift, which serialise access to them, and are executed
-one at a time on the GPU, as happens with the single worker thread of the Python service
-(Section~\ref{sec:method-software}). Generation and verification therefore do not compete for resources, and the measured times are not confounded by concurrent executions. The read-ahead of the sources, which starts in the background when an answer is complete, follows the same rule: a verification, a comparison with the LLM judge or a new answer requested while it is running waits for it to finish. With the three models loaded, the memory allocated by MLX is
+All calls to a model go through its model container in MLX Swift, which serialises them, as the single worker thread of the Python service does (Section~\ref{sec:method-software}). The generator and GroundOne have separate containers: the read-ahead of the sources, which starts in the background when an answer is complete, makes a verification, a comparison with the LLM judge or a new answer requested while it is running wait for it to finish, and the interface disables the actions of an answer while it is being processed, but nothing prevents a new question from being generated while an earlier answer is being verified. The times reported in this chapter were measured one operation at a time, so they are not confounded by concurrent executions. With the three models loaded, the memory allocated by MLX is
 about 5.3\,GB and reaches a peak of 6.2\,GB during one question and of 6.9\,GB after a session of twelve questions, when the KV cache also keeps the sources of the earlier ones. The first value is in line with the co-residence measurement of
 Table~\ref{tab:results-coresidence}, which did not include the retriever. The embedding model therefore adds little: it
 takes about 130\,MB on disk.
@@ -135,8 +131,7 @@ Maximum difference between the probabilities with and without the cache & 0.007 
 \end{tabular}
 \end{table}
 
-Speed is also almost the same. On the same 200 answers, verification takes on average 2.13 seconds in Swift against
-2.04 in Python with the 3B, about 4\,\% more, and 0.34 against 0.33 seconds with the 0.5B; these are means, whereas
+Speed is also almost the same. On the same 200 answers, verification takes on average 2.05 seconds in Swift against 2.04 in Python with the 3B, less than 1\,\% more, and 0.335 against 0.333 seconds with the 0.5B; these are means, whereas
 Chapter~\ref{sec:results} reports medians. Segmentation, finally, produces the same sentences as PySBD in 98.4\,\% of the
 2{,}647 answers of T1. The remaining differences mostly concern abbreviated titles and quotations that span several
 sentences. Without three additional rules, which do not split the sentence after initials and common abbreviations or
@@ -228,8 +223,7 @@ available actions.}
 
 \paragraph{Evidence.} GroundOne indicates whether a sentence is supported, but not by which passage
 (Section~\ref{sec:disc-limitations}). The application reconstructs this information in two steps. In the first, it
-verifies the answer against each retrieved passage separately, with one forward pass per passage, and picks the one in
-which the sentence obtains the highest probability of support, or of contradiction if the sentence is contradicted. In
+verifies the answer against each retrieved passage separately, with one forward pass per passage, and keeps the passage in which the sentence obtains the highest probability of support and the one in which it obtains the highest probability of contradiction, each only if that passage alone yields that verdict; the supporting passage is shown first. In
 the second, within the chosen passage, it locates the sentence closest to the one in the answer, weighting the shared
 words by their rarity in the passage. The document preview opens with that span highlighted
 (Figure~\ref{fig:studio-evidence}). This is the first prototype of the readout per passage listed among the future
@@ -257,7 +251,7 @@ mentioned must be rewritten with what the source says on the same point, or remo
 policy.
 
 \paragraph{Policy and threshold.} A policy is a small JSON file that specifies which verdicts are to be corrected, how
-many rewriting rounds are allowed, what to do if the error persists (highlight, hide the sentence or abstain) and which
+many rewriting rounds are allowed, what to do if the error persists (highlight, hide the sentence or abstain, an action that the batch loop of the command line applies, while the interface always highlights) and which
 threshold to use: the one fitted on the dev set or one chosen by the user. The two default policies correspond to the
 two readings already introduced in the thesis (Section~\ref{sec:method-calibration}): the strict policy corrects both
 contradicted and not-mentioned sentences, the lenient policy only the former.
@@ -315,15 +309,14 @@ full, 100 were drawn from the three tasks: 46 from summarisation, 29 from questi
 single error was injected into each, of four types, 25 per type: a number replaced with a value absent from the
 document, a name replaced with an invented one, a shifted date, or an invented sentence inserted after an existing one.
 The answers then go through the same engine as the application: GroundOne verifies the answer, the LLM judge verifies it in
-turn for the comparison, and the strict policy rewrites the flagged sentences for up to two rounds. An error counts as
+turn for the comparison, and a strict policy, which highlights the sentences that remain flagged, rewrites the flagged sentences for up to two rounds. An error counts as
 removed when the wrong value no longer appears in the text, or when no sentence remains similar to the invented one. The
 case study does not use retrieval: the document is that of T1.
 
 \begin{table}[htbp]
 \centering
 \caption{Case study on injected errors: 100 answers of T1, one error each, GroundOne 3B and the 4-bit
-Qwen2.5-3B-Instruct generator in the same process, without the embedding model, with the KV cache of the sources active. Detection is computed on the 98 answers
-in which the sentence with the error receives its own verdict.}
+Qwen2.5-3B-Instruct generator in the same process, without the embedding model, with the KV cache of the sources active. Detection is computed on the 98 answers in which the sentence with the error is scored.}
 \label{tab:studio-casestudy}
 \small
 \begin{tabular}{>{\raggedright\arraybackslash}p{9.4cm}c}
@@ -347,9 +340,7 @@ Memory allocated by MLX: after loading and at peak & 5.1\,GB, 6.7\,GB \\
 \end{tabular}
 \end{table}
 
-\paragraph{Results.} Table~\ref{tab:studio-casestudy} and Figure~\ref{fig:studio-outcomes} summarise the case study. In
-98 answers the sentence with the error receives its own verdict; in the other two, the segmenter merges it with an
-introductory sentence without checkable content, and the sentence is not scored. GroundOne flags the error in 97 of the
+\paragraph{Results.} Table~\ref{tab:studio-casestudy} and Figure~\ref{fig:studio-outcomes} summarise the case study. In 98 answers the sentence with the error is scored, in one of them merged by the segmenter with the preceding sentence; in the other two it is merged with an introductory sentence without checkable content, and it is not scored. GroundOne flags the error in 97 of the
 98 answers, the LLM judge in 84. The loop reduces the answers that still contain the error from 100\,\% to 8\,\% after one round and to 6\,\% after two, according to the automatic count. The way in which errors are removed matters as much as
 their number. For replaced numbers and dates, in most cases the generator restores the value of the source: 19 numbers and 16 dates out of 25. Invented sentences, instead, are deleted, all 25 of them, which is the appropriate correction.
 Invented names, finally, are correctly labelled as not mentioned, and for this reason they are mostly removed, 18 out of
@@ -370,13 +361,12 @@ the three-class verdict matters, and not only the flag. The 0.5B flags the error
 but labels almost all the replaced numbers and dates as not mentioned (44 out of 50), whereas the 3B recognises them as
 contradicted (40 out of 50). For a sentence that is not mentioned, rewriting may remove the sentence, and the generator
 does so: with the 0.5B, 84 errors are removed by deleting the sentence and only 12 by restoring the value. The answers
-that keep the error fall to 3\,\%, but at the price of lost information and of many false alarms: the 0.5B flags
-17\,\% of the other sentences, which are correct, and only 84\,\% of them remain unchanged. The distinction between a
+that keep the error fall to 3\,\%, but at the price of lost information and of many false alarms: the 0.5B flags 17\,\% of the other sentences, which are correct, and only 84\,\% of them remain unchanged. The comparison with the 1.8\,\% of the 3B favours the latter, because the answers were chosen among those that the 3B accepts in full. The distinction between a
 contradicted and a not-mentioned sentence, which Chapter~\ref{sec:method} motivates in the abstract, here decides
 whether the correction restores the information or eliminates it.
 
 \paragraph{Times.} The comparison of times confirms the picture of Section~\ref{sec:results-latency}. On these answers,
-with a median of about 770 tokens between document and answer and of six scored sentences, the median time of the LLM judge is 1.36 times that of GroundOne (2.36 against 1.74 seconds, both reading the sources for the first time), and the LLM judge writes around twenty tokens, whereas GroundOne generates none. The
+with a median of about 770 tokens of GroundOne input and of six scored sentences, the median time of the LLM judge is 1.36 times that of GroundOne (2.36 against 1.74 seconds, both reading the sources for the first time), and the LLM judge writes around twenty tokens, whereas GroundOne generates none. The
 difference is small because the terse LLM judge writes little and the answers are short. The comparison on detection, 97
 errors flagged against 84, instead favours GroundOne by construction: the answers were chosen among those that GroundOne
 accepts in full, a filter that the LLM judge did not pass, and the false alarms of the LLM judge on the correct sentences were
@@ -398,7 +388,7 @@ example questions of the library, moreover, the 7B writes answers of similar len
 GroundOne considers 66\,\% of its sentences supported, against 85\,\% of those of the 3B. For this reason the 3B remains
 the default generator.
 
-\paragraph{How to read the results.} Three caveats delimit the scope of the case study. The first concerns detection.
+\paragraph{How to read the results.} Three caveats delimit the scope of the case study, to which a procedural note must be added: the rewriting prompt was chosen after inspecting a first, disjoint set of injected answers, but the copy check was added afterwards and measured again on the same set reported here, which therefore also guided the final design. The first concerns detection.
 The answers were chosen among those that GroundOne accepts, and the injected errors are clear-cut: values and names
 absent from the document. The high share of flagged errors therefore shows how the loop works, not the recall of
 GroundOne, which is measured in Chapter~\ref{sec:results}. The second concerns the rewritten sentences: they have no
@@ -452,8 +442,7 @@ $\tau$ & \makecell{Flagged\\sentences} & \makecell{Recall\\supported} & \makecel
 
 Moving from 0.8 to 0.925 adds only 0.01 of balanced accuracy, but raises the flagged sentences from 15\,\% to 25\,\%,
 when the true errors in T1 are 9\,\%. On the other hand, the error on the TX-Tag card lies precisely in this band: with a
-threshold of 0.8 it would have gone unnoticed. The case study offers the mirror example: the only error that GroundOne
-lets through has a probability of support of 0.93, just above the threshold. Neither choice is wrong. A high threshold
+threshold of 0.8 it would have gone unnoticed. The case study offers the mirror example: the only scored error that GroundOne lets through has a probability of support of 0.93, just above the threshold. Neither choice is wrong. A high threshold
 is preferable when an unflagged error is costly, a lower one when false alarms disturb the user. This is the practical
 advantage of calibrated probabilities: the threshold can be chosen knowingly, and the application exposes it as a
 parameter of the policy. The label shown for a sentence below the threshold should be read accordingly: it indicates the
@@ -462,10 +451,7 @@ most likely type of error, not a certainty, which is why the panel always report
 \section{Limitations}
 \label{sec:studio-limits}
 
-\paragraph{The generator.} The 3B generator writes answers shorter than requested, between about 120 and 250 words
-against the 300--500 indicated in the prompt, and does not always manage to correct a flagged sentence: in the example
-of Section~\ref{sec:studio-example} it returns the sentence unchanged. A larger generator, for example a 4-bit 7B, would
-still fit in the memory of the laptop and should improve both aspects, but it has not been evaluated.
+\paragraph{The generator.} The 3B generator often writes answers shorter than requested, between 122 and 440 words with a median of 250 on the example questions, against the at least 300 asked by the prompt, and does not always manage to correct a flagged sentence: in the example of Section~\ref{sec:studio-example} it returns the sentence unchanged. The 4-bit 7B corrects more errors, but writes answers of similar length, is about twice as slow and adds more content that the sources do not report (paragraph \emph{A larger generator}).
 
 \paragraph{The rewritten sentences.} The correctness of the rewritten sentences is judged only by GroundOne. An
 independent check, with a second verifier such as a specialised encoder or with a human reading of a sample, would make

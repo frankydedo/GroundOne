@@ -30,8 +30,7 @@ riguarda il costo: un solo forward pass sulla risposta sostituisce la generazion
 risparmiato cresce con la lunghezza della risposta. Quando la risposta contiene quattordici o più frasi, il risparmio
 arriva a un fattore di circa due rispetto a un giudice LLM sintetico e di circa sei rispetto a uno verboso. Questo
 rapporto complessivo è limitato dalla lettura del testo, che ogni approccio deve pagare e che occupa il 97\,\% del tempo
-di GroundOne: al netto di essa, GroundOne decide da 18 a 33 volte più in fretta di un giudice LLM sintetico e circa
-125--130 volte più in fretta di uno verboso (Sezione~\ref{sec:results-latency-split}). Ne segue che ogni riduzione del
+di GroundOne: al netto di essa, GroundOne decide da 18 a 33 volte più in fretta di un giudice LLM sintetico e da 125 a 131 volte più in fretta di uno verboso (Sezione~\ref{sec:results-latency-split}). Ne segue che ogni riduzione del
 prefill, come il riuso del prefisso già letto, aumenta il vantaggio relativo del readout. Con le fonti già in cache, lette in anticipo mentre l'utente legge la risposta oppure per una verifica precedente, il vantaggio sul giudice LLM sintetico, con quattordici o più frasi, sale da 1.8--2 a 3.4--3.6 volte: la cache elimina la parte condivisa e lascia al giudice il decoding, che non si può riusare. Conservando anche la versione precedente della risposta, GroundOne rilegge soltanto ciò che segue la prima frase riscritta e riusa i verdetti delle frasi precedenti, mentre il giudice deve riscriverli tutti: su tutte le risposte il vantaggio sul giudice LLM sintetico sale da 4.8 a 12 volte con il 0.5B e da 3.1 a 7.1 volte con il 3B (Tabella~\ref{tab:results-answer-prefix}).
 Il secondo
 contributo, che questa tesi non aveva previsto, riguarda l'accuratezza. Con gli stessi pesi e lo stesso costo, scegliere
@@ -61,12 +60,11 @@ coerente con la probabilità mostrata all'utente. Come mostrano i risultati su V
 soltanto per la distribuzione su cui è stata stimata.
 
 \paragraph{Costo sul dispositivo (RQ4).} Il verificatore sta comodamente nel portatile da 16\,GB. Durante
-l'addestramento la memoria occupata raggiunge un picco di 2.6\,GB con il 0.5B e di 5.9\,GB con il 3B. Verificare una risposta lunga richiede 0.41 secondi con il 0.5B e 2.57 con il 3B, e l'energia media per risposta è di 5.5 e 33 joule. Il 0.5B rientra in un budget interattivo. Il 3B scambia tempo con accuratezza: leggendo ogni risposta da zero, è più lento di quanto un uso interattivo continuo richiederebbe. Nell'applicazione del Capitolo~\ref{ch:studio}, però, la verifica avviene su richiesta e le fonti vengono lette in anticipo mentre l'utente legge la risposta, e la prima verifica con il 3B richiede allora 0.59 secondi in mediana, contro 2.11 senza lettura anticipata. Le misure di energia precisano la portata dei risultati sulla velocità. Un singolo
+l'addestramento la memoria occupata raggiunge un picco di 2.6\,GB con il 0.5B e di 5.9\,GB con il 3B. Verificare una risposta lunga richiede 0.41 secondi con il 0.5B e 2.57 con il 3B, e l'energia, in media su risposte di ogni lunghezza, è di 5.5 e 33 joule per risposta. Il 0.5B rientra in un budget interattivo. Il 3B scambia tempo con accuratezza: leggendo ogni risposta da zero, è più lento di quanto un uso interattivo continuo richiederebbe. Nell'applicazione del Capitolo~\ref{ch:studio}, però, la verifica avviene su richiesta e le fonti vengono lette in anticipo mentre l'utente legge la risposta, e sulle risposte della misura di latenza la prima verifica con il 3B richiede allora 0.59 secondi in mediana, contro 2.11 senza lettura anticipata. Le misure di energia precisano la portata dei risultati sulla velocità. Un singolo
 prefill lungo assorbe più potenza del decoding token per token, per cui l'energia risparmiata è inferiore al tempo
 risparmiato, e la maggiore velocità non va letta come un risparmio equivalente di batteria. Il verificatore convive
 inoltre con un generatore nello stesso processo: insieme a un generatore 3B a 4 bit, il picco di memoria è di 6.1\,GB con
-il 3B e di 3.3\,GB con il 0.5B. L'intera valutazione gira senza alcun accesso alla rete, con risultati identici bit per
-bit, e i pesi a 8 bit non costano accuratezza rispetto a quelli in bf16 (Sezione~\ref{sec:results-locality}). Il
+il 3B e di 3.3\,GB con il 0.5B. La valutazione del 0.5B su T1, ripetuta senza alcun accesso alla rete, dà risultati identici bit per bit, e per il 0.5B i pesi a 8 bit non costano un'accuratezza misurabile rispetto a quelli in bf16 (Sezione~\ref{sec:results-locality}). Il
 retriever aggiunge poco: nell'applicazione del Capitolo~\ref{ch:studio}, con generatore, GroundOne 3B e modello di
 embedding caricati insieme, la memoria allocata da MLX raggiunge un picco di 6.2\,GB durante una domanda e di 6.9\,GB dopo una sessione di dodici domande, con la KV cache delle fonti già lette.
 
@@ -74,8 +72,7 @@ Anche il costo economico va letto con misura (Tabella~\ref{tab:disc-cost}). Veri
 GroundOne richiede un'energia che, al prezzo medio europeo dell'elettricità per le famiglie~\cite{eurostat2026electricity},
 vale meno di un centesimo di euro con il 0.5B e circa tre centesimi con il 3B. Affidare la stessa verifica a un giudice LLM
 in cloud, ai prezzi di listino dei fornitori~\cite{anthropic2026pricing,openai2026pricing,google2026geminipricing},
-costa invece da circa un dollaro con i modelli più economici a oltre duecento con quelli di fascia più alta. Il rapporto
-è quindi di due-quattro ordini di grandezza, ma in valore assoluto i giudici LLM economici restano poco costosi, e il
+costa invece da circa un dollaro con i modelli più economici a oltre duecento con quelli di fascia più alta. Il rapporto va quindi da circa un ordine di grandezza e mezzo a quasi cinque, ma in valore assoluto i giudici LLM economici restano poco costosi, e il
 confronto non considera né l'acquisto dell'hardware né la qualità dei giudici LLM in cloud, che questa tesi non ha
 misurato. L'argomento decisivo a favore della verifica locale resta quindi l'indipendenza: i documenti non lasciano la
 macchina e il servizio non dipende da un fornitore esterno.
@@ -110,8 +107,7 @@ GroundOne 3B (locale) & \multicolumn{3}{c}{0.092 kWh, circa 0.03 €} \\
 \paragraph{Oltre un punteggio binario (RQ5).} L'output a tre classi distingue bene le frasi contraddette da quelle non
 menzionate nel data-to-text, il task in cui RAGTruth concentra le proprie contraddizioni. Le distingue molto meno nel
 question answering e nella summarization, dove nei dati di addestramento le contraddizioni sono rare. Il 3B migliora
-sensibilmente su questo fronte, e ciò suggerisce che al modello piccolo manchino, più che un'architettura diversa,
-contraddizioni più varie in addestramento. Le policy strict e lenient e la soglia derivano tutte dalle stesse tre
+sensibilmente su questo fronte, e ciò suggerisce che la capacità del modello compensi in parte la scarsità delle contraddizioni; contraddizioni più varie in addestramento restano il rimedio più ovvio per il modello piccolo. Le policy strict e lenient e la soglia derivano tutte dalle stesse tre
 probabilità. L'utente può quindi cambiare la nozione di errore senza riaddestrare il modello, cosa che nessun
 verificatore binario consente. La Figura~\ref{fig:disc-when} riassume queste indicazioni in forma di albero decisionale.
 
@@ -166,7 +162,7 @@ frase e un altro la contraddice, il verdetto atteso non è definito in modo univ
 questo tipo. Il terzo riguarda l'attribuzione: GroundOne indica se una frase è supportata, ma non da quale passaggio; un primo prototipo, non valutato, è descritto nella Sezione~\ref{sec:studio-flow}.
 
 \paragraph{Portata statistica.} Gli intervalli bootstrap descrivono la variabilità del test set, non quella
-dell'addestramento. Inoltre, una sessantina di confronti sono stati sottoposti a test senza correzione per confronti
+dell'addestramento. Inoltre, una settantina di confronti sono stati sottoposti a test senza correzione per confronti
 multipli. Per questo le conclusioni poggiano su effetti ben lontani dallo zero, e non si rivendicano differenze su
 LLM-AggreFact e VitaminC inferiori alla dispersione tra seed. Diverse baseline, infine, sono state valutate su
 sottocampioni, il che ne allarga gli intervalli.

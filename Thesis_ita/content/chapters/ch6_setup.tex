@@ -15,15 +15,13 @@ generalisti, sono eseguite su questo portatile, e nessun risultato dipende da un
 \label{sec:setup-models}
 
 Entrambi i modelli GroundOne partono dalla versione di Qwen2.5 addestrata a seguire istruzioni (instruction-tuned)~\cite{qwen2024qwen25},
-convertita in MLX con pesi a 8 bit, e sono addestrati con la procedura descritta nella Sezione~\ref{sec:method-training}. I due
-modelli differiscono soltanto in tre aspetti: la dimensione, il numero di risposte di addestramento e la composizione
-dei micro-batch, che dipende dalla memoria disponibile.
+convertita in MLX con pesi a 8 bit, e sono addestrati con la procedura descritta nella Sezione~\ref{sec:method-training}. I due modelli differiscono per la dimensione, per il numero di risposte di addestramento, per la composizione dei micro-batch, che dipende dalla memoria disponibile, per il warm-up del learning rate (il 3\,\% dei passi per il 0.5B, il 5\,\% per il 3B) e per la frequenza con cui vengono valutati durante l'addestramento e la quota di dev set usata.
 
 Il modello 0.5B è addestrato sull'intero training set di 13{,}203 risposte. Un'epoca di 802 passi di ottimizzazione ha
 richiesto 5.5 ore di tempo wall-clock\footnote{Il tempo \emph{wall-clock} è il tempo reale trascorso dall'inizio alla
 fine di un'operazione, come lo misurerebbe un orologio, attese comprese. Si distingue dal tempo di CPU, che conta
 soltanto il tempo in cui il processore lavora effettivamente.} e ha occupato al massimo 2.6\,GB di memoria; ogni 150
-passi il modello è stato valutato sull'intero dev set. Il modello 3B, invece, è circa sei volte più lento per token. Per
+passi il modello è stato valutato sull'intero dev set. Il modello 3B, invece, è circa quattro volte e mezzo più lento in addestramento, misurato in token all'ora. Per
 questo viene addestrato nell'arco di una notte su un sottoinsieme casuale di 6{,}500 risposte, pari a circa 45{,}000
 decisioni: 403 passi in 12.25 ore, con un picco di 5.9\,GB. Una valutazione completa sul dev set richiederebbe circa
 un'ora, quindi il 3B viene valutato ogni 80 passi su un sottoinsieme fisso di 200 risposte. In entrambi i casi si
@@ -33,8 +31,7 @@ Sezione~\ref{sec:method-calibration}; per il 3B si tratta del passo 320.
 Il seed determina l'inizializzazione degli adapter e l'ordine dei batch, ed è noto che l'esito del fine-tuning varia con
 entrambi questi fattori~\cite{dodge2020finetuning}. Per stimare quanto i risultati dipendano dal seed, la procedura del
 0.5B viene quindi ripetuta con un secondo seed. Questa seconda esecuzione è stata portata a termine ed è valutata su
-tutti e tre i test set esattamente come la prima. Un'ulteriore esecuzione con un terzo seed, invece, è collassata presto
-su una predizione costante ed è stata interrotta a circa il 60\,\% dell'epoca. Essendo incompleta, è esclusa dalle
+tutti e tre i test set esattamente come la prima. Un'ulteriore esecuzione con un terzo seed, invece, è collassata presto su una predizione costante ed è stata interrotta al passo 450 di 801, il 56\,\% dell'epoca. Essendo incompleta, è esclusa dalle
 tabelle e viene discussa nella Sezione~\ref{sec:results-seeds}.
 
 \section{Baseline}
@@ -112,7 +109,7 @@ non ne rilascia mai la memoria. Per questo la valutazione si svolge in processi 
 memoria occupata dal driver della GPU supera 11\,GB; i riavvii non hanno alcun effetto sugli output.
 
 \paragraph{Encoder specializzati (B4).} MiniCheck-RoBERTa~\cite{tang2024minicheck} e HHEM-2.1-open~\cite{vectara2024hhem}
-sono i verificatori di piccole dimensioni più forti oggi disponibili. Valutano ogni coppia (documento, frase) in modo
+sono due fra i più forti verificatori open di piccole dimensioni. Valutano ogni coppia (documento, frase) in modo
 indipendente e restituiscono un'unica probabilità di supporto. Come in MiniCheck, i documenti lunghi vengono suddivisi in
 frammenti di circa 400 parole, e per ogni frase si conserva la probabilità di supporto più alta fra i frammenti. Gli encoder non hanno un output a tre classi,
 quindi sono confrontati soltanto sulla decisione binaria. Girano in PyTorch sulla GPU del portatile.
@@ -125,7 +122,7 @@ I sistemi più lenti sono valutati su sottocampioni dei test set, per lo più st
 \emph{stratificato} quando viene estratto separatamente da ciascun sottogruppo (strato) dell'insieme di partenza, con un
 numero di elementi fissato per ogni strato, invece che dall'insieme intero in modo puramente casuale.}. Rizzo-Flow è
 valutato su 300 risposte di T1, 600 coppie di T3 e 1{,}100 elementi di T2, di cui ne ha valutati 1{,}093, perché sette
-eccedevano il suo contesto. Il modello d1-3B è valutato su un sottocampione casuale di 4{,}000 elementi di T2, il 3B non
+eccedevano il suo contesto. Il modello d1-3B è valutato su un sottocampione di 4{,}000 elementi di T2, estratti a caso all'interno di ciascuna etichetta, il 3B non
 addestrato su 600 risposte di T1 e i giudici LLM sulle 200 risposte del protocollo di latenza descritto più
 avanti. Sono invece valutati sui test set completi GroundOne, MiniCheck-RoBERTa e, su T1 e T3, il 0.5B non addestrato, HHEM e d1-3B; il 3B non addestrato è valutato anche sull'intero T3.
 Ogni confronto con un sistema sottocampionato è condotto sugli elementi valutati da entrambi i sistemi.
@@ -160,11 +157,11 @@ quello osservato, con un minimo di $1/B$, dove $B$ è il numero di resampling. L
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/diagrams/setup_bootstrap_tikz.pdf}
-\caption{Bootstrap appaiato a cluster. Le frasi del test set sono raggruppate per gruppo di leakage (fonte, documento o pagina); a ogni ripetizione si estraggono i gruppi con reimmissione, si calcola la metrica dei due sistemi sulle stesse fonti estratte e se ne registra la differenza. Dopo $B = 2{,}000$ ripetizioni, i percentili 2.5 e 97.5 delle differenze danno l'intervallo al 95\,\%, e la quota di differenze di segno opposto a quello osservato dà il $p$-value.}
+\caption{Bootstrap appaiato a cluster. Le frasi del test set sono raggruppate per gruppo di leakage (fonte, documento o pagina); a ogni ripetizione si estraggono i gruppi con reimmissione, si calcola la metrica dei due sistemi sulle stesse fonti estratte e se ne registra la differenza. Dopo $B = 2{,}000$ ripetizioni, i percentili 2.5 e 97.5 delle differenze danno l'intervallo al 95\,\%, e il doppio della quota di differenze di segno opposto a quello osservato dà il $p$-value bilaterale.}
 \label{fig:setup-bootstrap}
 \end{figure}
 
-Due limiti del protocollo vanno dichiarati in anticipo. Il primo è che si eseguono una sessantina di confronti senza
+Due limiti del protocollo vanno dichiarati in anticipo. Il primo è che si eseguono una settantina di confronti senza
 alcuna correzione per confronti multipli\footnote{Quando si eseguono molti test statistici, cresce la probabilità che
 alcune differenze risultino significative per puro caso. Le correzioni per confronti multipli, come quella di
 Bonferroni, compensano questo effetto rendendo più severa la soglia di ciascun test.}. Per questo le conclusioni si
@@ -178,8 +175,7 @@ esecuzioni del 0.5B documentano a parte (Sezione~\ref{sec:results-seeds}).
 La latenza è misurata su 200 risposte di T1, 50 per ciascuna fascia di $K$, così che le risposte lunghe siano
 rappresentate quanto quelle brevi. GroundOne, il readout con una domanda per frase e tutti i giudici LLM girano
 in-process su MLX, cioè all'interno dello stesso processo che li invoca, e verificano una risposta alla volta, come
-farebbe un verificatore integrato in un assistente locale. Le prime tre risposte servono da warm-up e sono escluse dalla
-misura. Per GroundOne e per il readout con una domanda per frase ogni risposta è cronometrata tre volte e si conserva la mediana. I giudici LLM
+farebbe un verificatore integrato in un assistente locale. Le prime tre risposte vengono prima eseguite una volta come warm-up, non cronometrato; poi tutte le 200 risposte vengono cronometrate. Per GroundOne e per il readout con una domanda per frase ogni risposta è cronometrata tre volte e si conserva la mediana. I giudici LLM
 generativi, invece, sono cronometrati una sola volta, perché il greedy decoding è deterministico e ogni esecuzione dura
 molto di più. Il tempo riportato è il tempo wall-clock della chiamata al modello per una risposta, e da esso si ricava il tempo per decisione. Il Capitolo~\ref{sec:results} ripete questa misura, sulle stesse risposte, in tre varianti descritte dove se ne riportano i risultati (Sezione~\ref{sec:results-latency-split}): con la lettura del testo separata dalla decisione, con una parte del prompt già nella KV cache, la stessa per GroundOne e per i giudici LLM, e con una frase della risposta modificata dopo una prima verifica. La lettura anticipata dell'applicazione è misurata in Swift sulle stesse risposte (Sezione~\ref{sec:studio-flow}).
 
@@ -207,7 +203,7 @@ Si registrano il picco di memoria allocata da MLX e i tempi di generazione e di 
 direttamente, come in RAGTruth, per cui il retriever non è incluso. Anche queste misure girano interamente nella
 sandbox priva di rete.
 
-In ogni esperimento è in esecuzione un solo modello alla volta, e una guardia di memoria (memory guard) sorveglia ogni
+A parte la misura di co-residenza, in ogni esperimento è in esecuzione un solo modello alla volta, e una guardia di memoria (memory guard) sorveglia ogni
 job lungo, registrando per tutta la sua durata la memoria libera e lo swap. I risultati vengono scritti una sola volta e
 mai sovrascritti, e ogni esecuzione conserva la propria configurazione. In questo modo ogni numero del
 Capitolo~\ref{sec:results} può essere ricondotto all'esecuzione che lo ha prodotto.

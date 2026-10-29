@@ -47,8 +47,7 @@ or source code, contain no personal data at all; for them the regulation does no
 of confidentiality.
 
 A recent episode illustrates what is at stake. In September 2026 OpenAI announced that an internal multi-agent system had
-produced a proof of blow-up (the formation of a singularity in finite time) for the forced Navier--Stokes equations, one of the Millennium Prize problems, formalised in
-the Lean proof assistant~\cite{rits2026navierstokes}. Two mathematicians, Tristan Buckmaster and Levent Alpöge, had
+produced a proof of blow-up (the formation of a singularity in finite time) for the forced Navier--Stokes equations, formalised in the Lean proof assistant, a result presented as a solution of one of the Millennium Prize problems, although whether the formal statement matches the problem is still under review~\cite{rits2026navierstokes}. Two mathematicians, Tristan Buckmaster and Levent Alpöge, had
 released related results for the Euler equations at about the same time, and disputed the credit. Buckmaster had written his
 drafts in OpenAI's own coding assistant, and asked the company ``whether the model had been trained on, or had access
 to, our sessions in Codex, into which we had been putting all our drafts''~\cite{kahn2026navierstokes}. OpenAI denied
@@ -245,7 +244,7 @@ each~\cite{patel2024splitwise}.
 The consequence is visible on the laptop used in this thesis (Figure~\ref{fig:local-prefill-decode}). With the 0.5B model,
 reading one token of the prompt takes less than 0.4 milliseconds, while writing one token of output takes 5.9 milliseconds,
 sixteen times more. With the 3B model the figures are 2.2 and 31.8 milliseconds, fourteen times more. A model that writes a
-short paragraph thus spends more time on it than on reading a document of several thousand tokens.
+short paragraph thus spends more time on it than on reading a document of one to two thousand tokens.
 
 \begin{figure}[htbp]
 \centering
@@ -398,7 +397,7 @@ bars over the range of memory sizes offered; the thesis machine is shown at its 
 \label{fig:local-hardware}
 \end{figure}
 
-\paragraph{Laptops.} Laptops with 16 to 32\,GB and 120 to 150\,GB/s, such as the MacBook Pro used in this thesis, are the
+\paragraph{Laptops.} Laptops with 16 to 32\,GB and 120 to 153\,GB/s, such as the MacBook Pro used in this thesis, are the
 most common personal computers on which local models run. They hold small models comfortably and models of 7--8 billion
 parameters in 4 bits. The thesis machine sits at the bottom left of Figure~\ref{fig:local-hardware}: if a verifier runs
 well there, it runs on everything above it.
@@ -511,8 +510,7 @@ illustrates the mechanism.
 \caption{Streaming experts from the SSD in an engine such as Colibri. Memory holds the part of the model used by every
 token (attention, router, shared experts) and a cache of recently used experts; every expert is stored on the SSD. For
 each token the router chooses a few experts: those already cached are used at once, the missing ones are read from disk,
-at a bandwidth of a few gigabytes per second. For example, GLM-5.2 keeps about 10\,GB resident and leaves about 429\,GB of
-weights on disk~\cite{justvugg2026colibri}. The diagram is not to scale.}
+at a bandwidth of a few gigabytes per second. For example, GLM-5.2 stores all its 429\,GB of weights on disk and keeps about 10\,GB of them resident~\cite{justvugg2026colibri}. The diagram is not to scale.}
 \label{fig:local-ssd}
 \end{figure}
 
@@ -571,7 +569,7 @@ LLM.int8() shows that a handful of outlier features control a large share of the
 mass~\cite{dettmers2022llmint8}. For a model whose output is a probability that must be calibrated, rather than a text
 that must merely be fluent, these observations argue for a conservative precision: GroundOne uses 8-bit weights. A measurement made in this thesis
 confirms that, at this precision, quantisation costs no accuracy: applying the same adapter of the 0.5B model to the
-original 16-bit weights leaves the three-way balanced accuracy on T1 practically unchanged (0.768 against 0.769), the
+original 16-bit weights leaves the three-way balanced accuracy on the RAGTruth test set (T1) practically unchanged (0.768 against 0.769), the
 probabilities change by 0.011 on average and the predicted class agrees on 98\,\% of the sentences
 (Section~\ref{sec:results-locality}).
 

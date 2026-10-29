@@ -75,8 +75,7 @@ output format, and the confidence they express is rarely usable as a probability
 Encoder-based verifiers\footnote{An \emph{encoder} is a transformer in which every token attends to all the others,
 both those that precede it and those that follow it. It produces a representation of the text instead of generating
 text, like BERT and the models derived from it.} avoid generation altogether. Models such as AlignScore, MiniCheck and HHEM read a pair of document
-and sentence and return a score of support~\cite{zha2023alignscore,tang2024minicheck,vectara2024hhem}. They are small and
-fast, but they give one fixed binary score per pair: they do not distinguish a contradiction from an omission, they read
+and sentence and return a score of support~\cite{zha2023alignscore,tang2024minicheck,vectara2024hhem}. They are small and fast, but they return one score of support per pair: their output does not distinguish a contradiction from an omission, they read
 each sentence without the rest of the answer, and adapting them to a new decision requires a new model.
 
 \section{Decision models}
@@ -84,8 +83,7 @@ each sentence without the rest of the answer, and adapting them to a new decisio
 
 A different way to use a language model for decisions has recently attracted attention: \emph{decision models}. The
 category was introduced under the name of \emph{System One models}~\cite{typesafe2026jev}, which evokes the fast,
-intuitive mode of thinking as opposed to deliberate reasoning; this thesis adopts the term decision model, later taken up
-by the ecosystem. Instead of generating an answer, such a model reads the question and the context once and returns a
+intuitive mode of thinking as opposed to deliberate reasoning; this thesis adopts the term decision model, which the ecosystem has since adopted. Instead of generating an answer, such a model reads the question and the context once and returns a
 probability for each admissible answer, for example by reading the logits of the option letters at the end of the
 prompt (e.g., A: 90\,\%, B: 5\,\%, C: 5\,\%)~\cite{semif,rizzoflow}. Three properties follow directly. No text is generated, so the decision costs only the
 reading of the input. The output is always one of the admissible answers, so it is always valid. Many questions about the
@@ -120,11 +118,9 @@ followed~\cite{semif,rizzoflow}, and on 9 October 2026 the Hugging Face hub offi
 decision models, which the following day already grouped about 1{,}500 models, more than half of them published in
 the previous weeks~\cite{hf2026decisionmodels}. Established organisations released their own,
 such as Liquid AI's d1-3B and Cloudflare's Clef~\cite{liquid2026d1,cloudflare2026clef}. The evidence, however, lags
-behind the releases. Most of it comes from the authors of each system, independent evaluations are recent and often less
-favourable~\cite{deusser2026jev,nandakishore2026laya}, and a common leaderboard finds that general-purpose decision models
-with fewer than one billion parameters barely exceed the trivial baseline on hallucination detection in retrieval-augmented
-answers~\cite{decisionindex2026}. All the open implementations, moreover, are general-purpose systems that answer any
-typed question.
+behind the releases. Most of it comes from the authors of each system, independent evaluations are recent, qualify the vendors' claims and are less favourable to small open models~\cite{deusser2026jev,nandakishore2026laya}, and a common leaderboard finds that general-purpose decision models
+with fewer than one billion parameters at best barely exceed the trivial baseline, and most fall below it, on hallucination detection in retrieval-augmented
+answers~\cite{decisionindex2026}. The open implementations, moreover, are almost all general-purpose systems that answer any typed question, and none reports a sentence-level, three-way verification on RAG benchmarks.
 
 Three problems therefore remain open. The first is whether, for a single task, a small specialised decision model is worth
 using. The second is how such a model compares with the alternatives: a general-purpose decision model, an LLM judge
@@ -140,8 +136,7 @@ with a short marker after each sentence, and the verdicts of all sentences are r
 of three answer letters at the markers, without generating any text. Qwen2.5 models with 0.5B and 3B parameters are
 fine-tuned with LoRA on human-labelled answers from RAGTruth~\cite{qwen2024qwen25,hu2022lora,niu2024ragtruth}, and their
 probabilities are calibrated on development data. Three test sets were built and frozen before any model was trained, so
-that no design choice could be tuned on them. The three open problems become five research questions: the first two
-restate them in a testable form, and the other three add what matters for real use on the device, namely the reliability
+that no design choice could be tuned on them. The three open problems become five research questions. The first two restate them in a testable form: RQ1 covers the first two problems and RQ2 the contribution of the readout, while the role of model size is isolated by the decomposition of the gains. The other three add what matters for real use on the device, namely the reliability
 of the probabilities, the cost and the value of a three-way decision.
 
 \begin{description}
@@ -192,7 +187,7 @@ or indirectly, among the data used to train or configure the model: for example,
 same document, present in both sets. The model can then recognise examples it has already seen instead of generalising,
 and the test metrics become optimistic.}.
 \item \textbf{A controlled decomposition of the gains.} The comparison isolates the contribution of specialisation, of the
-restricted readout and of model size. GroundOne is compared with cues that never verify a sentence, untrained models,
+restricted readout and of model size. GroundOne is compared with elementary cues that never read the document as a whole, untrained models,
 LLM judges with and without probabilities, two general-purpose decision models (Rizzo-Flow, with 4B
 parameters, and Liquid AI's d1-3B, of the same size as the 3B) and specialised encoders, all on the same hardware and with intervals obtained by cluster bootstrap.
 \item \textbf{A study of calibration, time and energy}: how the probabilities can be calibrated and turned into consistent
@@ -219,7 +214,7 @@ for the same models before training (for the 3B on a 600-answer subsample). It r
 specialised encoders and, in three-way balanced accuracy, it clearly outperforms both general-purpose decision models: Rizzo-Flow, eight times larger than the 0.5B, and d1-3B, of the same size as the 3B. On LLM-AggreFact, a benchmark drawn from different sources, the 3B is on par with the best small encoder.
 
 The decision-model mechanism pays off in speed and in accuracy. When an answer contains fourteen or more sentences and nothing has been read before, the least favourable case, GroundOne verifies it 1.8 to 2 times faster than a terse LLM judge and about six times faster than a verbose LLM judge of the same size, with an
-output that is always valid and with less energy. The overall ratio is bounded by reading the text, which every approach pays: net of it, GroundOne decides 18 to 33 times faster than the terse LLM judge. When the sources are already in the KV cache, read ahead while the user reads the answer or by an earlier verification, the advantage on the same long answers rises to 3.4--3.6 times, with the same cache for both systems; after a rewrite, when GroundOne also reuses the beginning of the answer and the verdicts of its sentences, it reaches 7 to 12 times, the most favourable case measured. How the decision is read also matters: with the same trained model,
+output that is always valid and with less energy. The overall ratio is bounded by reading the text, which every approach pays: net of it, GroundOne decides 18 to 33 times faster than the terse LLM judge. When the sources are already in the KV cache, read ahead while the user reads the answer or by an earlier verification, the advantage on the same long answers rises to 3.4--3.6 times, with the same cache for both systems; after a rewrite, when GroundOne also reuses the beginning of the answer and the verdicts of its sentences, it reaches, over all answers, 7 to 12 times, the most favourable case measured. How the decision is read also matters: with the same trained model,
 choosing the most probable of the three admissible letters is more accurate than letting the model generate its verdict
 freely, with a gain in balanced accuracy of 0.25 for the 0.5B and 0.07 for the 3B. After calibration, the probabilities of GroundOne are
 close to the observed frequencies, whereas the probabilities of LLM judges asked for the same output barely
@@ -234,7 +229,7 @@ different seeds produces slightly different models: if the results change a lot 
 is not robust.}.
 
 Finally, the GroundOne Studio application shows that a complete RAG assistant can be built around the verifier, in a
-single process and without network access, with at most 6.9\,GB of memory allocated by MLX. In a case study with
+single process and without network access, with at most 6.9\,GB of memory allocated by MLX with the default 3B generator. In a case study with
 injected errors, GroundOne flags the error in 97 of the 98 answers in which the sentence receives a verdict, against 84
 for the LLM judge, and targeted rewriting reduces the answers that still contain it from 100\,\% to 6\,\%.
 
@@ -244,7 +239,7 @@ for the LLM judge, and targeted rewriting reduces the answers that still contain
 Chapter~\ref{sec:local} is devoted to local inference: the reasons for keeping models on the device, open-weight and
 small models, the cost model of inference on one device, the hardware landscape, runtimes and quantisation, energy, and
 the consequence for verification. Chapter~\ref{sec:background} reviews decision models and their
-ecosystem, hallucination in retrieval-augmented generation, verification methods and calibration. Chapter~\ref{sec:method} describes
+ecosystem, hallucination in retrieval-augmented generation, verification methods, calibration and parameter-efficient fine-tuning. Chapter~\ref{sec:method} describes
 GroundOne: the decision, the single-pass readout, the training objective, the calibration and the served output.
 Chapter~\ref{ch:data} defines the labels and describes how the training and test sets were built, checked and frozen.
 Chapter~\ref{sec:setup} presents the trained models, the baselines, the metrics and the measurement protocol.

@@ -23,7 +23,7 @@ conflitto sia una parte non verificabile, viene etichettata come contraddetta, p
 grave. Conta soltanto il documento: un'affermazione vera nel mondo reale ma assente dal documento resta non menzionata.
 
 Il numero di decisioni richieste da una risposta coincide con il numero delle sue frasi valutate, indicato con $K$.
-Questa grandezza è centrale nella tesi. Un decision model legge documento e risposta una sola volta, quindi ogni decisione aggiuntiva gli costa poco, soltanto i token della frase; un giudice LLM, invece, deve produrre testo per ogni frase. Per questo il
+Questa grandezza è centrale nella tesi. Un decision model legge documento e risposta una sola volta, quindi ogni decisione aggiuntiva gli costa poco, soltanto i token della frase e i tre del suo marker; un giudice LLM, invece, deve produrre testo per ogni frase. Per questo il
 confronto con i giudici LLM è condotto in funzione di $K$, e i dati devono comprendere risposte lunghe oltre che
 brevi.
 
@@ -82,8 +82,7 @@ summarization (AggreFact-CNN e XSum~\cite{tang2023aggrefact}, TofuEval~\cite{tan
 basato su retrieval o con risposte in forma estesa (RAGTruth~\cite{niu2024ragtruth}, ClaimVerify~\cite{liu2023verifiability},
 ExpertQA~\cite{malaviya2024expertqa}, LFQA~\cite{chen2024lfqa}) e il fact checking vero e proprio
 (WiCE~\cite{kamoi2023wice}, REVEAL~\cite{jacovi2024reveal}, FactCheck-GPT~\cite{wang2024factcheckbench}). Il benchmark
-ha una leaderboard pubblica, che rende i risultati confrontabili con quelli dei sistemi pubblicati. La sua licenza,
-però, vieta di usare i dati per addestrare modelli~\cite{hf_llmaggrefact}. In questa tesi il dataset serve quindi
+ha una leaderboard pubblica, che rende i risultati confrontabili con quelli dei sistemi pubblicati. La sua condizione di accesso, però, vieta di usare i dati per addestrare modelli~\cite{hf_llmaggrefact}. In questa tesi il dataset serve quindi
 soltanto alla valutazione: nessun addestramento, calibrazione o selezione avviene su alcuno dei suoi split.
 
 \paragraph{VitaminC.} VitaminC~\cite{schuster2021vitaminc,hf_vitaminc} è un dataset di verifica dei fatti costruito a
@@ -125,7 +124,7 @@ addestramento, in valutazione e in inferenza, così che il modello veda sempre f
 che introducono un elenco, righe che contengono soltanto una citazione, come ``(Passage 2)'', e formule di rifiuto.
 Queste frasi restano nella risposta numerata come contesto, ma non costituiscono decisioni e non hanno etichetta. Una
 breve regola le individua, e riguarda l'8.2\,\% di tutte le frasi di RAGTruth, in gran parte intestazioni di elenchi. La
-regola considera soltanto la formattazione, cioè simboli di elenco, righe di sola citazione e formule conversazionali, e
+regola considera soltanto la forma della frase, cioè meno di due parole, i due punti finali, una riga di sola citazione o una formula conversazionale o di rifiuto, e
 non modifica mai un'etichetta. La sua copertura è stata verificata rispetto alla segmentazione indipendente di
 LLM-AggreFact, descritta nella Sezione~\ref{sec:data-reliability}.
 
@@ -144,8 +143,7 @@ l'etichetta binaria è mantenuta così come rilasciata. Le etichette di VitaminC
 \end{figure}
 
 \paragraph{Esclusioni e split.} Vengono rimosse tre categorie di risposte: quelle che RAGTruth segnala come rifiuti
-scorretti o come troncate, quelle senza alcuna frase valutata e quelle in cui documento e risposta superano insieme i
-2{,}048 token. Quest'ultimo limite di lunghezza è imposto dalla memoria del portatile da 16\,GB. Lo split di test
+scorretti o come troncate, quelle senza alcuna frase valutata e quelle in cui documento, risposta e i circa 80 token del prompt superano insieme i 2{,}048 token. Quest'ultimo limite di lunghezza è imposto dalla memoria del portatile da 16\,GB. Lo split di test
 ufficiale di RAGTruth diventa il test set T1. Le fonti di addestramento, invece, vengono mescolate con un seed fisso e
 divise in due parti: il 10\,\% forma il dev set e il resto il training set. Poiché la divisione avviene per fonte, le
 risposte relative alla stessa fonte non compaiono mai in entrambi gli insiemi. Vengono inoltre rimosse sei risposte di
@@ -182,16 +180,13 @@ T3 & VitaminC test & 3{,}000 & 3{,}000 & 1{,}000 & 1{,}000 & 1{,}000 \\
 \end{adjustbox}
 \end{table}
 
-RAGTruth è fortemente sbilanciato: circa l'88\,\% delle frasi etichettate è supportato, e le contraddizioni sono appena
-il 3--4\,\% (Figura~\ref{fig:data-balance}). Questa è la frequenza naturale degli errori nelle risposte dei modelli, e
+RAGTruth è fortemente sbilanciato: circa l'88\,\% delle frasi etichettate è supportato, e le contraddizioni sono appena il 4\,\% circa (Figura~\ref{fig:data-balance}). Questa è la frequenza naturale degli errori nelle risposte dei modelli, e
 viene preservata. Il test set riflette così ciò che un verificatore incontra nella pratica, mentre lo sbilanciamento
 viene gestito in fase di addestramento. T3 compensa offrendo un test bilanciato fra le tre classi.
 
-Le risposte contengono in media 6.9 frasi valutate nel training set e 6.5 in T1, con un massimo di 28
+Le risposte contengono in media 6.9 frasi valutate nel training set e 6.5 in T1, con un massimo di 28 nel training set e di 23 in T1
 (Figura~\ref{fig:data-k}). Per analizzare i risultati in funzione della lunghezza, T1 è diviso in quattro fasce di $K$:
-756 risposte con 1--4 frasi, 1{,}288 con 5--8, 497 con 9--13 e 106 con 14 o più. Quando una cella dei risultati contiene
-meno di 30 frasi di una classe minoritaria, come accade per le frasi contraddette nel question answering, il valore
-viene riportato ma segnalato come indicativo.
+756 risposte con 1--4 frasi, 1{,}288 con 5--8, 497 con 9--13 e 106 con 14 o più. Quando una cella dei risultati contiene al più 30 frasi di una classe minoritaria, come accade per le frasi contraddette nel question answering e nelle risposte con quattordici o più frasi, il valore viene riportato ma segnalato come indicativo.
 
 \begin{figure}[htbp]
 \centering
@@ -338,9 +333,6 @@ frase, così che tutte le risposte relative a una stessa fonte cadano nello stes
 quando una fonte, un documento o una coppia (documento, frase) del training set o del dev set compare in uno qualsiasi
 dei test set, e quando dev set e training set condividono una fonte. Sul dataset finale il controllo non ha rilevato
 alcuna sovrapposizione di questo tipo. Il controllo elenca anche, senza bloccare la costruzione, le frasi che compaiono
-con le stesse parole sia nei dati di addestramento sia in quelli di test, ma riferite a documenti diversi. Sono 788, e
-sono tutte frasi standard del data-to-text, come ``The business has a rating of 4.0 stars.'': il modello generatore le
-ripete per attività commerciali diverse, quindi la loro presenza nei dati di addestramento non anticipa alcuna
-etichetta di test, che dipende sempre dal documento a cui la frase si riferisce. Resta un aspetto che non è possibile verificare: se i dataset pubblici usati qui
+con le stesse parole sia nei dati di addestramento sia in quelli di test, ma riferite a documenti diversi. Sono 788 nel training set e 82 nel dev set. La maggior parte, 702 delle 788, sono frasi standard del data-to-text, come ``The business has a rating of 4.0 stars.'': il modello generatore le ripete per attività commerciali diverse, quindi la loro presenza nei dati di addestramento non anticipa alcuna etichetta di test, che dipende sempre dal documento a cui la frase si riferisce. Le altre sono frasi generiche oppure provengono da articoli diversi sullo stesso fatto di cronaca, che il controllo, basato su documenti identici, non riconosce come collegati; sono poche, ma la sovrapposizione fra articoli diversi sulla stessa notizia non è controllata. Resta un aspetto che non è possibile verificare: se i dataset pubblici usati qui
 facessero parte dei dati di pre-training di Qwen2.5. È un limite comune alla maggior parte dei lavori su benchmark
 pubblici.

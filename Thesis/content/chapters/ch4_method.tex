@@ -26,8 +26,7 @@ the model receives: everything else is derived from these three probabilities. T
 probability that the sentence is supported. The strict policy flags every unsupported sentence, while the lenient
 policy flags only contradicted sentences. A single forward pass is therefore enough for all these uses.
 
-Asking the model a separate question for each policy would add nothing: once the class of a sentence is known, how each
-policy LLM judges it is already known too. Separate questions would only multiply the number of decisions and, in
+Asking the model a separate question for each policy would add nothing: once the class of a sentence is known, how each policy judges it is already known too. Separate questions would only multiply the number of decisions and, in
 training, would risk teaching the model mutually inconsistent answers about the same sentence.
 
 \section{All verdicts in a single forward pass}
@@ -43,7 +42,7 @@ becomes $e^{z_i} / \sum_j e^{z_j}$. Restricting it to three letters means comput
 ignoring the rest of the vocabulary.} restricted to these three letters.
 In a decoder each position sees only the preceding ones, so the verdict on sentence $i$ depends on the document and on
 sentences $1, \dots, i$. This is exactly what verification needs, because references, such as pronouns, point
-backwards. What follows the last marker affects no verdict, so the sequence ends there. Figure~\ref{fig:method-marked} shows the structure of the prompt and the points where the readout takes place.
+backwards. What follows the last marker affects no verdict: after it come only a line break and, in a few answers, a final sentence without checkable content. Figure~\ref{fig:method-marked} shows the structure of the prompt and the points where the readout takes place.
 
 \begin{figure}[htbp]
 \centering
@@ -107,8 +106,7 @@ instructions, the last documents read and the last answer verified, both in the 
 analyses the composition of the prefill and measures the effect of caching for GroundOne and for the LLM judges.
 
 \paragraph{A classifier, not a faster generator.} The readout restricts the decision to three letters, and the
-restriction is not a detail. After the marker, the fine-tuned model would not write the letter that is read. Its most
-probable next token is in fact the same letter preceded by a space, which for the tokenizer is a different token. At the
+restriction is not a detail. After the marker, the fine-tuned model would not write the letter that is read. Its most probable next token is in fact usually a letter preceded by a space, which for the tokenizer is a different token. At the
 markers, the three readout letters together collect only 4--5\,\% of the probability mass. A loss restricted to
 these letters trains their relative logits, not their absolute probability, and the readout therefore behaves as a
 three-class classifier grafted onto the language model. This is what defines a decision model: the answer never goes
@@ -160,13 +158,13 @@ value indicates that the model actually exploits the text.
 The optimiser is AdamW, used without weight decay, that is, without the penalty that shrinks the magnitude of the
 weights at every step. As in the default configuration of MLX, the moment estimates receive no bias correction, and no
 gradient clipping is applied. Training lasts one epoch, that is, a single pass over the answers of the training set.
-The learning rate rises to $10^{-4}$ with a linear warm-up over the first 3\,\% of the steps and then decreases to zero
+The learning rate rises to $10^{-4}$ with a linear warm-up over the first 3\,\% of the steps (5\,\% for the 3B) and then decreases to zero
 with a cosine schedule\footnote{During the \emph{warm-up} the learning rate grows gradually to the chosen value, so as
 to avoid abrupt updates at the start of training. The \emph{cosine schedule} then reduces it following half a period of
 a cosine: slowly at first, faster in the middle and slowly again towards the end.}. Answers of similar length are
 grouped into micro-batches, each within a token budget that also includes padding, that is, the filler tokens that
 equalise the lengths. The gradients of several micro-batches are then accumulated, so that each optimiser step sees
-about 16 answers, or about 110 decisions. In this way every step contains some contradicted sentences, despite the
+about 16 answers, or about 110 decisions. In this way almost every step contains some contradicted sentences, despite the
 rarity of the class. Gradient checkpointing, which recomputes some activations during the gradient computation instead
 of storing them, keeps memory usage within the 16\,GB of the laptop.
 During training the model is evaluated periodically on the dev set, and the checkpoint, that is, the copy of the

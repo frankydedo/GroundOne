@@ -34,11 +34,7 @@ It is one of the two general-purpose decision models used as baselines in this t
 
 The second family encodes the state and each candidate answer separately, and compares their embeddings, that is, the
 numerical vectors that represent each text. Contrastive Language Models, which belong to this family, are very fast
-when the candidates are numerous and reusable. In the comparison reported by the authors themselves, however, they agree
-with Jev's decisions much less than a model in which state and candidate interact~\cite{kwok2026clm}. The third family
-uses small encoders\footnote{The \emph{mask token} is a special token that, during pre-training, takes the place of
-the words the model has to reconstruct.} with a dedicated decision head. Laya, for example, is built on a
-ModernBERT encoder of about 400M parameters and assigns a score to each option at the corresponding mask token. The
+when the candidates are numerous and reusable. In the result files released by the authors themselves, however, a Contrastive Language Model chooses the best move indicated in the prompt in about two cases out of three (0.66), against 0.99 for Jev, contrary to the claim of parity in the accompanying text~\cite{kwok2026clm}. The third family uses small encoders with a dedicated decision head. Laya, for example, is built on a ModernBERT encoder of about 400M parameters and assigns a score to each option at the corresponding mask token\footnote{The \emph{mask token} is a special token that, during pre-training, takes the place of the words the model has to reconstruct.}. The
 questions of a request are evaluated in a single call, grouped into a batch, but each of them is encoded together with
 its own copy of the context~\cite{convai2026laya,azizi2026labels}.
 
@@ -66,8 +62,7 @@ d1-3B reads the decision from a restricted set of answer letters, with a 3B mode
 questions~\cite{liquid2026d1}. Perplexity, finally, fine-tunes a 27B model with a head on the
 letters~\cite{perplexity2026decider}. A community leaderboard, the Decision Index, evaluates these models on a common
 battery of public benchmarks, including RAGTruth evaluated at the level of the whole answer~\cite{decisionindex2026}.
-The results draw a sharp line. General-purpose decision models with fewer than one billion parameters barely beat the
-trivial baseline on RAGTruth, and only models with tens of billions of parameters reliably detect hallucinated answers.
+The results draw a sharp line. General-purpose decision models with fewer than one billion parameters at best barely beat the trivial baseline on RAGTruth, and most fall below it, and only models of about fifteen billion parameters or more reliably detect hallucinated answers.
 
 The studies on Jev add three observations. Its probabilities are calibrated when aggregated over many tasks, but not on
 a single task. Thresholds and temperatures have to be estimated on the target workload~\cite{guo2026justaskjev,li2026jevjudge}.
@@ -81,7 +76,7 @@ The letter readout has also been studied outside the decision-model literature, 
 Here two ways of obtaining the answer of an instruction-tuned model can be compared: reading which letter has the highest
 probability as the first token, or letting the model write out the answer in full. The two answers often do not
 coincide~\cite{wang2024myanswerc}. The readout, moreover, favours particular option identifiers, such as certain
-letters, and this bias can be estimated and removed~\cite{zheng2024mcq}. Both results concern models used zero-shot.
+letters, and this bias can be estimated and removed~\cite{zheng2024mcq}. Both results concern models not trained on the task, used zero-shot or with a few examples.
 They suggest that a letter readout, if it is to serve as a decision, needs to be trained, calibrated or both. Moreover,
 no open decision model has been specialised in groundedness verification and then compared, under controlled conditions
 and on the same hardware, with LLM judges, with specialised verifiers and with general-purpose decision models,

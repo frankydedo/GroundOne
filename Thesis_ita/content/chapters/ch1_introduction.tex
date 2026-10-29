@@ -79,8 +79,7 @@ il formato di output richiesto, e la confidenza che dichiarano è raramente util
 
 I verificatori basati su encoder\footnote{Un \emph{encoder} è un transformer in cui ogni token vede tutti gli altri, sia quelli che lo precedono sia quelli che lo seguono. Produce una rappresentazione del testo invece di generarlo, come BERT e i modelli che ne derivano.} evitano del tutto la generazione. Modelli come AlignScore, MiniCheck e HHEM leggono una
 coppia di documento e frase e restituiscono un punteggio di supporto~\cite{zha2023alignscore,tang2024minicheck,vectara2024hhem}.
-Sono piccoli e veloci, ma forniscono un unico punteggio binario e fisso per ogni coppia: non distinguono una
-contraddizione da un'omissione, leggono ogni frase senza il resto della risposta, e adattarli a una nuova decisione
+Sono piccoli e veloci, ma restituiscono un unico punteggio di supporto per ogni coppia: il loro output non distingue una contraddizione da un'omissione, leggono ogni frase senza il resto della risposta, e adattarli a una nuova decisione
 richiede un nuovo modello.
 
 \section{Decision Model}
@@ -88,7 +87,7 @@ richiede un nuovo modello.
 
 Un modo diverso di usare un modello linguistico per prendere decisioni ha attirato di recente l'attenzione: i
 \emph{decision model}. La categoria è stata introdotta con il nome di \emph{System One model}~\cite{typesafe2026jev},
-che richiama il modo di pensare rapido e intuitivo contrapposto al ragionamento deliberato; questa tesi adotta il termine decision model, affermatosi in seguito dall'ecosistema. Invece di generare una risposta, un modello di questo tipo legge una sola volta la domanda e il
+che richiama il modo di pensare rapido e intuitivo contrapposto al ragionamento deliberato; questa tesi adotta il termine decision model, che l'ecosistema ha poi adottato. Invece di generare una risposta, un modello di questo tipo legge una sola volta la domanda e il
 contesto e restituisce una probabilità per ciascuna risposta ammissibile, per esempio leggendo i logit delle lettere
 delle opzioni alla fine del prompt (per esempio A: 90\,\%, B: 5\,\%, C: 5\,\%)~\cite{semif,rizzoflow}. Ne seguono direttamente tre proprietà. Non viene generato
 alcun testo, quindi la decisione costa solo la lettura dell'input. L'output è sempre una delle risposte ammissibili,
@@ -124,11 +123,9 @@ open~\cite{semif,rizzoflow}, e il 9 ottobre 2026 l'hub di Hugging Face ha introd
 decision model, che il giorno successivo raccoglieva già circa 1500 modelli, più della metà dei quali pubblicati
 nelle settimane precedenti~\cite{hf2026decisionmodels}. Anche organizzazioni affermate
 hanno rilasciato i propri, come d1-3B di Liquid AI e Clef di Cloudflare~\cite{liquid2026d1,cloudflare2026clef}. Le
-evidenze, però, sono in ritardo rispetto ai rilasci. Provengono per lo più dagli autori di ciascun sistema, le valutazioni
-indipendenti sono recenti e spesso meno favorevoli~\cite{deusser2026jev,nandakishore2026laya}, e una leaderboard comune
-rileva che i decision model generalisti con meno di un miliardo di parametri superano a stento la baseline banale nel
-rilevamento delle allucinazioni nelle risposte RAG~\cite{decisionindex2026}. Tutte le implementazioni open, inoltre, sono
-sistemi generalisti in grado di rispondere a qualunque domanda tipizzata.
+evidenze, però, sono in ritardo rispetto ai rilasci. Provengono per lo più dagli autori di ciascun sistema, le valutazioni indipendenti sono recenti, ridimensionano quanto dichiarato dai produttori e sono meno favorevoli ai piccoli modelli open~\cite{deusser2026jev,nandakishore2026laya}, e una leaderboard comune
+rileva che i decision model generalisti con meno di un miliardo di parametri superano al più a stento la baseline banale, e per lo più restano al di sotto, nel
+rilevamento delle allucinazioni nelle risposte RAG~\cite{decisionindex2026}. Le implementazioni open, inoltre, sono quasi tutte sistemi generalisti in grado di rispondere a qualunque domanda tipizzata, e nessuna riporta una verifica a tre classi frase per frase su benchmark RAG.
 
 Restano quindi aperti tre problemi. Il primo è capire se, per un singolo task, convenga usare un decision model piccolo e
 specializzato. Il secondo è capire come un modello di questo tipo si confronti con le alternative: un decision model
@@ -145,8 +142,7 @@ logit di tre lettere di risposta in corrispondenza dei marker, senza generare te
 parametri sono sottoposti a fine-tuning con LoRA sulle risposte di RAGTruth annotate
 manualmente~\cite{qwen2024qwen25,hu2022lora,niu2024ragtruth}, e le loro probabilità sono calibrate sul dev set. Tre test
 set sono stati costruiti e congelati prima di addestrare qualunque modello, così che nessuna scelta progettuale potesse
-essere ottimizzata su di essi. I tre problemi aperti diventano cinque domande di ricerca: le prime due li riformulano in
-modo verificabile, le altre tre aggiungono ciò che conta per un uso reale sul dispositivo, cioè l'affidabilità delle
+essere ottimizzata su di essi. I tre problemi aperti diventano cinque domande di ricerca. Le prime due li riformulano in modo verificabile: RQ1 copre i primi due problemi e RQ2 il contributo del readout, mentre il ruolo della dimensione del modello viene isolato dalla scomposizione dei guadagni. Le altre tre aggiungono ciò che conta per un uso reale sul dispositivo, cioè l'affidabilità delle
 probabilità, il costo e il valore di una decisione a tre classi.
 
 \begin{description}
@@ -197,7 +193,7 @@ addestrare o configurare il modello: per esempio lo stesso documento, o risposte
 entrambi gli insiemi. Il modello può allora riconoscere esempi già visti invece di generalizzare, e le metriche di test
 risultano ottimistiche.}.
 \item \textbf{Una scomposizione controllata dei guadagni.} Il confronto isola il contributo della specializzazione, del
-readout ristretto e della dimensione del modello. GroundOne è confrontato con indizi che non verificano mai una frase,
+readout ristretto e della dimensione del modello. GroundOne è confrontato con indizi elementari che non leggono mai il documento nel suo insieme,
 modelli non addestrati, giudici LLM con e senza probabilità, due decision model generalisti (Rizzo-Flow, da 4B parametri, e d1-3B di Liquid
 AI, della stessa dimensione del 3B) ed encoder specializzati, tutti sullo stesso hardware e con intervalli ottenuti
 tramite bootstrap a cluster.
@@ -221,7 +217,7 @@ GroundOne raggiunge una balanced accuracy\footnote{La \emph{balanced accuracy} �
 dimensione del 3B. Su LLM-AggreFact, un benchmark costruito da fonti diverse, il 3B è alla pari con il miglior encoder di
 piccole dimensioni.
 
-Il meccanismo del decision model ripaga in velocità e in accuratezza. Quando una risposta contiene quattordici o più frasi e nulla è stato letto prima, il caso meno favorevole, GroundOne la verifica da 1.8 a 2 volte più velocemente di un giudice LLM sintetico e circa sei volte più velocemente di un giudice LLM verboso della stessa dimensione, con un output sempre valido e consumando meno energia. Il rapporto complessivo è limitato dalla lettura del testo, comune a ogni approccio: al netto di essa, GroundOne decide da 18 a 33 volte più in fretta del giudice LLM sintetico. Quando le fonti sono già nella KV cache, lette in anticipo mentre l'utente legge la risposta oppure per una verifica precedente, il vantaggio sulle stesse risposte lunghe sale a 3.4--3.6 volte, con la stessa cache per i due sistemi; dopo una riscrittura, quando GroundOne riusa anche l'inizio della risposta e i verdetti delle sue frasi, arriva da 7 a 12 volte, il caso più favorevole fra quelli misurati. Anche il modo di leggere la
+Il meccanismo del decision model ripaga in velocità e in accuratezza. Quando una risposta contiene quattordici o più frasi e nulla è stato letto prima, il caso meno favorevole, GroundOne la verifica da 1.8 a 2 volte più velocemente di un giudice LLM sintetico e circa sei volte più velocemente di un giudice LLM verboso della stessa dimensione, con un output sempre valido e consumando meno energia. Il rapporto complessivo è limitato dalla lettura del testo, comune a ogni approccio: al netto di essa, GroundOne decide da 18 a 33 volte più in fretta del giudice LLM sintetico. Quando le fonti sono già nella KV cache, lette in anticipo mentre l'utente legge la risposta oppure per una verifica precedente, il vantaggio sulle stesse risposte lunghe sale a 3.4--3.6 volte, con la stessa cache per i due sistemi; dopo una riscrittura, quando GroundOne riusa anche l'inizio della risposta e i verdetti delle sue frasi, arriva, su tutte le risposte, da 7 a 12 volte, il caso più favorevole fra quelli misurati. Anche il modo di leggere la
 decisione conta: con lo stesso modello addestrato, scegliere la più probabile fra le sole tre lettere ammesse è più
 accurato che lasciare al modello generare liberamente il proprio verdetto, con un guadagno di balanced accuracy di 0.25
 per il 0.5B e di 0.07 per il 3B. Dopo la
@@ -236,7 +232,7 @@ il generatore di numeri casuali usato durante l'addestramento, per esempio per i
 mescolare l'ordine dei dati. Ripetere l'addestramento con seed diversi produce modelli leggermente diversi: se i risultati cambiano molto da un seed all'altro, la procedura non è robusta.}.
 
 Infine, l'applicazione GroundOne Studio mostra che attorno al verificatore si può costruire un assistente RAG completo,
-in un unico processo e senza rete, con al massimo 6.9\,GB di memoria allocata da MLX. In un caso di studio con errori
+in un unico processo e senza rete, con al massimo 6.9\,GB di memoria allocata da MLX con il generatore 3B predefinito. In un caso di studio con errori
 iniettati, GroundOne segnala l'errore in 97 delle 98 risposte in cui la frase riceve un verdetto, contro 84 del giudice LLM,
 e la riscrittura mirata riduce dal 100\,\% al 6\,\% le risposte che lo contengono ancora.
 
@@ -247,7 +243,7 @@ Il Capitolo~\ref{sec:local} è dedicato all'inferenza locale: le ragioni per man
 modelli open-weight e i modelli piccoli, il modello di costo dell'inferenza su un singolo dispositivo, il panorama
 dell'hardware, i runtime e la quantizzazione, l'energia e le conseguenze per la verifica. Il
 Capitolo~\ref{sec:background} passa in rassegna i decision model e il loro ecosistema, le allucinazioni
-nella retrieval-augmented generation, i metodi di verifica e la calibrazione. Il Capitolo~\ref{sec:method} descrive GroundOne: la decisione, il readout in un solo passaggio, l'obiettivo di
+nella retrieval-augmented generation, i metodi di verifica, la calibrazione e il fine-tuning efficiente nei parametri. Il Capitolo~\ref{sec:method} descrive GroundOne: la decisione, il readout in un solo passaggio, l'obiettivo di
 addestramento, la calibrazione e l'output esposto dal servizio. Il Capitolo~\ref{ch:data} definisce le etichette e
 descrive come sono stati costruiti, controllati e congelati il training set e i test set. Il Capitolo~\ref{sec:setup}
 presenta i modelli addestrati, le baseline, le metriche e il protocollo di misura. Il Capitolo~\ref{sec:results} riporta

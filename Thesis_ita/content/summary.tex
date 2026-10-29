@@ -21,9 +21,7 @@ veloci, ma restituiscono un unico punteggio fisso per ogni coppia di documento e
 flessibili, ma scrivono i verdetti token per token, per cui il loro costo cresce con la quantità di testo prodotto; i
 giudici LLM piccoli violano spesso il formato di output, e la confidenza che esprimono è raramente utilizzabile come
 probabilità. Di recente è emersa una terza famiglia: i \textbf{decision model}, come il proprietario Jev e i modelli
-open SemIf e Rizzo-Flow, che rispondono a domande chiuse in un unico forward pass leggendo dai logit la probabilità di
-ciascuna opzione di risposta. Le evidenze a loro favore provengono per lo più dagli stessi autori, e le implementazioni
-open sono generaliste. Non era ancora stato studiato in modo controllato se un decision model compatto, specializzato in un
+open SemIf e Rizzo-Flow, che rispondono a domande chiuse in un unico forward pass e restituiscono una probabilità per ciascuna opzione di risposta senza generare testo; quelli open la leggono dai logit. Le evidenze a loro favore provengono per lo più dagli stessi autori, e le implementazioni open sono quasi tutte generaliste. Non era ancora stato studiato in modo controllato se un decision model compatto, specializzato in un
 unico task, possa eguagliare i giudici LLM e gli encoder dedicati, da dove derivi il suo vantaggio e se le sue
 probabilità siano utilizzabili, il tutto su hardware consumer.
 
@@ -36,15 +34,14 @@ temperatura e un bias stimati sul dev set calibrano le probabilità, e una sogli
 etichette coerenti e in segnalazioni secondo la policy strict o lenient. Tutto, dalla costruzione del dataset
 all'addestramento, dalla valutazione alla messa in servizio, gira su un unico portatile Apple M4 con 16\,GB di memoria,
 con MLX e senza servizi esterni, e ogni baseline è eseguita sulla stessa macchina. La valutazione usa tre test set costruiti e
-congelati prima dell'addestramento (la partizione di test di RAGTruth, LLM-AggreFact e VitaminC) e confronta GroundOne con
-indizi che non leggono mai il documento, con i modelli non addestrati, con giudici LLM della stessa dimensione, con
+congelati prima dell'addestramento (la partizione di test di RAGTruth, LLM-AggreFact e VitaminC) e confronta GroundOne con indizi elementari che non leggono mai il documento nel suo insieme, con i modelli non addestrati, con giudici LLM della stessa dimensione, con
 e senza probabilità, con due decision model generalisti e con encoder specializzati, riportando intervalli calcolati con un
 bootstrap a cluster.
 
 Sul test set di RAGTruth GroundOne raggiunge una balanced accuracy a tre classi di 0.769 con 0.5B parametri e di 0.832
 con 3B, contro 0.37 e 0.44 dei modelli non addestrati (per il 3B su un sottoinsieme di 600 risposte); il suo AUROC (0.905 e 0.940) supera quello degli encoder (circa 0.82), e in balanced accuracy a tre classi il modello supera nettamente entrambi i decision model generalisti: Rizzo-Flow, otto volte più grande del 0.5B, e d1-3B di Liquid AI, della stessa dimensione del 3B, che si ferma a 0.657 e a sua volta è molto più forte sul test fuori dominio VitaminC. Su
 LLM-AggreFact il 3B è alla pari con MiniCheck-RoBERTa (74.8 contro 74.0), sopra il modello
-7B zero-shot pubblicato e sotto il decision model chiuso Jev, misurato in modo indipendente (78.6). Quando la risposta contiene quattordici o più frasi ($K \geq 14$) e nulla è stato letto prima, GroundOne risulta da 1.8 a 2 volte più veloce di un giudice LLM sintetico e circa sei volte più veloce di uno verboso della stessa dimensione e, a differenza dei giudici LLM, produce sempre un output valido. Al netto della lettura del testo, comune a ogni approccio, la sua decisione è da 18 a 33 volte più rapida di quella del giudice LLM sintetico, con le fonti già nella KV cache, lette in anticipo mentre l'utente legge la risposta oppure per una verifica precedente, il vantaggio complessivo diventa di 3.4--3.6 volte, e dopo una riscrittura, quando GroundOne riusa anche i verdetti delle frasi rimaste uguali, da 7 a 12 volte.
+7B zero-shot pubblicato e sotto il decision model chiuso Jev, misurato in modo indipendente (78.6). Quando la risposta contiene quattordici o più frasi ($K \geq 14$) e nulla è stato letto prima, GroundOne risulta da 1.8 a 2 volte più veloce di un giudice LLM sintetico e circa sei volte più veloce di uno verboso della stessa dimensione e, a differenza dei giudici LLM, produce sempre un output valido. Al netto della lettura del testo, comune a ogni approccio, la sua decisione è da 18 a 33 volte più rapida di quella del giudice LLM sintetico. Con le fonti già nella KV cache, lette in anticipo mentre l'utente legge la risposta oppure per una verifica precedente, il vantaggio complessivo diventa di 3.4--3.6 volte, e dopo una riscrittura, quando GroundOne riusa anche l'inizio della risposta, fino alla prima frase modificata, e i suoi verdetti, da 7 a 12 volte su tutte le risposte.
 Consuma anche meno energia (5.5 joule per risposta con il 0.5B, 33 con il 3B), ma il risparmio è minore di quello sul
 tempo, perché un prefill lungo assorbe più potenza del decoding. Combinando le specifiche dei produttori con la
 lunghezza misurata degli output dei giudici LLM, un giudice LLM da 3B deve spendere almeno 1.8 secondi soltanto per scrivere i
@@ -62,5 +59,5 @@ parte; infine, l'addestramento non è ancora del tutto stabile al variare del se
 all'ottimizzatore potrebbero attenuare.
 
 Infine, GroundOne Studio, un'applicazione per macOS, mette il verificatore al lavoro in un assistente RAG completo che
-gira in un unico processo sul portatile, senza rete: recupero, generazione, verifica e confronto con un giudice LLM locale richiedono al massimo 6.9\,GB di memoria allocata da MLX. La risposta del generatore compare per prima, e la verifica e la riscrittura delle
+gira in un unico processo sul portatile, senza rete: recupero, generazione, verifica e confronto con un giudice LLM locale richiedono al massimo 6.9\,GB di memoria allocata da MLX con il generatore 3B predefinito. La risposta del generatore compare per prima, e la verifica e la riscrittura delle
 frasi segnalate avvengono su richiesta. In un caso di studio con 100 errori iniettati GroundOne segnala l'errore in 97 delle 98 risposte in cui la frase riceve un verdetto, il giudice LLM in 84; dopo due giri di riscrittura mirata le risposte che contengono ancora l'errore scendono al 6\,\%, con numeri e date per lo più ripristinati dalla fonte e frasi inventate cancellate. Il verdetto a tre classi decide la riparazione: le frasi contraddette vengono corrette, quelle non menzionate spesso tolte.

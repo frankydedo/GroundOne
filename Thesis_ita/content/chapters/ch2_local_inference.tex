@@ -49,9 +49,7 @@ doversi fidare di qualcun altro. Molti documenti riservati, come ricerche inedit
 contengono affatto dati personali; per essi il regolamento non si applica, e l'argomento diventa di riservatezza.
 
 Un episodio recente mostra che cosa sia in gioco. Nel settembre 2026 OpenAI ha annunciato che un proprio sistema
-multi-agente interno aveva prodotto una dimostrazione di blow-up (la formazione di una singolarità in tempo finito) per le equazioni di
-Navier--Stokes forzate, uno dei
-problemi del Millennio, formalizzata nell'assistente di dimostrazione Lean~\cite{rits2026navierstokes}. Due matematici,
+multi-agente interno aveva prodotto una dimostrazione di blow-up (la formazione di una singolarità in tempo finito) per le equazioni di Navier--Stokes forzate, formalizzata nell'assistente di dimostrazione Lean, un risultato presentato come soluzione di uno dei problemi del Millennio, anche se la corrispondenza dell'enunciato formale con il problema è ancora in corso di verifica~\cite{rits2026navierstokes}. Due matematici,
 Tristan Buckmaster e Levent Alpöge, avevano diffuso più o meno nello stesso periodo risultati affini per le equazioni di
 Eulero, e ne hanno rivendicato la paternità. Buckmaster aveva scritto le proprie bozze nell'assistente di programmazione
 della stessa OpenAI, e ha chiesto all'azienda \foreignlanguage{english}{``whether the model had been trained on, or had access to, our
@@ -269,8 +267,7 @@ oppure eseguendo le due fasi su macchine diverse, ciascuna adatta alla propria~\
 La conseguenza è visibile sul laptop usato in questa tesi (Figura~\ref{fig:local-prefill-decode}). Con il modello da
 0.5B, leggere un token del prompt richiede meno di 0.4 millisecondi, mentre scrivere un token di output ne richiede 5.9,
 sedici volte di più. Con il modello da 3B i valori sono 2.2 e 31.8 millisecondi, quattordici volte di più. Un modello
-che scrive un breve paragrafo impiega quindi più tempo a scriverlo che a leggere un documento di diverse migliaia di
-token.
+che scrive un breve paragrafo impiega quindi più tempo a scriverlo che a leggere un documento di mille-duemila token.
 
 \begin{figure}[htbp]
 \centering
@@ -428,7 +425,7 @@ macchina della tesi è rappresentata con i suoi 16\,GB effettivi.}
 \label{fig:local-hardware}
 \end{figure}
 
-\paragraph{Laptop.} I laptop con 16--32\,GB e 120--150\,GB/s, come il MacBook Pro usato in questa tesi, sono i computer
+\paragraph{Laptop.} I laptop con 16--32\,GB e 120--153\,GB/s, come il MacBook Pro usato in questa tesi, sono i computer
 personali più diffusi su cui girano modelli locali. Ospitano senza difficoltà i modelli piccoli, e quelli da 7--8
 miliardi di parametri a 4 bit. La macchina della tesi si trova in basso a sinistra nella Figura~\ref{fig:local-hardware}:
 se un verificatore funziona bene lì, funziona su tutto ciò che sta sopra.
@@ -543,8 +540,7 @@ Figura~\ref{fig:local-ssd} illustra il meccanismo.
 \caption{Lo streaming degli esperti dall'SSD in un motore come Colibri. In memoria restano la parte del modello usata da
 ogni token (attenzione, router, esperti condivisi) e una cache degli esperti usati di recente; tutti gli esperti stanno
 sull'SSD. Per ogni token il router sceglie pochi esperti: quelli già in cache si usano subito, quelli mancanti si leggono
-dal disco, con una banda di pochi gigabyte al secondo. Per esempio, GLM-5.2 tiene residenti circa 10\,GB e lascia
-sul disco circa 429\,GB di pesi~\cite{justvugg2026colibri}. Lo schema non è in scala.}
+dal disco, con una banda di pochi gigabyte al secondo. Per esempio, GLM-5.2 conserva sul disco tutti i suoi 429\,GB di pesi e ne tiene residenti circa 10\,GB~\cite{justvugg2026colibri}. Lo schema non è in scala.}
 \label{fig:local-ssd}
 \end{figure}
 
@@ -605,7 +601,7 @@ rilevante della massa di probabilità dell'attenzione~\cite{dettmers2022llmint8}
 probabilità da calibrare, e non un testo che deve soltanto risultare scorrevole, queste osservazioni suggeriscono una
 precisione prudente: GroundOne usa pesi a 8 bit. Una misura condotta in questa tesi conferma che, a questa precisione,
 la quantizzazione non costa accuratezza: applicando lo stesso adapter del modello 0.5B ai pesi originali a 16 bit,
-la balanced accuracy a tre classi su T1 resta praticamente identica (0.768 contro 0.769), le probabilità cambiano in
+la balanced accuracy a tre classi sul test set di RAGTruth (T1) resta praticamente identica (0.768 contro 0.769), le probabilità cambiano in
 media di 0.011 e la classe predetta coincide nel 98\,\% delle frasi (Sezione~\ref{sec:results-locality}).
 
 \subsection{Generare più in fretta senza generare meno}

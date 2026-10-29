@@ -34,12 +34,7 @@ l'accuratezza sia la calibrazione~\cite{rizzoflow}. È uno dei due decision mode
 
 La seconda famiglia codifica separatamente lo stato e ciascuna risposta candidata, e ne confronta gli embedding, cioè i
 vettori numerici che rappresentano ciascun testo. I Contrastive Language Models, che appartengono a questa famiglia, sono
-molto veloci quando i candidati sono numerosi e riutilizzabili. Nel confronto riportato dagli stessi autori, però,
-concordano con le decisioni di Jev molto meno di un modello che fa interagire stato e candidato~\cite{kwok2026clm}. La
-terza famiglia usa piccoli encoder\footnote{Il \emph{token di maschera} è un token speciale che, durante il preaddestramento,
-prende il posto delle parole che il modello deve ricostruire.} con una head decisionale dedicata. Laya, per esempio, si
-basa su un encoder ModernBERT da circa 400M parametri e assegna un punteggio a ogni opzione in corrispondenza del relativo
-token di maschera. Le domande di una richiesta sono valutate in un'unica chiamata, raggruppate in un batch, ma ciascuna
+molto veloci quando i candidati sono numerosi e riutilizzabili. Nei file di risultati pubblicati dagli stessi autori, però, un Contrastive Language Model sceglie la mossa migliore indicata nel prompt in circa due casi su tre (0.66), contro 0.99 per Jev, contrariamente alla parità dichiarata nel testo che li accompagna~\cite{kwok2026clm}. La terza famiglia usa piccoli encoder con una head decisionale dedicata. Laya, per esempio, si basa su un encoder ModernBERT da circa 400M parametri e assegna un punteggio a ogni opzione in corrispondenza del relativo token di maschera\footnote{Il \emph{token di maschera} è un token speciale che, durante il preaddestramento, prende il posto delle parole che il modello deve ricostruire.}. Le domande di una richiesta sono valutate in un'unica chiamata, raggruppate in un batch, ma ciascuna
 viene codificata insieme a una propria copia del contesto~\cite{convai2026laya,azizi2026labels}.
 
 Le evidenze a supporto di questi sistemi sono disomogenee. La maggior parte proviene dagli autori stessi, spesso su una
@@ -67,8 +62,7 @@ condiviso da tutte le domande~\cite{liquid2026d1}. Perplexity, infine, applica i
 head sulle lettere~\cite{perplexity2026decider}. Una leaderboard della comunità, il Decision Index, valuta questi modelli
 su una batteria comune di benchmark pubblici, tra cui RAGTruth valutato a livello di risposta
 intera~\cite{decisionindex2026}. I risultati tracciano una linea netta. I decision model generalisti con meno di un
-miliardo di parametri superano a stento la baseline banale su RAGTruth, e soltanto i modelli da decine di miliardi di
-parametri individuano in modo affidabile le risposte allucinate.
+miliardo di parametri superano al più a stento la baseline banale su RAGTruth, e per lo più restano al di sotto, e soltanto i modelli da circa quindici miliardi di parametri in su individuano in modo affidabile le risposte allucinate.
 
 Gli studi su Jev aggiungono tre osservazioni. Le sue probabilità sono calibrate se aggregate su molti task, ma non sul
 singolo task. Soglie e temperature vanno stimate sul carico di lavoro di destinazione~\cite{guo2026justaskjev,li2026jevjudge}.
@@ -83,7 +77,7 @@ multipla. Qui si possono confrontare due modi di ottenere la risposta di un mode
 (instruction-tuned): leggere quale lettera ha la probabilità più alta come primo token, oppure lasciare che il modello
 scriva la risposta per esteso. Le due risposte spesso non coincidono~\cite{wang2024myanswerc}. Il readout, inoltre,
 privilegia particolari identificatori di opzione, come certe lettere, e questo bias si può stimare e
-rimuovere~\cite{zheng2024mcq}. Entrambi i risultati riguardano modelli usati zero-shot. Suggeriscono che un readout sulle
+rimuovere~\cite{zheng2024mcq}. Entrambi i risultati riguardano modelli non addestrati sul task, usati zero-shot o con pochi esempi. Suggeriscono che un readout sulle
 lettere, se deve servire da decisione, vada addestrato, calibrato o entrambe le cose. Nessun decision model open, inoltre, è
 stato specializzato nella verifica della groundedness e poi confrontato, in condizioni controllate e sullo stesso
 hardware, con giudici LLM, con verificatori specializzati e con decision model generalisti, di cui uno della stessa

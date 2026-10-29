@@ -43,7 +43,7 @@ distribuzione di probabilità: ogni punteggio $z_i$ diventa $e^{z_i} / \sum_j e^
 significa calcolarla soltanto sui loro tre logit, ignorando il resto del vocabolario.} ristretta a queste tre lettere.
 In un decoder ogni posizione vede soltanto quelle precedenti, quindi il verdetto sulla frase $i$ dipende dal documento e
 dalle frasi $1, \dots, i$. È esattamente ciò che serve alla verifica, perché i riferimenti, come i pronomi, puntano
-all'indietro. Quanto segue l'ultimo marker non influisce su alcun verdetto, quindi la sequenza si chiude lì. La Figura~\ref{fig:method-marked} mostra la struttura del prompt e i punti in cui avviene il readout.
+all'indietro. Quanto segue l'ultimo marker non influisce su alcun verdetto: dopo di esso vengono soltanto un a capo e, in poche risposte, una frase finale priva di contenuto verificabile. La Figura~\ref{fig:method-marked} mostra la struttura del prompt e i punti in cui avviene il readout.
 
 \begin{figure}[htbp]
 \centering
@@ -108,7 +108,7 @@ analizza la composizione del prefill e misura l'effetto della cache per GroundOn
 
 \paragraph{Un classificatore, non un generatore più veloce.} Il readout restringe la decisione a tre lettere, e la
 restrizione non è un dettaglio. Dopo il marker, il modello sottoposto a fine-tuning non scriverebbe la lettera che viene
-letta. Il suo token successivo più probabile è infatti la stessa lettera preceduta da uno spazio, che per il tokenizer è
+letta. Il suo token successivo più probabile è infatti di solito una lettera preceduta da uno spazio, che per il tokenizer è
 un token diverso. In corrispondenza dei marker, le tre lettere del readout raccolgono insieme appena il 4--5\,\% della massa di probabilità. Una loss ristretta a queste lettere addestra i loro logit relativi, non la loro probabilità
 assoluta, e il readout si comporta quindi come un classificatore a tre classi innestato sul modello linguistico. È
 questo a definire un decision model: la risposta non passa mai per il decoding, ma viene scelta fra le opzioni ammissibili.
@@ -161,14 +161,13 @@ effettivamente il testo.
 L'ottimizzatore è AdamW, usato senza weight decay, cioè senza la penalità che a ogni passo riduce l'ampiezza dei pesi.
 Come nella configurazione predefinita di MLX, le stime dei momenti non ricevono la bias correction, e non si applica
 gradient clipping. L'addestramento dura un'epoca, cioè un solo passaggio sulle risposte del training set. Il learning
-rate sale fino a $10^{-4}$ con un warm-up lineare sul primo 3\,\% dei passi e poi scende fino a zero con un cosine
+rate sale fino a $10^{-4}$ con un warm-up lineare sul primo 3\,\% dei passi (5\,\% per il 3B) e poi scende fino a zero con un cosine
 schedule\footnote{Durante il \emph{warm-up} il learning rate cresce gradualmente fino al valore scelto, così da evitare
 aggiornamenti bruschi all'inizio dell'addestramento. Il \emph{cosine schedule} lo riduce poi seguendo mezzo periodo di
 un coseno: lentamente all'inizio, più in fretta a metà e di nuovo lentamente verso la fine.}. Le risposte di lunghezza
 simile sono raggruppate in micro-batch, ciascuno entro un budget di token che comprende anche il padding, cioè i token di
 riempimento che uniformano le lunghezze. I gradienti di più micro-batch vengono poi accumulati, in modo che ogni passo
-dell'ottimizzatore veda circa 16 risposte, ovvero circa 110 decisioni. Così ogni passo contiene qualche frase
-contraddetta, nonostante la rarità della classe. Il gradient checkpointing, che durante il calcolo dei gradienti
+dell'ottimizzatore veda circa 16 risposte, ovvero circa 110 decisioni. Così quasi ogni passo contiene qualche frase contraddetta, nonostante la rarità della classe. Il gradient checkpointing, che durante il calcolo dei gradienti
 ricalcola alcune attivazioni invece di conservarle, mantiene l'occupazione di memoria entro i 16\,GB del portatile.
 Durante l'addestramento il modello viene valutato periodicamente sul dev set, e si conserva il checkpoint, cioè la copia
 dei pesi, con la balanced accuracy a tre classi più alta, mediata sui tre task di RAGTruth (question answering, summarization e data-to-text). La Sezione~\ref{sec:setup-models} riporta

@@ -97,7 +97,7 @@ show.
 \end{verbatim}
 }
 
-\paragraph{Terse judge 3B.} One line per sentence, as requested, but with the wrong letters for four sentences:
+\paragraph{Terse LLM judge 3B.} One line per sentence, as requested, but with the wrong letters for four sentences:
 {\footnotesize
 \begin{verbatim}
 1: B
@@ -109,7 +109,7 @@ show.
 \end{verbatim}
 }
 
-\paragraph{Verbose judge 3B (first three verdicts).} The reasoning restates the sentence and cites the document as
+\paragraph{Verbose LLM judge 3B (first three verdicts).} The reasoning restates the sentence and cites the document as
 support even for the contradicted and the unsupported sentence, and every verdict is ``A''. The verdicts are written on
 a separate line instead of on the same line, as the instruction asked, so the protocol counts them as format failures:
 {\footnotesize
@@ -127,9 +127,9 @@ Verdict: A
 \end{verbatim}
 }
 
-\paragraph{Verbose judge 0.5B.} It copies the six sentences back, numbered, without any verdict.
+\paragraph{Verbose LLM judge 0.5B.} It copies the six sentences back, numbered, without any verdict.
 
-\paragraph{Equal-output judge 3B, verbalised.} The probabilities are all one-hot, and for sentences~3 and~6 the stated
+\paragraph{Equal-output LLM judge 3B, verbalised.} The probabilities are all one-hot, and for sentences~3 and~6 the stated
 label (C) contradicts the stated probabilities, which put all the mass on A:
 {\footnotesize
 \begin{verbatim}
@@ -142,7 +142,7 @@ label (C) contradicts the stated probabilities, which put all the mass on A:
 \end{verbatim}
 }
 
-\paragraph{Equal-output judge 0.5B, verbalised.} The same vector for every sentence:
+\paragraph{Equal-output LLM judge 0.5B, verbalised.} The same vector for every sentence:
 {\footnotesize
 \begin{verbatim}
 {"1": {"label": "A", "p": [0.3, 0.3, 0.3]},

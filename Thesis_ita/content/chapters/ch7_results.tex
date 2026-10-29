@@ -8,12 +8,11 @@
 Questo capitolo riporta i risultati sperimentali. Si parte da come GroundOne apprende il task e da quanto il suo
 addestramento sia stabile. Seguono i risultati sui tre test set congelati, il confronto con le baseline e il contributo
 che il readout del decision model dà di per sé. Il capitolo esamina poi la qualità delle probabilità, anche a confronto con giudici LLM che producono lo stesso output, il tempo e l'energia necessari per verificare una risposta, le misure di località (esecuzione offline, quantizzazione e co-residenza) e, infine, gli errori che restano. Gli intervalli, riportati tra parentesi nella
-forma ``da $a$ a $b$'', sono intervalli di confidenza al 95\,\% ottenuti con un bootstrap a cluster, calcolati come
-descritto nella Sezione~\ref{sec:setup-statistics}. La Figura~\ref{fig:results-bootstrap} raccoglie in un unico grafico le differenze appaiate discusse nel capitolo.
+forma ``da $a$ a $b$'', sono intervalli di confidenza al 95\,\% ottenuti con un bootstrap a cluster, calcolati come descritto nella Sezione~\ref{sec:setup-statistics}; per i rapporti di latenza le unità ricampionate sono le risposte. La Figura~\ref{fig:results-bootstrap} raccoglie in un unico grafico le differenze appaiate discusse nel capitolo.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{images/results/bootstrap_paired_differences.png}
+\includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{images/results/bootstrap_paired_differences.png}
 \caption{Tutte le differenze appaiate tra sistemi sui test set congelati, con l'intervallo bootstrap a cluster al 95\,\%. In blu le differenze a favore del primo sistema (A), in arancione quelle a favore del secondo (B), in grigio quelle non significative, il cui intervallo contiene lo zero.}
 \label{fig:results-bootstrap}
 \end{figure}
@@ -72,18 +71,14 @@ Da questi risultati seguono due conseguenze. La prima riguarda gli intervalli: i
 e quindi non coglie la variabilità dovuta all'addestramento. Su LLM-AggreFact e su VitaminC, infatti, le due esecuzioni
 della stessa procedura differiscono più di quanto i loro intervalli consentirebbero (prima meno seconda esecuzione: $-1.3$ punti sulla media macro di T2,
 $-0.025$ sull'AUROC di T3). Per questo non vengono interpretate le differenze tra sistemi inferiori alla dispersione tra
-seed, cioè a circa 1.5 punti sulla media macro di LLM-AggreFact e a 0.025 di AUROC su VitaminC. Lo stesso vale per i
-singoli dataset di LLM-AggreFact quando lo scarto non supera circa cinque punti.
+seed, cioè a circa 1.3 punti sulla media macro di LLM-AggreFact e a 0.025 di AUROC su VitaminC. Sui singoli dataset di LLM-AggreFact la dispersione è maggiore, fino a dieci punti sui più piccoli come WiCE, e scarti di questa entità fra sistemi vanno letti solo come indicativi.
 
 La seconda conseguenza è che l'addestramento non sempre converge. Un'esecuzione con un terzo seed è rimasta vicina al
-livello casuale. Il suo punteggio sul dev set era 0.369 al passo 150 e 0.333 al passo 300, quando il modello prediceva
+livello casuale. La sua balanced accuracy a tre classi sul dev set era 0.369 al passo 150 e 0.333 al passo 300, quando il modello prediceva
 ``supportata'' per ogni frase, e la loss di addestramento è rimasta prossima a quella di un modello privo di
-informazione. Al passo 450 il punteggio era risalito a 0.444, e l'esecuzione è stata interrotta poco dopo, al passo 470 circa di 801. Non è quindi
+informazione. Al passo 450 era risalita a 0.444, mentre il punteggio di selezione, la media sui task, era ancora 0.364, e l'esecuzione è stata interrotta lì, al passo 450 di 801. Non è quindi
 possibile sapere se si sarebbe ripresa entro la fine dell'epoca e, poiché incompleta, è esclusa dalle tabelle. La
-procedura ha due caratteristiche note per rendere fragile il fine-tuning: non applica gradient clipping, e
-l'ottimizzatore lavora senza bias correction. L'assenza della bias correction è l'impostazione predefinita del framework
-ed è stata indicata come una delle cause principali dei fine-tuning non
-riusciti~\cite{pascanu2013difficulty,mosbach2021stability}. Un solo collasso su tre esecuzioni non basta a stimare un
+procedura ha due caratteristiche note per rendere fragile il fine-tuning: non applica gradient clipping~\cite{pascanu2013difficulty}, e l'ottimizzatore lavora senza bias correction. L'assenza della bias correction è l'impostazione predefinita del framework ed è stata indicata come una delle cause principali dei fine-tuning non riusciti~\cite{mosbach2021stability}. Un solo collasso su tre esecuzioni non basta a stimare un
 tasso di fallimento, ma mostra che la procedura non è del tutto robusta rispetto all'inizializzazione.
 
 \section{Accuratezza sul test set RAG (T1)}
@@ -92,14 +87,13 @@ tasso di fallimento, ma mostra che la procedura non è del tutto robusta rispett
 Sulle 17{,}284 frasi di T1 il modello 0.5B raggiunge una balanced accuracy a tre classi di 0.769 e il 3B di 0.832
 (Tabella~\ref{tab:results-t1}). La differenza tra i due, $+0.063$ (da $+0.051$ a $+0.076$), è l'effetto più netto della
 dimensione del modello. Sulla decisione binaria il 0.5B ottiene una balanced accuracy di 0.815 e un AUROC di 0.905,
-mentre il 3B ottiene rispettivamente 0.874 e 0.940. Entrambi superano di gran lunga i segnali che non confrontano mai una
-frase con il suo documento: la sovrapposizione lessicale arriva a un AUROC di 0.737, e il classificatore che vede
+mentre il 3B ottiene rispettivamente 0.874 e 0.940. Entrambi superano di gran lunga gli indizi elementari che non leggono mai il documento nel suo insieme: la sovrapposizione lessicale arriva a un AUROC di 0.737, e il classificatore che vede
 soltanto la frase arriva a una balanced accuracy a tre classi di 0.570.
 
 \begin{table}[htbp]
 \centering
 \caption{GroundOne su T1, sull'intero test set, per task e per numero di decisioni per risposta ($K$). Per ciascun
-modello sono riportate la balanced accuracy a tre classi, la recall delle frasi contraddette e l'AUROC di $P(\text{supported})$. $^{*}$Valore indicativo: la cella contiene meno di 30 frasi contraddette.}
+modello sono riportate la balanced accuracy a tre classi, la recall delle frasi contraddette e l'AUROC di $P(\text{supported})$. $^{*}$Valore indicativo: la cella contiene al più 30 frasi contraddette.}
 \label{tab:results-t1}
 \small
 \begin{adjustbox}{max width=\textwidth}
@@ -118,7 +112,7 @@ Data-to-text & 7{,}870 & 0.812 & 0.84 & 0.929 & 0.873 & 0.90 & 0.955 \\
 $K$ = 1--4 & 2{,}434 & 0.606 & 0.18 & 0.857 & 0.677 & 0.25 & 0.921 \\
 $K$ = 5--8 & 8{,}012 & 0.758 & 0.67 & 0.899 & 0.829 & 0.78 & 0.936 \\
 $K$ = 9--13 & 5{,}201 & 0.824 & 0.82 & 0.926 & 0.863 & 0.86 & 0.945 \\
-$K \geq 14$ & 1{,}637 & 0.723 & 0.50 & 0.908 & 0.839 & 0.68 & 0.957 \\
+$K \geq 14$ & 1{,}637 & 0.723 & 0.50$^{*}$ & 0.908 & 0.839 & 0.68$^{*}$ & 0.957 \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
@@ -130,7 +124,7 @@ fa risparmiare più tempo; su queste risposte il 3B guadagna sul 0.5B $+0.116$ (
 
 Il secondo aspetto è che le contraddizioni vengono riconosciute soprattutto nel data-to-text, il task in cui RAGTruth le
 concentra. Nel question answering e nella summarization il 0.5B distingue bene le frasi supportate da quelle non
-menzionate, ma non individua quasi nessuna contraddizione: la recall delle frasi contraddette è 0.03 e 0.13, e il primo valore è solo indicativo, perché nel question answering le frasi contraddette sono meno di 30. Il 3B la
+menzionate, ma non individua quasi nessuna contraddizione: la recall delle frasi contraddette è 0.03 e 0.13, e il primo valore è solo indicativo, perché nel question answering le frasi contraddette sono soltanto 30. Il 3B la
 porta a 0.30 in entrambi i task, quindi la dimensione del modello compensa in parte la scarsità di questi esempi nei
 dati di addestramento. Il terzo aspetto è che question answering e summarization offrono la prova più chiara che i
 modelli leggono davvero il documento. In questi due task il classificatore che vede soltanto la frase resta al livello
@@ -188,8 +182,7 @@ frasi, ma predice ``supportata'' per il 90\,\% di esse. Il 3B le ordina meglio d
 progettato e lo eguaglia nella capacità di ordinare le frasi.
 
 d1-3B, un decision model generalista della stessa dimensione del 3B, offre la verifica più severa del valore della
-specializzazione. È infatti già addestrato a prendere decisioni tipizzate, e si differenzia da GroundOne soprattutto per
-i dati su cui è stato addestrato. Sull'intero T1 raggiunge una balanced accuracy a tre classi di 0.657 e un AUROC di
+specializzazione. È infatti già addestrato a prendere decisioni tipizzate, e si differenzia da GroundOne per i dati su cui è stato addestrato, ma anche per il modello base, per il formato del prompt e per il runtime, e non è mai stato addestrato su questo task. Sull'intero T1 raggiunge una balanced accuracy a tre classi di 0.657 e un AUROC di
 0.863. Entrambi i modelli GroundOne fanno nettamente meglio. Il 0.5B, sei volte più piccolo, lo supera di $+0.112$ (da
 $+0.092$ a $+0.133$) in balanced accuracy a tre classi e di $+0.042$ in AUROC; il 3B lo supera di $+0.175$ (da $+0.157$
 a $+0.195$) e di $+0.077$. Il divario è massimo sulle risposte lunghe: quando la risposta contiene quattordici o più
@@ -207,8 +200,7 @@ AggreFact-XSum, FactCheck-GPT e REVEAL: è il costo atteso di un addestramento s
 Il modello 3B, valutato sull'intero test set, colma gran parte di questo divario. La sua balanced accuracy media macro è
 74.8: è alla pari con quella di MiniCheck-RoBERTa (74.0; differenza appaiata $+0.8$ punti, intervallo da $-0.5$ a $+2.0$) e superiore al punteggio zero-shot pubblicato per il modello 7B (72.8), per il quale non si può calcolare un
 intervallo. Sui dataset RAG raggiunge 76.9, 2.4 punti sopra l'encoder (intervallo da $+1.4$ a $+3.4$). Il suo guadagno
-rispetto al 0.5B, $+4.7$ punti (da $+3.4$ a $+5.9$), è diffuso tra i dataset, con i miglioramenti maggiori su REVEAL,
-WiCE, FactCheck-GPT e XSum: la dimensione del modello migliora quindi il trasferimento al di fuori del dominio di
+rispetto al 0.5B, $+4.7$ punti (da $+3.4$ a $+5.9$), è diffuso tra i dataset, con i miglioramenti maggiori su REVEAL e FactCheck-GPT, gli unici in cui supera anche la variabilità fra seed: la dimensione del modello migliora quindi il trasferimento al di fuori del dominio di
 addestramento. Il 3B resta nettamente sotto l'encoder soltanto nella summarization di notizie (AggreFact-CNN, 59.3
 contro 67.1). Rizzo-Flow raggiunge 61.5 sui 1{,}093 elementi del suo sottocampione, e su questi elementi il GroundOne 3B
 fa meglio di 12.0 punti (da $+7.6$ a $+16.4$).
@@ -218,11 +210,8 @@ closed Jev, sullo stesso test set e con la stessa metrica, riporta 78.6, e 76.9 
 attraverso le lettere di risposta. I prompt sono diversi da quelli usati qui, e non è possibile calcolare alcun
 intervallo~\cite{deusser2026jev}. Su un benchmark ampio di groundedness, quindi, uno specialista da 3B addestrato
 soltanto su risposte RAG eguaglia il miglior encoder di piccole dimensioni, ma resta sotto lo stato dell'arte closed e
-sotto modelli open molto più grandi. Il generalista d1-3B conferma il quadro quando la dimensione è la stessa. Su un
-sottocampione casuale di 4{,}000 elementi raggiunge 75.7, contro 74.3 del GroundOne 3B sugli stessi elementi, una
-differenza non significativa ($-1.3$, da $-4.0$ a $+1.0$), mentre supera il 0.5B di 6.5 punti. Rispetto al GroundOne
-3B, d1-3B è più debole nella colonna di RAGTruth (78.9 contro 87.3) e nettamente più forte su WiCE e sulla summarization
-di dialoghi.
+sotto modelli open molto più grandi. A parità di dimensione, il generalista d1-3B è alla pari con il GroundOne 3B. Su un sottocampione di 4{,}000 elementi, estratti a caso all'interno di ciascuna etichetta, raggiunge 75.7, contro 74.3 del GroundOne 3B sugli stessi elementi, una
+differenza non significativa ($-1.3$, da $-4.0$ a $+1.0$), mentre supera il 0.5B di 6.5 punti. Sugli stessi elementi d1-3B è più debole del GroundOne 3B nella colonna di RAGTruth (78.9 contro 85.9), più forte su WiCE (84.6 contro 72.1) e su TofuEval-MediaS (84.0 contro 78.5) e più debole su TofuEval-MeetB (71.3 contro 75.1); WiCE e i due insiemi di TofuEval contengono soltanto da 51 a 119 elementi, per cui questi scarti sono solo indicativi.
 
 \section{Trasferimento a un dominio diverso (T3)}
 \label{sec:results-t3}
@@ -374,7 +363,7 @@ in-process su MLX, GroundOne è il più veloce con entrambe le dimensioni e in o
 aumenta con $K$. Quando la risposta contiene quattordici o più decisioni, il GroundOne 0.5B impiega 0.41 secondi, contro
 0.80 del giudice LLM sintetico e 2.51 del giudice LLM verboso della stessa dimensione. È quindi 1.95 volte più veloce del primo
 (da 1.82 a 2.12) e 6.16 volte più veloce del secondo (da 5.72 a 6.66). Nella stessa fascia il GroundOne 3B impiega 2.57
-secondi, contro 4.44 e 15.86 secondi dei due giudici LLM 3B, ed è quindi 1.73 volte (da 1.65 a 1.82) e 6.18 volte (da 5.88 a 6.63) più veloce. La misura è stata ripetuta, sulle stesse risposte e con lo stesso protocollo, per le analisi della Sezione~\ref{sec:results-latency-split}, che confrontano le situazioni con e senza cache all'interno della stessa esecuzione: i suoi tempi sono entro il 4\,\% di questi, e sulle risposte lunghe GroundOne è 2.00 e 1.79 volte più veloce dei giudici LLM sintetici e 6.17 e 6.62 volte più veloce di quelli verbosi (Tabella~\ref{tab:results-speedup-summary}). Gli speed-up citati nel resto della tesi vengono dalla misura ripetuta: senza alcuna cache, sulle risposte di quattordici o più frasi, GroundOne è da 1.8 a 2 volte più veloce del giudice LLM sintetico.
+secondi, contro 4.44 e 15.86 secondi dei due giudici LLM 3B, ed è quindi 1.73 volte (da 1.65 a 1.82) e 6.18 volte (da 5.88 a 6.63) più veloce. La misura è stata ripetuta, sulle stesse risposte e con lo stesso protocollo, per le analisi della Sezione~\ref{sec:results-latency-split}, che confrontano le situazioni con e senza cache all'interno della stessa esecuzione: i suoi tempi sono entro il 5\,\% di questi, e sulle risposte lunghe GroundOne è 2.00 e 1.79 volte più veloce dei giudici LLM sintetici e 6.17 e 6.62 volte più veloce di quelli verbosi (Tabella~\ref{tab:results-speedup-summary}). Gli speed-up citati nel resto della tesi vengono dalla misura ripetuta: senza alcuna cache, sulle risposte di quattordici o più frasi, GroundOne è da 1.8 a 2 volte più veloce del giudice LLM sintetico.
 
 Leggere tutti i verdetti in un unico forward pass è anche più rapido che porre una domanda per frase in un batch: ai
 valori più alti di $K$ il guadagno è di un fattore 1.4--1.5. L'altra leva è la dimensione del modello: il GroundOne 0.5B
@@ -400,8 +389,7 @@ che ogni approccio deve pagare, e in una parte di \emph{decisione}. Per GroundOn
 stesso testo senza marker, e la decisione è la differenza rispetto al passaggio servito, cioè il costo dei marker e del
 readout; le due misure sono alternate cinque volte con il 0.5B e tre con il 3B, e se ne tiene la mediana. Per i giudici
 LLM la lettura è il tempo fino al primo token generato, e la decisione è il decoding dei verdetti. La misura usa le
-stesse 200 risposte e lo stesso protocollo della sezione precedente, e ne riproduce i tempi complessivi entro il
-4\,\%. La Tabella~\ref{tab:results-latency-split} riporta le mediane, la Figura~\ref{fig:results-latency-split} il loro
+stesse 200 risposte e lo stesso protocollo della sezione precedente, e ne riproduce i tempi complessivi entro il 5\,\%. La Tabella~\ref{tab:results-latency-split} riporta le mediane, la Figura~\ref{fig:results-latency-split} il loro
 andamento con $K$.
 
 \begin{table}[htbp]
@@ -427,11 +415,10 @@ Modello & Sistema & Lettura & Decisione & Totale & \makecell{Quota di\\lettura} 
 \end{table}
 
 Per GroundOne la lettura vale il 97\,\% del tempo con entrambe le dimensioni. La decisione costa in mediana 12
-millisecondi per risposta con il 0.5B e 67 con il 3B, cioè 1.3 e 6.7 millisecondi per frase: sono i tre token del
+millisecondi per risposta con il 0.5B e 67 con il 3B, cioè, in mediana, 1.3 e 6.7 millisecondi per frase: sono i tre token del
 marker e la proiezione sul vocabolario nelle sole posizioni dei marker. Il giudice LLM sintetico spende invece 30 e 139
 millisecondi per frase, quello verboso 170 e 1{,}033. Per i giudici LLM, invece, la decisione è una
-parte consistente del tempo, e per il giudice LLM verboso la parte principale. Al netto della lettura, GroundOne decide 33
-volte più in fretta del giudice LLM sintetico con il 0.5B (da 30 a 38) e 18 volte con il 3B (da 15 a 20); rispetto al
+parte consistente del tempo, e per il giudice LLM verboso la parte principale. Al netto della lettura, e confrontando le mediane per risposta della Tabella~\ref{tab:results-latency-split}, GroundOne decide 33 volte più in fretta del giudice LLM sintetico con il 0.5B (da 30 a 38) e 18 volte con il 3B (da 15 a 20); rispetto al
 giudice LLM verboso, 131 volte (da 112 a 148) e 125 volte (da 116 a 142). Con quattordici o più frasi i rapporti sono
 simili: 29 e 24 volte rispetto al giudice LLM sintetico, 141 e 151 rispetto a quello verboso.
 
@@ -491,8 +478,7 @@ riscritta viene verificata di nuovo sulle stesse fonti (Sezione~\ref{sec:method-
 MLX usata per le misure (0.29.3) il kernel di attenzione fuso con maschera causale implicita restituisce risultati errati
 per alcune forme quando molte query seguono chiavi già in cache, per esempio 501 token letti dopo 523 in cache. I
 percorsi con prefisso in cache usano quindi una maschera causale esplicita, che coincide con un riferimento in float32;
-dopo questa correzione i logit con e senza cache differiscono al più di 0.07 e le probabilità di 0.014, cioè entro
-l'arrotondamento in bfloat16. Le misure senza cache, e quindi tutti gli altri risultati, non passano da questo
+dopo questa correzione, su 100 risposte, le probabilità con e senza cache differiscono al più di 0.014 con il 0.5B e di 0.005 con il 3B, e la classe predetta cambia per 3 e 1 frasi su 1{,}758, tutte vicine alla parità: le differenze rientrano nell'arrotondamento in bfloat16. Le misure senza cache, e quindi tutti gli altri risultati, non passano da questo
 percorso. La versione di MLX per Swift usata dall'applicazione non presenta l'errore.} La
 Tabella~\ref{tab:results-prefix-cache} riporta i tempi complessivi.
 
@@ -519,7 +505,7 @@ Modello & Sistema & \makecell{Nessun\\prefisso} & \makecell{Istruzioni\\in cache
 \end{tabular}
 \end{table}
 
-Come anticipa la composizione del prefill, tenere in cache le sole istruzioni fa risparmiare dal 3 al 5\,\% del tempo,
+Come anticipa la composizione del prefill, tenere in cache le sole istruzioni fa risparmiare al più il 5\,\% del tempo,
 poco più del rumore di misura, mentre il documento fa una differenza netta. Con il documento in cache
 GroundOne verifica una risposta 3.2 volte più in fretta con il 0.5B (0.11 secondi in mediana) e 3.4 volte con il 3B
 (0.58 secondi). I giudici LLM guadagnano molto meno, 1.3 e 1.7 volte quello sintetico e 1.1 e 1.2 quello verboso,
@@ -578,18 +564,18 @@ Tabella~\ref{tab:results-speedup-summary} e la Figura~\ref{fig:results-speedup-s
 ottimizzazioni concesse a un solo sistema, ma da quanto pesa, in ciascuna situazione, la parte che il readout elimina.
 Senza cache la lettura del testo, comune ai due approcci, è quasi tutto il tempo di GroundOne e circa metà di quello del
 giudice sintetico, e lo speed-up complessivo resta fra 1.6 e 2 volte, da 1.8 a 2 sulle risposte di quattordici o più frasi; al netto della lettura, la decisione di GroundOne è
-da 18 a 33 volte più rapida di quella del giudice sintetico e circa 125--130 volte più rapida di quella del verboso. Ogni
+da 18 a 33 volte più rapida di quella del giudice sintetico e da 125 a 131 volte più rapida di quella del verboso. Ogni
 riduzione della lettura avvicina lo speed-up complessivo a quello della sola decisione. Con le fonti già in cache, lette
 in anticipo mentre l'utente legge la risposta oppure per una verifica precedente (la KV cache è la stessa nei due casi),
 GroundOne è da 3.1 a 4.8 volte più veloce del giudice sintetico e circa 15 volte più veloce del verboso. Dopo una
 riscrittura, quando anche l'inizio della risposta è in cache e i suoi verdetti si riusano, il vantaggio sul giudice
 sintetico sale a 7.1 volte con il 3B e a 12 con il 0.5B. Quest'ultima riga è la sola in cui conta anche il formato, e non
 soltanto il costo del decoding: il giudice riusa la stessa cache, ma i suoi verdetti seguono l'intera risposta e vanno
-riscritti tutti. Il caso di riferimento resta la prima riga, la verifica di una risposta nuova su fonti mai lette, che è anche il caso meno favorevole; il più favorevole fra quelli misurati è l'ultima, e le altre descrivono come il vantaggio cresce nell'uso reale di un assistente, in cui le stesse fonti vengono lette più volte.
+riscritti tutti. Il caso di riferimento resta la prima riga, la verifica di una risposta nuova su fonti mai lette, che è anche il caso meno favorevole; il più favorevole fra quelli misurati rispetto al giudice LLM sintetico è l'ultima, e le altre descrivono come il vantaggio cresce nell'uso reale di un assistente, in cui le stesse fonti vengono lette più volte.
 
 \begin{table}[htbp]
 \centering
-\caption{Speed-up di GroundOne sui giudici LLM nelle diverse situazioni, sulle stesse 200 risposte di T1: rapporto fra i tempi mediani, con l'intervallo bootstrap al 95\,\%. In ogni riga GroundOne e il giudice hanno la stessa cache; la riga della sola decisione esclude la lettura del testo (Tabella~\ref{tab:results-latency-split}). Le righe senza cache e con le fonti in cache vengono dalla stessa esecuzione (Tabella~\ref{tab:results-prefix-cache}), che ripete la misura della Sezione~\ref{sec:results-latency} entro il 4\,\%; l'ultima riga viene dall'esecuzione della Tabella~\ref{tab:results-answer-prefix}. n.m.: non misurato.}
+\caption{Speed-up di GroundOne sui giudici LLM nelle diverse situazioni, sulle stesse 200 risposte di T1: rapporto fra i tempi mediani, con l'intervallo bootstrap al 95\,\%. In ogni riga GroundOne e il giudice hanno la stessa cache; la riga della sola decisione esclude la lettura del testo (Tabella~\ref{tab:results-latency-split}). Le righe senza cache e con le fonti in cache vengono dalla stessa esecuzione (Tabella~\ref{tab:results-prefix-cache}), che ripete la misura della Sezione~\ref{sec:results-latency} entro il 5\,\%; l'ultima riga viene dall'esecuzione della Tabella~\ref{tab:results-answer-prefix}. n.m.: non misurato.}
 \label{tab:results-speedup-summary}
 \small
 \setlength{\tabcolsep}{3.5pt}
@@ -628,7 +614,7 @@ usare il verdetto; GroundOne, invece, non ne genera nessuno.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/results/judges_quality_failures.png}
-\caption{Giudici LLM sul sottoinsieme di latenza: balanced accuracy a tre classi, con gli errori di formato
+\caption{GroundOne, il decision model non addestrato e i giudici LLM sul sottoinsieme di latenza: balanced accuracy a tre classi, con gli errori di formato
 contati come errori, e quota di frasi il cui verdetto non è stato possibile interpretare.}
 \label{fig:results-judges}
 \end{figure}
@@ -657,7 +643,7 @@ GPU e Neural Engine al netto della potenza a riposo, insieme alla potenza netta 
 \end{figure}
 
 In termini assoluti i valori sono piccoli. Un consumo di 5.5 joule corrisponde a circa 0.0015 wattora: con l'energia di
-un wattora, quindi, il GroundOne 0.5B potrebbe verificare circa seicento risposte, interamente sul portatile.
+un wattora, quindi, il GroundOne 0.5B potrebbe verificare circa 650 risposte, interamente sul portatile.
 
 \section{Località: esecuzione offline, quantizzazione e co-residenza}
 \label{sec:results-locality}
@@ -706,8 +692,7 @@ GroundOne 0.5B & 2.3\,GB & 3.3\,GB & 4.65\,s & 0.28\,s & 6.7\,\% \\
 \section{Analisi degli errori}
 \label{sec:results-errors}
 
-Il risultato debole su VitaminC e le contraddizioni mancate su T1 hanno una causa comune, che la sovrapposizione
-lessicale mette in evidenza. Su VitaminC, quando un'affermazione supportata condivide poche parole con la propria
+Il risultato debole su VitaminC e le contraddizioni mancate su T1 mostrano uno schema comune, che la sovrapposizione lessicale mette in evidenza. Su VitaminC, quando un'affermazione supportata condivide poche parole con la propria
 evidenza (sovrapposizione inferiore a 0.4), il 0.5B la riconosce soltanto nel 2\,\% dei casi. Quando la sovrapposizione
 supera 0.7, invece, la riconosce nel 64\,\% dei casi. Inoltre, il 0.5B non riconosce mai una contraddizione in
 un'affermazione priva di cifre. I modelli, quindi, si appoggiano in parte alla sovrapposizione lessicale: un'affermazione
