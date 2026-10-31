@@ -703,3 +703,100 @@ principale di entrambi i modelli. VitaminC non è più difficile in assoluto: è
 questo tipo, cioè da supporto parafrasato e da modifiche minime, che in RAGTruth sono meno numerosi.
 
 L'Appendice~\ref{app:examples}, infine, mostra l'output di ogni sistema su una stessa risposta di esempio.
+
+\section{Sintesi dei risultati}
+\label{sec:results-summary}
+
+I risultati poggiano su tre pilastri: accuratezza, tempo e costo sul dispositivo. La
+Tabella~\ref{tab:results-summary-accuracy} raccoglie l'accuratezza di GroundOne e delle principali baseline sui tre test
+set congelati. La Tabella~\ref{tab:results-summary-device} e la Figura~\ref{fig:results-summary-radar} confrontano
+GroundOne con i giudici LLM della stessa dimensione sulle grandezze misurate sulla stessa macchina e sulle stesse
+risposte.
+
+\begin{table}[htbp]
+\centering
+\caption{Accuratezza sui tre test set congelati: balanced accuracy a tre classi e AUROC di $P(\text{supported})$ su T1 e
+T3, balanced accuracy macro su T2 (in punti percentuali). Trattino: non applicabile, perché il sistema restituisce solo un
+punteggio binario, oppure non valutato. $^{\dagger}$Valutato su un sottocampione (Sezione~\ref{sec:setup-baselines}). In grassetto il valore migliore di ogni colonna fra quelli sull'intero test set; su T2 le differenze fra GroundOne 3B, MiniCheck-RoBERTa e d1-3B non sono significative.}
+\label{tab:results-summary-accuracy}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccccc}
+\toprule
+ & \multicolumn{2}{c}{T1 RAGTruth} & \makecell{T2 LLM-\\AggreFact} & \multicolumn{2}{c}{T3 VitaminC} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-4}\cmidrule(l){5-6}
+Sistema & Tre classi & AUROC & Macro & Tre classi & AUROC \\
+\midrule
+GroundOne 0.5B & 0.769 & 0.905 & 70.1 & 0.442 & 0.722 \\
+GroundOne 3B & \textbf{0.832} & \textbf{0.940} & 74.8 & 0.527 & 0.817 \\
+MiniCheck-RoBERTa & -- & 0.814 & 74.0 & -- & \textbf{0.968} \\
+HHEM-2.1-open & -- & 0.821 & -- & -- & 0.795 \\
+Rizzo-Flow 4B & 0.603$^{\dagger}$ & 0.894$^{\dagger}$ & 61.5$^{\dagger}$ & 0.712$^{\dagger}$ & 0.909$^{\dagger}$ \\
+d1-3B & 0.657 & 0.863 & 75.7$^{\dagger}$ & \textbf{0.724} & 0.913 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Accuratezza.} Nel dominio per cui è stato addestrato, GroundOne è il sistema più accurato. Su T1 il 3B
+raggiunge la balanced accuracy a tre classi e l'AUROC più alte, e anche il 0.5B supera entrambi i decision model
+generalisti in balanced accuracy a tre classi e gli encoder nell'ordinare le frasi supportate. Dopo la calibrazione le sue
+probabilità hanno un expected calibration error di 0.019, per cui si possono usare per una soglia e per rimandare i casi
+incerti. Fuori dal dominio il vantaggio si riduce o si rovescia: su LLM-AggreFact il 3B è alla pari con
+MiniCheck-RoBERTa e con d1-3B, e su VitaminC MiniCheck-RoBERTa e i decision model generalisti sono nettamente avanti.
+
+\begin{table}[htbp]
+\centering
+\caption{GroundOne e i giudici LLM della stessa dimensione sulle 200 risposte di T1 del protocollo di latenza, sulla
+stessa macchina e con lo stesso runtime: balanced accuracy a tre classi con gli errori di formato contati come errori,
+quota di frasi senza un verdetto valido, tempo mediano per risposta con quattordici o più frasi senza cache e con le
+fonti in cache (misura ripetuta della Sezione~\ref{sec:results-latency-split}), energia media per risposta e AUROC delle
+probabilità. $^{*}$Probabilità lette dai logit del giudice LLM sintetico (giudice LLM a parità di output B0d); il giudice
+LLM verboso non ne restituisce.}
+\label{tab:results-summary-device}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llcccccc}
+\toprule
+ & & & & \multicolumn{2}{c}{Secondi, $K \geq 14$} & & \\
+\cmidrule(lr){5-6}
+Modello & Sistema & \makecell{Bal. acc.\\tre classi} & \makecell{Errori di\\formato} & \makecell{Senza\\cache} & \makecell{Fonti\\in cache} & \makecell{Joule per\\risposta} & AUROC \\
+\midrule
+0.5B & GroundOne & \textbf{0.835} & \textbf{0\,\%} & \textbf{0.42} & \textbf{0.17} & \textbf{5.5} & \textbf{0.94} \\
+ & \makecell[l]{Giudice LLM\\sintetico} & 0.233 & 23\,\% & 0.83 & 0.61 & 8.9 & 0.48$^{*}$ \\
+ & \makecell[l]{Giudice LLM\\verboso} & 0.017 & 97\,\% & 2.57 & 2.41 & 22.5 & -- \\
+\midrule
+3B & GroundOne & \textbf{0.900} & \textbf{0\,\%} & \textbf{2.49} & \textbf{0.93} & \textbf{33.1} & \textbf{0.97} \\
+ & \makecell[l]{Giudice LLM\\sintetico} & 0.390 & 0.1\,\% & 4.47 & 3.15 & 43.3 & 0.68$^{*}$ \\
+ & \makecell[l]{Giudice LLM\\verboso} & 0.402 & 7.6\,\% & 16.48 & 14.34 & 111.7 & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Tempo.} Rispetto ai giudici LLM della stessa dimensione, sulla stessa macchina e sulle stesse risposte,
+GroundOne è più veloce in ogni situazione misurata. Sulle risposte lunghe, con nulla letto prima, il caso meno
+favorevole, è da 1.8 a 2 volte più veloce del giudice LLM sintetico e circa sei volte più veloce di quello verboso; con le
+fonti già in cache il vantaggio sul giudice LLM sintetico diventa di 3.4--3.6 volte, e dopo una riscrittura, su tutte le
+risposte, da 7 a 12 volte. Al netto della lettura del testo, la sola decisione è da 18 a 33 volte più rapida.
+
+\paragraph{Costo.} GroundOne consuma meno energia, 5.5 joule per risposta con il 0.5B e 33 con il 3B, anche se il
+risparmio, da 1.3 a 4.1 volte, è inferiore a quello di tempo. Restituisce sempre un output valido, mentre i giudici LLM
+sbagliano il formato fino al 23\,\% delle frasi con il prompt sintetico e al 97\,\% con quello verboso nel caso del 0.5B.
+Sta inoltre sul portatile insieme a un generatore, con al massimo 6.1\,GB con il 3B (Sezione~\ref{sec:results-locality}),
+e non genera alcun token, un costo che non paga su nessun hardware.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/summary_radar.png}
+\caption{GroundOne e i giudici LLM della stessa dimensione sulle 200 risposte di T1 del protocollo di latenza, sulla
+stessa macchina. Balanced accuracy a tre classi e quota di output validi sono valori assoluti; la velocità (inverso del
+tempo mediano con quattordici o più frasi, senza cache e con le fonti in cache) e l'efficienza energetica (inverso dei
+joule per risposta) sono relative al sistema migliore su ciascun asse, che vale 1. Il poligono di GroundOne racchiude
+quelli dei giudici LLM con entrambe le dimensioni; il divario è massimo sull'accuratezza e sulla velocità con le fonti in
+cache, minimo sull'energia e, con il 3B, sugli output validi, che i giudici LLM da 3B rispettano quasi sempre.}
+\label{fig:results-summary-radar}
+\end{figure}
+
+La Figura~\ref{fig:results-summary-radar} riunisce in un'unica vista il confronto sulla stessa macchina. Il confronto con
+gli encoder e con i decision model generalisti riguarda invece la sola accuratezza: i loro tempi sono stati registrati in
+condizioni che non consentono un confronto equo (Sezione~\ref{sec:setup-protocol}), e per essi non si avanza alcuna
+affermazione sulla latenza.

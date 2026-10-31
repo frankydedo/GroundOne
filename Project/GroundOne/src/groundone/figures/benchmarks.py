@@ -487,6 +487,64 @@ def speedup_summary(g):
            "results/decompose-*/decompose/metrics.json")
 
 
+def summary_radar(g):
+    """GroundOne against the LLM judges of the same size on the axes measured on the same machine and answers: accuracy,
+    valid output, speed without cache and with the sources cached (K >= 14), energy. 1 = best on the axis."""
+    tags = {"0.5B": "05b", "3B": "3b"}
+    axes_names = ["three-way\nbalanced accuracy", "valid output", "speed, no cache\n(K ≥ 14)",
+                  "speed, sources cached\n(K ≥ 14)", "energy efficiency"]
+    panels = {}
+    for size, t in tags.items():
+        dec = RESULTS_DIR / f"decompose-{t}" / "decompose" / "metrics.json"
+        if not dec.exists():
+            return
+        dm = json.loads(dec.read_text())
+        rows = {}
+        for key, label, lat, en in (("groundone", "GroundOne", f"g1-{t}-b1", f"energy-g1-{t}"),
+                                    ("terse", "Terse LLM judge", f"judge-terse-{t}", f"energy-terse-{t}"),
+                                    ("verbose", "Verbose LLM judge", f"judge-verbose-{t}", f"energy-verbose-{t}")):
+            lm, em = load(lat, "latency"), load(en, "energy")
+            if not (lm and em):
+                return
+            rows[label] = [lm["macro_recall_failures_wrong"], 1 - lm["format_failure_rate"],
+                           dm["systems"][key]["by_K_band"][">=14"]["total_s"],
+                           dm["cache"]["doc"]["systems"][key]["by_K_band"][">=14"]["total_s"],
+                           em["energy"]["net_joules_per_answer"]]
+        for i in (2, 3, 4):  # times and energy: relative to the best system (lowest value) = 1
+            best = min(v[i] for v in rows.values())
+            for v in rows.values():
+                v[i] = best / v[i]
+        panels[size] = rows
+    n = len(axes_names)
+    ang = np.linspace(0, 2 * np.pi, n, endpoint=False).tolist()
+    fig, axs = plt.subplots(1, 2, figsize=(10.5, 4.2), subplot_kw={"polar": True})
+    for ax, (size, rows) in zip(axs, panels.items()):
+        for label, v in rows.items():
+            col = g1_color(size) if label == "GroundOne" else LAT_COLORS[label]
+            ax.plot(ang + ang[:1], v + v[:1], color=col, lw=2.5, marker="o", ms=5, label=label)
+            ax.fill(ang + ang[:1], v + v[:1], color=col, alpha=0.10)
+        ax.set_xticks(ang, [""] * n)
+        for a, name in zip(ang, axes_names):  # labels outside the circle, aligned away from it
+            c = np.cos(a)
+            ax.text(a, 1.16, _tr_text(name) if LANG == "it" else name, fontsize=11, color=INK2, va="center",
+                    ha="left" if c > 0.1 else "right" if c < -0.1 else "center")
+        ax.set_ylim(0, 1.0)
+        ax.set_yticks([0.25, 0.5, 0.75, 1.0], ["0.25", "0.5", "0.75", "1"], fontsize=9, color=INK2)
+        ax.set_rlabel_position(90 + 180 / n)
+        ax.set_title(f"Qwen2.5 {size}", pad=30, fontsize=13)
+    from matplotlib.legend_handler import HandlerTuple
+    fig.legend([g1_handle(), plt.Line2D([], [], color=LAT_COLORS["Terse LLM judge"], lw=2),
+                plt.Line2D([], [], color=LAT_COLORS["Verbose LLM judge"], lw=2)],
+               ["GroundOne", "Terse LLM judge", "Verbose LLM judge"], handler_map={tuple: HandlerTuple(ndivide=None, pad=0)},
+               loc="upper center", bbox_to_anchor=(0.5, 0.02), ncol=3, fontsize=11, frameon=False)
+    g.save(fig, "summary_radar",
+           "GroundOne against the LLM judges of the same size on the 200 T1 latency answers, same machine and runtime. "
+           "Three-way balanced accuracy (format failures counted as errors) and share of valid outputs are absolute; the "
+           "speeds (inverse of the median time at K >= 14, without cache and with the sources cached) and the energy "
+           "efficiency (inverse of the joules per answer) are relative to the best system on the axis, which scores 1.",
+           "results/{g1,judge-terse,judge-verbose}-*/latency, decompose-*, energy-*")
+
+
 def main():
     g = Group("benchmarks")
     seed_runs(g)
@@ -501,4 +559,5 @@ def main():
     latency_split(g)
     prefill_composition(g)
     speedup_summary(g)
+    summary_radar(g)
     g.write_index("Benchmarks on the frozen test sets")

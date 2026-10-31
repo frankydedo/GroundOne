@@ -719,3 +719,99 @@ remain the main limitation of both models. VitaminC is not harder in absolute te
 this kind of case, that is, paraphrased support and minimal edits, which are less numerous in RAGTruth.
 
 Appendix~\ref{app:examples}, finally, shows the output of every system on the same example answer.
+
+\section{Summary of the results}
+\label{sec:results-summary}
+
+The results rest on three pillars: accuracy, time and cost on the device. Table~\ref{tab:results-summary-accuracy}
+gathers the accuracy of GroundOne and of the main baselines on the three frozen test sets. Table~\ref{tab:results-summary-device}
+and Figure~\ref{fig:results-summary-radar} compare GroundOne with the LLM judges of the same size on the quantities
+that were measured on the same machine and on the same answers.
+
+\begin{table}[htbp]
+\centering
+\caption{Accuracy on the three frozen test sets: three-way balanced accuracy and AUROC of $P(\text{supported})$ on T1
+and T3, macro balanced accuracy on T2 (in percentage points). Dash: not applicable, because the system returns only a
+binary score, or not evaluated. $^{\dagger}$Evaluated on a subsample (Section~\ref{sec:setup-baselines}). In bold the best value in each column among those on the whole test set; on T2 the differences between GroundOne 3B, MiniCheck-RoBERTa and d1-3B are not significant.}
+\label{tab:results-summary-accuracy}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccccc}
+\toprule
+ & \multicolumn{2}{c}{T1 RAGTruth} & \makecell{T2 LLM-\\AggreFact} & \multicolumn{2}{c}{T3 VitaminC} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-4}\cmidrule(l){5-6}
+System & Three-way & AUROC & Macro & Three-way & AUROC \\
+\midrule
+GroundOne 0.5B & 0.769 & 0.905 & 70.1 & 0.442 & 0.722 \\
+GroundOne 3B & \textbf{0.832} & \textbf{0.940} & 74.8 & 0.527 & 0.817 \\
+MiniCheck-RoBERTa & -- & 0.814 & 74.0 & -- & \textbf{0.968} \\
+HHEM-2.1-open & -- & 0.821 & -- & -- & 0.795 \\
+Rizzo-Flow 4B & 0.603$^{\dagger}$ & 0.894$^{\dagger}$ & 61.5$^{\dagger}$ & 0.712$^{\dagger}$ & 0.909$^{\dagger}$ \\
+d1-3B & 0.657 & 0.863 & 75.7$^{\dagger}$ & \textbf{0.724} & 0.913 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Accuracy.} In the domain for which it was trained, GroundOne is the most accurate system. On T1 the 3B
+reaches the highest three-way balanced accuracy and the highest AUROC, and the 0.5B too is above both general-purpose
+decision models in three-way balanced accuracy and above the encoders in ranking the supported sentences. After
+calibration its probabilities have an expected calibration error of 0.019, so they can be used for a threshold and
+for deferring uncertain cases. Outside the domain the advantage shrinks or reverses: on LLM-AggreFact the 3B is on
+par with MiniCheck-RoBERTa and with d1-3B, and on VitaminC MiniCheck-RoBERTa and the general-purpose decision models are clearly ahead.
+
+\begin{table}[htbp]
+\centering
+\caption{GroundOne and the LLM judges of the same size on the 200 T1 answers of the latency protocol, on the same
+machine and runtime: three-way balanced accuracy with format failures counted as errors, share of sentences without a
+valid verdict, median time per answer with fourteen or more sentences without a cache and with the sources cached
+(repeated measurement of Section~\ref{sec:results-latency-split}), mean energy per answer and AUROC of the
+probabilities. $^{*}$Probabilities read from the logits of the terse LLM judge (equal-output LLM judge B0d); the
+verbose LLM judge returns none.}
+\label{tab:results-summary-device}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llcccccc}
+\toprule
+ & & & & \multicolumn{2}{c}{Seconds, $K \geq 14$} & & \\
+\cmidrule(lr){5-6}
+Model & System & \makecell{Three-way\\bal. acc.} & \makecell{Format\\failures} & \makecell{No\\cache} & \makecell{Sources\\cached} & \makecell{Joules per\\answer} & AUROC \\
+\midrule
+0.5B & GroundOne & \textbf{0.835} & \textbf{0\,\%} & \textbf{0.42} & \textbf{0.17} & \textbf{5.5} & \textbf{0.94} \\
+ & \makecell[l]{Terse LLM\\judge} & 0.233 & 23\,\% & 0.83 & 0.61 & 8.9 & 0.48$^{*}$ \\
+ & \makecell[l]{Verbose LLM\\judge} & 0.017 & 97\,\% & 2.57 & 2.41 & 22.5 & -- \\
+\midrule
+3B & GroundOne & \textbf{0.900} & \textbf{0\,\%} & \textbf{2.49} & \textbf{0.93} & \textbf{33.1} & \textbf{0.97} \\
+ & \makecell[l]{Terse LLM\\judge} & 0.390 & 0.1\,\% & 4.47 & 3.15 & 43.3 & 0.68$^{*}$ \\
+ & \makecell[l]{Verbose LLM\\judge} & 0.402 & 7.6\,\% & 16.48 & 14.34 & 111.7 & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Time.} Against LLM judges of the same size, on the same machine and on the same answers, GroundOne is
+faster in every situation measured. On long answers with nothing read before, the least favourable case, it is 1.8 to
+2 times faster than the terse LLM judge and about six times faster than the verbose one; with the sources already
+cached the advantage over the terse LLM judge becomes 3.4 to 3.6 times, and after a rewrite, over all answers, 7 to 12
+times. Net of reading the text, the decision alone is 18 to 33 times faster.
+
+\paragraph{Cost.} GroundOne uses the least energy, 5.5 joules per answer with the 0.5B and 33 with the 3B, although the
+saving, from 1.3 to 4.1 times, is smaller than the saving in time. It always returns a valid output, whereas the LLM
+judges miss the format on up to 23\,\% of the sentences with the terse prompt and 97\,\% with the verbose one at
+0.5B. It also fits on the laptop together with a generator, with at most 6.1\,GB with the 3B
+(Section~\ref{sec:results-locality}), and it generates no token, a cost that it does not pay on any hardware.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/results/summary_radar.png}
+\caption{GroundOne and the LLM judges of the same size on the 200 T1 answers of the latency protocol, on the same
+machine. Three-way balanced accuracy and share of valid outputs are absolute values; speed (inverse of the median time
+with fourteen or more sentences, without a cache and with the sources cached) and energy efficiency (inverse of the
+joules per answer) are relative to the best system on each axis, which scores 1. GroundOne's polygon encloses those of
+the LLM judges at both sizes; the gap is widest on accuracy and on speed with the sources cached, narrowest on energy and,
+with the 3B, on valid outputs, which the 3B LLM judges almost always respect.}
+\label{fig:results-summary-radar}
+\end{figure}
+
+Figure~\ref{fig:results-summary-radar} gathers the comparison on the same machine in a single view. The comparison with
+the encoders and with the general-purpose decision models, instead, concerns accuracy only: their times were recorded
+under conditions that do not allow a fair comparison (Section~\ref{sec:setup-protocol}), and no claim of latency is made
+for them.
