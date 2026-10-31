@@ -9,6 +9,8 @@ IT = {
     "AURC after calibration, lower is better": "AURC dopo la calibrazione (più basso è meglio)",
     "AUROC of P(supported), higher is better": "AUROC di P(supportata) (più alto è meglio)",
     "AUROC, supported vs not": "AUROC, supportata contro non supportata",
+    "AUROC, supported vs not (dashed: chance)": "AUROC, supportata contro non supportata (tratteggio: caso)",
+    "Question answering": "Question answering", "Summarisation": "Summarization", "Data-to-text": "Data-to-text",
     "AUROC, supported vs not supported": "AUROC, supportata contro non supportata",
     "K = scored sentences per answer (dashed: K bands 1–4, 5–8, 9–13, ≥ 14)":
         "K = frasi valutate per risposta (tratteggio: fasce di K 1–4, 5–8, 9–13, ≥ 14)",

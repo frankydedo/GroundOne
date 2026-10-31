@@ -99,10 +99,13 @@ def by_task(g):
         vals = [binary_block({"binary": m["by_task"][t]["binary"]} if "binary" in m["by_task"].get(t, {}) else
                              {"binary": m["by_task"][t]})["auroc"] if t in m["by_task"] else np.nan for t in tasks]
         ax.bar(np.arange(3) + (k - (len(series) - 1) / 2) * w, vals, w * 0.95, color=COLORS.get(label, NEUTRAL), label=label)
-    ax.set_xticks(range(3), tasks)
-    ax.set_ylim(0.5, 1.0)
-    ax.set_ylabel("AUROC, supported vs not")
-    ax.legend(fontsize=7, ncol=3)
+    names = ["Question answering", "Summarisation", "Data-to-text"]
+    ax.set_xticks(range(3), [_tr_text(t) for t in names] if LANG == "it" else names)
+    ax.set_ylim(0.4, 1.0)
+    ax.axhline(0.5, color=INK2, lw=0.8, ls="--")
+    ax.set_ylabel("AUROC, supported vs not (dashed: chance)")
+    fig.legend(*ax.get_legend_handles_labels(), loc="upper center", bbox_to_anchor=(0.5, 0.0), ncol=4, fontsize=7,
+               frameon=False)
     g.save(fig, "t1_by_task", "T1 (RAGTruth test) AUROC per task for each system.", "results/*/t1/metrics.json")
 
 

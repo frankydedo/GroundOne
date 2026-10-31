@@ -44,7 +44,8 @@
   \draw[arrow] (u.south) -- (u.south |- act.north);
   \draw[arrow] (act) -- (d);
   \draw[arrow] (d.south) |- (s2.west);
-  \draw[arrow] (s1.east) -- ++(2.6,0) |- (s2.east) node[pos=0.25, right, note] {residual};
+  \fill[ioLine] ($(s1.south)+(0,-0.25)$) circle (1.2pt);
+  \draw[arrow] ($(s1.south)+(0,-0.25)$) -- ++(2.82,0) |- (s2.east) node[pos=0.25, right, note] {residual};
   \draw[arrow] (s2) -- (out);
   % block frame
   \begin{scope}[on background layer]

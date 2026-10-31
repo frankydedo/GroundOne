@@ -6,7 +6,7 @@
   \node[decision, font=\footnotesize, text width=2.5cm, aspect=2.0] (d1) at (0,-2.0) {stesso dominio dei dati\\di addestramento?};
   \node[post=5.0cm, font=\footnotesize, align=left] (gen) at (6.6,-2.0) {preferire un decision model generalista o un modello più grande, che trasferiscono meglio (es. d1-3B su VitaminC); ricalibrare su un dev set del nuovo dominio};
   \node[decision, font=\footnotesize, text width=2.5cm, aspect=2.0] (d2) at (0,-4.6) {risposte lunghe\\($K$ elevato)?};
-  \node[model=5.0cm, font=\footnotesize, align=left] (long) at (6.6,-4.6) {Decision model specialista: un solo prefill; a $K \geq 14$ da $1.7$ a $2\times$ più veloce di un giudice LLM sintetico e circa $6\times$ di uno verboso};
+  \node[model=5.0cm, font=\footnotesize, align=left] (long) at (6.6,-4.6) {Decision model specialista: un solo prefill; a $K \geq 14$ da $1.8$ a $2\times$ più veloce di un giudice LLM sintetico e circa $6\times$ di uno verboso};
   \node[model=4.6cm, font=\footnotesize, align=left] (short) at (0,-7.0) {Decision model specialista comunque preferibile per accuratezza, formato sempre valido e probabilità calibrate; vantaggio di tempo ridotto};
   \node[decision, font=\footnotesize, text width=2.5cm, aspect=2.0] (d3) at (6.6,-7.0) {budget interattivo\\stretto?};
   \node[outcome=modLine, fill=modFill, font=\footnotesize, anchor=west] (s05) at (9.3,-6.4) {0.5B: 0.41\,s per risposta lunga};
