@@ -23,15 +23,30 @@ SYSTEMS = [  # (label, results name, kind)
     ("GroundOne 3B", "g1-3b-b1", "three"),
 ]
 COLORS = {**SYSTEM_COLORS, "Word overlap": "#c4c2bb", "Sentence only": "#8a877f", "d1-3B (Liquid AI)": "#e87ba4"}
+UNTRAINED_A = "Untrained decision model (design a)"
 LATENCY = {  # size -> [(label, results name)]
-    "0.5B": [("GroundOne (design b)", "g1-05b-b1"), ("Decision model (design a)", "untrained-05b"),
+    "0.5B": [("GroundOne (design b)", "g1-05b-b1"), (UNTRAINED_A, "untrained-05b"),
              ("Terse LLM judge", "judge-terse-05b"), ("Verbose LLM judge", "judge-verbose-05b")],
-    "3B": [("GroundOne (design b)", "g1-3b-b1"), ("Decision model (design a)", "untrained-3b"),
+    "3B": [("GroundOne (design b)", "g1-3b-b1"), (UNTRAINED_A, "untrained-3b"),
            ("Terse LLM judge", "judge-terse-3b"), ("Verbose LLM judge", "judge-verbose-3b")],
 }
-LAT_COLORS = {"GroundOne (design b)": SERIES[0], "Decision model (design a)": SERIES[4], "Terse LLM judge": SERIES[7],
-              "Verbose LLM judge": SERIES[5]}
+LAT_COLORS = {UNTRAINED_A: SYSTEM_COLORS["Untrained 3B"], "Terse LLM judge": SERIES[7], "Verbose LLM judge": SERIES[5]}
 BANDS = ["1-4", "5-8", "9-13", ">=14"]
+BAND_LABELS = ["1–4", "5–8", "9–13", "≥ 14"]
+B2_COLOR = "#c4c2bb"  # control B2 (generated token): light neutral, never a system hue
+
+
+def g1_color(size):
+    return SYSTEM_COLORS[f"GroundOne {size}"]
+
+
+def lat_color(label, size):
+    return g1_color(size) if label.startswith("GroundOne") else LAT_COLORS[label]
+
+
+def g1_handle():
+    """Legend handle for GroundOne drawn in both sizes' colours (0.5B blue, 3B purple)."""
+    return (plt.Rectangle((0, 0), 1, 1, color=g1_color("0.5B")), plt.Rectangle((0, 0), 1, 1, color=g1_color("3B")))
 
 
 def load(name, suite):
@@ -66,8 +81,9 @@ def comparison(g, suite, title):
     for b, r in zip(au, rows):
         axes[0].text(b.get_width(), b.get_y() + b.get_height() / 2, f" {r[2]:.3f}", va="center", fontsize=7)
     axes[0].set_yticks(y, names)
-    axes[0].set_xlim(0.5, 1.0)
-    axes[0].set_xlabel("AUROC, supported vs not supported")
+    axes[0].set_xlim(0.4, 1.0)
+    axes[0].axvline(0.5, color=NEUTRAL, ls="--", lw=1)
+    axes[0].set_xlabel("AUROC, supported vs not supported (dashed: chance)")
     three = [(r[0], r[3]) for r in rows if r[3] is not None]
     key = {"t1": "test_ragtruth", "t3": "test_vitaminc"}[suite]
     three = [("Sentence only", shortcut[key])] + three
@@ -117,8 +133,10 @@ def latency(g):
     fig, axes = plt.subplots(1, len(panels), figsize=(5.5 * len(panels), 3.6), sharey=True)
     for ax, (size, series) in zip(np.atleast_1d(axes), panels.items()):
         for label, m in series:
-            xs = [b for b in BANDS if b in m["latency_by_K_band"]]
-            ax.plot(xs, [m["latency_by_K_band"][b]["median_s"] for b in xs], marker="o", color=LAT_COLORS[label], label=label)
+            xs = [i for i, b in enumerate(BANDS) if b in m["latency_by_K_band"]]
+            ax.plot(xs, [m["latency_by_K_band"][BANDS[i]]["median_s"] for i in xs], marker="o",
+                    color=lat_color(label, size), label=label.replace(" (design b)", ""))
+        ax.set_xticks(range(len(BANDS)), BAND_LABELS)
         ax.set_yscale("log")
         ax.set_title(f"Qwen2.5 {size}")
         ax.set_xlabel("K = sentences checked in the answer")
@@ -133,14 +151,18 @@ def latency(g):
         acc = [m["macro_recall_failures_wrong"] for _, m in series]
         fail = [m["format_failure_rate"] for _, m in series]
         x = np.arange(len(series))
-        b1 = ax.bar(x - 0.2, acc, 0.38, color=[LAT_COLORS[l] for l in labels], label="three-way balanced accuracy")
-        b2 = ax.bar(x + 0.2, fail, 0.38, color=NEUTRAL, label="format failure rate")
+        b1 = ax.bar(x - 0.2, acc, 0.38, color=[lat_color(l, size) for l in labels])
+        b2 = ax.bar(x + 0.2, fail, 0.38, color="white", edgecolor=INK2, hatch="///", linewidth=0.8)
         bar_labels(ax, b1, "{:.2f}")
         bar_labels(ax, b2, "{:.0%}")
-        ax.set_xticks(x, [l.replace(" (", "\n(") for l in labels], fontsize=7)
+        ax.set_xticks(x, [l.replace(" (design b)", "").replace(" (", "\n(") for l in labels], fontsize=7)
+        ax.grid(axis="x", visible=False)
         ax.set_ylim(0, 1.05)
         ax.set_title(f"Qwen2.5 {size}")
-    np.atleast_1d(axes)[0].legend(fontsize=7)
+    fig.legend([plt.Rectangle((0, 0), 1, 1, color=INK2),
+                plt.Rectangle((0, 0), 1, 1, facecolor="white", edgecolor=INK2, hatch="///")],
+               ["three-way balanced accuracy (coloured bars, colour of the system)", "format failure rate (hatched bars)"],
+               loc="upper center", bbox_to_anchor=(0.5, 0.0), ncol=2, fontsize=7, frameon=False)
     g.save(fig, "judges_quality_failures", "On the latency subset: three-way balanced accuracy (format failures counted as "
            "wrong) and share of sentences whose verdict could not be parsed. System One outputs are always valid.",
            "results/*/latency/metrics.json")
@@ -150,7 +172,7 @@ def energy(g):
     """Joules per verified answer (powermetrics, SoC, net of idle) and the speed-up vs energy ratio, per model size."""
     rows = {"0.5B": [("GroundOne", "energy-g1-05b"), ("Terse LLM judge", "energy-terse-05b"), ("Verbose LLM judge", "energy-verbose-05b")],
             "3B": [("GroundOne", "energy-g1-3b"), ("Terse LLM judge", "energy-terse-3b"), ("Verbose LLM judge", "energy-verbose-3b")]}
-    col = {"GroundOne": SERIES[0], "Terse LLM judge": SERIES[7], "Verbose LLM judge": SERIES[5]}
+    col = {"Terse LLM judge": SERIES[7], "Verbose LLM judge": SERIES[5]}
     data = {s: [(l, load(n, "energy")) for l, n in v if load(n, "energy")] for s, v in rows.items()}
     data = {s: v for s, v in data.items() if v}
     if not data:
@@ -160,7 +182,8 @@ def energy(g):
         labels = [l for l, _ in series]
         j = [m["energy"]["net_joules_per_answer"] for _, m in series]
         w = [m["energy"]["net_watts"] for _, m in series]
-        bars = ax.bar(range(len(series)), j, color=[col[l] for l in labels])
+        bars = ax.bar(range(len(series)), j, color=[g1_color(size) if l == "GroundOne" else col[l] for l in labels])
+        ax.grid(axis="x", visible=False)
         for b, jj, ww in zip(bars, j, w):
             ax.annotate(f"{jj:.1f} J\n{ww:.0f} W", (b.get_x() + b.get_width() / 2, jj), xytext=(0, 2),
                         textcoords="offset points", ha="center", va="bottom", fontsize=7)
@@ -176,7 +199,7 @@ def energy(g):
 
 def equal_output(g):
     """Equal-output LLM judges (B0d): ranking quality (AUROC) and calibrated risk-coverage (AURC) vs GroundOne."""
-    sys = [("GroundOne", "g1-{t}-b1", SERIES[0]), ("LLM judge, logits", "judge-tlogit-{t}", "#8a877f"),
+    sys = [("GroundOne", "g1-{t}-b1", None), ("LLM judge, logits", "judge-tlogit-{t}", "#8a877f"),
            ("LLM judge, verbalised", "judge-json-{t}", "#c4c2bb")]
     vals = {}
     for size, t in (("0.5B", "05b"), ("3B", "3b")):
@@ -192,14 +215,17 @@ def equal_output(g):
     for k, (label, _, colr) in enumerate(sys):
         for ax, i, fmt in ((axes[0], 0, "{:.2f}"), (axes[1], 1, "{:.3f}")):
             ys = [vals.get((s, label), (np.nan, np.nan))[i] for s in ("0.5B", "3B")]
-            bars = ax.bar(x + (k - 1) * 0.27, ys, 0.25, color=colr, label=label)
+            bars = ax.bar(x + (k - 1) * 0.27, ys, 0.25, color=colr or [g1_color("0.5B"), g1_color("3B")], label=label)
             bar_labels(ax, bars, fmt)
     for ax, t in ((axes[0], "AUROC of P(supported), higher is better"), (axes[1], "AURC after calibration, lower is better")):
         ax.set_xticks(x, ["Qwen2.5 0.5B", "Qwen2.5 3B"])
         ax.set_title(t)
     axes[0].axhline(0.5, color=NEUTRAL, ls="--", lw=1)
-    axes[0].set_ylim(0, 1.22)
-    axes[0].legend(fontsize=7, loc="upper center", ncol=3, frameon=True, facecolor="white", edgecolor="#e4e3df")
+    axes[0].set_ylim(0, 1.05)
+    from matplotlib.legend_handler import HandlerTuple
+    hs = [g1_handle()] + [plt.Rectangle((0, 0), 1, 1, color=c) for _, _, c in sys[1:]]
+    fig.legend(hs, [l for l, _, _ in sys], handler_map={tuple: HandlerTuple(ndivide=None, pad=0)}, loc="upper center",
+               bbox_to_anchor=(0.5, 0.0), ncol=3, fontsize=7, frameon=False)
     g.save(fig, "equal_output_judges", "Equal-output comparison on the 200 latency answers: LLM judges of the same size "
            "asked for GroundOne's output (a label and three probabilities per sentence), with probabilities read from the "
            "logits of the generated letter or written in JSON; all systems calibrated on dev with the same map. Sentences "
@@ -218,15 +244,19 @@ def readout_vs_generation(g):
         ro = [m["macro_recall_readout"], m["by_K_band"][">=14"]["readout"]]
         ge = [m["macro_recall_generate_failures_wrong"], m["by_K_band"][">=14"]["generate"]]
         x = np.arange(2)
-        b1 = ax.bar(x - 0.2, ro, 0.38, color=SERIES[0] if size == "0.5B" else SERIES[6], label="restricted readout (GroundOne)")
-        b2 = ax.bar(x + 0.2, ge, 0.38, color=NEUTRAL, label="generated token (B2)")
+        b1 = ax.bar(x - 0.2, ro, 0.38, color=g1_color(size))
+        b2 = ax.bar(x + 0.2, ge, 0.38, color=B2_COLOR)
         bar_labels(ax, b1, "{:.3f}")
         bar_labels(ax, b2, "{:.3f}")
         ax.set_xticks(x, groups)
         ax.set_ylim(0, 1.0)
         ax.set_title(f"Qwen2.5 {size} (format failures of B2: {m['format_failure_rate']:.1%})")
     np.atleast_1d(axes)[0].set_ylabel("T1 three-way balanced accuracy")
-    np.atleast_1d(axes)[0].legend(fontsize=7, loc="lower left")
+    from matplotlib.legend_handler import HandlerTuple
+    fig.legend([g1_handle(), plt.Rectangle((0, 0), 1, 1, color=B2_COLOR)],
+               ["restricted readout (GroundOne)", "generated token (B2)"],
+               handler_map={tuple: HandlerTuple(ndivide=None, pad=0)}, loc="upper center", bbox_to_anchor=(0.5, 0.0),
+               ncol=2, fontsize=7, frameon=False)
     g.save(fig, "readout_vs_generation", "Control B2 on the full T1: with the same fine-tuned weights and the same forward pass, "
            "the verdict is either read from the three answer letters (GroundOne) or taken as the token that greedy "
            "generation would emit at the marker (failures counted as errors).", "results/b2-*/t1/metrics.json")
@@ -235,8 +265,9 @@ def readout_vs_generation(g):
 def seed_runs(g):
     """Dev three-way balanced accuracy during training for the 0.5B runs (two completed seeds, one stopped after collapse)."""
     from ..config import MODELS_DIR
-    runs = [("seed 1234 (run 1)", "g1-05b-b1", SERIES[0], "-"), ("seed 777 (run 2)", "g1-05b-s3", SERIES[2], "-"),
-            ("seed 4321 (stopped)", "g1-05b-s2", SERIES[7], "--")]
+    # one system (GroundOne 0.5B, blue) in three runs: told apart by line style, the stopped run in neutral grey
+    runs = [("seed 1234 (run 1)", "g1-05b-b1", SERIES[0], "-"), ("seed 777 (run 2)", "g1-05b-s3", SERIES[0], "--"),
+            ("seed 4321 (stopped)", "g1-05b-s2", NEUTRAL, ":")]
     fig, ax = plt.subplots(figsize=(6.4, 3.4))
     drawn = False
     for label, run, colr, ls in runs:
@@ -254,7 +285,7 @@ def seed_runs(g):
     ax.axhline(1 / 3, color=NEUTRAL, ls=":", lw=1)
     ax.annotate("chance / constant predictor", (480, 1 / 3 - 0.025), fontsize=7, color=NEUTRAL)
     ax.set_xlabel("optimiser step")
-    ax.set_ylabel("dev three-way balanced accuracy")
+    ax.set_ylabel("three-way balanced accuracy, whole dev set")
     ax.set_ylim(0.25, 0.8)
     ax.legend(fontsize=7, loc="center right")
     g.save(fig, "seed_runs_05b", "Development three-way balanced accuracy during training of the 0.5B with the same recipe and "
@@ -271,13 +302,13 @@ def gain_decomposition(g):
             return
         rows.append((size, mu["all"]["macro_recall"], mb["macro_recall_generate_failures_wrong"], mg["all"]["macro_recall"]))
     labels = ["untrained (readout)", "fine-tuned, generated token (B2)", "fine-tuned, restricted readout (GroundOne)"]
-    cols = [NEUTRAL, SERIES[3], SERIES[0]]
+    cols = [NEUTRAL, B2_COLOR, None]
     fig, ax = plt.subplots(figsize=(7.5, 3.4))
     w = 0.26
     for k, (lab, col) in enumerate(zip(labels, cols)):
         xs = np.arange(len(rows)) + (k - 1) * w
         vals = [r[k + 1] for r in rows]
-        bars = ax.bar(xs, vals, w * 0.92, color=col, label=lab)
+        bars = ax.bar(xs, vals, w * 0.92, color=col or [g1_color(r[0]) for r in rows], label=lab)
         for b, r, v in zip(bars, rows, vals):
             txt = f"{v:.3f}" if k == 0 else f"{v:.3f}\n(+{v - r[k]:.2f})"
             ax.text(b.get_x() + b.get_width() / 2, v + 0.01, txt, ha="center", va="bottom", fontsize=7)
@@ -285,7 +316,9 @@ def gain_decomposition(g):
     ax.set_xticks(range(len(rows)), [f"Qwen2.5 {r[0]}" for r in rows])
     ax.set_ylim(0, 1.05)
     ax.set_ylabel("T1 three-way balanced accuracy")
-    ax.legend(fontsize=7, loc="upper left")
+    from matplotlib.legend_handler import HandlerTuple
+    ax.legend([plt.Rectangle((0, 0), 1, 1, color=NEUTRAL), plt.Rectangle((0, 0), 1, 1, color=B2_COLOR), g1_handle()],
+              labels, handler_map={tuple: HandlerTuple(ndivide=None, pad=0)}, fontsize=7, loc="upper left")
     g.save(fig, "gain_decomposition", "Where GroundOne's accuracy on T1 comes from: the same base model untrained (readout, design "
            "a), fine-tuned but deciding with the token it would generate (control B2, format failures counted as wrong), and "
            "fine-tuned with the restricted readout. In brackets, the gain over the previous step. The untrained 3B "
@@ -299,7 +332,7 @@ def latency_split(g):
             if (p := RESULTS_DIR / n / "decompose" / "metrics.json").exists()}
     if not data:
         return
-    systems = [("groundone", "GroundOne", SERIES[0]), ("terse", "Terse LLM judge", SERIES[7]),
+    systems = [("groundone", "GroundOne", None), ("terse", "Terse LLM judge", SERIES[7]),
                ("verbose", "Verbose LLM judge", SERIES[5])]
     fig, axes = plt.subplots(1, len(data), figsize=(5.6 * len(data), 3.8))
     w = 0.26
@@ -313,15 +346,19 @@ def latency_split(g):
             decide = [max(bands[b]["decide_s"], 0) if b in bands else np.nan for b in BANDS]
             ax.bar(x, read, w * 0.92, color="#d9d7d0", edgecolor="white", linewidth=0.5,
                    label="reading the text (prefill)" if k == 0 else None)
-            ax.bar(x, decide, w * 0.92, bottom=read, color=color, edgecolor="white", linewidth=0.5,
+            ax.bar(x, decide, w * 0.92, bottom=read, color=color or g1_color(size), edgecolor="white", linewidth=0.5,
                    label="GroundOne: deciding (markers + readout)" if key == "groundone" else f"{label}: writing the verdicts")
+            for xi, top in zip(x, np.array(read) + np.array(decide)):
+                ax.text(xi, top, {"groundone": "G1", "terse": "S", "verbose": "V"}[key], ha="center", va="bottom", fontsize=6,
+                        color=INK2)
             if key != "groundone" and ">=14" in m["speedup"].get(key, {}):
                 sp = m["speedup"][key][">=14"]["decide"]["ratio"]
-                ax.annotate(f"×{sp:.0f}", (x[-1], read[-1] + decide[-1]), xytext=(0, 2), textcoords="offset points",
+                ax.annotate(f"×{sp:.0f}", (x[-1], read[-1] + decide[-1]), xytext=(0, 9), textcoords="offset points",
                             ha="center", va="bottom", fontsize=7)
-        ax.set_xticks(range(len(BANDS)), BANDS)
+        ax.set_xticks(range(len(BANDS)), BAND_LABELS)
         ax.set_xlabel("K = sentences checked in the answer")
         ax.set_title(f"Qwen2.5 {size}")
+        ax.grid(axis="x", visible=False)
     np.atleast_1d(axes)[0].set_ylabel("median seconds per answer")
     np.atleast_1d(axes)[0].legend(fontsize=7, loc="upper left")
     g.save(fig, "latency_split", "Time to verify one answer split into reading the document and the answer (the prefill, "
@@ -358,7 +395,7 @@ def prefill_composition(g):
         t = tok.loc[band]
         a.text(i, t.i + t.d / 2, f"{t.d / t.sum():.0%}", ha="center", va="center", fontsize=7, color="white")
         a.text(i, t.i + t.d + (t.a + t.k) / 2, f"{(t.a + t.k) / t.sum():.0%}", ha="center", va="center", fontsize=7)
-    a.set_xticks(x, BANDS)
+    a.set_xticks(x, BAND_LABELS)
     a.set_xlabel("K = sentences checked in the answer")
     a.set_ylabel("mean prompt tokens per answer")
     a.set_title("(a) GroundOne's prompt, by part")
@@ -377,7 +414,7 @@ def prefill_composition(g):
             bottom += v
         for xi, top in zip(xs, bottom):
             b.text(xi, top, "G1" if sys == "groundone" else "J", ha="center", va="bottom", fontsize=7)
-    b.set_xticks(x, BANDS)
+    b.set_xticks(x, BAND_LABELS)
     b.set_xlabel("K = sentences checked in the answer")
     b.set_ylabel("median seconds per answer (3B)")
     b.set_title("(b) Time per part: GroundOne (G1) and terse LLM judge (J)")
@@ -408,7 +445,7 @@ def speedup_summary(g):
         ("sources\ncached\nall answers", lambda m, j: m["cache"]["doc"]["speedup"][j]["all"]["total"], False),
         ("sources\ncached\nK ≥ 14", lambda m, j: m["cache"]["doc"]["speedup"][j][">=14"]["total"], False),
         ("after a\nrewrite\nall answers", lambda m, j: m["rewrite"]["terse_over_groundone"]["prefix"] if j == "terse" else None, False),
-        ("deciding\nonly (net\nof reading)", lambda m, j: m["speedup"][j]["all"]["decide"], True),
+        ("deciding\nonly (net\nof reading)\nall answers", lambda m, j: m["speedup"][j]["all"]["decide"], True),
     ]
     fig, axes = plt.subplots(1, 2, figsize=(11.2, 4.0), sharey=True)
     x = np.arange(len(situations))

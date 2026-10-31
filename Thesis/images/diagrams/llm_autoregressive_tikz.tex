@@ -3,16 +3,16 @@
 \begin{document}
 \begin{tikzpicture}[node distance=5mm]
   \node[io, text width=5.2cm] (in) {Document + answer of $K$ sentences\\+ instructions for the LLM judge};
-  \node[model, below=8mm of in] (t) {Transformer: one pass\\\textbf{for every token}};
+  \node[model, below=12mm of in] (t) {Transformer: one pass\\\textbf{for every token}};
   \node[model, below=3mm of t] (s) {Chooses the next token\\from the whole vocabulary};
   \begin{scope}[on background layer]
-    \node[cluster, fit=(t)(s), label={[clusterlabel,anchor=south east]north east:Generative LLM}] (c) {};
+    \node[cluster, fit=(t)(s), label={[clusterlabel,anchor=south east,align=right]north east:{Generative\\LLM}}] (c) {};
   \end{scope}
   \node[decision, below=5mm of s] (d) {end\\token?};
   \node[io, below=5mm of d, text width=4.4cm] (txt) {Free text: ``Sentence 1\\is supported because\dots''};
   \node[post, below=3mm of txt] (p) {Parsing of the text};
   \node[decision, below=3mm of p] (f) {valid\\format?};
-  \node[io, below=6mm of f, xshift=-14mm, font=\footnotesize, text width=1.9cm] (o1) {verdicts\\(no probabilities)};
+  \node[io, below=6mm of f, xshift=-14mm, font=\footnotesize, text width=1.9cm] (o1) {verdicts\\(no\\probabilities)};
   \node[io, below=6mm of f, xshift=14mm, font=\footnotesize, text width=1.6cm] (o2) {no\\verdict};
   \draw[arrow] (in) -- (t);
   \draw[arrow] (t) -- (s);

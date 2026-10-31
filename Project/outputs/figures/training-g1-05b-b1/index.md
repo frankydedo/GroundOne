@@ -22,7 +22,7 @@ Dev accuracy per question type during training (run g1-05b-b1; fixed dev subset)
 
 ![](dev_bacc_by_question_and_block.png)
 
-Balanced accuracy on the fixed dev set (every item with all four questions) during training of run g1-05b-b1; dev score = mean over (block, question), used to pick best/. Chance is 0.5 for binary questions and 0.33 for the three-way question.
+Three-way balanced accuracy on the dev set during training of run g1-05b-b1: (a) on the whole dev set and as the mean over the three tasks, the selection score used to pick best/; (b) per task. Dotted: chance.
 
 *Source: models/g1-05b-b1/train_log.jsonl*
 

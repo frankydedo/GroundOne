@@ -1,6 +1,6 @@
 \documentclass[border=3pt]{standalone}
 \input{g1_common.tex}
-\begin{document}
+\begin{document}\hyphenpenalty=10000
 \begin{tikzpicture}
   \node[io, text width=4.4cm] (s) at (0,0) {verify RAG answers\\on local hardware};
   \node[decision, font=\footnotesize, text width=2.5cm, aspect=2.0] (d1) at (0,-2.0) {same domain\\as the\\training data?};

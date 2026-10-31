@@ -13,12 +13,12 @@
   \draw[arrow] (z) -- (cal);
   \node[decision, font=\footnotesize, text width=2.3cm] (d) at (5.2,-2.4) {$P(\text{supported})$\\$\geq \tau$ ?};
   \draw[arrow] (cal) -- (d);
-  \node[outcome=okLine, fill=okFill] (sup) at (9.4,-2.4) {supported};
+  \node[outcome=okLine, fill=okFill] (sup) at (9.7,-2.4) {supported};
   \draw[arrow] (d) -- node[above, font=\footnotesize] {yes} (sup);
-  \node[decision, font=\footnotesize, text width=2.6cm, aspect=2.3] (d2) at (5.2,-5.0) {$P(\text{contr.}) >$\\$P(\text{not ment.})$ ?};
+  \node[decision, font=\footnotesize, aspect=2.3] (d2) at (5.2,-5.0) {$P(\text{contradicted}) >$\\$P(\text{not mentioned})$ ?};
   \draw[arrow] (d) -- node[right, font=\footnotesize] {no} (d2);
-  \node[outcome=badLine, fill=badFill] (con) at (9.4,-4.4) {contradicted};
-  \node[outcome=nmLine, fill=nmFill] (nm) at (9.4,-5.6) {not mentioned};
+  \node[outcome=badLine, fill=badFill] (con) at (9.7,-4.4) {contradicted};
+  \node[outcome=nmLine, fill=nmFill] (nm) at (9.7,-5.6) {not mentioned};
   \draw[arrow] (d2.east) -- ++(4mm,0) |- node[pos=0.7, above, font=\footnotesize] {yes} (con.west);
   \draw[arrow] (d2.east) -- ++(4mm,0) |- node[pos=0.7, below, font=\footnotesize] {no} (nm.west);
   \node[post=3.3cm, font=\footnotesize, align=left] (fl) at (13.3,-4.0) {\textbf{strict} flag: every\\unsupported sentence\\[2pt]\textbf{lenient} flag: only\\contradicted ones};

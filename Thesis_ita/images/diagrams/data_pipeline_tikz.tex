@@ -19,13 +19,13 @@
   \node[outcome=okLine, fill=okFill, font=\footnotesize, right=6mm of src, yshift=-4.5mm] (dv) {dev set (10\,\%)};
   \node[outcome=modLine, fill=modFill, font=\footnotesize, anchor=west] (t1) at ([xshift=10mm, yshift=-8mm]spl.east) {T1: test di RAGTruth};
   \draw[arrow] (spl.north) |- node[pos=0.3, left, font=\footnotesize] {train} (src.west);
-  \draw[arrow] (spl.east) -- ++(4mm,0) |- node[pos=0.75, below, font=\footnotesize] {test} (t1.west);
+  \draw[arrow] (spl.east) -- ++(4mm,0) |- node[pos=0.35, left, font=\footnotesize] {test} (t1.west);
   \draw[arrow] (src.east) -- ++(2mm,0) |- (tr.west); \draw[arrow] (src.east) -- ++(2mm,0) |- (dv.west);
   % other sources
   \node[post=4.9cm, font=\footnotesize, below=14mm of exc] (afp) {etichette binarie come rilasciate;\\solo valutazione (licenza)};
   \node[data=2.3cm, font=\footnotesize] (af) at (rt |- afp) {LLM-AggreFact\\(test)};
   \node[outcome=modLine, fill=modFill, font=\footnotesize, anchor=west] (t2) at (t1.west |- afp) {T2: LLM-AggreFact};
-  \node[post=4.9cm, font=\footnotesize, below=6mm of afp] (vcp) {supports / refutes / NEI $\rightarrow$ tre classi;\\1{,}000 coppie per classe (seed fisso)};
+  \node[post=4.9cm, font=\footnotesize, below=6mm of afp] (vcp) {supports\,/\,refutes\,/\,NEI $\rightarrow$ tre classi;\\1{,}000 coppie per classe (seed fisso)};
   \node[data=2.3cm, font=\footnotesize] (vc) at (rt |- vcp) {VitaminC\\(test, parte reale)};
   \node[outcome=modLine, fill=modFill, font=\footnotesize, anchor=west] (t3) at (t1.west |- vcp) {T3: VitaminC};
   \draw[arrow] (af) -- (afp); \draw[arrow] (afp) -- (t2);

@@ -1,6 +1,6 @@
 \documentclass[border=3pt]{standalone}
 \input{g1_common.tex}
-\begin{document}
+\begin{document}\hyphenpenalty=10000
 \begin{tikzpicture}[node distance=7mm]
   \node[io, text width=3.6cm] (s) {answer sentence\\(after segmentation)};
   \node[decision, below=of s, font=\footnotesize, text width=2.6cm] (d0) {checkable\\content?};

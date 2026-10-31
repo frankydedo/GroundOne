@@ -20,6 +20,7 @@ FIG_ROOT = FIGURES_DIR
 SURFACE, INK, INK2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e4e3df"
 SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"]
 NEUTRAL = "#9a9890"
+TASK_LABELS = {"QA": "Question answering", "Summary": "Summarisation", "Data2txt": "Data-to-text"}
 
 # fixed entity -> colour (identity), shared by every figure
 SYSTEM_COLORS = {
@@ -63,6 +64,18 @@ def localise(fig):
     if LANG != "it":
         return
     from matplotlib.text import Text
+    from matplotlib.ticker import FixedFormatter, FuncFormatter
+    fig.canvas.draw()  # categorical tick labels are redrawn from their formatter: reset them translated
+    for ax in fig.axes:
+        for axis in (ax.xaxis, ax.yaxis):
+            if not isinstance(axis.get_major_formatter(), (FixedFormatter, FuncFormatter)):
+                continue
+            ticks = axis.get_majorticklabels()
+            labels = [t.get_text() for t in ticks]
+            new = [_tr_text(t) if t.strip() else t for t in labels]
+            if new != labels:
+                axis.set_ticks(axis.get_majorticklocs(), new, fontsize=ticks[0].get_fontsize(),
+                               rotation=ticks[0].get_rotation())
     for t in fig.findobj(Text):
         s = t.get_text()
         if s and s.strip():

@@ -11,10 +11,7 @@ import statistics as st
 import sys
 from pathlib import Path
 
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
+from groundone.figures.style import SURFACE, plt  # noqa: E402  (thesis style: surface, fonts, grid)
 
 P = Path(__file__).resolve().parents[3]
 CS = P / "outputs/demo/casestudy"
@@ -149,10 +146,11 @@ def figures(rows, run, tag, injected=None):
         ax.set_yticks(range(len(KINDS)), [tr(k) for k in KINDS])
         ax.invert_yaxis()
         ax.set_xlabel(tr("injected errors (25 per type)"))
-        ax.legend(frameon=False, fontsize=7, ncol=3, loc="upper center", bbox_to_anchor=(0.5, 1.28))
-        ax.spines[["top", "right"]].set_visible(False)
+        ax.grid(axis="y", visible=False)
+        fig.legend(frameon=False, fontsize=7, ncol=3, loc="upper center", bbox_to_anchor=(0.5, 0.0))
         fig.tight_layout()
-        fig.savefig(FIG / f"casestudy_outcomes_{tag}{'_it' if LANG == 'it' else ''}.png", dpi=200)
+        fig.savefig(FIG / f"casestudy_outcomes_{tag}{'_it' if LANG == 'it' else ''}.png", dpi=300, facecolor=SURFACE,
+                    bbox_inches="tight")
         (FIG / f"casestudy_outcomes_{tag}.txt").write_text(
             f"Outcome of each injected error after the loop ({run}), by error type: value restored from the document, sentence "
             "rewritten, sentence deleted (the right repair for fabricated sentences; for swapped values the correct information "

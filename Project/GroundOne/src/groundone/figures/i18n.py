@@ -32,6 +32,16 @@ IT = {
     "dev loss": "loss sul dev set",
     "dev score": "punteggio sul dev set",
     "dev three-way balanced accuracy": "balanced accuracy a tre classi sul dev set",
+    "three-way balanced accuracy, whole dev set": "balanced accuracy a tre classi, intero dev set",
+    "whole dev set": "intero dev set",
+    "Untrained decision model (design a)": "decision model non addestrato (design a)",
+    "Untrained decision model\n(design a)": "decision model\nnon addestrato\n(design a)",
+    "deciding\nonly (net\nof reading)\nall answers": "sola\ndecisione\n(al netto\ndella lettura)\ntutte",
+    "format failure rate (hatched bars)": "errori di formato (barre tratteggiate)",
+    "three-way balanced accuracy (coloured bars, colour of the system)":
+        "balanced accuracy a tre classi (barre colorate, colore del sistema)",
+    "AUROC, supported vs not supported (dashed: chance)": "AUROC, supportata contro non supportata (tratteggio: caso)", "mean over the three tasks (selection score)": "media dei tre task (punteggio di selezione)",
+    "(a) overall": "(a) complessiva", "(b) by task": "(b) per task",
     "difference A − B with 95 % bootstrap interval (blue: A better, orange: B better, grey: not significant)":
         "differenza A − B con intervallo bootstrap al 95 % (blu: meglio A, arancione: meglio B, grigio: non significativa)",
     "document length (Qwen2.5 tokens; dashed: 2,048 cap)": "lunghezza del documento (token Qwen2.5; tratteggio: limite 2048)",
@@ -68,8 +78,8 @@ IT = {
     "tokens of document + answer (Qwen2.5 tokenizer; dashed: 2,048 cap)":
         "token di documento + risposta (tokenizer Qwen2.5; tratteggio: limite 2048)",
     "training loss (25-step mean)": "loss di addestramento (media su 25 passi)",
-    "Decision model: prefill of S + 3K tokens": "Decision Model: prefill di S + 3K token",
-    "Decision model (design a)": "Decision Model (design a)",
+    "Decision model: prefill of S + 3K tokens": "Decision model: prefill di S + 3K token",
+    "Decision model (design a)": "decision model (design a)",
     "K = decisions per answer": "K = decisioni per risposta",
     "seconds per answer (model)": "secondi per risposta (modello)",
     "untrained (readout)": "non addestrato (readout)",
@@ -86,7 +96,7 @@ IT = {
     # categories
     "all": "tutte", "all T1": "tutto T1", "test": "test", "train": "train", "dev": "dev", "three": "tre classi",
     "supported": "supportata", "contradicted": "contraddetta", "not_mentioned": "non menzionata",
-    "Summary": "Riassunto", "Data2txt": "Data-to-text", "Sentence only": "Solo la frase", "Word overlap": "Sovrapposizione lessicale",
+    "Summary": "Summarization", "Data2txt": "Data-to-text", "Sentence only": "Solo la frase", "Word overlap": "Sovrapposizione lessicale",
     "reading the text (prefill)": "lettura del testo (prefill)",
     "GroundOne: deciding (markers + readout)": "GroundOne: decisione (marker + readout)",
     "Terse LLM judge: writing the verdicts": "Giudice LLM sintetico: scrittura dei verdetti",

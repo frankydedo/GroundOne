@@ -4,7 +4,7 @@
 \begin{tikzpicture}[node distance=5mm]
   % ---------- offline pipeline ----------
   \node[data=2.3cm, font=\footnotesize] (raw) {dataset pubblici\\(RAGTruth, LLM-AggreFact, VitaminC)};
-  \node[post=2.6cm, right=7mm of raw, font=\footnotesize] (build) {costruzione del dataset\\segmentazione, etichette,\\controllo del leakage};
+  \node[post=3.4cm, right=7mm of raw, font=\footnotesize] (build) {costruzione del dataset:\\segmentazione, etichette,\\controllo del leakage};
   \node[data=2.0cm, right=7mm of build, font=\footnotesize] (frozen) {training/dev\\+ test set\\congelati};
   \node[post=2.3cm, right=7mm of frozen, font=\footnotesize] (train) {addestramento\\LoRA (MLX)};
   \node[post=2.3cm, right=7mm of train, font=\footnotesize] (calib) {calibrazione\\sul dev set\\($T$, $b$, $\tau$)};

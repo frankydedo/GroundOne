@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 from ..config import EXPERIMENTS, PROJECT, RESULTS_DIR
-from .style import INK2, NEUTRAL, SERIES, Group, load_json, plt
+from .style import INK2, NEUTRAL, SERIES, SURFACE, Group, load_json, plt
 
 RAW = PROJECT.parent / "Vault" / "raw" / "local_inference"
 PHASE0 = EXPERIMENTS / "feasibility" / "results"
@@ -73,7 +73,7 @@ IT = {
     "arithmetic intensity (FLOPs per byte read from memory, log scale)": "intensità aritmetica (FLOP per byte letto dalla memoria, scala log.)",
     "attainable throughput (TFLOP/s, log scale)": "throughput raggiungibile (TFLOP/s, scala log.)",
     "gap between the best closed and the best open-weight model:": "divario tra il miglior modello chiuso e il miglior open-weight:",
-    "closed": "chiuso", "open-weight": "open-weight", "open-weight, small class": "open-weight, classe small",
+    "closed": "chiuso", "open-weight": "open-weight", "open-weight, small class": "open-weight, classe piccola",
 }
 LANG = "en"
 
@@ -174,12 +174,17 @@ def decode_cost_by_hardware(g):
         vals = [gb / HARDWARE[n][1] * 1000 for n in names]
         a1.barh(y + (k - 0.5) * h, vals, h, color=[SERIES[0], SERIES[6]][k], label=f"{model}, 8-bit ({gb:.2f} GB {tr('of weights')})")
         for q, (yi, v) in enumerate(zip(y + (k - 0.5) * h, vals)):
-            xl = max(v, meas[model]["decode_ms_per_token_median"] * 1.1) if (q == i and meas[model]) else v
-            a1.text(xl * 1.05, yi, f"{v:.1f}" if v >= 1 else f"{v:.2f}", va="center", fontsize=7, color=INK2)
+            txt = f"{v:.1f}" if v >= 1 else f"{v:.2f}"
+            if q == i and meas[model]:  # thesis machine: bound inside the bar end, measured value next to the diamond
+                a1.text(v / 1.06, yi, txt, va="center", ha="right", fontsize=7, color="white")
+            else:
+                a1.text(v * 1.05, yi, txt, va="center", fontsize=7, color=INK2)
     for k, (model, d) in enumerate(meas.items()):
         if d:
             a1.scatter(d["decode_ms_per_token_median"], i + (k - 0.5) * h, marker="D", color="#0b0b0b", s=22, zorder=4,
                        label=tr("measured on the M4 (Phase 0)") if k == 0 else None)
+            a1.text(d["decode_ms_per_token_median"] * 1.12, i + (k - 0.5) * h, f"{d['decode_ms_per_token_median']:.1f}",
+                    va="center", fontsize=7, color="#0b0b0b", fontweight="bold")
     a1.set_xscale("log")
     a1.set_xlim(right=250)
     a1.set_xlabel(tr("minimum milliseconds per generated token (log scale)"))
@@ -219,7 +224,8 @@ def memory_fit(g):
         ax.text(1.15, mem * 1.06, f"{mem} GB", fontsize=7, color=INK2)
     for name, p in [("GroundOne 0.5B", 0.494e9), ("GroundOne 3B", 3.09e9), ("7–8B generator", 7.6e9), ("70B model", 70e9)]:
         ax.axvline(p / 1e9, color="#e4e3df", lw=1, zorder=0)
-        ax.text(p / 1e9 * 1.05, 1300, tr(name), rotation=90, fontsize=7, color=INK2, va="top")
+        ax.text(p / 1e9 * 1.05, 1300, tr(name), rotation=90, fontsize=7, color=INK2, va="top",
+                bbox=dict(facecolor=SURFACE, edgecolor="none", pad=1.0), zorder=5)
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_ylim(0.1, 1600)

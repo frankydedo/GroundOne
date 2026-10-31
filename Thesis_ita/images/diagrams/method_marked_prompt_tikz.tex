@@ -15,7 +15,7 @@
   \node[vmark, right=of sk] (mk) {Verdict:};
   \draw[decorate, decoration={brace, amplitude=4pt, mirror}] ([yshift=-1mm]s1.south west) -- node[below=5pt, note] {risposta numerata: una frase senza contenuto verificabile resta come contesto, senza marker} ([yshift=-1mm]mk.south east);
   % transformer
-  \path let \p1=(ins.west), \p2=(mk.east) in node[model=\x2-\x1-8pt-1.6pt, minimum height=1.1cm, anchor=south west] (tr) at ([yshift=9mm]ins.north west) {Transformer decoder di Qwen2.5 con adapter LoRA: \textbf{un solo forward pass} sull'intera sequenza (attenzione causale)};
+  \path let \p1=(ins.west), \p2=(mk.east) in node[model=\x2-\x1-8pt-1.6pt, minimum height=1.1cm, anchor=south west] (tr) at ([yshift=9mm]ins.north west) {Transformer decoder di Qwen2.5 con adapter LoRA:\\\textbf{un solo forward pass} sull'intera sequenza (attenzione causale)};
   \foreach \n in {ins,doc,s1,m1,s2,s3,m3,sk,mk} \draw[arrow, thin] (\n.north) -- (\n.north |- tr.south);
   % heads only at markers
   \foreach \n/\k in {m1/1,m3/3,mk/K} {
@@ -25,6 +25,6 @@
     \draw[arrow] (h\k) -- (o\k);
   }
   \node[note, anchor=east, align=right, text width=6.2cm] at ([xshift=-4mm]h1.west |- h1) {la proiezione sul vocabolario si applica\\solo nelle posizioni dei marker; altrove\\gli stati nascosti non vengono letti};
-  \node[note, anchor=east, align=right, text width=6.2cm] at ([xshift=-4mm]o1.west |- o1) {verdetto della frase $i$: dipende dal documento\\e dalle frasi $1,\dots,i$};
+  \node[note, anchor=east, align=right] at ([xshift=-4mm]o1.west |- o1) {verdetto della frase $i$: dipende dal documento\\e dalle frasi $1,\dots,i$};
 \end{tikzpicture}
 \end{document}

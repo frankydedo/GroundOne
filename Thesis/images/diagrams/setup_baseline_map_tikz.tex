@@ -2,10 +2,10 @@
 \input{g1_common.tex}
 \begin{document}
 \begin{tikzpicture}
-  \node[model=4.0cm, minimum height=1.4cm] (g1) at (0,0) {\textbf{GroundOne}\\Qwen2.5 + LoRA, restricted\\readout, three classes};
+  \node[model=4.0cm, minimum height=1.4cm] (g1) at (0,0) {\textbf{GroundOne}\\Qwen2.5 + LoRA,\\restricted readout,\\three classes};
   \foreach \pos/\name/\lab/\what in {
       {(0,3.3)}/b1/{B1 untrained readout}/{same readout, no fine-tuning},
-      {(5.3,2.2)}/b2/{B2 generated token}/{same weights; decision = token\\the model would generate},
+      {(5.3,2.2)}/b2/{B2 generated token}/{same weights;\\decision = token\\the model would generate},
       {(6.1,-0.2)}/b0/{B0a, B0b LLM judges}/{untrained; they write the\\verdict (terse, verbose)},
       {(4.6,-2.8)}/b0d/{B0d equal-output LLM judges}/{untrained; they return a\\label + three probabilities},
       {(-4.6,-2.8)}/b3/{B3 Rizzo-Flow (4B)}/{generalist decision model,\\larger},

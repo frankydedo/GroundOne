@@ -53,5 +53,15 @@
     "file": "latency_split.png",
     "caption": "Time to verify one answer split into reading the document and the answer (the prefill, which every approach pays) and deciding: for GroundOne the marker tokens and the readout, for the LLM judges the decoding of the verdicts. Same 200 T1 answers as the latency runs, in-process MLX, medians per K band. The labels give, for K >= 14, how many times longer the LLM judge takes to decide than GroundOne.",
     "source": "results/decompose-*/decompose/metrics.json"
+  },
+  {
+    "file": "prefill_composition.png",
+    "caption": "Composition of the prefill. (a) GroundOne's prompt on the 200 T1 latency answers, mean tokens by part per K band: the fixed instructions, the document, the answer and its markers (labels: share of the document and of answer + markers). (b) Measured time per part with the 3B, from the runs with nothing, the instructions or the instructions and the document in the KV cache (differences of the band medians, so each stack adds up to the median time without cache). The parts that stay the same across verifications of the same sources (blue) are the ones worth caching; the answer changes with every version.",
+    "source": "results/decompose-3b/decompose/*.parquet"
+  },
+  {
+    "file": "speedup_summary.png",
+    "caption": "GroundOne's speed-up over the LLM judges in each situation, on the same 200 T1 answers (ratio of median times, 95 % bootstrap intervals). In every situation GroundOne and the judge have the same cache: the sources cached are the state after a read-ahead or an earlier verification; after a rewrite, the beginning of the answer is cached as well (verbose judge not measured, n.m.). The hatched bars, right of the line, exclude reading the text: the limit that the overall speed-up approaches as the reading shrinks.",
+    "source": "results/decompose-*/decompose/metrics.json"
   }
 ]

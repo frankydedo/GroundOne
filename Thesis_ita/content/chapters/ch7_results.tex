@@ -36,8 +36,7 @@ dell'addestramento.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/results/g1-05b-dev_bacc.png}
-\caption{Balanced accuracy a tre classi sul dev set durante l'addestramento del modello 0.5B: valore complessivo (a
-sinistra) e valore per task (a destra). La linea punteggiata indica il livello casuale. Il 3B mostra lo stesso andamento
+\caption{Balanced accuracy a tre classi sul dev set durante l'addestramento del modello 0.5B: (a) sull'intero dev set e come media dei tre task, il punteggio di selezione usato per scegliere il checkpoint; (b) per task. La linea punteggiata indica il livello casuale. Il 3B mostra lo stesso andamento
 sul proprio sottoinsieme di 200 risposte del dev set.}
 \label{fig:results-dev}
 \end{figure}
@@ -61,9 +60,7 @@ contro 78.0).
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{images/results/seed_runs_05b.png}
-\caption{Balanced accuracy a tre classi sul dev set durante l'addestramento del modello 0.5B, con la stessa procedura e
-tre seed diversi. Due esecuzioni convergono allo stesso livello; la terza è collassata su un predittore costante ed è
-stata interrotta.}
+\caption{Balanced accuracy a tre classi sull'intero dev set durante l'addestramento del modello 0.5B, con la stessa procedura e tre seed diversi. Due esecuzioni convergono allo stesso livello; la terza è collassata su un predittore costante (passo 300) ed è stata interrotta al passo 450.}
 \label{fig:results-seeds}
 \end{figure}
 
@@ -335,8 +332,7 @@ per GroundOne, al massimo 0.41 per qualsiasi giudice LLM.
 \includegraphics[width=\textwidth]{images/results/equal_output_judges.png}
 \caption{Confronto a parità di output sulle 200 risposte del sottoinsieme di latenza. Ai giudici LLM della stessa
 dimensione si chiede l'output di GroundOne, con le probabilità lette dai logit della lettera generata oppure scritte in
-JSON; tutti i sistemi sono calibrati sul dev set con la stessa mappa. Sono considerate soltanto le frasi con un verdetto
-valido.}
+JSON; tutti i sistemi sono calibrati sul dev set con la stessa mappa. Sono considerate soltanto le frasi con un verdetto valido. Tratteggio: livello casuale.}
 \label{fig:results-equal}
 \end{figure}
 
@@ -434,7 +430,7 @@ ma richiederebbe di quantizzare di nuovo il modello e di ricalibrarlo.
 \includegraphics[width=\textwidth]{images/results/latency_split.png}
 \caption{Tempo mediano per risposta scomposto in lettura del testo (prefill, in grigio, comune a ogni approccio) e
 decisione (in colore), per fascia di $K$, sulle stesse 200 risposte di T1. Le etichette indicano, per $K \geq 14$,
-quante volte il giudice LLM impiega più di GroundOne a decidere.}
+quante volte il giudice LLM impiega più di GroundOne a decidere; sopra ogni colonna, G1 indica GroundOne, S il giudice LLM sintetico e V quello verboso.}
 \label{fig:results-latency-split}
 \end{figure}
 

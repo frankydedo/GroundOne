@@ -9,11 +9,12 @@
   \node[font=\small, anchor=north] at (vram.north) {VRAM\\(16--32\,GB)};
   \node[weights, minimum width=1.6cm, anchor=south] at ([yshift=3pt]vram.south) {model\\weights};
   \node[font=\footnotesize, text=wLine!70!black, below=1mm of vram] (vnote) {the model must\\fit in VRAM};
+  \node[boxlabel, below=1mm of vnote] (cardlbl) {graphics card};
   \draw[bus=1.2pt] (cpu) -- (ram);
   \draw[bus=4pt] (gpu) -- node[buslabel, left=2pt, align=right] {448--1792\\GB/s} (vram);
   \draw[slowRed, line width=1.2pt, dashed] (cpu) -- node[above=2pt, pos=0.45, font=\footnotesize, text=slowRed, align=center] {PCIe\\(slower)} (gpu);
   \begin{scope}[on background layer]
-    \node[box, fit=(gpu)(vram)(vnote), label={[boxlabel]below:graphics card}] (card) {};
+    \node[box, fit=(gpu)(vram)(vnote)(cardlbl)] (card) {};
     \node[box, inner sep=10pt, fit=(cpu)(ram)(card)(card.south), label={[boxlabel]above:computer with a discrete graphics card}] {};
   \end{scope}
   \end{tikzpicture}

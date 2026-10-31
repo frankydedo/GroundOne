@@ -44,7 +44,7 @@ def main():
             ax.barh(names, v, left=left, color=CLASS_COLORS[c], label=c, edgecolor="white", linewidth=1)
         for i, (x, w) in enumerate(zip(left, v)):
             if w > 0.04:
-                box = dict(boxstyle="round,pad=0.15", facecolor=NEUTRAL, edgecolor="none") if c == "unsupported" else None
+                box = dict(boxstyle="round,pad=0.3", facecolor=INK2, edgecolor="none") if c == "unsupported" else None
                 ax.text(x + w / 2, i, f"{w:.0%}", ha="center", va="center", fontsize=7, color="white", bbox=box)
         left += v
     for i, n in enumerate(names):
@@ -52,6 +52,7 @@ def main():
     ax.set_xlim(0, 1.12)
     ax.invert_yaxis()
     ax.set_xlabel("share of labelled sentences (number of decisions on the right)")
+    ax.grid(axis="y", visible=False)
     ax.legend(ncol=2, fontsize=7, loc="upper center", bbox_to_anchor=(0.5, -0.22))
     g.save(fig, "class_balance_by_split", "Class balance of the labelled sentences in each split. RAGTruth (train, dev, "
            "T1) is about 89 % supported; T2 (LLM-AggreFact) has binary labels, so its contradicted and not-mentioned "

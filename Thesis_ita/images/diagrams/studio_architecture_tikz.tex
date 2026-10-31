@@ -10,7 +10,7 @@
   \node[cluster, fit=(ask)(insp)(lib)(stats)] (ui) {};
   \node[clusterlabel, anchor=south west] at (ui.north west) {Interfaccia SwiftUI};
   % Core
-  \node[model=3.9cm, font=\footnotesize] (sess) at (2.6,-2.7) {Sessione: risposta nativa $\rightarrow$ verifica su richiesta $\rightarrow$ riscrittura su richiesta};
+  \node[model=3.9cm, font=\footnotesize, draw=ioLine, fill=ioFill] (sess) at (2.6,-2.7) {Sessione: risposta nativa $\rightarrow$ verifica su richiesta $\rightarrow$ riscrittura su richiesta};
   \node[io, font=\footnotesize, text width=2.0cm] (pol) at (6.6,-2.7) {Policy e soglia $\tau$};
   \node[data=2.6cm, font=\footnotesize] (store) at (10.2,-2.7) {Chat (JSON),\\audit log (JSONL)};
   \node[cluster, fit=(sess)(pol)(store)] (core) {};

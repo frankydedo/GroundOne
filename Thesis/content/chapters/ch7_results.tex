@@ -38,8 +38,7 @@ remained present among the predictions throughout training.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/results/g1-05b-dev_bacc.png}
-\caption{Three-way balanced accuracy on the dev set during training of the 0.5B model: overall value (left) and value
-per task (right). The dotted line marks chance level. The 3B shows the same trend on its own subset of 200 answers of
+\caption{Three-way balanced accuracy on the dev set during training of the 0.5B model: (a) on the whole dev set and as the mean over the three tasks, the selection score used to choose the checkpoint; (b) per task. The dotted line marks chance level. The 3B shows the same trend on its own subset of 200 answers of
 the dev set.}
 \label{fig:results-dev}
 \end{figure}
@@ -63,8 +62,7 @@ against 78.0).
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{images/results/seed_runs_05b.png}
-\caption{Three-way balanced accuracy on the dev set during training of the 0.5B model, with the same procedure and three
-different seeds. Two runs converge to the same level; the third collapsed to a constant predictor and was stopped.}
+\caption{Three-way balanced accuracy on the whole dev set during training of the 0.5B model, with the same procedure and three different seeds. Two runs converge to the same level; the third collapsed to a constant predictor (step 300) and was stopped at step 450.}
 \label{fig:results-seeds}
 \end{figure}
 
@@ -349,7 +347,7 @@ for GroundOne, at most 0.41 for any LLM judge.
 \includegraphics[width=\textwidth]{images/results/equal_output_judges.png}
 \caption{Equal-output comparison on the 200 answers of the latency subset. LLM judges of the same size are asked
 for GroundOne's output, with the probabilities read from the logits of the generated letter or written in JSON; all
-systems are calibrated on the dev set with the same map. Only the sentences with a valid verdict are considered.}
+systems are calibrated on the dev set with the same map. Only the sentences with a valid verdict are considered. Dashed: chance level.}
 \label{fig:results-equal}
 \end{figure}
 
@@ -448,8 +446,7 @@ model again and recalibrating it.
 \centering
 \includegraphics[width=\textwidth]{images/results/latency_split.png}
 \caption{Median time per answer split into reading the text (prefill, in grey, shared by every approach) and deciding
-(in colour), per $K$ band, on the same 200 T1 answers. The labels give, for $K \geq 14$, how many times longer the LLM
-judge takes to decide than GroundOne.}
+(in colour), per $K$ band, on the same 200 T1 answers. The labels give, for $K \geq 14$, how many times longer the LLM judge takes to decide than GroundOne; above each column, G1 is GroundOne, S the terse and V the verbose LLM judge.}
 \label{fig:results-latency-split}
 \end{figure}
 

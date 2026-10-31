@@ -3,14 +3,14 @@
 \begin{document}
 \begin{tikzpicture}
   \foreach \i/\c in {1/okLine,2/modLine,3/orangeA,4/decLine,5/badLine}
-    \node[rectangle, draw=\c, thick, fill=white, minimum width=1.0cm, minimum height=1.2cm, inner sep=1pt, font=\scriptsize] (g\i) at ({(\i-1)*1.2},0) {fonte \i\\[1pt]risposte\\e frasi};
+    \node[rectangle, draw=\c, thick, fill=white, minimum width=1.2cm, minimum height=1.2cm, inner sep=2pt, font=\scriptsize] (g\i) at ({(\i-1)*1.4},0) {fonte \i\\[1pt]risposte\\e frasi};
   \node[clusterlabel, above=1.5mm of g3] {test set: frasi raggruppate per fonte};
-  \node[post=4.6cm, font=\footnotesize] (rs) at (2.4,-1.9) {estrai 5 fonti \textbf{con reinserimento}\\(stessa estrazione per A e per B)};
+  \node[post=4.6cm, font=\footnotesize] (rs) at (2.8,-1.9) {estrai 5 fonti \textbf{con reimmissione}\\(stessa estrazione per A e per B)};
   \draw[arrow] (g3.south) -- (rs);
   \foreach \i/\c/\x in {2/modLine/0,2/modLine/1,4/decLine/2,1/okLine/3,5/badLine/4}
-    \node[rectangle, draw=\c, thick, fill=white, minimum width=0.7cm, minimum height=0.7cm, font=\scriptsize] (r\x) at ({\x*1.2},-3.2) {\i};
+    \node[rectangle, draw=\c, thick, fill=white, minimum width=0.7cm, minimum height=0.7cm, font=\scriptsize] (r\x) at ({0.4+\x*1.2},-3.2) {\i};
   \draw[arrow] (rs) -- (r2);
-  \node[model=4.6cm, font=\footnotesize] (dm) at (2.4,-4.6) {metrica di A e di B sul resampling\\$\Rightarrow$ differenza $d_b = \mathrm{A} - \mathrm{B}$};
+  \node[model=4.6cm, font=\footnotesize] (dm) at (2.8,-4.6) {metrica di A e di B sul resampling\\$\Rightarrow$ differenza $d_b = \mathrm{A} - \mathrm{B}$};
   \draw[arrow] (r2) -- (dm);
   \draw[loop] (dm.west) -- ++(-6mm,0) |- node[pos=0.25, left, note, text=loopRed, align=right] {ripeti\\$B = 2{,}000$\\volte} (rs.west);
   \begin{scope}[shift={(9.4,-4.4)}]

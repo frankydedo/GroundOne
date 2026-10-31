@@ -120,11 +120,12 @@ for ax, sp in zip(axes, ("train", "T1", "T3")):
     g = O[O.split == sp]
     for c in ("supported", "contradicted", "not_mentioned"):
         x = g[g.cls == c]["overlap"]
-        ax.hist(x, bins=20, range=(0, 1), density=True, alpha=.5, color=CLASS_COLORS[c], label=f"{c} ({x.mean():.2f})")
+        ax.hist(x, bins=20, range=(0, 1), density=True, histtype="step", lw=1.6, color=CLASS_COLORS[c],
+                label=f"{c} ({x.mean():.2f})")
     ax.set_title(sp)
-    ax.set_xlabel("share of sentence content words in the document")
-    ax.legend(fontsize=6)
+    ax.legend(fontsize=6.5, loc="upper center", bbox_to_anchor=(0.5, -0.24), ncol=1)
 axes[0].set_ylabel("density")
+axes[1].set_xlabel("share of sentence content words in the document")
 figs.append(save_fig(fig, "overlap_by_class", "Word overlap between a sentence and its document, by class (mean in brackets). "
                      "The same ordering holds in all three sets (supported > contradicted > not mentioned), VitaminC included: "
                      "word overlap is a natural, partial cue, so a verifier must be compared with an overlap-only baseline."))

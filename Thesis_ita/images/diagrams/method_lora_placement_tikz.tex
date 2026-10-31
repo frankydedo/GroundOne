@@ -10,9 +10,9 @@
   \node[io, text width=2.4cm, font=\footnotesize] (in) at (0,0) {stati nascosti\\in ingresso};
   % attention
   \node[op] (n1) at (0,-1.2) {RMSNorm};
-  \node[lin] (q) at (-2.9,-2.4) {$W_q$};
+  \node[lin] (q) at (-3.1,-2.4) {$W_q$};
   \node[lin] (k) at (-0.9,-2.4) {$W_k$};
-  \node[lin] (v) at (1.1,-2.4) {$W_v$};
+  \node[lin] (v) at (1.3,-2.4) {$W_v$};
   \node[op, text width=2.8cm, align=center] (att) at (-0.9,-3.6) {attenzione causale\\(GQA, RoPE)};
   \node[lin] (o) at (-0.9,-4.8) {$W_o$};
   \node[sum] (s1) at (0,-5.8) {$+$};
@@ -25,7 +25,7 @@
   \node[sum] (s2) at (0,-11.2) {$+$};
   \node[io, text width=2.4cm, font=\footnotesize] (out) at (0,-12.3) {stati nascosti\\in uscita};
   % LoRA badges
-  \foreach \n in {q,k,v,o,g,u,d} \node[lora, anchor=west] at ([xshift=1pt]\n.east) {$+BA$};
+  \foreach \n in {q,k,v,o,g,u,d} \node[lora, anchor=west] (b\n) at ([xshift=1pt]\n.east) {$+BA$};
   % arrows
   \draw[arrow] (in) -- (n1);
   \draw[arrow] (n1.south) -- ++(0,-0.3) -| (q.north);
@@ -36,7 +36,7 @@
   \draw[arrow] (v.south) -- (v.south |- att.north);
   \draw[arrow] (att) -- (o);
   \draw[arrow] (o.south) |- (s1.west);
-  \draw[arrow] (in.east) -- ++(2.3,0) |- (s1.east);
+  \draw[arrow] (in.east) -- ++(2.9,0) |- (s1.east);
   \draw[arrow] (s1) -- (n2);
   \draw[arrow] (n2.south) -- ++(0,-0.3) -| (g.north);
   \draw[arrow] (n2.south) -- ++(0,-0.3) -| (u.north);
@@ -45,22 +45,22 @@
   \draw[arrow] (act) -- (d);
   \draw[arrow] (d.south) |- (s2.west);
   \fill[ioLine] ($(s1.south)+(0,-0.25)$) circle (1.2pt);
-  \draw[arrow] ($(s1.south)+(0,-0.25)$) -- ++(2.82,0) |- (s2.east) node[pos=0.25, right, note] {residuo};
+  \draw[arrow] ($(s1.south)+(0,-0.25)$) -- ++(3.5,0) |- (s2.east) node[pos=0.25, right, note] {residuo};
   \draw[arrow] (s2) -- (out);
   % block frame
   \begin{scope}[on background layer]
-    \node[cluster, fit=(n1)(q)(v)(o)(s1)(n2)(g)(u)(d)(s2), inner sep=5mm] (blk) {};
+    \node[cluster, fit=(n1)(q)(v)(bv)(o)(s1)(n2)(g)(u)(d)(s2), inner sep=5mm] (blk) {};
   \end{scope}
   % legend / numbers
-  \node[clusterlabel, anchor=west, align=left] at (4.3,-0.4) {un blocco transformer di Qwen2.5,\\ripetuto 24 volte (0.5B) o 36 (3B)};
-  \node[lin, anchor=west, minimum width=0.9cm] (lw) at (4.3,-1.8) {$W$};
+  \node[clusterlabel, anchor=west, align=left] at (4.9,-0.4) {un blocco transformer di Qwen2.5,\\ripetuto 24 volte (0.5B) o 36 (3B)};
+  \node[lin, anchor=west, minimum width=0.9cm] (lw) at (4.9,-1.8) {$W$};
   \node[note, right=2mm of lw, align=left] {pesi del modello base,\\congelati a 8 bit};
-  \node[lora, anchor=west] (lb) at (4.45,-3.0) {$+BA$};
+  \node[lora, anchor=west] (lb) at (5.05,-3.0) {$+BA$};
   \node[note, right=3.5mm of lb, align=left] {adapter LoRA addestrabile\\(rango 16, scala 2)};
-  \node[post=5.4cm, font=\footnotesize, align=left, anchor=north west] at (4.3,-4.2) {parametri addestrabili per blocco:\\[2pt]
+  \node[post=5.4cm, font=\footnotesize, align=left, anchor=north west] at (4.9,-4.2) {parametri addestrabili per blocco:\\[2pt]
     $\bullet$ 0.5B: 366{,}592\\$\bullet$ 3B: 831{,}488\\[3pt]
     in totale:\\[2pt]
     $\bullet$ 0.5B: 8.8 milioni (1.8\,\% del modello)\\$\bullet$ 3B: 29.9 milioni (1.0\,\% del modello)};
-  \node[note, align=left, anchor=north west, text width=5.6cm] at (4.3,-8.0) {Embedding e testa di output (condivisi)\\restano congelati e senza adapter.\\Le frecce a destra sono le connessioni\\residue.};
+  \node[note, align=left, anchor=north west, text width=5.6cm] at (4.9,-8.0) {Embedding e testa di output (condivisi)\\restano congelati e senza adapter.\\Le frecce a destra sono le connessioni\\residue.};
 \end{tikzpicture}
 \end{document}

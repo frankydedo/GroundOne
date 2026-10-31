@@ -2,9 +2,11 @@
 import json
 
 from ..config import MODELS_DIR
-from .style import INK2, NEUTRAL, SERIES, Group, plt
+from .style import INK2, NEUTRAL, SERIES, TASK_LABELS, Group, plt
 
 Q_COLORS = {"sup": SERIES[0], "three": SERIES[1], "strict": SERIES[2], "lenient": SERIES[3]}
+# tasks are not systems: told apart by line style and marker in neutral ink, so no system colour is reused
+TASK_STYLES = [("#0b0b0b", "-", "o"), ("#52514e", "--", "s"), ("#9a9890", "-.", "^")]
 
 
 def read_log(run):
@@ -41,7 +43,32 @@ def run_figures(run):
         ax.legend(ncol=5, loc="lower right")
         g.save(fig, "dev_accuracy_by_question", f"Dev accuracy per question type during training (run {run}; fixed dev subset).",
                f"models/{run}/train_log.jsonl")
-    if any("dev_bacc" in e for e in ev):  # fixed dev with all questions (data v2, D22)
+    if any("dev_bacc" in e for e in ev) and all(g.endswith("|three") for e in ev if "dev_bacc" in e for g in e["dev_bacc"]):
+        # design (b): one three-way question; overall (whole dev set and task mean = selection score) and per task
+        evb = [e for e in ev if "dev_bacc" in e]
+        steps = [e["step"] for e in evb]
+        fig, axes = plt.subplots(1, 2, figsize=(10, 3.4), sharey=True)
+        if all("dev_macro_recall_all" in e for e in evb):
+            axes[0].plot(steps, [e["dev_macro_recall_all"] for e in evb], marker="o", color=SERIES[0], label="whole dev set")
+        axes[0].plot(steps, [e["dev_score"] for e in evb], marker="o", color=INK2, ls="--",
+                     label="mean over the three tasks (selection score)")
+        tasks = sorted({g.split("|")[0] for e in evb for g in e["dev_bacc"]}, key=lambda t: list(TASK_LABELS).index(t)
+                       if t in TASK_LABELS else 9)
+        for k, t in enumerate(tasks):
+            col, ls, mk = TASK_STYLES[k % 3]
+            axes[1].plot(steps, [e["dev_bacc"].get(f"{t}|three") for e in evb], marker=mk, color=col, ls=ls,
+                         label=TASK_LABELS.get(t, t))
+        for ax in axes:
+            ax.axhline(1 / 3, color=NEUTRAL, lw=1, ls=":")
+            ax.set_xlabel("optimiser step")
+            ax.legend(fontsize=7, loc="lower right")
+        axes[0].set_title("(a) overall", fontsize=9)
+        axes[1].set_title("(b) by task", fontsize=9)
+        axes[0].set_ylabel("dev three-way balanced accuracy")
+        g.save(fig, "dev_bacc_by_question_and_block", f"Three-way balanced accuracy on the dev set during training of run "
+               f"{run}: (a) on the whole dev set and as the mean over the three tasks, the selection score used to pick "
+               f"best/; (b) per task. Dotted: chance.", f"models/{run}/train_log.jsonl")
+    elif any("dev_bacc" in e for e in ev):  # fixed dev with all questions (data v2, D22)
         evb = [e for e in ev if "dev_bacc" in e]
         steps = [e["step"] for e in evb]
         fig, axes = plt.subplots(1, 2, figsize=(10, 3.4), sharey=True)
