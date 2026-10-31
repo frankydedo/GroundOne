@@ -15,8 +15,8 @@ gathers in a single plot the paired differences discussed in the chapter.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{images/results/bootstrap_paired_differences.png}
-\caption{All paired differences between systems on the frozen test sets, with the 95\,\% cluster-bootstrap interval. In blue the differences in favour of the first system (A), in orange those in favour of the second (B), in grey the non-significant ones, whose interval contains zero.}
+\includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{images/results/bootstrap_paired_differences.png}
+\caption{All paired differences between systems on the frozen test sets, with the 95\,\% cluster-bootstrap interval. The first system (A) is always GroundOne, and in the comparisons between two GroundOne models the larger one or the first run. In blue the differences in favour of A, in orange those in favour of the second system (B), in grey the non-significant ones, whose interval contains zero. On the in-domain test set (T1) almost every difference favours GroundOne, and the largest separate it from the same model untrained and from the token it would generate (control B2): specialisation and readout matter more than size. On LLM-AggreFact (T2) the differences shrink and several are not significant, while on VitaminC (T3) the picture reverses in favour of d1-3B, Rizzo-Flow and MiniCheck-RoBERTa. The ``run 2'' rows compare two trainings with the same procedure: two differences are significant even there, which is why differences smaller than the variability between seeds are not interpreted.}
 \label{fig:results-bootstrap}
 \end{figure}
 

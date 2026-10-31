@@ -186,7 +186,11 @@ def main(argv=None):
     ap = argparse.ArgumentParser(prog="groundone bootstrap")
     ap.add_argument("--reps", type=int, default=2000)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--figure-only", action="store_true", help="redraw the figure from the saved metrics.json")
     a = ap.parse_args(argv)
+    if a.figure_only:
+        figure(json.loads((RESULTS_DIR / "bootstrap" / "metrics.json").read_text()))
+        return
     rng = np.random.default_rng(a.seed)
 
     t1r, t3r = records("test_ragtruth"), records("test_vitaminc")
@@ -301,20 +305,36 @@ def summary_md(r):
     return "\n".join(lines) + "\n"
 
 
+METRIC_LABELS = {"three_way": "three-way bal. acc.", "auroc": "AUROC", "bacc": "binary bal. acc.",
+                 "macro_bacc": "macro bal. acc.", "rag_bacc": "RAG bal. acc."}
+
+
+def _groundone_first(e):
+    """The pair with GroundOne as A, so that blue always means GroundOne better (difference and interval negated)."""
+    if e["B"].startswith("GroundOne") and not e["A"].startswith("GroundOne"):
+        lo, hi = e["ci95"]
+        return {**e, "A": e["B"], "B": e["A"], "diff": -e["diff"], "ci95": [-hi, -lo]}
+    return e
+
+
 def figure(r):
-    from ..figures.style import INK2, NEUTRAL, SERIES, Group, plt
-    rows = [e for e in r["pairs"] if e["metric"] != "speedup_k14" and e["test"] != "lat"]
-    fig, ax = plt.subplots(figsize=(7.2, 0.28 * len(rows) + 1.0))
+    from ..figures.style import INK2, LANG, NEUTRAL, SERIES, Group, _tr_text, plt
+    rows = [_groundone_first(e) for e in r["pairs"] if e["metric"] != "speedup_k14" and e["test"] != "lat"]
+    fig, ax = plt.subplots(figsize=(6.2, 0.105 * len(rows) + 0.8))
     for k, e in enumerate(rows[::-1]):
         lo, hi = e["ci95"]
         col = SERIES[0] if lo > 0 else SERIES[1] if hi < 0 else NEUTRAL
-        ax.plot([lo, hi], [k, k], color=col, lw=2, solid_capstyle="round")
-        ax.plot([e["diff"]], [k], "o", color=col, ms=5)
+        ax.plot([lo, hi], [k, k], color=col, lw=1.5, solid_capstyle="round")
+        ax.plot([e["diff"]], [k], "o", color=col, ms=3.5)
     ax.axvline(0, color=INK2, lw=1)
     ax.set_yticks(range(len(rows)))
-    ax.set_yticklabels([f"{TESTS[e['test']].split(' ')[0] + (' K≥14' if e['test'] == 't1_k14' else '')} · {e['metric']} · "
-                        f"{e['A']} − {e['B']}" for e in rows[::-1]], fontsize=7)
-    ax.set_xlabel("difference A − B with 95 % bootstrap interval (blue: A better, orange: B better, grey: not significant)")
+    labels = [f"{TESTS[e['test']].split(' ')[0] + (' K≥14' if e['test'] == 't1_k14' else '')} · "
+              f"{METRIC_LABELS.get(e['metric'], e['metric'])} · {e['A']} − {e['B']}" for e in rows[::-1]]
+    ax.set_yticklabels([_tr_text(t) for t in labels] if LANG == "it" else labels, fontsize=6)
+    ax.set_xlabel("difference A − B with 95 % bootstrap interval (blue: A better, orange: B better, grey: not significant)",
+                  fontsize=7)
+    ax.tick_params(axis="x", labelsize=7)
+    ax.set_ylim(-0.7, len(rows) - 0.3)
     ax.grid(axis="y", visible=False)
     g = Group("bootstrap")
     g.save(fig, "paired_differences", "Paired differences between systems on the frozen test sets with 95 % cluster-"

@@ -124,6 +124,8 @@ SUB = [
     ("GroundOne 0.5B, run 2", "GroundOne 0.5B, run 2"),
     ("Untrained 0.5B", "0.5B non addestrato"), ("Untrained 3B", "3B non addestrato"),
     ("Word overlap", "Sovrapposizione lessicale"),
+    ("three-way bal. acc.", "bal. acc. a tre classi"), ("binary bal. acc.", "bal. acc. binaria"),
+    ("macro bal. acc.", "bal. acc. macro"), ("RAG bal. acc.", "bal. acc. sui dataset RAG"),
     (" · three_way · ", " · tre classi · "), (" · macro_bacc · ", " · bacc macro · "), (" · rag_bacc · ", " · bacc RAG · "),
     (" · auroc · ", " · AUROC · "), (" · bacc · ", " · bacc · "),
     ("not_mentioned (mean ", "non menzionata (media "), ("contradicted (mean ", "contraddetta (media "),

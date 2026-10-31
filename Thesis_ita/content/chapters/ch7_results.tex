@@ -12,8 +12,8 @@ forma ``da $a$ a $b$'', sono intervalli di confidenza al 95\,\% ottenuti con un 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{images/results/bootstrap_paired_differences.png}
-\caption{Tutte le differenze appaiate tra sistemi sui test set congelati, con l'intervallo bootstrap a cluster al 95\,\%. In blu le differenze a favore del primo sistema (A), in arancione quelle a favore del secondo (B), in grigio quelle non significative, il cui intervallo contiene lo zero.}
+\includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{images/results/bootstrap_paired_differences.png}
+\caption{Tutte le differenze appaiate tra sistemi sui test set congelati, con l'intervallo bootstrap a cluster al 95\,\%. Il primo sistema (A) è sempre GroundOne, e nei confronti fra due modelli GroundOne il più grande o la prima esecuzione. In blu le differenze a favore di A, in arancione quelle a favore del secondo sistema (B), in grigio quelle non significative, il cui intervallo contiene lo zero. Sul test set di dominio (T1) quasi tutte le differenze favoriscono GroundOne, e le più ampie lo separano dallo stesso modello non addestrato e dal token che genererebbe (controllo B2): specializzazione e readout pesano più della dimensione. Su LLM-AggreFact (T2) le differenze si riducono e diverse non sono significative, mentre su VitaminC (T3) il quadro si rovescia a favore di d1-3B, Rizzo-Flow e MiniCheck-RoBERTa. Le righe ``run 2'' confrontano due addestramenti con la stessa procedura: due differenze sono significative anche lì, ed è per questo che le differenze più piccole della variabilità fra seed non vengono interpretate.}
 \label{fig:results-bootstrap}
 \end{figure}
 
