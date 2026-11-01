@@ -172,3 +172,10 @@ Summaries/*.fls
 Summaries/*.fdb_latexmk
 Summaries/*.out
 Thesis*/images/diagrams/*.aux
+
+# Kept locally, not published: Italian version, summaries, literature vault, agent notes
+Summaries/
+Thesis_ita/
+Vault/
+CLAUDE.md
+llm-wiki.md
