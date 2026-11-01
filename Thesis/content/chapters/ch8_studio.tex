@@ -58,7 +58,7 @@ shaders requires Xcode.
 \label{sec:studio-architecture}
 
 The application is divided into three layers (Figure~\ref{fig:studio-architecture}). The first is the interface. The
-second is a core that does not depend on the engines: it manages the session (answer, verification, rewriting), applies the policy and writes the action log, while the conversations are saved by the interface layer. The core knows five abstract interfaces, called \emph{ports}: retriever, generator, verifier, LLM judge and attributor. The third layer contains the engines that implement the first four; attribution is computed by a component of GroundOne that the interface calls directly. Thanks
+second is a core that does not depend on the engines: it manages the session (answer, verification, rewriting), applies the policy and writes the action log, while the conversations are saved by the interface layer. The core knows five abstract interfaces, called \emph{ports}: retriever, generator, verifier, LLM judge and attributor. The third layer contains the engines that implement the first four; attribution is computed by a component of GroundOne that the interface calls directly. The organisation follows the ports-and-adapters, or hexagonal, pattern~\cite{cockburn2005hexagonal}: the core defines the ports and the engines are adapters that implement them, while the interface layer follows the model--view pattern usual in SwiftUI, with an observable application model that the views display. Thanks
 to this separation the core was tested with fake, deterministic engines, just as the Python package is tested with a
 fake backend, and a different engine, for example a generator on llama.cpp, could replace the current one without
 touching the rest.
