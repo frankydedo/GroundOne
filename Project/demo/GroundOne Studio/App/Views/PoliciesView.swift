@@ -18,8 +18,11 @@ struct PoliciesView: View {
             }
             .frame(minWidth: 260, maxWidth: 340)
             Group {
-                if let binding = Binding($editing) {
-                    PolicyEditor(policy: binding, calibrated: model.calibration?.threshold ?? 0.925) { model.save($0) }
+                // not Binding($editing): it force-unwraps, and the editor is still updated once after the selection is cleared
+                if let current = editing {
+                    PolicyEditor(policy: Binding(get: { editing ?? current }, set: { editing = $0 }),
+                                 calibrated: model.calibration?.threshold ?? 0.925) { model.save($0) }
+                        .id(current.name)
                 } else {
                     Text("Select a policy to edit it.").foregroundStyle(.secondary).frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
