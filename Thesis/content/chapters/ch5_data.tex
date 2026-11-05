@@ -241,10 +241,11 @@ hallucination type is not published. In addition, a recent re-annotation of the 
 more hallucinated answers than the original labels~\cite{yu2026retromorphic}, which suggests that T1 underestimates the
 two minority classes. For these reasons the three-class results on T1 are always read together with those on T3.
 
-Once these checks were complete, and before any model was trained, the three test files were frozen with
-cryptographic hashes\footnote{A cryptographic \emph{hash} is a fixed-length fingerprint computed from the content of a
+The content of the three test files was fixed when the dataset was built, after these checks and before any model was
+trained, and recorded with cryptographic hashes\footnote{A cryptographic \emph{hash} is a fixed-length fingerprint computed from the content of a
 file. Even a minimal change to the file produces a completely different fingerprint, so comparing fingerprints is
-enough to detect any change.}. From that moment on, the program that generates the dataset from the raw sources (the
+enough to detect any change.}. The files were then frozen: the hashes recorded at freezing time are identical to those
+of the build. From that moment on, the program that generates the dataset from the raw sources (the
 build command of the GroundOne package, Section~\ref{sec:method-software}) compares every new test file with its
 fingerprint and refuses to overwrite it if the content has changed. Moreover, rerunning the build from scratch yields
 exactly the frozen files: the test sets therefore cannot be modified, not even by mistake, after the results have been

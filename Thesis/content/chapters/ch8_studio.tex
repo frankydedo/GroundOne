@@ -216,7 +216,7 @@ the answer, verified again in the same mode, and a selector allows the versions 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/studio/43-sentence.png}
-\caption{The panel of a selected sentence: calibrated probabilities of GroundOne, verdict of the LLM judge, times and
+\caption{The panel of a selected sentence, with the calibrated probabilities of GroundOne, the verdict of the LLM judge, the times and the
 available actions.}
 \label{fig:studio-sentence}
 \end{figure}
@@ -235,7 +235,7 @@ does not change the times of the main verification.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/studio/44-evidence.png}
-\caption{The evidence for a sentence: the passage that, according to GroundOne, most clearly contradicts the sentence,
+\caption{The evidence for a sentence: the passage which, according to GroundOne, most clearly contradicts the sentence,
 with the closest span highlighted.}
 \label{fig:studio-evidence}
 \end{figure}
@@ -356,7 +356,7 @@ source, sentence rewritten, sentence deleted, error still present and flagged, e
 \label{fig:studio-outcomes}
 \end{figure}
 
-\paragraph{The type of error decides the repair.} Repeating the case study with GroundOne 0.5B as the verifier shows why
+\paragraph{The type of error decides the repair.} When the case study is repeated with GroundOne 0.5B as the verifier, it shows why
 the three-class verdict matters, and not only the flag. The 0.5B flags the error in 97 answers out of 98, like the 3B,
 but labels almost all the replaced numbers and dates as not mentioned (44 out of 50), whereas the 3B recognises them as
 contradicted (40 out of 50). For a sentence that is not mentioned, rewriting may remove the sentence, and the generator
