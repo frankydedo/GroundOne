@@ -157,7 +157,14 @@ also run with MLX, ranks them by semantic similarity. The two rankings are merge
 fusion\footnote{\emph{Reciprocal rank fusion} assigns to every passage the sum, over the rankings to be combined, of
 $1/(60 + r)$, where $r$ is the position of the passage in each ranking: a passage placed well in both outranks one that
 appears at the top of only one~\cite{cormack2009rrf}.}, and every document can contribute at most three passages, so
-that a comparison question reaches different sources. The six retrieved passages, preceded by the question, form the
+that a comparison question reaches different sources. The choice favours simplicity and locality over scale. BM25 finds exact matches of names and numbers, precisely the
+content that GroundOne verifies, the embeddings cover paraphrases, and reciprocal rank fusion combines the two rankings
+without weights to tune. With a few thousand passages the similarity is computed exhaustively in a few milliseconds, so
+a dedicated vector-search library such as Faiss~\cite{douze2024faiss} would bring no advantage. Vector databases such
+as pgvector~\cite{pgvector}, an extension of PostgreSQL, or Chroma~\cite{chroma}, which runs inside a Python process or
+as a server, would have added a separate service to the application; SQLite instead keeps the text, the full-text index
+and the embeddings in a single file, inside the process. For libraries of millions of documents an approximate index
+would become necessary. The six retrieved passages, preceded by the question, form the
 document that GroundOne reads, in the same form as the question answering of RAGTruth.
 
 On the 150 real MS MARCO questions, hybrid retrieval returns all the original passages of the question among the six
