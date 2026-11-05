@@ -224,7 +224,9 @@ the answer, verified again in the same mode, and a selector allows the versions 
 \centering
 \includegraphics[width=\textwidth]{images/studio/43-sentence.png}
 \caption{The panel of a selected sentence, with the calibrated probabilities of GroundOne, the verdict of the LLM judge, the times and the
-available actions.}
+available actions. The sentence is labelled contradicted although $P(\text{supported}) = 0.86$: it is supported only if this
+probability reaches the threshold $\tau = 0.925$, and otherwise it takes the more probable of the other two classes
+(Section~\ref{sec:studio-threshold}).}
 \label{fig:studio-sentence}
 \end{figure}
 
@@ -243,7 +245,9 @@ does not change the times of the main verification.
 \centering
 \includegraphics[width=\textwidth]{images/studio/44-evidence.png}
 \caption{The evidence for a sentence: the passage which, according to GroundOne, most clearly contradicts the sentence,
-with the closest span highlighted.}
+with the closest span highlighted. GroundOne is right: according to the passage the card is recharged when the balance
+falls below 10 dollars, not below the 25 written in the answer, an error that the LLM judge does not detect
+(Section~\ref{sec:studio-example}).}
 \label{fig:studio-evidence}
 \end{figure}
 
